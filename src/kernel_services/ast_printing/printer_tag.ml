@@ -221,13 +221,13 @@ struct
       | Instr (Call _)
       | Instr (Local_init (_, ConsInit _, _)) ->
         let extract_instance_predicate = function
-          | Property.IPPropertyInstance (_kf, _stmt, pred, _prop) -> pred
+          | Property.IPPropertyInstance {Property.ii_pred} -> ii_pred
           (* Other cases should not happen, unless a plugin has replaced call
              preconditions. In this case, print nothing but do not crash. *)
           | _ -> raise Not_found
         in
         let extract_predicate = function
-          | Property.IPPredicate (_, _, _, p) -> p
+          | Property.IPPredicate {Property.ip_pred} -> ip_pred
           | _ -> assert false
         in
         (* Functons called at this point *)

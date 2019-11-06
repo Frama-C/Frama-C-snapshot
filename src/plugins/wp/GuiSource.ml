@@ -73,7 +73,7 @@ let selection_of_localizable = function
 let kind_of_property = function
   | Property.IPLemma _ -> "lemma"
   | Property.IPCodeAnnot _ -> "annotation"
-  | Property.IPPredicate( Property.PKRequires _ , _ , Kglobal , _ ) ->
+  | Property.(IPPredicate {ip_kind=PKRequires _;ip_kinstr = Kglobal}) ->
       "precondition for callers"
   | _ -> "property"
 
@@ -97,7 +97,7 @@ class popup () =
       let setup = Factory.parse (Wp_parameters.Model.get ()) in
       let driver = Driver.load_driver () in
       let model = Factory.instance setup driver in
-      WpRTE.generate kf model
+      WpRTE.generate model kf
 
     method private rte_option
         (menu : GMenu.menu GMenu.factory)
@@ -209,7 +209,6 @@ class highlighter (main:Design.main_window_extension_points) =
           | Some { Wpo.po_pid = pid ; Wpo.po_formula = f } ->
               begin
                 match f with
-                | GoalCheck _ -> ()
                 | GoalLemma l ->
                     deps <- lemmas l.VC_Lemma.depends
                 | GoalAnnot a ->
@@ -232,7 +231,7 @@ class highlighter (main:Design.main_window_extension_points) =
         ~(start:int) ~(stop:int) =
       let buffer = buffer#buffer in
       begin match loc with
-        | PStmt( _ , stmt ) ->
+        | PStmt( _ , stmt ) | PStmtStart( _ , stmt ) ->
             begin
               match effect with
               | Some(s,_) when Stmt.equal stmt s ->
@@ -250,7 +249,7 @@ class highlighter (main:Design.main_window_extension_points) =
                   if DEPS.mem ip deps then
                     apply_depend buffer start stop
             end
-        | PStmtStart _ | PGlobal _
+        | PGlobal _
         | PVDecl _ | PTermLval _ | PLval _ | PExp _ -> ()
       end
 

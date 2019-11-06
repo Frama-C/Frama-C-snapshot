@@ -1,10 +1,10 @@
 /* run.config
-   OPT: -wp-init-const -wp-no-let
-   OPT: -main main_ko -wp-no-let
+   OPT: -wp-no-let
+   OPT: -main main_ko -wp-no-let -wp-no-init-const
 */
 /* run.config_qualif
-   OPT: -wp-init-const -wp -wp-par 1 -wp-prop="-qed_ko"
-   OPT: -main main_ko -wp-par 1 -wp-prop qed_ko -wp-steps 50
+   OPT: -wp -wp-par 1 -wp-prop="-qed_ko"
+   OPT: -main main_ko -wp-par 1 -wp-prop qed_ko -wp-steps 50 -wp-no-init-const 
 */
 
 /* -------------------------------------------------------------------------- */

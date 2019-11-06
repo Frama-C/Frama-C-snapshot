@@ -1161,6 +1161,42 @@ let join v1 v2 =
     pretty v1 pretty v2 pretty result; *)
   result
 
+let complement_int_under ~size ~signed i =
+  let e = Int.two_power_of_int (if signed then size - 1 else size) in
+  let b = if signed then Int.neg e else Int.zero in
+  let e = Int.pred e in
+  let inject_range min max = `Value (inject_range (Some min) (Some max)) in
+  match i with
+  | Float _ -> `Bottom
+  | Set [||] -> inject_range b e
+  | Set set ->
+    let l = Array.length set in
+    let array = Array.make (l + 2) Int.zero in
+    array.(0) <- b;
+    Array.blit set 0 array 1 l;
+    array.(l+1) <- e;
+    let index = ref (-1) in
+    let max_delta = ref Int.zero in
+    for i = 0 to l do
+      let delta = Int.sub array.(i+1) array.(i) in
+      if Int.gt delta !max_delta then begin
+        index := i;
+        max_delta := delta
+      end
+    done;
+    inject_range array.(!index) array.(!index + 1)
+  | Top (min, max, _rem, _modu) ->
+    match min, max with
+    | None, None -> `Bottom
+    | Some min, None -> inject_range b (Int.pred min)
+    | None, Some max -> inject_range (Int.succ max) e
+    | Some min, Some max ->
+      let delta_min = Int.sub min b in
+      let delta_max = Int.sub e max in
+      if Int.le delta_min delta_max
+      then inject_range (Int.succ max) e
+      else inject_range b (Int.pred min)
+
 let fold_int f v acc =
   match v with
     Top(None,_,_,_) | Top(_,None,_,_) | Float _ ->

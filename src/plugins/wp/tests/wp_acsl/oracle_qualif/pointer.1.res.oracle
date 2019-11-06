@@ -1,23 +1,25 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/pointer.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
-[wp] tests/wp_acsl/pointer.i:50: Warning: Uncomparable locations p_0 and mem:t
-[wp] tests/wp_acsl/pointer.i:49: Warning: Uncomparable locations p_0 and mem:t
+[wp] tests/wp_acsl/pointer.i:50: Warning: 
+  Uncomparable locations p_0 and mem:t.(0)
+[wp] tests/wp_acsl/pointer.i:49: Warning: 
+  Uncomparable locations p_0 and mem:t.(0)
 [wp] 9 goals scheduled
-[wp] [Alt-Ergo] Goal typed_absurd_ensures_qed_ko_Base_oracle_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_absurd_ensures_qed_ko_Comp_oracle_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_absurd_ensures_qed_ko_Base_oracle_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_absurd_ensures_qed_ko_Comp_oracle_ko : Unsuccess
 [wp] [Qed] Goal typed_array_ensures_Lt : Valid
 [wp] [Qed] Goal typed_array_ensures_Le : Valid
 [wp] [Qed] Goal typed_array_ensures_Eq : Valid
-[wp] [Alt-Ergo] Goal typed_mixed_array_pointer_ensures_qed_ko_Le_oracle_ko : Unsuccess (Stronger)
-[wp] [Alt-Ergo] Goal typed_mixed_array_pointer_ensures_qed_ko_Lt_oracle_ko : Unsuccess (Stronger)
-[wp] [Alt-Ergo] Goal typed_pointer_ensures_qed_ko_Le_oracle_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_pointer_ensures_qed_ko_Eq_oracle_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_mixed_array_pointer_ensures_qed_ko_Le_oracle_ko : Unsuccess (Stronger)
+[wp] [Alt-Ergo 2.0.0] Goal typed_mixed_array_pointer_ensures_qed_ko_Lt_oracle_ko : Unsuccess (Stronger)
+[wp] [Alt-Ergo 2.0.0] Goal typed_pointer_ensures_qed_ko_Le_oracle_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_pointer_ensures_qed_ko_Eq_oracle_ko : Unsuccess
 [wp] Proved goals:    3 / 9
-  Qed:             3 
-  Alt-Ergo:        0  (unsuccess: 6)
+  Qed:               3 
+  Alt-Ergo 2.0.0:    0  (unsuccess: 6)
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/pointer.1.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/pointer.1.report.json'
 -------------------------------------------------------------
@@ -28,5 +30,5 @@ mixed_array_pointer  -     -                 2       0.0%
 absurd              -      -                 2       0.0%
 -------------------------------------------------------------
 [wp] Warning: Memory model hypotheses for function 'absurd':
-  /*@ behavior typed: requires \separated(&p,q); */
+  /*@ behavior typed: requires \separated(&p,q+(..)); */
   void absurd(int *q);

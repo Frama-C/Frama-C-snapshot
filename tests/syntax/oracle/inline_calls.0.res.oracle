@@ -90,16 +90,16 @@ int rec(int x_0)
     goto return_label;
   }
   {
-    int __retres_6;
-    int tmp_5;
-    int x_0_7 = x_0 - 1;
-    if (x_0_7 < 0) {
-      __retres_6 = x_0_7;
+    int __retres_7;
+    int tmp_6;
+    int x_0_5 = x_0 - 1;
+    if (x_0_5 < 0) {
+      __retres_7 = x_0_5;
       goto return_label_0;
     }
-    tmp_5 = rec(x_0_7 - 1);
-    __retres_6 = tmp_5;
-    return_label_0: tmp = __retres_6;
+    tmp_6 = rec(x_0_5 - 1);
+    __retres_7 = tmp_6;
+    return_label_0: tmp = __retres_7;
   }
   __retres = tmp;
   return_label: return __retres;
@@ -125,24 +125,24 @@ int f1(int a)
     if (nondet) {
       int __inline_tmp_6;
       {
-        int __retres_8;
-        int a_12 = 2;
+        int __retres_9;
+        int a_8 = 2;
         if (nondet) {
-          int __inline_tmp_9;
+          int __inline_tmp_10;
           {
-            int a_5_10 = 1;
+            int a_5_11 = 1;
             if (nondet) g1(4);
-            __inline_tmp_9 = a_5_10;
+            __inline_tmp_10 = a_5_11;
           }
         }
         else 
           if (nondet) {
-            int __inline_tmp_6_11;
+            int __inline_tmp_6_12;
             f1(2);
           }
         /*@ assert missing_return: \false; */ ;
-        __retres_8 = 0;
-        __inline_tmp_6 = __retres_8;
+        __retres_9 = 0;
+        __inline_tmp_6 = __retres_9;
       }
     }
   /*@ assert missing_return: \false; */ ;
@@ -155,12 +155,12 @@ int g1(int a)
   if (nondet) {
     int __inline_tmp;
     {
-      int a_5 = 4;
+      int a_4 = 4;
       if (nondet) {
-        int __inline_tmp_4;
+        int __inline_tmp_5;
         g1(4);
       }
-      __inline_tmp = a_5;
+      __inline_tmp = a_4;
     }
   }
   return a;
@@ -188,16 +188,16 @@ int main(void)
       goto return_label;
     }
     {
-      int __retres_6;
-      int tmp_5;
-      int x_0_7 = x_0 - 1;
-      if (x_0_7 < 0) {
-        __retres_6 = x_0_7;
+      int __retres_7;
+      int tmp_6;
+      int x_0_5 = x_0 - 1;
+      if (x_0_5 < 0) {
+        __retres_7 = x_0_5;
         goto return_label_0;
       }
-      tmp_5 = rec(x_0_7 - 1);
-      __retres_6 = tmp_5;
-      return_label_0: tmp = __retres_6;
+      tmp_6 = rec(x_0_5 - 1);
+      __retres_7 = tmp_6;
+      return_label_0: tmp = __retres_7;
     }
     __retres_10 = tmp;
     return_label: __inline_tmp_8 = __retres_10;
@@ -218,24 +218,24 @@ int main(void)
       if (nondet) {
         int __inline_tmp_6;
         {
-          int __retres_8;
-          int a_12 = 2;
+          int __retres_9;
+          int a_8 = 2;
           if (nondet) {
-            int __inline_tmp_9;
+            int __inline_tmp_10;
             {
-              int a_5_10 = 1;
+              int a_5_11 = 1;
               if (nondet) g1(4);
-              __inline_tmp_9 = a_5_10;
+              __inline_tmp_10 = a_5_11;
             }
           }
           else 
             if (nondet) {
-              int __inline_tmp_6_11;
+              int __inline_tmp_6_12;
               f1(2);
             }
           /*@ assert missing_return: \false; */ ;
-          __retres_8 = 0;
-          __inline_tmp_6 = __retres_8;
+          __retres_9 = 0;
+          __inline_tmp_6 = __retres_9;
         }
       }
     /*@ assert missing_return: \false; */ ;
@@ -259,9 +259,9 @@ int main(void)
       else {
         int tmp_0;
         {
-          int __retres_6_17;
-          __retres_6_17 = 3;
-          tmp_0 = __retres_6_17;
+          int __retres_6;
+          __retres_6 = 3;
+          tmp_0 = __retres_6;
         }
         __retres_16 = tmp_0;
         goto return_label_1;

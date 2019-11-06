@@ -79,6 +79,12 @@ let access_ptr_elts ~loc tlv =
   let range = Logic_const.trange ~loc (None, None) in
   let basetype = Cil.typeOfTermLval tlv in
   let base = Logic_const.term ~loc (TLval tlv) basetype in
+  let base, basetype =
+    if Logic_utils.isLogicVoidPointerType basetype then begin
+      let typ = Ctype Cil.charPtrType in
+      Logic_const.term ~loc (TCastE(Cil.charPtrType,base)) typ, typ
+    end else base, basetype
+  in
   let offset = Logic_const.term ~loc (TBinOp (PlusPI, base, range)) basetype in
   TMem offset, TNoOffset
 
@@ -138,8 +144,8 @@ object(self)
             let once = true in
             Kernel.warning
               ~once ~source
-              "Clobber list contain \"memory\" argument. Assuming no \
-               side-effect beyond those mentioned in operands."
+              "Clobber list contains \"memory\" argument. Assuming no \
+               side effects beyond those mentioned in operands."
           end;
           let to_id_term lv =
             Logic_const.new_identified_term

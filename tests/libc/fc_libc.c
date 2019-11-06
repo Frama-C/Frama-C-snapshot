@@ -2,9 +2,13 @@
    EXECNOW: make -s @PTEST_DIR@/check_libc_naming_conventions.cmxs
    EXECNOW: make -s @PTEST_DIR@/check_const.cmxs
    EXECNOW: make -s @PTEST_DIR@/check_parsing_individual_headers.cmxs
+   EXECNOW: make -s @PTEST_DIR@/check_libc_anonymous_tags.cmxs
+   EXECNOW: make -s @PTEST_DIR@/check_compliance.cmxs
    OPT: -load-module @PTEST_DIR@/check_libc_naming_conventions -print -cpp-extra-args='-nostdinc -Ishare/libc' -metrics -metrics-libc -load-module @PTEST_DIR@/check_const -load-module metrics -eva @EVA_CONFIG@ -then -lib-entry -no-print -metrics-no-libc
    OPT: -print -print-libc
    OPT: -load-module @PTEST_DIR@/check_parsing_individual_headers
+   OPT: -load-module @PTEST_DIR@/check_libc_anonymous_tags
+   OPT: -load-module @PTEST_DIR@/check_compliance -kernel-msg-key printer:attrs
    CMD: ./tests/libc/check_full_libc.sh
    OPT:
 **/
@@ -77,6 +81,7 @@
 #include "fenv.h"
 #include "float.h"
 #include "fnmatch.h"
+#include "ftw.h"
 #include "getopt.h"
 #include "glob.h"
 #include "grp.h"

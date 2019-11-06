@@ -29,7 +29,7 @@ open Promelaast
 (** Given a transition a function and a function status (call or return)
     it returns if the cross condition can be satisfied
     with only function status.
- *)
+*)
 
 val isCrossable:
   (typed_condition * action) trans -> kernel_function -> funcStatus -> bool
@@ -42,7 +42,7 @@ val isCrossableAtInit:
 (** This function rewrites a cross condition into an ACSL expression.
     Moreover, by giving current operation name and its status (call or
     return) the generation simplifies the generated expression.
- *)
+*)
 val crosscond_to_pred:
   typed_condition -> kernel_function -> funcStatus -> predicate
 
@@ -67,7 +67,7 @@ val initGlobals : Cil_types.kernel_function -> bool -> unit
 (** base lhost corresponding to curState. *)
 val host_state_term: unit -> Cil_types.term_lval
 
-(** Returns the predicate saying that automaton is in 
+(** Returns the predicate saying that automaton is in
     corresponding state. *)
 val is_state_pred: state -> predicate
 
@@ -99,7 +99,7 @@ val is_out_of_state_exp: state -> location -> Cil_types.exp
     in the function.
     @since Nitrogen-20111001
     @since Neon-20140301 adds kf argument
- *)
+*)
 val aorai_assigns:
   Data_for_aorai.state -> Cil_types.location -> Cil_types.assigns
 
@@ -111,7 +111,7 @@ val force_transition:
   Cil_types.location -> kernel_function -> Promelaast.funcStatus ->
   Data_for_aorai.state -> Cil_types.identified_predicate list
 
-(** return list of preconditions for the given auxiliary function 
+(** return list of preconditions for the given auxiliary function
     (f_pre_func or f_post_func). *)
 val auto_func_preconditions:
   Cil_types.location -> kernel_function -> Promelaast.funcStatus ->
@@ -150,7 +150,7 @@ val possible_states_preds:
 (** Possible values of the given auxiliary variable under the current path,
     [start]ing from the given point
     @since Neon-20140301 add logic_label argument
- *)
+*)
 val update_to_pred:
   start: Cil_types.logic_label ->
   pre_state:Promelaast.state -> post_state:Promelaast.state ->
@@ -161,7 +161,7 @@ val update_to_pred:
     the function, guarded by the fact that we have followed this path, from
     the given program point
     @modify Neon-20130301 add logic_label argument
- *)
+*)
 val action_to_pred:
   start:Cil_types.logic_label ->
   pre_state:Promelaast.state -> post_state:Promelaast.state ->
@@ -170,8 +170,8 @@ val action_to_pred:
 (** All actions that might have been performed on aux variables from the
     given program point, guarded by the path followed.
     @modify Neon-20140301 add logic_label argument
- *)
-val all_actions_preds: 
+*)
+val all_actions_preds:
   Cil_types.logic_label ->
   Data_for_aorai.state -> predicate list
 

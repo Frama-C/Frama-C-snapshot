@@ -1,0 +1,8 @@
+[kernel] Parsing tests/syntax/ghost_parameters.c (with preprocessing)
+[kernel] tests/syntax/ghost_parameters.c:200: User Error: 
+  ghost parameters list cannot be void
+[kernel] tests/syntax/ghost_parameters.c:204: User Error: 
+  ghost parameters list cannot be void
+[kernel] User Error: stopping on file "tests/syntax/ghost_parameters.c" that has errors. Add
+  '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

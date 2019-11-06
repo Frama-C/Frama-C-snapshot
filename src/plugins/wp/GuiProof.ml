@@ -194,10 +194,10 @@ class printer (text : Wtext.text) =
             | `Proof ->
                 text#printf "@{<it>Existing Script (navigate to explore)@}@."
             | `Script ->
-                text#printf "[File '%s']@." (ProofSession.filename wpo) ;
+                text#printf "[%a]@." ProofSession.pp_goal wpo ;
                 text#printf "@{<it>Existing Script (replay to explore)@}@."
             | `Saved ->
-                text#printf "[File '%s']@." (ProofSession.filename wpo) ;
+                text#printf "[%a]@." ProofSession.pp_goal wpo ;
                 text#printf "@{<it>Saved Script (replay to load)@}@."
             | `None ->
                 text#printf "@{<it>No Script@}@."

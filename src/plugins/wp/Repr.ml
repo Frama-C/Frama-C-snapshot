@@ -20,15 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type env = Lang.F.pool
 type var = Lang.F.var
 type tau = Lang.F.tau
 type field = Lang.field
 type lfun = Lang.lfun
 type term = Lang.F.term
 type pred = Lang.F.pred
-
-let env vars = Lang.new_pool ~vars ()
 
 type repr =
   | True
@@ -38,8 +35,6 @@ type repr =
   | Not of term
   | Imply of term list * term
   | If of term * term * term
-  | Forall of tau * (env -> var * term)
-  | Exists of tau * (env -> var * term)
   | Var of var
   | Int of Z.t
   | Real of Q.t
@@ -58,10 +53,7 @@ type repr =
   | Cst of tau * term
   | Get of term * term
   | Set of term * term * term
-  | Abstract
-
-let disclose tau bind env =
-  let x = Lang.F.fresh env tau in x , Lang.F.QED.lc_open x bind
+  | HigherOrder
 
 module L = Qed.Logic
 
@@ -74,8 +66,6 @@ let term e : repr =
   | L.Not t -> Not t
   | L.If(a,b,c) -> If(a,b,c)
   | L.Imply(hs,p) -> Imply(hs,p)
-  | L.Bind(L.Forall,t,q) -> Forall(t,disclose t q)
-  | L.Bind(L.Exists,t,q) -> Exists(t,disclose t q)
   | L.Kint z -> Int z
   | L.Kreal r -> Real r
   | L.Add ts -> Add ts
@@ -94,7 +84,8 @@ let term e : repr =
   | L.Aget(a,k) -> Get(a,k)
   | L.Aset(a,k,v) -> Set(a,k,v)
   | L.Fvar x -> Var x
-  | L.Bvar _ | L.Bind(L.Lambda,_,_) | L.Apply _ -> Abstract
+  | L.Bvar _ | L.Bind _ | L.Apply _
+    -> HigherOrder
 
 let pred p = term (Lang.F.e_prop p)
 

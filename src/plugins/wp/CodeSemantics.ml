@@ -315,7 +315,11 @@ struct
           Lang.assume (Cvalues.is_object obj data) ;
           data
 
-    | AddrOf lv | StartOf lv -> Loc (lval env lv)
+    | AddrOf lv ->
+        Loc (lval env lv)
+
+    | StartOf lv ->
+        Loc (Cvalues.startof ~shift:M.shift (lval env lv) (Cil.typeOfLval lv))
 
     | UnOp(op,e,ty) -> exp_unop env ty op e
     | BinOp(op,e1,e2,tr) -> exp_binop env tr op e1 e2

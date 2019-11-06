@@ -76,19 +76,20 @@ let wp_unreachable =
     ~tuning:[] (* TBC *)
 
 let set_unreachable pid =
+  let open Property in
   let emit = function
-    | Property.IPPredicate(Property.PKAssumes _ ,_,_,_) -> ()
+    | IPPredicate {ip_kind = PKAssumes _} -> ()
     | p ->
         debug "unreachable annotation %a@." Property.pretty p;
         Property_status.emit wp_unreachable ~hyps:[] p Property_status.True
   in
   let pids = match WpPropId.property_of_id pid with
-    | Property.IPPredicate(Property.PKAssumes _ ,_,_,_) -> []
-    | Property.IPBehavior(kf, kinstr, active, bhv) ->
-        let active = Datatype.String.Set.elements active in
-        (Property.ip_post_cond_of_behavior kf kinstr active bhv) @
-        (Property.ip_requires_of_behavior kf kinstr bhv)
-    | Property.IPExtended _ -> []
+    | IPPredicate {ip_kind = PKAssumes _} -> []
+    | IPBehavior {ib_kf; ib_kinstr; ib_active; ib_bhv} ->
+        let active = Datatype.String.Set.elements ib_active in
+        (ip_post_cond_of_behavior ib_kf ib_kinstr active ib_bhv) @
+        (ip_requires_of_behavior ib_kf ib_kinstr ib_bhv)
+    | IPExtended _ -> []
     (* Extended clauses might concern anything. Don't validate them
        unless we know exactly what is going on. *)
     | p ->
@@ -304,8 +305,9 @@ let filter_assign config pid =
 
 let filter_speconly config pid =
   if Cil2cfg.cfg_spec_only config.cfg then
+    let open Property in
     match WpPropId.property_of_id pid with
-    | Property.IPPredicate( Property.PKRequires _ , _ , Kglobal , _ ) -> true
+    | IPPredicate {ip_kind = PKRequires _; ip_kinstr = Kglobal} -> true
     | _ -> false
   else true
 
@@ -1292,7 +1294,7 @@ let process_unreached_annots cfg =
 (*----------------------------------------------------------------------------*)
 
 let get_cfg kf model =
-  if Wp_parameters.RTE.get () then WpRTE.generate kf model ;
+  if Wp_parameters.RTE.get () then WpRTE.generate model kf ;
   let cfg = Cil2cfg.get kf in
   let _ = process_unreached_annots cfg in cfg
 
@@ -1335,14 +1337,15 @@ let get_strategies assigns kf model behaviors ki property =
 let get_precond_strategies ~model p =
   debug "[get_precond_strategies] %s@."
     (Property.Names.get_prop_name_id p);
+  let open Property in
   match p with
-  | Property.IPPredicate (Property.PKRequires b, kf, Kglobal, _) ->
+  | IPPredicate {ip_kind = PKRequires b; ip_kf; ip_kinstr = Kglobal} ->
       let strategies =
-        if WpStrategy.is_main_init kf then
-          get_strategies NoAssigns kf model [b.b_name] None (IdProp p)
+        if WpStrategy.is_main_init ip_kf then
+          get_strategies NoAssigns ip_kf model [b.b_name] None (IdProp p)
         else []
       in
-      let call_sites = Kernel_function.find_syntactic_callsites kf in
+      let call_sites = Kernel_function.find_syntactic_callsites ip_kf in
       let add_call_pre_strategy acc (kf_caller, stmt) =
         let asked = CallPre (stmt, Some p) in
         get_strategies NoAssigns kf_caller model [] None asked @ acc
@@ -1350,7 +1353,7 @@ let get_precond_strategies ~model p =
       if call_sites = [] then
         (Wp_parameters.warning ~once:true
            "No direct call sites for function '%a': cannot check pre-conditions"
-           Kernel_function.pretty kf;
+           Kernel_function.pretty ip_kf;
          strategies)
       else List.fold_left add_call_pre_strategy strategies call_sites
   | _ ->
@@ -1383,29 +1386,29 @@ let get_call_pre_strategies ~model stmt =
 let get_id_prop_strategies ~model ?(assigns=WithAssigns) p =
   debug "[get_id_prop_strategies] %s@."
     (Property.Names.get_prop_name_id p);
-  match p with
-  | Property.IPCodeAnnot (kf,_,ca) ->
-      let bhvs = match ca.annot_content with
+  let open Property in match p with
+  | IPCodeAnnot {ica_kf; ica_ca} ->
+      let bhvs = match ica_ca.annot_content with
         | AAssert (l, _, _) | AInvariant (l, _, _) | AAssigns (l, _) -> l
         | _ -> []
-      in get_strategies assigns kf model bhvs None (IdProp p)
-  | Property.IPAssigns (kf, _, Property.Id_loop _, _)
+      in get_strategies assigns ica_kf model bhvs None (IdProp p)
+  | IPAssigns {ias_kf = kf; ias_bhv = Id_loop _}
   (*loop assigns: belongs to the default behavior *)
-  | Property.IPDecrease (kf,_,_,_) ->
+  | IPDecrease {id_kf = kf} ->
       (* any variant property is attached to the default behavior of
        * the function, NOT to a statement behavior *)
       let bhvs = [ Cil.default_behavior_name ] in
       get_strategies assigns kf model bhvs None (IdProp p)
-  | Property.IPPredicate (Property.PKRequires _, _kf, Kglobal, _p) ->
+  | IPPredicate {ip_kind = PKRequires _; ip_kinstr = Kglobal} ->
       get_precond_strategies model p
   | _ ->
-      let strategies = match Property.get_kf p with
+      let strategies = match get_kf p with
         | None -> Wp_parameters.warning
                     "WP of property outside functions: ignore %s"
                     (Property.Names.get_prop_name_id p); []
         | Some kf ->
-            let ki = Some (Property.get_kinstr p) in
-            let bhv = match Property.get_behavior p with
+            let ki = Some (get_kinstr p) in
+            let bhv = match get_behavior p with
               | None -> Cil.default_behavior_name
               | Some fb -> fb.b_name
             in get_strategies assigns kf model [bhv] ki (IdProp p)

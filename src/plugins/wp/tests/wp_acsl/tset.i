@@ -1,5 +1,5 @@
 /* run.config_qualif
-   OPT: -wp -wp-prover alt-ergo,coq -wp-script tests/wp_acsl/tset.s
+   OPT: -wp -wp-prover alt-ergo,native:coq -wp-coq-script tests/wp_acsl/tset.s
 */
 
 /*@

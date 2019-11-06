@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/bitwise.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -12,7 +12,7 @@
 [wp] [Qed] Goal typed_band_bit2_ensures_band4 : Valid
 [wp] [Qed] Goal typed_band_bit3_ensures_band5 : Valid
 [wp] [Qed] Goal typed_band_bit4_ensures_band6 : Valid
-[wp] [Alt-Ergo] Goal typed_band_bool_false_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_band_bool_false_ensures : Valid
 [wp] [Qed] Goal typed_band_bool_true_ensures : Valid
 [wp] [Qed] Goal typed_bnot_ensures : Valid
 [wp] [Qed] Goal typed_bor_ensures : Valid
@@ -20,12 +20,12 @@
 [wp] [Qed] Goal typed_bor_bit1_ensures_bor1 : Valid
 [wp] [Qed] Goal typed_bor_bit2_ensures_bor2 : Valid
 [wp] [Qed] Goal typed_bor_bit3_ensures_bor3 : Valid
-[wp] [Alt-Ergo] Goal typed_bor_bool_false_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_bor_bool_true_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_bor_bool_false_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_bor_bool_true_ensures : Valid
 [wp] [Qed] Goal typed_bxor_ensures : Valid
 [wp] [Qed] Goal typed_bxor_bit1_ensures : Valid
 [wp] [Qed] Goal typed_bxor_bit2_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_bxor_bool_false_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_bxor_bool_false_ensures : Valid
 [wp] [Qed] Goal typed_bxor_bool_true_ensures : Valid
 [wp] [Qed] Goal typed_lshift_ensures : Valid
 [wp] [Qed] Goal typed_lshift_shift1_ensures_lsl1 : Valid
@@ -34,8 +34,8 @@
 [wp] [Qed] Goal typed_rshift_ensures : Valid
 [wp] [Qed] Goal typed_rshift_shift1_ensures_lsr1 : Valid
 [wp] Proved goals:   29 / 29
-  Qed:            25 
-  Alt-Ergo:        4
+  Qed:              25 
+  Alt-Ergo 2.0.0:    4
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/bitwise.0.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/bitwise.0.report.json'
 -------------------------------------------------------------

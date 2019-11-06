@@ -1,12 +1,13 @@
 /* run.config*
    STDOPT: #"-warn-decimal-float all -float-hex"
+   STDOPT: #"-warn-decimal-float all -float-hex -warn-special-float none"
 */
 
 volatile v;
+volatile float any_float;
+volatile double any_double;
 
-void test_is_finite(void);
-
-int main() {
+void test_equality () {
   if (v) {
     double d = 0.1;
     //@ assert !(d == 0.1);
@@ -23,10 +24,116 @@ int main() {
   }
 
   // assert 0.1 == v;
-
-  test_is_finite();
 }
 
+/* Tests the evaluation of logic comparison operators. */
+void test_comparison_evaluation () {
+  /* Evaluation with singletons. */
+  float zero = 0.;
+  float minus_zero = -0.;
+  float one = 1.;
+  /*@ check \eq_float(one, one); */                 // true
+  /*@ check \eq_float(zero, minus_zero); */         // true
+  /*@ check \ne_float(zero, one); */                // true
+  /*@ check \lt_float(zero, one); */                // true
+  /*@ check \ge_float(minus_zero, zero); */         // true
+  /*@ check \eq_float(zero, one); */                // false
+  /*@ check \ne_float(one, one); */                 // false
+  /*@ check \ne_float(zero, minus_zero); */         // false
+  /*@ check \lt_float(zero, minus_zero); */         // false
+  if (v) {
+    float inf = 1. / 0.;
+    float nan = 0. / 0.;
+    /*@ check \gt_float(inf, one); */              // true
+    /*@ check \ge_float(inf, inf); */              // true
+    /*@ check \le_float(inf, one); */              // false
+    /*@ check \lt_float(inf, inf); */              // false
+    /*@ check \ne_float(zero, nan); */             // true
+    /*@ check \ne_float(inf, nan); */              // true
+    /*@ check \ne_float(nan, nan); */              // true
+    /*@ check \eq_float(one, nan); */              // false
+    /*@ check \eq_float(nan, nan); */              // false
+    /*@ check \ge_float(one, nan); */              // false
+    /*@ check \ge_float(inf, nan); */              // false
+    /*@ check \ge_float(nan, nan); */              // false
+  }
+  /* Evaluation with intervals. */
+  float higher = v ? 3.14 : 12.5;
+  float middle = v ? 3.14 : -3.14;
+  float lower = v ? -3.14 : -11.1;
+  /*@ check \eq_float(middle, middle); */           // unknown
+  /*@ check \ne_float(middle, middle); */           // unknown
+  /*@ check \gt_float(middle, middle); */           // unknown
+  /*@ check \ne_float(higher, lower); */            // true
+  /*@ check \eq_float(higher, lower); */            // false
+  /*@ check \ge_float(higher, middle); */           // true
+  /*@ check \ge_float(higher, lower); */            // true
+  /*@ check \gt_float(higher, middle); */           // unknown
+  /*@ check \gt_float(higher, lower); */            // true
+  /*@ check \ge_float(middle, higher); */           // unknown
+  /*@ check \gt_float(middle, higher); */           // false
+  /*@ check \gt_float(lower, higher); */            // false
+}
+
+/* Tests the reduction of a variable [d] evaluating to any double by the
+   evaluation of a logic comparison with [bound]. */
+void test_comparison_reduction (double bound) {
+  double d = any_double;
+  if (v) {
+    /*@ assert d == bound; */
+    Frama_C_show_each_eq(bound, d);
+  }
+  if (v) {
+    /*@ assert d < bound; */
+    Frama_C_show_each_lt(bound, d);
+  }
+  if (v) {
+    /*@ assert d <= bound; */
+    Frama_C_show_each_lt(bound, d);
+  }
+  if (v) {
+    /*@ assert \eq_double(d, bound); */
+    Frama_C_show_each_eq_double(bound, d);
+  }
+  if (v) {
+    /*@ assert \lt_double(d, bound); */
+    Frama_C_show_each_lt_double(bound, d);
+  }
+  if (v) {
+    /*@ assert \le_double(d, bound); */
+    Frama_C_show_each_le_double(bound, d);
+  }
+  if (v) {
+    /*@ assert \ne_double(d, bound); */
+    Frama_C_show_each_ne_double(bound, d);
+  }
+}
+
+/* Tests the evaluation and reduction by the builtin comparison operators
+   eq_float, lt_float, etc. */
+void test_builtin_comparisons () {
+  test_comparison_evaluation();
+  /* Comparisons with a singleton bound. */
+  test_comparison_reduction(-1.);
+  test_comparison_reduction(-0.);
+  test_comparison_reduction(0.);
+  test_comparison_reduction(0.1);
+  /* Comparisons with an interval bound. */
+  double bound = -10.;
+  if (v) bound = -1.;
+  test_comparison_reduction(bound);
+  if (v) bound = -0.;
+  test_comparison_reduction(bound);
+  if (v) bound = 0.;
+  test_comparison_reduction(bound);
+  if (v) bound = 0.1;
+  test_comparison_reduction(bound);
+  /* Comparisons with an infinite or NaN bound. */
+  if (v) {
+    test_comparison_reduction(1. / 0.);
+    test_comparison_reduction(0. / 0.);
+  }
+}
 
 
 /*@ assigns \result \from f;
@@ -75,4 +182,11 @@ void test_is_finite(void) {
 
   /* Tests that is_finite validates the input. */
   float g4 = my_ratio_body(-3.3);
+}
+
+
+int main () {
+  test_equality();
+  test_builtin_comparisons();
+  test_is_finite();
 }

@@ -167,8 +167,8 @@ module Make (V: Abstractions.Value) = struct
     | GA_After r1, GA_After r2 -> equal_gui_res r1 r2
     | (GA_After _ | GA_NA | GA_Unchanged | GA_Bottom), _ -> false
 
-  let get_cvalue = V.get Main_values.cvalue_key
-  let from_cvalue v = V.set Main_values.cvalue_key v V.top
+  let get_cvalue = V.get Main_values.CVal.key
+  let from_cvalue v = V.set Main_values.CVal.key v V.top
 
   let var_of_base base acc =
     try

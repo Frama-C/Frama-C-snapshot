@@ -1,0 +1,196 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2019                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* -------------------------------------------------------------------------- *)
+(* --- C-Integer Arithmetics for Why-3                                    --- *)
+(* -------------------------------------------------------------------------- *)
+
+theory Cint
+
+  use int.Int
+  use bool.Bool
+
+  (** * C-Integer bounds * **)
+
+  (** ** bounds are inlined into prover files ** **)
+
+  function max_uint8: int = 256
+  function max_sint8: int = 128
+  function max_uint16: int = 65536
+  function max_sint16: int = 32768
+  function max_uint32: int = 4294967296
+  function max_sint32: int = 2147483648
+  function max_uint64: int = 18446744073709551616
+  function max_sint64: int = 9223372036854775808
+
+  (** * C-Integer Ranges * **)
+
+  predicate is_bool(x:int) = x = 0 \/ x = 1
+  predicate is_uint8(x:int) = 0 <= x < max_uint8
+  predicate is_sint8(x:int) = -max_sint8 <= x < max_sint8
+  predicate is_uint16(x:int) = 0 <= x < max_uint16
+  predicate is_sint16(x:int) = -max_sint16 <= x < max_sint16
+  predicate is_uint32(x:int) = 0 <= x < max_uint32
+  predicate is_sint32(x:int) = -max_sint32 <= x < max_sint32
+  predicate is_uint64(x:int) = 0 <= x < max_uint64
+  predicate is_sint64(x:int) = -max_sint64 <= x < max_sint64
+
+  lemma is_bool0: is_bool(0)
+  lemma is_bool1: is_bool(1)
+
+  (* meta "def_into_axiom" predicate is_bool *)
+  meta "def_into_axiom" predicate is_uint8
+  meta "def_into_axiom" predicate is_sint8
+  meta "def_into_axiom" predicate is_uint16
+  meta "def_into_axiom" predicate is_uint16
+  meta "def_into_axiom" predicate is_sint32
+  meta "def_into_axiom" predicate is_uint32
+  meta "def_into_axiom" predicate is_sint64
+  meta "def_into_axiom" predicate is_uint64
+
+  (** * C-Integer Conversion * **)
+
+  function to_bool ( x : int ) : int = if x = 0 then 0 else 1
+  function to_uint8  int : int
+  function to_sint8  int : int
+  function to_uint16 int : int
+  function to_sint16 int : int
+  function to_uint32 int : int
+  function to_sint32 int : int
+  function to_uint64 int : int
+  function to_sint64 int : int
+
+  function two_power_abs  int : int
+  lemma two_power_abs_is_positive : forall n:int [ two_power_abs n ]. 0 < two_power_abs n
+  lemma two_power_abs_plus_pos : forall n m:int . 0 <= n -> 0 <= m -> two_power_abs (n+m) = (two_power_abs n) * (two_power_abs m)
+  lemma two_power_abs_plus_one : forall n:int   . 0 <= n -> two_power_abs (n+1) = 2 * (two_power_abs n)
+  meta "remove_for_" lemma two_power_abs_is_positive
+  meta "remove_for_" lemma two_power_abs_plus_pos
+  meta "remove_for_" lemma two_power_abs_plus_one
+
+  predicate is_uint (n:int) (x:int) = 0 <= x < two_power_abs n
+
+  (* * [n] is the number of significant bits (that doesn't include the sign bit). * *)
+  predicate is_sint (n:int) (x:int) = -(two_power_abs n) <= x < two_power_abs n
+
+  function to_uint int int : int
+  function to_sint int int : int
+
+ (** * C-Integer Conversions are in-range * **)
+
+  lemma is_to_uint : forall n x:int [ is_uint n (to_uint n x) ]. is_uint n (to_uint n x)
+  lemma is_to_sint : forall n x:int [ is_sint n (to_sint n x) ]. is_sint n (to_sint n x)
+  meta "remove_for_" lemma is_to_uint
+  meta "remove_for_" lemma is_to_sint
+
+  axiom is_to_uint8 : forall x:int [ is_uint8(to_uint8 x) ]. is_uint8 (to_uint8 x)
+  axiom is_to_sint8 : forall x:int [ is_sint8(to_sint8 x) ]. is_sint8 (to_sint8 x)
+  axiom is_to_uint16 : forall x:int [ is_uint16(to_uint16 x) ]. is_uint16 (to_uint16 x)
+  axiom is_to_sint16 : forall x:int [ is_sint16(to_sint16 x) ]. is_sint16 (to_sint16 x)
+  axiom is_to_uint32 : forall x:int [ is_uint32(to_uint32 x) ]. is_uint32 (to_uint32 x)
+  axiom is_to_sint32 : forall x:int [ is_sint32(to_sint32 x) ]. is_sint32 (to_sint32 x)
+  axiom is_to_uint64 : forall x:int [ is_uint64(to_uint64 x) ]. is_uint64 (to_uint64 x)
+  axiom is_to_sint64 : forall x:int [ is_sint64(to_sint64 x) ]. is_sint64 (to_sint64 x)
+
+  (** * C-Integer Conversions are identity when in-range * **)
+
+  lemma id_uint : forall n x:int [ to_uint n x ]. is_uint n x <-> (to_uint n x) = x
+  lemma id_sint : forall n x:int [ to_sint n x ]. is_sint n x <-> (to_sint n x) = x
+  meta "remove_for_" lemma id_uint
+  meta "remove_for_" lemma id_sint
+
+  axiom id_uint8 : forall x:int [ to_uint8 x ]. is_uint8 x -> (to_uint8 x) = x
+  axiom id_sint8 : forall x:int [ to_sint8 x ]. is_sint8 x -> (to_sint8 x) = x
+  axiom id_uint16 : forall x:int [ to_uint16 x ]. is_uint16 x -> (to_uint16 x) = x
+  axiom id_sint16 : forall x:int [ to_sint16 x ]. is_sint16 x -> (to_sint16 x) = x
+  axiom id_uint32 : forall x:int [ to_uint32 x ]. is_uint32 x -> (to_uint32 x) = x
+  axiom id_sint32 : forall x:int [ to_sint32 x ]. is_sint32 x -> (to_sint32 x) = x
+  axiom id_uint64 : forall x:int [ to_uint64 x ]. is_uint64 x -> (to_uint64 x) = x
+  axiom id_sint64 : forall x:int [ to_sint64 x ]. is_sint64 x -> (to_sint64 x) = x
+
+  meta "inline_in" predicate is_uint8,  axiom id_uint8
+  meta "inline_in" predicate is_sint8,  axiom id_sint8
+  meta "inline_in" predicate is_uint16, axiom id_uint16
+  meta "inline_in" predicate is_sint16, axiom id_sint16
+  meta "inline_in" predicate is_uint32, axiom id_uint32
+  meta "inline_in" predicate is_sint32, axiom id_sint32
+  meta "inline_in" predicate is_uint64, axiom id_uint64
+  meta "inline_in" predicate is_sint64, axiom id_sint64
+
+  (** * C-Integer Conversions are projections * **)
+
+  lemma proj_uint : forall n x:int . to_uint n (to_uint n x)= to_uint n x
+  lemma proj_sint : forall n x:int . to_sint n (to_sint n x)= to_sint n x
+  meta "remove_for_" lemma proj_uint
+  meta "remove_for_" lemma proj_sint
+
+  axiom proj_uint8 : forall x:int [ to_uint8(to_uint8 x) ]. to_uint8(to_uint8 x)=to_uint8 x
+  axiom proj_sint8 : forall x:int [ to_sint8(to_sint8 x) ]. to_sint8(to_sint8 x)=to_sint8 x
+  axiom proj_uint16 : forall x:int [ to_uint16(to_uint16 x) ]. to_uint16(to_uint16 x)=to_uint16 x
+  axiom proj_sint16 : forall x:int [ to_sint16(to_sint16 x) ]. to_sint16(to_sint16 x)=to_sint16 x
+  axiom proj_uint32 : forall x:int [ to_uint32(to_uint32 x) ]. to_uint32(to_uint32 x)=to_uint32 x
+  axiom proj_sint32 : forall x:int [ to_sint32(to_sint32 x) ]. to_sint32(to_sint32 x)=to_sint32 x
+  axiom proj_uint64 : forall x:int [ to_uint64(to_uint64 x) ]. to_uint64(to_uint64 x)=to_uint64 x
+  axiom proj_sint64 : forall x:int [ to_sint64(to_sint64 x) ]. to_sint64(to_sint64 x)=to_sint64 x
+
+  meta "remove_for_" axiom proj_uint8
+  meta "remove_for_" axiom proj_sint8
+  meta "remove_for_" axiom proj_uint16
+  meta "remove_for_" axiom proj_sint16
+  meta "remove_for_" axiom proj_uint32
+  meta "remove_for_" axiom proj_sint32
+  meta "remove_for_" axiom proj_uint64
+  meta "remove_for_" axiom proj_sint64
+
+  (** * Generalization for [to_sint _ (to_uint _ x)] * **)
+
+  lemma proj_su: forall n x:int . to_sint n (to_uint n x) = to_uint n x
+  lemma incl_su: forall n x:int . is_uint n x -> is_sint n x
+  meta "remove_for_" lemma proj_su
+  meta "remove_for_" lemma incl_su
+
+  lemma proj_su_uint: forall n m x:int . 0 <= n -> 0 <= m -> to_sint (m+n) (to_uint n x)     = to_uint n x
+  lemma proj_su_sint: forall n m x:int . 0 <= n -> 0 <= m -> to_sint n (to_uint (m+(n+1)) x) = to_sint n x
+  meta "remove_for_" lemma proj_su_uint
+  meta "remove_for_" lemma proj_su_sint
+
+  axiom proj_int8  : forall x:int [ to_sint8(to_uint8 x)   ]. to_sint8(to_uint8 x)  =to_sint8  x
+  axiom proj_int16 : forall x:int [ to_sint16(to_uint16 x) ]. to_sint16(to_uint16 x)=to_sint16 x
+  axiom proj_int32 : forall x:int [ to_sint32(to_uint32 x) ]. to_sint32(to_uint32 x)=to_sint32 x
+  axiom proj_int64 : forall x:int [ to_sint64(to_uint64 x) ]. to_sint64(to_uint64 x)=to_sint64 x
+
+  (** * Generalization for [to_uint _ (to_sint _ x)] * **)
+
+  lemma proj_us_uint: forall n m x:int . 0 <= n -> 0 <= m -> to_uint (n+1) (to_sint (m+n) x) = to_uint (n+1) x
+  meta "remove_for_" lemma proj_us_uint
+
+  (** * C-Integer range inclusion * **)
+
+  lemma incl_uint : forall n x i:int . 0 <= n -> 0 <= i -> is_uint n x -> is_uint (n+i) x
+  lemma incl_sint : forall n x i:int . 0 <= n -> 0 <= i -> is_sint n x -> is_sint (n+i) x
+  lemma incl_int  : forall n x i:int . 0 <= n -> 0 <= i -> is_uint n x -> is_sint (n+i) x
+  meta "remove_for_" lemma incl_uint
+  meta "remove_for_" lemma incl_sint
+  meta "remove_for_" lemma incl_int
+
+
+end

@@ -222,19 +222,3 @@ axiom proj_int64 :
   (forall x:int [to_sint64(to_uint64(x))].
   (to_sint64(to_uint64(x)) = to_sint64(x)))
 
-logic lnot : int -> int
-
-logic ac land : int, int -> int
-
-logic ac lxor : int, int -> int
-
-logic ac lor : int, int -> int
-
-logic lsl : int, int -> int
-
-logic lsr : int, int -> int
-
-logic bit_testb : int, int -> bool
-
-logic bit_test : int, int -> prop
-

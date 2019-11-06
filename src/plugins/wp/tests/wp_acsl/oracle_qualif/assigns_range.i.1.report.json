@@ -1,34 +1,34 @@
-{ "wp:global": { "alt-ergo": { "total": 6, "unknown": 6 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 6, "unknown": 6 },
                  "wp:main": { "total": 6, "unknown": 6 } },
-  "wp:functions": { "call_assigns_t1": { "call_assigns_t1_assigns": { "alt-ergo": 
+  "wp:functions": { "call_assigns_t1": { "call_assigns_t1_assigns": { "why3:Alt-Ergo,2.0.0": 
                                                                     { "total": 2,
                                                                     "unknown": 2 },
                                                                     "wp:main": 
                                                                     { "total": 2,
                                                                     "unknown": 2 } },
-                                         "wp:section": { "alt-ergo": 
+                                         "wp:section": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 2,
                                                              "unknown": 2 },
                                                          "wp:main": { "total": 2,
                                                                     "unknown": 2 } } },
-                    "call_assigns_t2": { "call_assigns_t2_assigns": { "alt-ergo": 
+                    "call_assigns_t2": { "call_assigns_t2_assigns": { "why3:Alt-Ergo,2.0.0": 
                                                                     { "total": 2,
                                                                     "unknown": 2 },
                                                                     "wp:main": 
                                                                     { "total": 2,
                                                                     "unknown": 2 } },
-                                         "wp:section": { "alt-ergo": 
+                                         "wp:section": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 2,
                                                              "unknown": 2 },
                                                          "wp:main": { "total": 2,
                                                                     "unknown": 2 } } },
-                    "call_assigns_t4": { "call_assigns_t4_assigns": { "alt-ergo": 
+                    "call_assigns_t4": { "call_assigns_t4_assigns": { "why3:Alt-Ergo,2.0.0": 
                                                                     { "total": 2,
                                                                     "unknown": 2 },
                                                                     "wp:main": 
                                                                     { "total": 2,
                                                                     "unknown": 2 } },
-                                         "wp:section": { "alt-ergo": 
+                                         "wp:section": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 2,
                                                              "unknown": 2 },
                                                          "wp:main": { "total": 2,

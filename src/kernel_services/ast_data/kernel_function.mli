@@ -135,6 +135,13 @@ val find_syntactic_callsites : t -> (t * stmt) list
       [stmt].
       @since Carbon-20110201 *)
 
+val local_definition: t -> varinfo -> stmt
+(** [local_definition f v] returns the statement initializing the (defined)
+    local variable [v] of [f].
+    @raise AbortFatal if [v] is not defined or is not a local of [f]
+    @since 20.0-Calcium
+*)
+
 val var_is_in_scope: stmt -> varinfo -> bool
   (** [var_is_in_scope kf stmt vi] returns [true] iff the local variable [vi]
       is syntactically visible from statement [stmt] in function [kf]. Note
@@ -154,7 +161,8 @@ val find_enclosing_stmt_in_block: block -> stmt -> stmt
 
 val is_between: block -> stmt -> stmt -> stmt -> bool
 (** [is_between b s1 s2 s3] returns [true] if the statement [s2] appears
-    between [s1] and [s3] inside the [b.bstmts] list. All three statements
+    strictly between [s1] and [s3] inside the [b.bstmts] list.
+    All three statements
     must actually occur in [b.bstmts], either directly or indirectly
     (see {!Kernel_function.find_enclosing_stmt_in_block}).
 

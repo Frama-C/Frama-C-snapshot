@@ -4,7 +4,7 @@ typedef struct {
   char data[];
 } fam;
 
-struct {
+struct st {
   int len;
   fam f;
-} st;
+} sst;

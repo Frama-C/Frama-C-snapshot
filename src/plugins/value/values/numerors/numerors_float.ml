@@ -83,8 +83,8 @@ let unary_mpfrf f =
    calling the binary function f on two inputs of type t *)
 let binary_mpfrf f =
   fun ?(rnd = Rounding.Near) ?(prec = P.Real) x y ->
-    prec >>- fun () ->
-    f (change_prec prec x) (change_prec prec y) (rounding rnd)
+  prec >>- fun () ->
+  f (change_prec prec x) (change_prec prec y) (rounding rnd)
 
 
 (*-----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ let of_float  ?(rnd = Rounding.Near) ?(prec = P.Real) f =
 let of_string ?(rnd = Rounding.Near) ?(prec = P.Real) str =
   prec >>- fun () ->
   let l = String.length str - 1 in
-  let last = Transitioning.Char.lowercase_ascii str.[l] in
+  let last = Char.lowercase_ascii str.[l] in
   let str =
     if last = 'f' || last = 'd' || last = 'l'
     then String.sub str 0 l
@@ -196,7 +196,7 @@ let div = binary_mpfrf Mpfrf.div
 let pow = binary_mpfrf Mpfrf.pow
 let pow_int =
   fun ?(rnd = Rounding.Near) ?(prec = P.Real) x n ->
-    prec >>- fun () -> Mpfrf.pow_int (change_prec prec x) n (rounding rnd)
+  prec >>- fun () -> Mpfrf.pow_int (change_prec prec x) n (rounding rnd)
 
 
 (*-----------------------------------------------------------------------------

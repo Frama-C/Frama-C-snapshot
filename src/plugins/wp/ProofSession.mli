@@ -20,8 +20,16 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val pretty : Format.formatter -> Wpo.t -> unit
-val filename : ?legacy:bool -> Wpo.t -> string
+type status =
+  | NoScript
+  | Script of string
+  | Deprecated of string
+
+val pp_status : Format.formatter -> status -> unit
+val pp_goal : Format.formatter -> Wpo.t -> unit
+
+val status : Wpo.t -> status
+
 val exists : Wpo.t -> bool
 val save : Wpo.t -> Json.t -> unit
 val load : Wpo.t -> Json.t

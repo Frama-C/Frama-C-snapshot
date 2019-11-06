@@ -486,13 +486,11 @@ and bal = parse
   let dkey = Wp_parameters.register_category "includes"
   let dkey_driver = Wp_parameters.register_category "driver"
 
-  let loaded : (string list * string list, driver) Hashtbl.t =Hashtbl.create 10
+  let loaded : (string list, driver) Hashtbl.t =Hashtbl.create 10
   let load_driver () =
     let drivers = Wp_parameters.Drivers.get () in
-    let includes = Wp_parameters.get_includes () in
-    let key = (drivers,includes) in
     begin try
-        let driver = Hashtbl.find loaded key in
+        let driver = Hashtbl.find loaded drivers in
         Context.set LogicBuiltins.driver driver
       with Not_found ->
 	let driver_basename file =
@@ -503,10 +501,9 @@ and bal = parse
         let id = String.concat "_" drvs in
 	let descr = String.concat "," drvs in
         let includes =
-          let shared =
+          let directories =
             try [Wp_parameters.Share.dir ~error:false ()]
             with Wp_parameters.Share.No_dir -> [] in
-          let directories = includes @ shared in
           if Wp_parameters.has_dkey dkey then
             Wp_parameters.debug ~dkey "Included directories:%t"
               (fun fmt ->
@@ -528,7 +525,7 @@ and bal = parse
         let ontty = if feedback then `Message else `Transient in
         load_file ~ontty default;
         List.iter load_file drivers;
-        Hashtbl.add loaded key (Context.get LogicBuiltins.driver);
+        Hashtbl.add loaded drivers (Context.get LogicBuiltins.driver);
         if Wp_parameters.has_dkey dkey_driver  then LogicBuiltins.dump ()
     end ; Context.get LogicBuiltins.driver
 

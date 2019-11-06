@@ -41,6 +41,7 @@ val is_bottom: 'a or_bottom -> bool
 val non_bottom: 'a or_bottom -> 'a
 
 val equal:       ('a -> 'a -> bool) -> 'a or_bottom -> 'a or_bottom -> bool
+val compare:     ('a -> 'a -> int)  -> 'a or_bottom -> 'a or_bottom -> int
 val is_included: ('a -> 'a -> bool) -> 'a or_bottom -> 'a or_bottom -> bool
 val join:        ('a -> 'a -> 'a) -> 'a or_bottom -> 'a or_bottom -> 'a or_bottom
 val join_list:   ('a -> 'a -> 'a) -> 'a or_bottom list -> 'a or_bottom
@@ -50,6 +51,7 @@ val pretty :
   (Format.formatter -> 'a -> unit) ->
   Format.formatter -> 'a or_bottom -> unit
 
+val iter: ('a -> unit) -> 'a or_bottom -> unit
 
 (** Datatype constructor. *)
 module Make_Datatype

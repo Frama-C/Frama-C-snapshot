@@ -26,8 +26,6 @@ open Lang.F
 open Conditions
 open Tactical
 
-val env : Conditions.sequent -> Repr.env
-
 val occurs_x : var -> term -> bool
 val occurs_y : var -> pred -> bool
 val occurs_e : term -> term -> bool

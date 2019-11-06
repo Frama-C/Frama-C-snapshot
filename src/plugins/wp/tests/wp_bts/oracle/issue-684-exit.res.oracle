@@ -1,0 +1,28 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/issue-684-exit.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function inconditional_exit
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_bts/issue-684-exit.c, line 4) in 'inconditional_exit':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Exit-condition (file tests/wp_bts/issue-684-exit.c, line 3) in 'inconditional_exit':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'inconditional_exit':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'inconditional_exit':
+Prove: true.
+
+------------------------------------------------------------

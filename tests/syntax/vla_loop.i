@@ -9,6 +9,21 @@ void awhile(int x) {
   }
 }
 
+int f(int i) {
+  if (i > 1) return 1;
+  int vla[i];
+  return 0;
+}
+
+int g(int c) {
+  int ret;
+  if (c<=0) return 4;
+  int a[c];
+  a[c-1] = 3;
+  ret = a[c-1];
+  return ret;
+}
+
 int main(int argc, char **argv) {
   int *p;
   switch(argc) {

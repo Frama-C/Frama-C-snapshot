@@ -1,21 +1,28 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 1 [...]
 [kernel] Parsing tests/wp_plugin/math.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
+[wp] Warning: native support for alt-ergo is deprecated, use why3 instead
 [wp] 9 goals scheduled
-[wp] [alt-ergo] Goal typed_ko_ensures_ko_sin_asin : Unsuccess
-[wp] [alt-ergo] Goal typed_ko_ensures_ko_cos_acos : Unsuccess
-[wp] [alt-ergo] Goal typed_ko_ensures_ko_asin_sin : Unsuccess
-[wp] [alt-ergo] Goal typed_ko_ensures_ko_acos_cos : Unsuccess
-[wp] [alt-ergo] Goal typed_ko_ensures_ko_atan_tan : Unsuccess
-[wp] [alt-ergo] Goal typed_ko_ensures_ko_log_pow : Unsuccess
-[wp] [alt-ergo] Goal typed_ko_ensures_ko_exp_log : Unsuccess
-[wp] [alt-ergo] Goal typed_ko_ensures_ko_exp_log_add_mul : Unsuccess
-[wp] [alt-ergo] Goal typed_ko_ensures_ko_sqrt_pos : Unsuccess
+[wp] [Alt-Ergo (Native)] Goal typed_ko_ensures_ko_sin_asin : Unsuccess
+[wp] [Alt-Ergo (Native)] Goal typed_ko_ensures_ko_cos_acos : Unsuccess
+[wp] [Alt-Ergo (Native)] Goal typed_ko_ensures_ko_asin_sin : Unsuccess
+[wp] [Alt-Ergo (Native)] Goal typed_ko_ensures_ko_acos_cos : Unsuccess
+[wp] [Alt-Ergo (Native)] Goal typed_ko_ensures_ko_atan_tan : Unsuccess
+[wp] [Alt-Ergo (Native)] Goal typed_ko_ensures_ko_log_pow : Unsuccess
+[wp] [Alt-Ergo (Native)] Goal typed_ko_ensures_ko_exp_log : Unsuccess
+[wp] [Alt-Ergo (Native)] Goal typed_ko_ensures_ko_exp_log_add_mul : Unsuccess
+[wp] [Alt-Ergo (Native)] Goal typed_ko_ensures_ko_sqrt_pos : Unsuccess
 [wp] Proved goals:    0 / 9
-  Alt-Ergo (why3):    0  (unsuccess: 9)
-----------------------------------------------------------
-Functions           WP Alt-Ergo(Why3) Total  Success
-ko                  -      -           9       0.0%
-----------------------------------------------------------
+  Alt-Ergo:        0  (unsuccess: 9)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/math.3.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/math.3.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+ko                  -      -                 9       0.0%
+-------------------------------------------------------------
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo (Native) Total Success
+ko                  -      -                 9       0.0%
+-------------------------------------------------------------

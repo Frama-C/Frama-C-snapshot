@@ -5,11 +5,10 @@
 ... Ref Usage
 .................................................
 Init: { }
-Function f: { *ptr src[] idx }
+Function f: { *ptr src idx }
 .................................................
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
-[wp] tests/wp_usage/issue-189.i:18: Warning: Undefined array-size (sint8[])
 [wp] tests/wp_usage/issue-189.i:17: Warning: 
   forbidden write to variable 'src' considered in an isolated context.
   Use model 'Typed' instead or specify '-wp-unalias-vars src'

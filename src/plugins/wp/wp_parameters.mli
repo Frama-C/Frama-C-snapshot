@@ -24,6 +24,20 @@ include Plugin.S
 
 val reset : unit -> unit
 
+(** {2 Function Selection} *)
+
+type functions =
+  | Fct_none
+  | Fct_all
+  | Fct_skip of Cil_datatype.Kf.Set.t
+  | Fct_list of Cil_datatype.Kf.Set.t
+
+val get_kf : unit -> functions
+val get_wp : unit -> functions
+val iter_fct : (Kernel_function.t -> unit) -> functions -> unit
+val iter_kf : (Kernel_function.t -> unit) -> unit
+val iter_wp : (Kernel_function.t -> unit) -> unit
+
 (** {2 Goal Selection} *)
 
 module WP          : Parameter_sig.Bool
@@ -34,14 +48,6 @@ module StatusTrue  : Parameter_sig.Bool
 module StatusFalse : Parameter_sig.Bool
 module StatusMaybe : Parameter_sig.Bool
 
-type job =
-  | WP_None
-  | WP_All
-  | WP_SkipFct of Cil_datatype.Kf.Set.t
-  | WP_Fct of Cil_datatype.Kf.Set.t
-
-val job : unit -> job
-
 (** {2 Model Selection} *)
 
 val has_dkey : category -> bool
@@ -50,20 +56,24 @@ module Model : Parameter_sig.String_list
 module ByValue : Parameter_sig.String_set
 module ByRef : Parameter_sig.String_set
 module InHeap : Parameter_sig.String_set
+module AliasInit: Parameter_sig.Bool
 module InCtxt : Parameter_sig.String_set
 module ExternArrays: Parameter_sig.Bool
-module ExtEqual : Parameter_sig.Bool
 module Literals : Parameter_sig.Bool
 module Volatile : Parameter_sig.Bool
-(* module Overflows : Parameter_sig.Bool *)
-(* use get_overflows() below *)
-(* module BoolRange : Parameter_sig.Bool *)
-(* use get_bool_range() below *)
+
+module Region: Parameter_sig.Bool
+module Region_rw: Parameter_sig.Bool
+module Region_pack: Parameter_sig.Bool
+module Region_flat: Parameter_sig.Bool
+module Region_annot: Parameter_sig.Bool
+module Region_inline: Parameter_sig.Bool
+module Region_fixpoint: Parameter_sig.Bool
+module Region_cluster: Parameter_sig.Bool
 
 (** {2 Computation Strategies} *)
 
 module Init: Parameter_sig.Bool
-module InitAlias: Parameter_sig.Bool
 module InitWithForall: Parameter_sig.Bool
 module BoundForallUnfolding: Parameter_sig.Int
 module RTE: Parameter_sig.Bool
@@ -78,7 +88,7 @@ module Prenex: Parameter_sig.Bool
 module Bits: Parameter_sig.Bool
 module Ground: Parameter_sig.Bool
 module Reduce: Parameter_sig.Bool
-module QedChecks : Parameter_sig.String_set
+module ExtEqual : Parameter_sig.Bool
 module UnfoldAssigns : Parameter_sig.Bool
 module Split: Parameter_sig.Bool
 module SplitDepth: Parameter_sig.Int
@@ -95,6 +105,7 @@ module PrecondWeakening : Parameter_sig.Bool
 module Detect: Parameter_sig.Bool
 module Generate:Parameter_sig.Bool
 module Provers: Parameter_sig.String_list
+module Cache: Parameter_sig.String
 module Drivers: Parameter_sig.String_list
 module Script: Parameter_sig.String
 module UpdateScript: Parameter_sig.Bool
@@ -105,7 +116,6 @@ module CoqTimeout: Parameter_sig.Int
 module CoqCompiler : Parameter_sig.String
 module CoqIde : Parameter_sig.String
 module CoqProject : Parameter_sig.String
-module Depth: Parameter_sig.Int
 module Steps: Parameter_sig.Int
 module Procs: Parameter_sig.Int
 module ProofTrace: Parameter_sig.Bool
@@ -113,9 +123,7 @@ module CoqLibs: Parameter_sig.String_list
 module CoqTactic: Parameter_sig.String
 module Hints: Parameter_sig.Int
 module TryHints: Parameter_sig.Bool
-module Why3: Parameter_sig.String
-module WhyLibs: Parameter_sig.String_list
-module WhyFlags: Parameter_sig.String_list
+module Why3Flags: Parameter_sig.String_list
 module AltErgo: Parameter_sig.String
 module AltGrErgo: Parameter_sig.String
 module AltErgoLibs: Parameter_sig.String_list
@@ -136,15 +144,14 @@ module ReportName: Parameter_sig.String
 module MemoryContext: Parameter_sig.Bool
 module Check: Parameter_sig.Bool
 
-(** {2 Environment Variables} *)
+(** {2 Getters} *)
 
-val get_env : ?default:string -> string -> string
-val is_out : unit -> bool (* -wp-out <dir> positioned *)
+val has_out : unit -> bool
+val has_session : unit -> bool
 val get_session : unit -> string
 val get_session_dir : string -> string
 val get_output : unit -> string
 val get_output_dir : string -> string
-val get_includes : unit -> string list
 val make_output_dir : string -> unit
 val get_overflows : unit -> bool
 
@@ -153,3 +160,4 @@ val has_print_generated: unit -> bool
 val print_generated: ?header:string -> string -> unit
 (** print the given file if the debugging category
     "print-generated" is set *)
+val cat_print_generated: category

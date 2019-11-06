@@ -1,5 +1,6 @@
-/* run.config
+/* run.config_dev
    COMMENT: Check behaviours of format functions
+   DONTRUN:
 */
 
 #include <stdlib.h>

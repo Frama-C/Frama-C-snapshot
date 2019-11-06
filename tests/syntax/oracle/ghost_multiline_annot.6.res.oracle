@@ -4,9 +4,10 @@ int main(void)
 {
   int __retres;
   /*@ ghost int x = 10; */
-  /*@ loop invariant x ≥ 0;
-      loop variant x; */
-  /*@ ghost while (x > 0) x --; */
+  /*@ ghost /@ loop invariant x ≥ 0;
+               loop variant x; @/
+            while (x > 0) x --;
+  */
   __retres = 0;
   return __retres;
 }

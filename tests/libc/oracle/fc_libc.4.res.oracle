@@ -1,0 +1,5 @@
+[kernel] Parsing tests/libc/fc_libc.c (with preprocessing)
+[kernel] parsing c11_functions.json
+[kernel] parsing glibc_functions.json
+[kernel] parsing posix_identifiers.json
+[kernel] parsing nonstandard_identifiers.json

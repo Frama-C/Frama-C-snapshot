@@ -5,26 +5,38 @@
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp:print-generated] 
-  "WPOUT/typed/f_ensures.ergo"
-  (* ---------------------------------------------------------- *)
-  (* --- Post-condition (file tests/wp_typed/struct_array_type.i, line 16) in 'f' --- *)
-  (* ---------------------------------------------------------- *)
-  
-  goal f_ensures:
-    forall i : int.
-    forall t : S1_s farray.
-    let a = t[i] : S1_s in
-    let a_1 = (a.F1_s_b)[0] : int in
-    let a_2 = (a.F1_s_a)[0] : int in
-    let a_3 = (2 * a_2) : int in
-    (0 <= i) ->
-    (a_1 < a_2) ->
-    (i <= 9) ->
-    is_uint32(i) ->
-    is_sint32(a_2) ->
-    is_sint32(a_1) ->
-    is_sint32(1 + a_3 - a_1) ->
-    ((2 * a_1) <= a_3)
+  theory WP
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    (* use S1_s *)
+    
+    (* use frama_c_wp.cint.Cint *)
+    
+    goal wp_goal :
+      forall i:int, t:int -> S1_s.
+       let a = get t i in
+       let a1 = get (F1_s_b a) 0 in
+       let a2 = get (F1_s_a a) 0 in
+       let a3 = 2 * a2 in
+       0 <= i ->
+       a1 < a2 ->
+       i <= 9 ->
+       is_uint32 i ->
+       is_sint32 a2 ->
+       is_sint32 a1 -> is_sint32 ((1 + ((- 1) * a1)) + a3) -> (2 * a1) <= a3
+  end
 [wp] 1 goal generated
 ------------------------------------------------------------
   Function f

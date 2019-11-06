@@ -94,11 +94,18 @@ let f_land = Lang.extern_f ~library ~result ~category:(Operator op_land) ~balanc
 let f_lxor = Lang.extern_f ~library ~result ~category:(Operator op_lxor) ~balance "lxor"
 let f_lsl = Lang.extern_f ~library ~result "lsl"
 let f_lsr = Lang.extern_f ~library ~result "lsr"
-let f_bit = Lang.extern_p ~library ~bool:"bit_testb" ~prop:"bit_test" ()
 
 let f_bitwised = [ f_lnot ; f_lor ; f_land ; f_lxor ; f_lsl ; f_lsr ]
 
-let () = let open LogicBuiltins in add_builtin "\\bit_test" [Z;Z] f_bit
+(* [f_bit_stdlib] is related to the function [bit_test] of Frama-C StdLib *)
+let f_bit_stdlib   = Lang.extern_p ~library ~bool:"bit_testb" ~prop:"bit_test" ()
+(* [f_bit_positive] is actually exported in forgoting the fact the position is positive *)
+let f_bit_positive = Lang.extern_p ~library ~bool:"bit_testb" ~prop:"bit_test" ()
+(* At export, some constructs such as [e & (1 << k)] are written into [f_bit_export] construct *)
+let f_bit_export   = Lang.extern_p ~library ~bool:"bit_testb" ~prop:"bit_test" ()
+
+let () = let open LogicBuiltins in add_builtin "\\bit_test_stdlib" [Z;Z] f_bit_stdlib
+let () = let open LogicBuiltins in add_builtin "\\bit_test" [Z;Z] f_bit_positive
 
 (* -------------------------------------------------------------------------- *)
 (* --- Matching utilities for simplifications                             --- *)
@@ -213,6 +220,10 @@ let match_list_head match_f = function
   | [] -> raise Not_found
   | e::es -> (match_f e), es
 
+let match_binop_one_arg1 binop e = match F.repr e with
+  | Logic.Fun( f , [one; e2] ) when Fun.equal f binop && one == e_one -> e2
+  | _ -> raise Not_found
+
 let match_list_extraction match_f =
   let match_f_opt n = try Some (match_f n) with Not_found -> None in
   let rec aux rs = function
@@ -232,6 +243,8 @@ let match_positive_or_null_integer_arg2 =
 let match_integer_extraction = match_list_head match_integer
 
 let match_power2_extraction = match_list_extraction match_power2
+let match_binop_one_extraction binop = match_list_extraction (match_binop_one_arg1 binop)
+
 
 (* -------------------------------------------------------------------------- *)
 (* --- Conversion Symbols                                                 --- *)
@@ -244,8 +257,8 @@ let match_power2_extraction = match_list_extraction match_power2
 (* to_iota(e) where e = to_iota'(e'), only ranges for iota *)
 let simplify_range_comp f iota e conv e' =
   let iota' = to_cint conv in
-  let size' = Ctypes.range iota' in
-  let size = Ctypes.range iota in
+  let size' = Ctypes.i_bits iota' in
+  let size = Ctypes.i_bits iota in
   if size <= size'
   then e_fun f [e']
   (* rule B:
@@ -275,7 +288,7 @@ let configure_to_int iota =
     begin
       try match F.repr e with
         | Logic.Kint value ->
-            let size = Integer.of_int (Ctypes.range iota) in
+            let size = Integer.of_int (Ctypes.i_bits iota) in
             let signed = Ctypes.signed iota in
             F.e_zint (Integer.cast ~size ~signed ~value)
         | Logic.Fun( fland , es )
@@ -465,7 +478,17 @@ let smp2 f zf = (* f(c1,c2) ~> zf(c1,c2),  f(c1,c2,...) ~> f(zf(c1,c2),...) *)
     end
   | _ -> raise Not_found
 
-let bitk_positive k e = e_fun f_bit [e;k]
+let bitk_positive k e = F.e_fun f_bit_positive [e;k]
+let smp_mk_bit_stdlib = function
+  | [ a ; k ] when is_positive_or_null k ->
+      (* No need to expand the logic definition of the ACSL stdlib symbol when
+         [k] is positive (the definition must comply with that simplification). *)
+      bitk_positive k a
+  | [ a ; k ] ->
+      (* TODO: expand the current logic definition of the ACSL stdlib symbol *)
+      F.e_neq F.e_zero (F.e_fun f_land [a; (F.e_fun f_lsl [F.e_one;k])])
+  | _ -> raise Not_found
+
 let smp_bitk_positive = function
   | [ a ; k ] -> (* requires k>=0 *)
       begin
@@ -495,7 +518,7 @@ let smp_bitk_positive = function
             F.e_not (bitk_positive k a)
         | Logic.Fun( conv , [a] ) (* when is_to_c_int conv *) ->
             let iota = to_cint conv in
-            let range = Ctypes.range iota in
+            let range = Ctypes.i_bits iota in
             let signed = Ctypes.signed iota in
             if signed then (* beware of sign-bit *)
               begin match is_leq k (e_int (range-2)) with
@@ -738,6 +761,15 @@ let smp_leq_with_lsr a0 b0 =
     else
       smp_cmp_with_lsr e_leq a0 b0
 
+(* Rewritting at export *)
+let export_eq_with_land a b =
+  let es = match_fun f_land a in
+  if b == e_zero then
+    let k,_,es = match_binop_one_extraction f_lsl es in
+    (* e1 & ... & en & (1 << k) = 0   <==> !bit_test(e1 & ... & en, k) *)
+    e_not (e_fun f_bit_export [e_fun f_land es ; k ])
+  else raise Not_found
+
 (* ACSL Semantics *)
 type l_builtin = {
   f: lfun ;
@@ -753,7 +785,10 @@ let () =
         begin
           let mk_builtin n f ?eq ?leq smp = n, { f ; eq; leq; smp } in
 
-          let bi_lbit = mk_builtin "f_bit" f_bit smp_bitk_positive in
+          (* From [smp_mk_bit_stdlib], the built-in [f_bit_stdlib] is such that there is
+             no creation of [e_fun f_bit_stdlib args] *)
+          let bi_lbit_stdlib = mk_builtin "f_bit_stdlib" f_bit_stdlib smp_mk_bit_stdlib in
+          let bi_lbit = mk_builtin "f_bit" f_bit_positive smp_bitk_positive in
           let bi_lnot = mk_builtin "f_lnot" f_lnot ~eq:smp_eq_with_lnot
               (smp1 Integer.lognot) in
           let bi_lxor = mk_builtin "f_lxor" f_lxor ~eq:smp_eq_with_lxor
@@ -777,8 +812,9 @@ let () =
                | None -> ()
                | Some leq -> F.set_builtin_leq f leq)
             end
-            [bi_lbit; bi_lnot; bi_lxor; bi_lor; bi_land; bi_lsl; bi_lsr]
+            [bi_lbit_stdlib ; bi_lbit; bi_lnot; bi_lxor; bi_lor; bi_land; bi_lsl; bi_lsr];
 
+          Lang.For_export.set_builtin_eq f_land export_eq_with_land
         end
     end
 
@@ -815,158 +851,323 @@ let c_int_bounds_ival f  =
 
 let max_reduce_quantifiers = 1000
 
-(** We know that t is a predicate which is the opened body of a forall *)
-let reduce_bound v dom t : term =
-  let module Exc = struct
-    exception True
-    exception False
-    exception Unknown of Integer.t
-  end in
-  try
-    let red i () =
-      match repr (QED.e_subst_var v (e_zint i) t) with
-      | True -> ()
-      | False -> raise Exc.False
-      | _ -> raise (Exc.Unknown i) in
-    let min_bound = try
-        Ival.fold_int red dom (); raise Exc.True
-      with Exc.Unknown i -> i in
-    let max_bound = try
-        Ival.fold_int_decrease red dom (); raise Exc.True
-      with Exc.Unknown i -> i in
-    (** we try to reduce the bounds of the domains, when trivially false *)
-    let dom_red = Ival.inject_range (Some min_bound) (Some max_bound) in
-    if not (Ival.equal dom_red dom) && Ival.is_included dom_red dom
-    then t
-    else
-      e_bind Forall v
-        (e_imply [e_leq (e_zint min_bound) (e_var v);
-                  e_leq (e_var v) (e_zint max_bound)]
-           t)
-  with
-  | Exc.True -> e_true
-  | Exc.False -> e_false
+module Dom = struct
+  type t = Ival.t Tmap.t
+  let is_top_ival = Ival.equal Ival.top
 
-let is_cint_simplifier = object (self)
+  let top = Tmap.empty
 
-  val mutable domain : Ival.t Tmap.t = Tmap.empty
-
-  method private print fmt =
+  [@@@ warning "-32"]
+  let pretty fmt dom =
     Tmap.iter (fun k v ->
         Format.fprintf fmt "%a: %a,@ " Lang.F.pp_term k Ival.pretty v)
-      domain
+      dom
 
-  method name = "Remove redundant is_cint"
-  method copy = {< domain = domain >}
+  let find t dom = Tmap.find t dom
 
-  method private narrow_dom t v =
-    domain <-
-      Tmap.change (fun _ p ->
-          function
-          | None -> Some p
-          | Some old -> Some (Ival.narrow p old))
-        t v domain
+  let get t dom = try find t dom with Not_found -> Ival.top
 
-  method assume p =
-    let rec aux i t =
-      match Lang.F.repr t with
-      | _ when not (is_prop t) -> ()
-      | Fun(g,[a]) ->
-          begin try
-              let ubound = c_int_bounds_ival (is_cint g) in
-              self#narrow_dom a ubound
-            with Not_found -> ()
-          end
-      | And _ -> Lang.F.QED.f_iter aux i t
-      | _ -> ()
-    in
-    aux 0 (Lang.F.e_prop p)
+  let narrow t v dom =
+    if Ival.is_bottom v then raise Lang.Contradiction
+    else if is_top_ival v then dom
+    else Tmap.change (fun _ v old ->
+        match old with | None -> Some v
+                       | (Some old) as old' ->
+                           let v = Ival.narrow v old in
+                           if Ival.is_bottom v then raise Lang.Contradiction;
+                           if Ival.equal v old then old'
+                           else Some v) t v dom
 
-  method target _ = ()
-  method fixpoint = ()
+  let add t v dom =
+    if Ival.is_bottom v then raise Lang.Contradiction;
+    if is_top_ival v then dom else Tmap.add t v dom
 
-  method private simplify ~is_goal p =
-    let pool = Lang.F.pool () in
+  let remove t dom = Tmap.remove t dom
 
-    let reduce op var_domain base =
-      let dom =
-        match Lang.F.repr base with
-        | Kint z -> Ival.inject_singleton z
-        | _ ->
-            try Tmap.find base domain
-            with Not_found -> Ival.top
+  let assume_cmp =
+    let module Local = struct
+      type t = Integer of Ival.t | Term of Ival.t option
+    end in fun cmp t1 t2 dom ->
+      let encode t = match Lang.F.repr t with
+        | Kint z -> Local.Integer (Ival.inject_singleton z)
+        | _ -> Local.Term (try Some (Tmap.find t dom) with Not_found -> None)
       in
-      var_domain := Ival.backward_comp_int_left op !var_domain dom
-    in
-    let rec reduce_on_neg var var_domain t =
-      match Lang.F.repr t with
-      | _ when not (is_prop t) -> ()
-      | Leq(a,b) when Lang.F.equal a var ->
-          reduce Abstract_interp.Comp.Le var_domain b
-      | Leq(b,a) when Lang.F.equal a var ->
-          reduce Abstract_interp.Comp.Ge var_domain b
-      | Lt(a,b) when Lang.F.equal a var ->
-          reduce Abstract_interp.Comp.Lt var_domain b
-      | Lt(b,a) when Lang.F.equal a var ->
-          reduce Abstract_interp.Comp.Gt var_domain b
-      | And l -> List.iter (reduce_on_neg var var_domain) l
-      | _ -> ()
-    in
-    let reduce_on_pos var var_domain t =
-      match Lang.F.repr t with
-      | Imply (l,_) -> List.iter (reduce_on_neg var var_domain) l
-      | _ -> ()
-    in
-    let rec walk ~is_goal t =
-      match repr t with
-      | _ when not (is_prop t) -> t
-      | Bind(Forall|Exists as quant,(Int as ty),bind) ->
-          let var = fresh pool ~basename:"simpl" ty in
-          let t = QED.lc_open var bind in
-          let tvar = (e_var var) in
-          let var_domain = ref Ival.top in
-          if quant = Forall
-          then reduce_on_pos tvar var_domain t
-          else reduce_on_neg tvar var_domain t;
-          domain <- Tmap.add tvar !var_domain domain;
-          let t = walk ~is_goal t in
-          domain <- Tmap.remove tvar domain;
-          (** Bonus: Add additionnal hypothesis in forall when we could deduce
-              better constraint on the variable *)
-          let t = if quant = Forall &&
-                     is_goal &&
-                     Ival.cardinal_is_less_than !var_domain max_reduce_quantifiers
-            then reduce_bound var !var_domain t
-            else t in
-          e_bind quant var t
-      | Fun(g,[a]) ->
-          (** Here we simplifies the cints which are redoundant *)
-          begin try
-              let ubound = c_int_bounds_ival (is_cint g) in
-              let dom = (Tmap.find a domain) in
-              if Ival.is_included dom ubound
-              then e_true
-              else t
-            with Not_found -> t
+      let term_dom = function
+        | Some v -> v
+        | None -> Ival.top
+      in
+      match encode t1, encode t2 with
+      | Local.Integer cst1, Local.Integer cst2 -> (* assume cmp cst1 cst2 *)
+          if Abstract_interp.Comp.False = Ival.forward_comp_int cmp cst1 cst2
+          then raise Lang.Contradiction;
+          dom
+      | Local.Term None, Local.Term None ->
+          dom (* nothing can be collected *)
+      | Local.Term opt1, Local.Integer cst2 ->
+          let v1 = term_dom opt1 in
+          add t1 (Ival.backward_comp_int_left cmp v1 cst2) dom
+      | Local.Integer cst1, Local.Term opt2 ->
+          let v2 = term_dom opt2 in
+          let cmp_sym = Abstract_interp.Comp.sym cmp in
+          add t2 (Ival.backward_comp_int_left cmp_sym v2 cst1) dom
+      | Local.Term opt1, Local.Term opt2 ->
+          let v1 = term_dom opt1 in
+          let v2 = term_dom opt2 in
+          let cmp_sym = Abstract_interp.Comp.sym cmp in
+          add t1 (Ival.backward_comp_int_left cmp v1 v2)
+            (add t2 (Ival.backward_comp_int_left cmp_sym v2 v1) dom)
+
+  let assume_literal t dom = match Lang.F.repr t with
+    | Eq(a,b) -> assume_cmp Abstract_interp.Comp.Eq a b dom
+    | Leq(a,b) -> assume_cmp Abstract_interp.Comp.Le a b dom
+    | Lt(a,b) -> assume_cmp Abstract_interp.Comp.Lt a b dom
+    | Fun(g,[a]) -> begin try
+          let ubound =
+            c_int_bounds_ival (is_cint g) (* may raise Not_found *) in
+          narrow a ubound dom
+        with Not_found -> dom
+      end
+    | Not p -> begin match Lang.F.repr p with
+        | Fun(g,[a]) -> begin try (* just checks for a contraction *)
+              let ubound =
+                c_int_bounds_ival (is_cint g) (* may raise Not_found *) in
+              let v = Tmap.find a dom (* may raise Not_found *) in
+              if Ival.is_included v ubound then raise Lang.Contradiction;
+              dom
+            with Not_found -> dom
           end
-      | Imply (l1,l2) -> e_imply (List.map (walk ~is_goal:false) l1) (walk ~is_goal l2)
-      | _ -> Lang.F.QED.e_map pool (walk ~is_goal) t in
-    Lang.F.p_bool (walk ~is_goal (Lang.F.e_prop p))
-
-  method simplify_exp (e : term) = e
-
-  method simplify_hyp p = self#simplify ~is_goal:false p
-
-  method simplify_goal p = self#simplify ~is_goal:true p
-
-  method simplify_branch p = p
-
-  method infer = []
+        | _ -> dom
+      end
+    | _ -> dom
 end
+
+let is_cint_simplifier =
+  let reduce_bound ~add_bonus quant v tv dom t : term =
+    (** Returns [new_t] such that [c_bind quant (alpha,t)]
+                           equals [c_bind quant v (alpha,new_t)]
+        under the knowledge that  [(not t) ==> (var in dom)].
+        Note: [~add_bonus] has not effect on the correctness of the transformation.
+          It is a parameter that can be used in order to get better results.
+        Bonus: Add additionnal hypothesis when we could deduce better constraint
+        on the variable *)
+    let module Tool = struct
+      exception Stop
+      exception Empty
+      exception Unknown of Integer.t
+      type t = { when_empty: unit -> term;
+                 add_hyp: term list -> term -> term;
+                 when_true: bool ref -> unit;
+                 when_false: bool ref -> unit;
+                 when_stop: unit -> term;
+               }
+    end in
+    let tools = Tool.(match quant with
+        | Forall -> { when_empty=(fun () -> e_true);
+                      add_hyp =(fun hyps t -> e_imply hyps t);
+                      when_true=(fun bonus -> bonus := add_bonus);
+                      when_false=(fun _ -> raise Stop);
+                      when_stop=(fun () -> e_false);
+                    }
+        | Exists  ->{ when_empty= (fun () -> e_false);
+                      add_hyp =(fun hyps t -> e_and (t::hyps));
+                      when_true=(fun _ -> raise Stop);
+                      when_false=(fun bonus -> bonus := add_bonus);
+                      when_stop=(fun () -> e_true);
+                    }
+        | _ -> assert false)
+    in
+    if Vars.mem v (vars t) then try
+        let bonus_min = ref false in
+        let bonus_max = ref false in
+        let dom = if Ival.cardinal_is_less_than dom max_reduce_quantifiers then
+            (* try to reduce the domain when [var] is still in [t] *)
+            let red reduced i () =
+              match repr (QED.e_subst_var v (e_zint i) t) with
+              | True -> tools.Tool.when_true reduced
+              | False -> tools.Tool.when_false reduced
+              | _ -> raise (Tool.Unknown i) in
+            let min_bound = try Ival.fold_int (red bonus_min) dom ();
+                raise Tool.Empty with Tool.Unknown i -> i in
+            let max_bound = try Ival.fold_int_decrease (red bonus_max) dom ();
+                raise Tool.Empty with Tool.Unknown i -> i in
+            let red_dom = Ival.inject_range (Some min_bound) (Some max_bound) in
+            Ival.narrow dom red_dom
+          else dom
+        in begin match Ival.min_and_max dom with
+          | None, None -> t (* Cannot be reduced *)
+          | Some min, None -> (* May be reduced to [min ...] *)
+              if !bonus_min then tools.Tool.add_hyp [e_leq (e_zint min) tv] t
+              else t
+          | None, Some max -> (* May be reduced to [... max] *)
+              if !bonus_max then tools.Tool.add_hyp [e_leq tv (e_zint max)] t
+              else t
+          | Some min, Some max ->
+              if Integer.equal min max then (* Reduced to only one value: [min] *)
+                QED.e_subst_var v (e_zint min) t
+              else if Integer.lt min max then
+                let h = if !bonus_min then [e_leq (e_zint min) tv] else []
+                in
+                let h = if !bonus_max then (e_leq tv (e_zint max))::h else h
+                in tools.Tool.add_hyp h t
+              else assert false (* Abstract_interp.Error_Bottom raised *)
+        end
+      with
+      | Tool.Stop  -> tools.Tool.when_stop ()
+      | Tool.Empty -> tools.Tool.when_empty ()
+      | Abstract_interp.Error_Bottom -> tools.Tool.when_empty ()
+      | Abstract_interp.Error_Top -> t
+    else (* [alpha] is no more in [t] *)
+    if Ival.is_bottom dom then tools.Tool.when_empty () else t
+  in
+  let module Polarity = struct
+    type t = Pos | Neg | Both
+    let flip = function | Pos -> Neg | Neg -> Pos | Both -> Both
+    let from_bool = function | false -> Neg | true -> Pos
+  end
+  in object (self)
+
+    val mutable domain : Dom.t = Dom.top
+
+    method name = "Remove redundant is_cint"
+    method copy = {< domain = domain >}
+
+    method target _ = ()
+    method fixpoint = ()
+
+    method assume p =
+      Lang.iter_consequence_literals
+        (fun p -> domain <- Dom.assume_literal p domain) (Lang.F.e_prop p)
+
+    method private simplify ~is_goal p =
+      let pool = Lang.get_pool () in
+
+      let reduce op var_domain base =
+        let dom =
+          match Lang.F.repr base with
+          | Kint z -> Ival.inject_singleton z
+          | _ ->
+              try Tmap.find base domain
+              with Not_found -> Ival.top
+        in
+        var_domain := Ival.backward_comp_int_left op !var_domain dom
+      in
+      let rec reduce_on_neg var var_domain t =
+        match Lang.F.repr t with
+        | _ when not (is_prop t) -> ()
+        | Leq(a,b) when Lang.F.equal a var ->
+            reduce Abstract_interp.Comp.Le var_domain b
+        | Leq(b,a) when Lang.F.equal a var ->
+            reduce Abstract_interp.Comp.Ge var_domain b
+        | Lt(a,b) when Lang.F.equal a var ->
+            reduce Abstract_interp.Comp.Lt var_domain b
+        | Lt(b,a) when Lang.F.equal a var ->
+            reduce Abstract_interp.Comp.Gt var_domain b
+        | And l -> List.iter (reduce_on_neg var var_domain) l
+        | Not p -> reduce_on_pos var var_domain p
+        | _ -> ()
+      and reduce_on_pos var var_domain t =
+        match Lang.F.repr t with
+        | Neq _ | Leq _ | Lt _ -> reduce_on_neg var var_domain (e_not t)
+        | Imply (l,p) -> List.iter (reduce_on_neg var var_domain) l;
+            reduce_on_pos var var_domain p
+        | Or l -> List.iter (reduce_on_pos var var_domain) l;
+        | Not p -> reduce_on_neg var var_domain p
+        | _ -> ()
+      in
+      (* [~term_pol] gives the polarity of the term [t] from the top level.
+                     That informs about how should be considered the quantifiers
+                     of [t]
+      *)
+      let rec walk ~term_pol t =
+        let walk_flip_pol t = walk ~term_pol:(Polarity.flip term_pol) t
+        and walk_same_pol t = walk ~term_pol t
+        and walk_both_pol t = walk ~term_pol:Polarity.Both t
+        in
+        match repr t with
+        | _ when not (is_prop t) -> t
+        | Bind((Forall|Exists),_,_) ->
+            let ctx,t = e_open ~pool ~lambda:false t in
+            let ctx_with_dom =
+              List.map (fun ((quant,var) as qv)  -> match tau_of_var var with
+                  | Int ->
+                      let tvar = (e_var var) in
+                      let var_domain = ref Ival.top in
+                      if quant = Forall
+                      then reduce_on_pos tvar var_domain t
+                      else reduce_on_neg tvar var_domain t;
+                      domain <- Dom.add tvar !var_domain domain;
+                      qv, Some (tvar, var_domain)
+                  | _ -> qv, None) ctx
+            in
+            let t = walk_same_pol t in
+            let f_close t = function
+              | (quant,var), None -> e_bind quant var t
+              | (quant,var), Some (tvar,var_domain) ->
+                  domain <- Dom.remove tvar domain;
+                  (** Bonus: Add additionnal hypothesis in forall when we could deduce
+                      better constraint on the variable *)
+                  let add_bonus = match term_pol with
+                    | Polarity.Both -> false
+                    | _ -> (term_pol=Polarity.Pos) = (quant=Forall)
+                  in
+                  let t = reduce_bound ~add_bonus quant var tvar !var_domain t in
+                  e_bind quant var t
+            in
+            List.fold_left f_close t ctx_with_dom
+        | Fun(g,[a]) ->
+            (** Here we simplifies the cints which are redoundant *)
+            begin try
+                let ubound = c_int_bounds_ival (is_cint g) in
+                let dom = (Tmap.find a domain) in
+                if Ival.is_included dom ubound
+                then e_true
+                else t
+              with Not_found -> t
+            end
+        | Imply (l1,l2) -> e_imply (List.map walk_flip_pol l1) (walk_same_pol l2)
+        | Not p -> e_not (walk_flip_pol p)
+        | And _ | Or _ -> Lang.F.QED.f_map walk_same_pol t
+        | _ ->
+            Lang.F.QED.f_map ~pool ~forall:false ~exists:false walk_both_pol t in
+      Lang.F.p_bool (walk ~term_pol:(Polarity.from_bool is_goal) (Lang.F.e_prop p))
+
+    method simplify_exp (e : term) = e
+
+    method simplify_hyp p = self#simplify ~is_goal:false p
+
+    method simplify_goal p = self#simplify ~is_goal:true p
+
+    method simplify_branch p = p
+
+    method infer = []
+  end
 
 
 let mask_simplifier =
-  object(self)
+  let update x m ctx =
+    Tmap.insert (fun _ m old -> if Integer.lt m old then (*better*) m else old)
+      x m ctx
+  and rewrite ctx e =
+    let reduce m x = match F.repr x with
+      | Kint v -> F.e_zint (Integer.logand m v)
+      | _ -> x
+    and collect ctx d x = try
+        let m = Tmap.find x ctx in
+        match d with
+        | None -> Some m
+        | Some m0 -> if Integer.lt m m0 then Some m else d
+      with Not_found -> d
+    in
+    match F.repr e with
+    | Fun(f,es) when f == f_land ->
+        begin
+          match List.fold_left (collect ctx) None es with
+          | None -> raise Not_found
+          | Some m -> F.e_fun f_land (List.map (reduce m) es)
+        end
+    | _ -> raise Not_found
+  in
+  object
 
     (** Must be 2^n-1 *)
     val mutable magnitude : Integer.t Tmap.t = Tmap.empty
@@ -974,68 +1175,37 @@ let mask_simplifier =
     method name = "Rewrite unsigned masks"
     method copy = {< magnitude = magnitude >}
 
-    method private update x m =
-      let better =
-        try Integer.lt m (Tmap.find x magnitude)
-        with Not_found -> true in
-      if better then magnitude <- Tmap.add x m magnitude
-
-    method private collect d x =
-      try
-        let m = Tmap.find x magnitude in
-        match d with
-        | None -> Some m
-        | Some m0 -> if Integer.lt m m0 then Some m else d
-      with Not_found -> d
-
-    method private reduce m x =
-      match F.repr x with
-      | Kint v -> F.e_zint (Integer.logand m v)
-      | _ -> x
-
-    method private rewrite e =
-      match F.repr e with
-      | Fun(f,es) when f == f_land ->
-          begin
-            match List.fold_left self#collect None es with
-            | None -> raise Not_found
-            | Some m -> F.e_fun f_land (List.map (self#reduce m) es)
-          end
-      | _ -> raise Not_found
-
     method target _ = ()
     method infer = []
     method fixpoint = ()
 
     method assume p =
-      let rec walk e = match F.repr e with
-        | And es -> List.iter walk es
-        | Fun(f,[x]) ->
-            begin
-              try
-                let iota = is_cint f in
-                if not (Ctypes.signed iota) then
-                  self#update x (snd (Ctypes.bounds iota))
-              with Not_found -> ()
-            end
-        | _ -> ()
-      in walk (F.e_prop p)
+      Lang.iter_consequence_literals
+        (fun p -> match F.repr p with
+           | Fun(f,[x]) -> begin
+               try
+                 let iota = is_cint f in
+                 if not (Ctypes.signed iota) then
+                   magnitude <- update x (snd (Ctypes.bounds iota)) magnitude
+               with Not_found -> ()
+             end
+           | _ -> ()) (F.e_prop p)
 
     method simplify_exp e =
       if Tmap.is_empty magnitude then e else
-        F.e_subst self#rewrite e
+        Lang.e_subst (rewrite magnitude) e
 
     method simplify_hyp p =
       if Tmap.is_empty magnitude then p else
-        F.p_subst self#rewrite p
+        Lang.p_subst (rewrite magnitude) p
 
     method simplify_branch p =
       if Tmap.is_empty magnitude then p else
-        F.p_subst self#rewrite p
+        Lang.p_subst (rewrite magnitude) p
 
     method simplify_goal p =
       if Tmap.is_empty magnitude then p else
-        F.p_subst self#rewrite p
+        Lang.p_subst (rewrite magnitude) p
 
   end
 

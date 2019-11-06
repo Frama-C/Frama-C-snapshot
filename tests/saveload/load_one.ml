@@ -2,7 +2,7 @@ let () = at_exit (fun _ -> Sys.remove "tests/saveload/result/load_one.sav")
 
 let main () =
   let sparecode () =
-    !Db.Sparecode.get ~select_annot:false ~select_slice_pragma:false
+    Sparecode.Register.get ~select_annot:false ~select_slice_pragma:false
   in
   let p = sparecode () in
   Project.save "tests/saveload/result/load_one.sav";

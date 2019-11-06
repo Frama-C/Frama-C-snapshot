@@ -2,20 +2,24 @@
 [kernel] Parsing tests/wp_plugin/inductive.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
+[wp] Warning: native support for coq is deprecated, use tip instead
 [wp] 2 goals scheduled
 [wp:print-generated] 
   "WPOUT/typed/Compound.v"
   (* ---------------------------------------------------------- *)
-  (* --- Memory Compound Updates                            --- *)
+  (* --- Memory Compound Loader                             --- *)
   (* ---------------------------------------------------------- *)
   
   Require Import ZArith.
   Require Import Reals.
   Require Import BuiltIn.
+  Require Import bool.Bool.
   Require Import HighOrd.
   Require Import int.Int.
   Require Import int.Abs.
   Require Import int.ComputerDivision.
+  Require Import int.EuclideanDivision.
+  Require Import int.ComputerOfEuclideanDivision.
   Require Import real.Real.
   Require Import real.RealInfix.
   Require Import real.FromInt.
@@ -36,10 +40,13 @@
   Require Import ZArith.
   Require Import Reals.
   Require Import BuiltIn.
+  Require Import bool.Bool.
   Require Import HighOrd.
   Require Import int.Int.
   Require Import int.Abs.
   Require Import int.ComputerDivision.
+  Require Import int.EuclideanDivision.
+  Require Import int.ComputerOfEuclideanDivision.
   Require Import real.Real.
   Require Import real.RealInfix.
   Require Import real.FromInt.
@@ -84,10 +91,13 @@
   Require Import ZArith.
   Require Import Reals.
   Require Import BuiltIn.
+  Require Import bool.Bool.
   Require Import HighOrd.
   Require Import int.Int.
   Require Import int.Abs.
   Require Import int.ComputerDivision.
+  Require Import int.EuclideanDivision.
+  Require Import int.ComputerOfEuclideanDivision.
   Require Import real.Real.
   Require Import real.RealInfix.
   Require Import real.FromInt.
@@ -147,8 +157,8 @@
           ((P_same_elements t_1 t a_1 a i_3%Z i%Z))
       | Q_trans: forall (i_1 i : Z), forall (t_2 t_1 t : farray addr Z),
           forall (a_2 a_1 a : addr),
-          ((P_same_elements t_1 t a_2 a_1 i_1%Z i%Z)) ->
           ((P_same_elements t_2 t_1 a_1 a i_1%Z i%Z)) ->
+          ((P_same_elements t_1 t a_2 a_1 i_1%Z i%Z)) ->
           ((P_same_elements t_2 t a_2 a i_1%Z i%Z)).
   
   Goal

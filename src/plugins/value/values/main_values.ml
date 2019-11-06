@@ -22,12 +22,10 @@
 
 open Cil_types
 
-let cvalue_key = Structure.Key_Value.create_key "cvalue"
-
 module CVal = struct
   include Cvalue.V
 
-  let structure = Structure.Key_Value.Leaf cvalue_key
+  let key = Structure.Key_Value.create_key "cvalue"
 
   let zero = Cvalue.V.singleton_zero
   let one = Cvalue.V.singleton_one
@@ -135,12 +133,10 @@ module CVal = struct
     with Abstract_interp.Error_Top -> `Top, true
 end
 
-let interval_key = Structure.Key_Value.create_key "interval"
-
 module Interval = struct
 
   include Datatype.Option (Ival)
-  let structure = Structure.Key_Value.Leaf interval_key
+  let key = Structure.Key_Value.create_key "interval"
 
   let pretty_typ _ = pretty
 

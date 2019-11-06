@@ -1,7 +1,8 @@
-/* run.config
+/* run.config_ci,run.config_dev
    COMMENT: Check detection of format-string vulnerabilities via printf
    DONTRUN:
 */
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>

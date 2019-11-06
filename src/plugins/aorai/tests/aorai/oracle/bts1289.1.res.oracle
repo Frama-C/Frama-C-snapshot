@@ -17,124 +17,130 @@ enum aorai_OpStatusList {
 /*@ ghost int aorai_intermediate_state = 0; */
 /*@ ghost int aorai_intermediate_state_0 = 0; */
 /*@ ghost int init = 1; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_a;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
-            aorai_intermediate_state, aorai_intermediate_state_0, init;
-    
-    behavior buch_state_S_out:
-      ensures 0 ≡ S;
-    
-    behavior buch_state_T_out:
-      ensures 0 ≡ T;
-    
-    behavior buch_state_aorai_intermediate_state_in:
-      assumes 1 ≡ S;
-      ensures 1 ≡ aorai_intermediate_state;
-    
-    behavior buch_state_aorai_intermediate_state_out:
-      assumes 0 ≡ S;
-      ensures 0 ≡ aorai_intermediate_state;
-    
-    behavior buch_state_aorai_intermediate_state_0_in:
-      assumes 1 ≡ T;
-      ensures 1 ≡ aorai_intermediate_state_0;
-    
-    behavior buch_state_aorai_intermediate_state_0_out:
-      assumes 0 ≡ T;
-      ensures 0 ≡ aorai_intermediate_state_0;
-    
-    behavior buch_state_init_out:
-      ensures 0 ≡ init;
- */
-void a_pre_func(void)
-{
-  /*@ ghost int S_tmp; */
-  /*@ ghost int T_tmp; */
-  /*@ ghost int aorai_intermediate_state_tmp; */
-  /*@ ghost int aorai_intermediate_state_0_tmp; */
-  /*@ ghost int init_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_a;
-  S_tmp = S;
-  T_tmp = T;
-  aorai_intermediate_state_tmp = aorai_intermediate_state;
-  aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
-  init_tmp = init;
-  init_tmp = 0;
-  if (T == 1) aorai_intermediate_state_0_tmp = 1;
-  else aorai_intermediate_state_0_tmp = 0;
-  if (S == 1) aorai_intermediate_state_tmp = 1;
-  else aorai_intermediate_state_tmp = 0;
-  T_tmp = 0;
-  S_tmp = 0;
-  S = S_tmp;
-  T = T_tmp;
-  aorai_intermediate_state = aorai_intermediate_state_tmp;
-  aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
-  init = init_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_a;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+             aorai_intermediate_state, aorai_intermediate_state_0, init;
+     
+     behavior buch_state_S_out:
+       ensures 0 ≡ S;
+     
+     behavior buch_state_T_out:
+       ensures 0 ≡ T;
+     
+     behavior buch_state_aorai_intermediate_state_in:
+       assumes 1 ≡ S;
+       ensures 1 ≡ aorai_intermediate_state;
+     
+     behavior buch_state_aorai_intermediate_state_out:
+       assumes 0 ≡ S;
+       ensures 0 ≡ aorai_intermediate_state;
+     
+     behavior buch_state_aorai_intermediate_state_0_in:
+       assumes 1 ≡ T;
+       ensures 1 ≡ aorai_intermediate_state_0;
+     
+     behavior buch_state_aorai_intermediate_state_0_out:
+       assumes 0 ≡ T;
+       ensures 0 ≡ aorai_intermediate_state_0;
+     
+     behavior buch_state_init_out:
+       ensures 0 ≡ init;
+   @/
+  void a_pre_func(void)
+  {
+    int S_tmp;
+    int T_tmp;
+    int aorai_intermediate_state_tmp;
+    int aorai_intermediate_state_0_tmp;
+    int init_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_a;
+    S_tmp = S;
+    T_tmp = T;
+    aorai_intermediate_state_tmp = aorai_intermediate_state;
+    aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
+    init_tmp = init;
+    init_tmp = 0;
+    if (T == 1) aorai_intermediate_state_0_tmp = 1;
+    else aorai_intermediate_state_0_tmp = 0;
+    if (S == 1) aorai_intermediate_state_tmp = 1;
+    else aorai_intermediate_state_tmp = 0;
+    T_tmp = 0;
+    S_tmp = 0;
+    S = S_tmp;
+    T = T_tmp;
+    aorai_intermediate_state = aorai_intermediate_state_tmp;
+    aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
+    init = init_tmp;
+    return;
+  }
 
-/*@ requires
-      (1 ≡ aorai_intermediate_state ∨ 1 ≡ aorai_intermediate_state_0) ∧
-      0 ≡ S ∧ 0 ≡ T ∧ 0 ≡ init;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_a;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
-            aorai_intermediate_state, aorai_intermediate_state_0, init;
-    
-    behavior buch_state_S_in:
-      assumes 1 ≡ aorai_intermediate_state_0;
-      ensures 1 ≡ S;
-    
-    behavior buch_state_S_out:
-      assumes 0 ≡ aorai_intermediate_state_0;
-      ensures 0 ≡ S;
-    
-    behavior buch_state_T_in:
-      assumes 1 ≡ aorai_intermediate_state;
-      ensures 1 ≡ T;
-    
-    behavior buch_state_T_out:
-      assumes 0 ≡ aorai_intermediate_state;
-      ensures 0 ≡ T;
-    
-    behavior buch_state_aorai_intermediate_state_out:
-      ensures 0 ≡ aorai_intermediate_state;
-    
-    behavior buch_state_aorai_intermediate_state_0_out:
-      ensures 0 ≡ aorai_intermediate_state_0;
-    
-    behavior buch_state_init_out:
-      ensures 0 ≡ init;
- */
-void a_post_func(void)
-{
-  /*@ ghost int S_tmp; */
-  /*@ ghost int T_tmp; */
-  /*@ ghost int aorai_intermediate_state_tmp; */
-  /*@ ghost int aorai_intermediate_state_0_tmp; */
-  /*@ ghost int init_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_a;
-  S_tmp = S;
-  T_tmp = T;
-  aorai_intermediate_state_tmp = aorai_intermediate_state;
-  aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
-  init_tmp = init;
-  init_tmp = 0;
-  aorai_intermediate_state_0_tmp = 0;
-  aorai_intermediate_state_tmp = 0;
-  if (aorai_intermediate_state == 1) T_tmp = 1; else T_tmp = 0;
-  if (aorai_intermediate_state_0 == 1) S_tmp = 1; else S_tmp = 0;
-  S = S_tmp;
-  T = T_tmp;
-  aorai_intermediate_state = aorai_intermediate_state_tmp;
-  aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
-  init = init_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       (1 ≡ aorai_intermediate_state ∨ 1 ≡ aorai_intermediate_state_0) ∧
+       0 ≡ S ∧ 0 ≡ T ∧ 0 ≡ init;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_a;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+             aorai_intermediate_state, aorai_intermediate_state_0, init;
+     
+     behavior buch_state_S_in:
+       assumes 1 ≡ aorai_intermediate_state_0;
+       ensures 1 ≡ S;
+     
+     behavior buch_state_S_out:
+       assumes 0 ≡ aorai_intermediate_state_0;
+       ensures 0 ≡ S;
+     
+     behavior buch_state_T_in:
+       assumes 1 ≡ aorai_intermediate_state;
+       ensures 1 ≡ T;
+     
+     behavior buch_state_T_out:
+       assumes 0 ≡ aorai_intermediate_state;
+       ensures 0 ≡ T;
+     
+     behavior buch_state_aorai_intermediate_state_out:
+       ensures 0 ≡ aorai_intermediate_state;
+     
+     behavior buch_state_aorai_intermediate_state_0_out:
+       ensures 0 ≡ aorai_intermediate_state_0;
+     
+     behavior buch_state_init_out:
+       ensures 0 ≡ init;
+   @/
+  void a_post_func(void)
+  {
+    int S_tmp;
+    int T_tmp;
+    int aorai_intermediate_state_tmp;
+    int aorai_intermediate_state_0_tmp;
+    int init_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_a;
+    S_tmp = S;
+    T_tmp = T;
+    aorai_intermediate_state_tmp = aorai_intermediate_state;
+    aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
+    init_tmp = init;
+    init_tmp = 0;
+    aorai_intermediate_state_0_tmp = 0;
+    aorai_intermediate_state_tmp = 0;
+    if (aorai_intermediate_state == 1) T_tmp = 1; else T_tmp = 0;
+    if (aorai_intermediate_state_0 == 1) S_tmp = 1; else S_tmp = 0;
+    S = S_tmp;
+    T = T_tmp;
+    aorai_intermediate_state = aorai_intermediate_state_tmp;
+    aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
+    init = init_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       (1 ≡ S ∨ 1 ≡ T) ∧ 0 ≡ aorai_intermediate_state ∧
@@ -169,117 +175,123 @@ void a_post_func(void)
  */
 void a(void)
 {
-  a_pre_func();
-  a_post_func();
+  /*@ ghost a_pre_func(); */
+  /*@ ghost a_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
-            aorai_intermediate_state, aorai_intermediate_state_0, init;
-    
-    behavior buch_state_S_in:
-      assumes 1 ≡ init;
-      ensures 1 ≡ S;
-    
-    behavior buch_state_S_out:
-      assumes 0 ≡ init;
-      ensures 0 ≡ S;
-    
-    behavior buch_state_T_out:
-      ensures 0 ≡ T;
-    
-    behavior buch_state_aorai_intermediate_state_out:
-      ensures 0 ≡ aorai_intermediate_state;
-    
-    behavior buch_state_aorai_intermediate_state_0_out:
-      ensures 0 ≡ aorai_intermediate_state_0;
-    
-    behavior buch_state_init_out:
-      ensures 0 ≡ init;
- */
-void main_pre_func(void)
-{
-  /*@ ghost int S_tmp; */
-  /*@ ghost int T_tmp; */
-  /*@ ghost int aorai_intermediate_state_tmp; */
-  /*@ ghost int aorai_intermediate_state_0_tmp; */
-  /*@ ghost int init_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  S_tmp = S;
-  T_tmp = T;
-  aorai_intermediate_state_tmp = aorai_intermediate_state;
-  aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
-  init_tmp = init;
-  init_tmp = 0;
-  aorai_intermediate_state_0_tmp = 0;
-  aorai_intermediate_state_tmp = 0;
-  T_tmp = 0;
-  if (init == 1) S_tmp = 1; else S_tmp = 0;
-  S = S_tmp;
-  T = T_tmp;
-  aorai_intermediate_state = aorai_intermediate_state_tmp;
-  aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
-  init = init_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+             aorai_intermediate_state, aorai_intermediate_state_0, init;
+     
+     behavior buch_state_S_in:
+       assumes 1 ≡ init;
+       ensures 1 ≡ S;
+     
+     behavior buch_state_S_out:
+       assumes 0 ≡ init;
+       ensures 0 ≡ S;
+     
+     behavior buch_state_T_out:
+       ensures 0 ≡ T;
+     
+     behavior buch_state_aorai_intermediate_state_out:
+       ensures 0 ≡ aorai_intermediate_state;
+     
+     behavior buch_state_aorai_intermediate_state_0_out:
+       ensures 0 ≡ aorai_intermediate_state_0;
+     
+     behavior buch_state_init_out:
+       ensures 0 ≡ init;
+   @/
+  void main_pre_func(void)
+  {
+    int S_tmp;
+    int T_tmp;
+    int aorai_intermediate_state_tmp;
+    int aorai_intermediate_state_0_tmp;
+    int init_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    S_tmp = S;
+    T_tmp = T;
+    aorai_intermediate_state_tmp = aorai_intermediate_state;
+    aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
+    init_tmp = init;
+    init_tmp = 0;
+    aorai_intermediate_state_0_tmp = 0;
+    aorai_intermediate_state_tmp = 0;
+    T_tmp = 0;
+    if (init == 1) S_tmp = 1; else S_tmp = 0;
+    S = S_tmp;
+    T = T_tmp;
+    aorai_intermediate_state = aorai_intermediate_state_tmp;
+    aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
+    init = init_tmp;
+    return;
+  }
 
-/*@ requires
-      1 ≡ S ∧ 0 ≡ T ∧ 0 ≡ aorai_intermediate_state ∧
-      0 ≡ aorai_intermediate_state_0 ∧ 0 ≡ init;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
-            aorai_intermediate_state, aorai_intermediate_state_0, init;
-    
-    behavior buch_state_S_in:
-      assumes 1 ≡ S;
-      ensures 1 ≡ S;
-    
-    behavior buch_state_S_out:
-      assumes 0 ≡ S;
-      ensures 0 ≡ S;
-    
-    behavior buch_state_T_out:
-      ensures 0 ≡ T;
-    
-    behavior buch_state_aorai_intermediate_state_out:
-      ensures 0 ≡ aorai_intermediate_state;
-    
-    behavior buch_state_aorai_intermediate_state_0_out:
-      ensures 0 ≡ aorai_intermediate_state_0;
-    
-    behavior buch_state_init_out:
-      ensures 0 ≡ init;
- */
-void main_post_func(void)
-{
-  /*@ ghost int S_tmp; */
-  /*@ ghost int T_tmp; */
-  /*@ ghost int aorai_intermediate_state_tmp; */
-  /*@ ghost int aorai_intermediate_state_0_tmp; */
-  /*@ ghost int init_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  S_tmp = S;
-  T_tmp = T;
-  aorai_intermediate_state_tmp = aorai_intermediate_state;
-  aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
-  init_tmp = init;
-  init_tmp = 0;
-  aorai_intermediate_state_0_tmp = 0;
-  aorai_intermediate_state_tmp = 0;
-  T_tmp = 0;
-  if (S == 1) S_tmp = 1; else S_tmp = 0;
-  S = S_tmp;
-  T = T_tmp;
-  aorai_intermediate_state = aorai_intermediate_state_tmp;
-  aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
-  init = init_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       1 ≡ S ∧ 0 ≡ T ∧ 0 ≡ aorai_intermediate_state ∧
+       0 ≡ aorai_intermediate_state_0 ∧ 0 ≡ init;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+             aorai_intermediate_state, aorai_intermediate_state_0, init;
+     
+     behavior buch_state_S_in:
+       assumes 1 ≡ S;
+       ensures 1 ≡ S;
+     
+     behavior buch_state_S_out:
+       assumes 0 ≡ S;
+       ensures 0 ≡ S;
+     
+     behavior buch_state_T_out:
+       ensures 0 ≡ T;
+     
+     behavior buch_state_aorai_intermediate_state_out:
+       ensures 0 ≡ aorai_intermediate_state;
+     
+     behavior buch_state_aorai_intermediate_state_0_out:
+       ensures 0 ≡ aorai_intermediate_state_0;
+     
+     behavior buch_state_init_out:
+       ensures 0 ≡ init;
+   @/
+  void main_post_func(void)
+  {
+    int S_tmp;
+    int T_tmp;
+    int aorai_intermediate_state_tmp;
+    int aorai_intermediate_state_0_tmp;
+    int init_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    S_tmp = S;
+    T_tmp = T;
+    aorai_intermediate_state_tmp = aorai_intermediate_state;
+    aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
+    init_tmp = init;
+    init_tmp = 0;
+    aorai_intermediate_state_0_tmp = 0;
+    aorai_intermediate_state_tmp = 0;
+    T_tmp = 0;
+    if (S == 1) S_tmp = 1; else S_tmp = 0;
+    S = S_tmp;
+    T = T_tmp;
+    aorai_intermediate_state = aorai_intermediate_state_tmp;
+    aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
+    init = init_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       1 ≡ init ∧ 0 ≡ S ∧ 0 ≡ T ∧
@@ -293,8 +305,8 @@ void main_post_func(void)
  */
 void main(void)
 {
-  int aorai_Loop_Init_4;
-  main_pre_func();
+  /*@ ghost int aorai_Loop_Init_4; */
+  /*@ ghost main_pre_func(); */
   int i = 0;
   /*@ ghost aorai_Loop_Init_4 = 1; */
   aorai_loop_4:
@@ -316,7 +328,7 @@ void main(void)
     a();
     i ++;
   }
-  main_post_func();
+  /*@ ghost main_post_func(); */
   return;
 }
 

@@ -1,26 +1,26 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-timeout 1 [...]
 [kernel] Parsing tests/wp/wp_behav.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] tests/wp/wp_behav.c:172: Warning: 
   Ignored specification 'for b1' (generalize to all behavior)
 [wp] Warning: Missing RTE guards
-[wp] tests/wp/wp_behav.c:176: Warning: 
-  Missing assigns clause (assigns 'everything' instead)
-[wp] tests/wp/wp_behav.c:154: Warning: 
-  Missing assigns clause (assigns 'everything' instead)
 [wp] tests/wp/wp_behav.c:69: Warning: 
   Missing assigns clause (assigns 'everything' instead)
 [wp] tests/wp/wp_behav.c:81: Warning: 
   Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:154: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:176: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
 [wp] 38 goals scheduled
-[wp] [Alt-Ergo] Goal typed_assert_needed_assert_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_assert_needed_assert_ko : Unsuccess
 [wp] [Qed] Goal typed_assert_needed_assert_qed_ok_ok_with_hyp : Valid
-[wp] [Alt-Ergo] Goal typed_bhv_complete_pos_neg : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_bhv_complete_pos_neg : Valid
 [wp] [Qed] Goal typed_bhv_neg_ensures_qed_ok : Valid
 [wp] [Qed] Goal typed_bhv_pos_ensures_qed_ok : Valid
-[wp] [Alt-Ergo] Goal typed_bts0513_ensures_ko1 : Unsuccess
-[wp] [Alt-Ergo] Goal typed_bts0513_ensures_ko2 : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_bts0513_ensures_ko1 : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_bts0513_ensures_ko2 : Unsuccess
 [wp] [Qed] Goal typed_f_ensures_qed_ok : Valid
 [wp] [Qed] Goal typed_f_x1_ensures_qed_ok : Valid
 [wp] [Qed] Goal typed_f_assert_qed_ok : Valid
@@ -36,12 +36,12 @@
 [wp] [Qed] Goal typed_more_stmt_assigns_blk_assigns_part1 : Valid
 [wp] [Qed] Goal typed_more_stmt_assigns_blk_assigns_part2 : Valid
 [wp] [Qed] Goal typed_part_stmt_bhv_b1_ensures_qed_ok : Valid
-[wp] [Alt-Ergo] Goal typed_part_stmt_bhv_bs_ensures : Unsuccess
-[wp] [Alt-Ergo] Goal typed_razT_loop_invariant_qed_ok_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_part_stmt_bhv_bs_ensures : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_razT_loop_invariant_qed_ok_preserved : Valid
 [wp] [Qed] Goal typed_razT_loop_invariant_qed_ok_established : Valid
-[wp] [Alt-Ergo] Goal typed_razT_b1_ensures_e1 : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_razT_b1_ensures_e1 : Unsuccess
 [wp] [Qed] Goal typed_stmt_assigns_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_stmt_assigns_assigns : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_stmt_assigns_assigns : Unsuccess
 [wp] [Qed] Goal typed_stmt_contract_requires_qed_ok : Valid
 [wp] [Qed] Goal typed_stmt_contract_ensures_qed_ok : Valid
 [wp] [Qed] Goal typed_stmt_contract_ok_ensures_qed_ok : Valid
@@ -53,8 +53,8 @@
 [wp] [Qed] Goal typed_stmt_contract_label_ensures_qed_ok_2 : Valid
 [wp] [Qed] Goal typed_stmt_contract_label_ensures_qed_ok : Valid
 [wp] Proved goals:   32 / 38
-  Qed:            30 
-  Alt-Ergo:        2  (unsuccess: 6)
+  Qed:              30 
+  Alt-Ergo 2.0.0:    2  (unsuccess: 6)
 [wp] Report in:  'tests/wp/oracle_qualif/wp_behav.0.report.json'
 [wp] Report out: 'tests/wp/result_qualif/wp_behav.0.report.json'
 -------------------------------------------------------------

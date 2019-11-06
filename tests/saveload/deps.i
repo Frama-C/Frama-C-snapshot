@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s ./tests/saveload/deps_A.cmxs ./tests/saveload/deps_B.cmxs ./tests/saveload/deps_C.cmxs ./tests/saveload/deps_D.cmxs ./tests/saveload/deps_E.cmxs
-   EXECNOW: LOG deps_sav.res LOG deps_sav.err BIN deps.sav @frama-c@ -load-module ./tests/saveload/deps_A.cmxs -eva -out -input -deps -eva-show-progress ./tests/saveload/deps.i -save ./tests/saveload/result/deps.sav > ./tests/saveload/result/deps_sav.res 2> ./tests/saveload/result/deps_sav.err
-   STDOPT: +"-load-module ./tests/saveload/deps_A -load ./tests/saveload/result/deps.sav -eva -out -input -deps "
+   EXECNOW: LOG deps_sav.res LOG deps_sav.err BIN deps.sav @frama-c@ -load-module ./tests/saveload/deps_A.cmxs -eva @EVA_OPTIONS@ -out -input -deps ./tests/saveload/deps.i -save ./tests/saveload/result/deps.sav > ./tests/saveload/result/deps_sav.res 2> ./tests/saveload/result/deps_sav.err
+   STDOPT: +"-load-module ./tests/saveload/deps_A -load ./tests/saveload/result/deps.sav -eva @EVA_OPTIONS@ -out -input -deps "
    STDOPT: +"-load-module ./tests/saveload/deps_B -load ./tests/saveload/result/deps.sav  -out -input -deps "
    STDOPT: +"-load-module ./tests/saveload/deps_C -load ./tests/saveload/result/deps.sav  -out -input -deps "
    STDOPT: +"-load-module ./tests/saveload/deps_D -load ./tests/saveload/result/deps.sav  -out -input -deps "

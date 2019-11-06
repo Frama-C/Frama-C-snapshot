@@ -1,35 +1,35 @@
-# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
 [kernel] Parsing tests/wp_gallery/frama_c_exo3_solved.old.v2.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 35 goals scheduled
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_ensures_v1_good : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_ensures_v2_good : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_ensures_v1_v2_diff : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_ensures_v1_good : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_ensures_v2_good : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_ensures_v1_v2_diff : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_set_at_0_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_set_at_0_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_set_at_0_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_set_at_1 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_bound_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_assert_set_at_1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_bound_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_bound_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_established : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v1_first_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v1_first_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v1_sound1_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v1_sound1_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v1_sound1_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v1_v2_diff_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v1_v2_diff_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v1_v2_diff_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v2_sound1_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v2_sound1_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v2_sound1_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_established : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_assigns : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_assigns_2 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assigns_part1 : Valid
@@ -40,13 +40,13 @@
 [wp] [Qed] Goal typed_ref_equal_elements_loop_variant_2_decrease : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_variant_2_positive : Valid
 [wp] Proved goals:   35 / 35
-  Qed:            17 
-  Alt-Ergo:       18
+  Qed:              17 
+  Alt-Ergo 2.0.0:   18
 [wp] Report in:  'tests/wp_gallery/oracle_qualif/frama_c_exo3_solved.old.v2.0.report.json'
 [wp] Report out: 'tests/wp_gallery/result_qualif/frama_c_exo3_solved.old.v2.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-equal_elements      17     18 (288..336)    35       100%
+equal_elements      17     18 (240..288)    35       100%
 -------------------------------------------------------------
 [wp] Warning: Memory model hypotheses for function 'equal_elements':
   /*@
@@ -59,40 +59,40 @@ equal_elements      17     18 (288..336)    35       100%
 [wp] Running WP plugin...
 [rte] annotating function equal_elements
 [wp] 51 goals scheduled
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_ensures_v1_good : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_ensures_v2_good : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_ensures_v1_v2_diff : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_ensures_v1_good : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_ensures_v2_good : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_ensures_v1_v2_diff : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_2 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_set_at_0_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_set_at_0_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_set_at_0_established : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_index_bound : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_index_bound_2 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_set_at_1 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_signed_overflow : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_bound_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_assert_set_at_1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_assert_rte_signed_overflow : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_bound_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_bound_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_established : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v1_first_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v1_first_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v1_sound1_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v1_sound1_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v1_sound1_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v1_v2_diff_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v1_v2_diff_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v1_v2_diff_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v2_sound1_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v2_sound1_preserved : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_invariant_v2_sound1_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_established : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_mem_access_3 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_index_bound_3 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_index_bound_4 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_assert_rte_mem_access_3 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_assert_rte_index_bound_3 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_assert_rte_index_bound_4 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_4 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_5 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_6 : Valid
@@ -100,7 +100,7 @@ equal_elements      17     18 (288..336)    35       100%
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_8 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_index_bound_5 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_index_bound_6 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_signed_overflow_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_equal_elements_assert_rte_signed_overflow_2 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_assigns : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_assigns_2 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assigns_part1 : Valid
@@ -111,13 +111,13 @@ equal_elements      17     18 (288..336)    35       100%
 [wp] [Qed] Goal typed_ref_equal_elements_loop_variant_2_decrease : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_variant_2_positive : Valid
 [wp] Proved goals:   34 / 51
-  Qed:            11 
-  Alt-Ergo:       23
+  Qed:              11 
+  Alt-Ergo 2.0.0:   23
 [wp] Report in:  'tests/wp_gallery/oracle_qualif/frama_c_exo3_solved.old.v2.0.report.json'
 [wp] Report out: 'tests/wp_gallery/result_qualif/frama_c_exo3_solved.old.v2.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-equal_elements      28     23 (288..336)    51       100%
+equal_elements      28     23 (240..288)    51       100%
 -------------------------------------------------------------
 [wp] Warning: Memory model hypotheses for function 'equal_elements':
   /*@

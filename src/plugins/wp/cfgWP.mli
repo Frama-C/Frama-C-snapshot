@@ -27,7 +27,7 @@
 module VC( M : Sigs.Compiler ) : Mcfg.S
 module Computer( M : Sigs.Compiler ) :
 sig
-  class wp : Model.t -> Generator.computer
+  class wp : WpContext.model -> Generator.computer
 end
 
 val computer : Factory.setup -> Factory.driver -> Generator.computer

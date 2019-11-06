@@ -1,4 +1,4 @@
-{ "wp:global": { "alt-ergo": { "total": 1, "unknown": 1 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 1, "unknown": 1 },
                  "qed": { "total": 1, "valid": 1 },
                  "wp:main": { "total": 2, "valid": 1, "unknown": 1 } },
   "wp:functions": { "correct": { "correct_assert_OK": { "qed": { "total": 1,
@@ -9,11 +9,12 @@
                                                           "valid": 1 },
                                                  "wp:main": { "total": 1,
                                                               "valid": 1 } } },
-                    "wrong": { "wrong_assert_KO": { "alt-ergo": { "total": 1,
-                                                                  "unknown": 1 },
+                    "wrong": { "wrong_assert_KO": { "why3:Alt-Ergo,2.0.0": 
+                                                      { "total": 1,
+                                                        "unknown": 1 },
                                                     "wp:main": { "total": 1,
                                                                  "unknown": 1 } },
-                               "wp:section": { "alt-ergo": { "total": 1,
-                                                             "unknown": 1 },
+                               "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                 { "total": 1, "unknown": 1 },
                                                "wp:main": { "total": 1,
                                                             "unknown": 1 } } } } }

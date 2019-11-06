@@ -175,8 +175,8 @@ sig
   module Var : Variable
 
   type term
-  type bind
-
+  type lc_term
+  (** Loosely closed terms. *)
 
   module Term : Symbol with type t = term
 
@@ -219,10 +219,10 @@ sig
 
   (** {3 Terms} *)
 
-  type 'a expression = (Field.t,ADT.t,Fun.t,var,bind,'a) term_repr
+  type 'a expression = (Field.t,ADT.t,Fun.t,var,lc_term,'a) term_repr
 
   type repr = term expression
-  type path = int list (** position of a subterm in a term. *)
+
   type record = (Field.t * term) list
 
   val decide   : term -> bool (** Return [true] if and only the term is [e_true]. Constant time. *)
@@ -243,8 +243,18 @@ sig
   val sort : term -> sort   (** Constant time *)
   val vars : term -> Vars.t (** Constant time *)
 
+  (** Path-positioning access
+
+      This part of the API is DEPRECATED
+  *)
+
+  type path = int list (** position of a subterm in a term. *)
+
   val subterm: term -> path -> term
+  [@@deprecated "Path-access might be unsafe in presence of binders"]
+
   val change_subterm: term -> path -> term -> term
+  [@@deprecated "Path-access might be unsafe in presence of binders"]
 
   (** {3 Basic constructors} *)
 
@@ -281,51 +291,115 @@ sig
   val e_set   : term -> term -> term -> term
   val e_getfield : term -> Field.t -> term
   val e_record : record -> term
-  val e_fun : Fun.t -> term list -> term
+  val e_fun : ?result:tau -> Fun.t -> term list -> term
+  val e_repr : ?result:tau -> repr -> term
+  (** @raise Invalid_argument on [Bvar] and [Bind] *)
 
-  val e_repr : repr -> term
-
-  (** {3 Quantification and Binding} *)
+  (** {3 Quantifiers and Binding} *)
 
   val e_forall : var list -> term -> term
   val e_exists : var list -> term -> term
   val e_lambda : var list -> term -> term
-  val e_bind : binder -> var -> term -> term
   val e_apply : term -> term list -> term
+
+  val e_bind : binder -> var -> term -> term
+  (** Bind the given variable if it appears free in the term,
+      or return the term unchanged. *)
+
+  val lc_open : var -> lc_term -> term
+  [@@deprecated "Use e_unbind instead"]
+
+  val e_unbind : var -> lc_term -> term
+  (** Opens the top-most bound variable with a (fresh) variable.
+      Can be only applied on top-most lc-term from `Bind(_,_,_)`,
+      thanks to typing. *)
+
+  val e_open : pool:pool -> ?forall:bool -> ?exists:bool -> ?lambda:bool ->
+    term -> (binder * var) list * term
+  (** Open all the specified binders (flags default to `true`, so all
+      consecutive top most binders are opened by default).
+      The pool must contain all free variables of the term. *)
+
+  val e_close : (binder * var) list -> term -> term
+  (** Closes all specified binders *)
 
   (** {3 Generalized Substitutions} *)
 
   type sigma
-  val sigma : unit -> sigma
-  val sigma_add : sigma -> term Tmap.t -> unit
+  val sigma : ?pool:pool -> unit -> sigma
 
-  val e_subst : ?sigma:sigma -> (term -> term) -> term -> term
+  module Subst :
+  sig
+    type t = sigma
+    val create : ?pool:pool -> unit -> t
+
+    val fresh : t -> tau -> var
+    val get : t -> term -> term
+    val filter : t -> term -> bool
+
+    val add : t -> term -> term -> unit
+    (** Must bind lc-closed terms, or raise Invalid_argument *)
+
+    val add_map : t -> term Tmap.t -> unit
+    (** Must bind lc-closed terms, or raise Invalid_argument *)
+
+    val add_fun : t -> (term -> term) -> unit
+    (** Must bind lc-closed terms, or raise Invalid_argument *)
+
+    val add_filter : t -> (term -> bool) -> unit
+    (** Only modifies terms that {i pass} the filter. *)
+
+    val add_var : t -> var -> unit
+    (** To the pool *)
+
+    val add_vars : t -> Vars.t -> unit
+    (** To the pool *)
+
+    val add_term : t -> term -> unit
+    (** To the pool *)
+  end
+
+  val e_subst : sigma -> term -> term
+  (**
+     The environment sigma must be prepared with the desired substitution.
+     Its pool of fresh variables must covers the entire domain and co-domain
+     of the substitution, and the transformed values.
+  *)
+
   val e_subst_var : var -> term -> term -> term
 
-  (** {3 Locally Nameless Representation} *)
+  (** {3 Locally Nameless Representation}
 
-  val lc_bind : var -> term -> bind (** Close [x] as a new bound variable *)
-  val lc_open : var -> bind -> term (** Instantiate top bound variable *)
-  val lc_open_term : term -> bind -> term
-  (** Instantiate top bound variable with the given term *)
-  val lc_closed : term -> bool
-  val lc_closed_at : int -> term -> bool
+      These functions can be {i unsafe} because they might expose terms
+      that contains non-bound b-vars. Never use such terms to build
+      substitutions (sigma).
+  *)
+
   val lc_vars : term -> Bvars.t
-  val lc_repr : bind -> term
+  val lc_closed : term -> bool
+  (** All bound variables are under their binder *)
 
-  val binders : term -> binder list
-  (** Returns the list of head binders *)
+  val lc_repr : lc_term -> term
+  (** Calling this function is {i unsafe} unless the term is lc_closed *)
 
-  (** {3 Recursion Scheme} *)
-
-  val e_map  : pool -> (term -> term) -> term -> term
-  val e_iter : pool -> (term -> unit) -> term -> unit
-
-  val f_map  : (int -> term -> term) -> int -> term -> term
-  val f_iter : (int -> term -> unit) -> int -> term -> unit
-
-  val lc_map : (term -> term) -> term -> term
   val lc_iter : (term -> unit) -> term -> unit
+  (** Similar to [f_iter] but exposes non-closed sub-terms of `Bind`
+      as regular [term] values instead of [lc_term] ones. *)
+
+  (** {3 Iteration Scheme} *)
+
+  val f_map  : ?pool:pool -> ?forall:bool -> ?exists:bool -> ?lambda:bool
+    -> (term -> term) -> term -> term
+  (** Pass and open binders, maps its direct sub-terms
+      and then close then opened binders
+      Raises Invalid_argument in case of a bind-term without pool.
+      The optional pool must contain all free variables of the term. *)
+
+  val f_iter : ?pool:pool -> ?forall:bool -> ?exists:bool -> ?lambda:bool
+    -> (term -> unit) -> term -> unit
+  (** Iterates over its direct sub-terms (pass and open binders)
+      Raises Invalid_argument in case of a bind-term without pool.
+      The optional pool must contain all free variables of the term. *)
 
   (** {3 Partial Typing} *)
 
@@ -356,6 +430,8 @@ sig
         Recursive calls must be performed on strictly smaller terms.
   *)
 
+  val set_builtin' : Fun.t -> (term list -> tau option -> term) -> unit
+
   val set_builtin_map : Fun.t -> (term list -> term list) -> unit
   (** Register a builtin for rewriting [f a1..an] into [f b1..bm].
 
@@ -363,9 +439,10 @@ sig
       to run into an infinite loop.
   *)
 
-  val set_builtin_get : Fun.t -> (term list -> term -> term) -> unit
+  val set_builtin_get : Fun.t -> (term list -> tau option -> term -> term) -> unit
   (** [set_builtin_get f rewrite] register a builtin
       for rewriting [(f a1..an)[k]] into [rewrite (a1..an) k].
+      The type given is the type of (f a1..an).
   *)
 
   val set_builtin_eq : Fun.t -> (term -> term -> term) -> unit
@@ -442,9 +519,9 @@ sig
         order of definition: each trailing terms only depend on heading ones.
 
         The traversal is controlled by two optional arguments:
-        - [shared] those terms are not traversed (considered as atomic, default to none)
-        - [shareable] those terms ([is_simple] excepted) that can be shared (default to all)
-        - [subterms] those sub-terms a term to be considered during
+      - [shared] those terms are not traversed (considered as atomic, default to none)
+      - [shareable] those terms ([is_simple] excepted) that can be shared (default to all)
+      - [subterms] those sub-terms a term to be considered during
           traversal ([lc_iter] by default)
   *)
 

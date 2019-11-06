@@ -285,6 +285,9 @@ let init =
                ["m",  rounding_mode; "x", Lreal], float_type;
             "\\round_double", [], 
                ["m", rounding_mode ; "x", Lreal], double_type;
+            "\\plus_infinity", [], [], float_type;
+            "\\minus_infinity", [], [], float_type;
+            "\\NaN", [], [], float_type;
             (*"\\round_quad", [], 
                ["m",  rounding_mode; "x", Lreal], long_double_type;*)
 

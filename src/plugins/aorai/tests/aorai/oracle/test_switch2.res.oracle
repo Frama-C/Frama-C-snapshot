@@ -29,141 +29,147 @@ int rr = 1;
 /*@ ghost int accept_S6 = 0; */
 /*@ ghost int accept_all = 0; */
 /*@ ghost int accept_init = 1; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_opa;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
-            accept_S4, accept_S5, accept_S6, accept_all, accept_init;
-    
-    behavior buch_state_accept_S2_out:
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_in:
-      assumes 1 ≡ accept_S2;
-      ensures 1 ≡ accept_S3;
-    
-    behavior buch_state_accept_S3_out:
-      assumes 0 ≡ accept_S2;
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_S5_out:
-      ensures 0 ≡ accept_S5;
-    
-    behavior buch_state_accept_S6_out:
-      ensures 0 ≡ accept_S6;
-    
-    behavior buch_state_accept_all_out:
-      ensures 0 ≡ accept_all;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void opa_pre_func(void)
-{
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_S5_tmp; */
-  /*@ ghost int accept_S6_tmp; */
-  /*@ ghost int accept_all_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_opa;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_S5_tmp = accept_S5;
-  accept_S6_tmp = accept_S6;
-  accept_all_tmp = accept_all;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_all_tmp = 0;
-  accept_S6_tmp = 0;
-  accept_S5_tmp = 0;
-  accept_S4_tmp = 0;
-  if (accept_S2 == 1) accept_S3_tmp = 1; else accept_S3_tmp = 0;
-  accept_S2_tmp = 0;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_S5 = accept_S5_tmp;
-  accept_S6 = accept_S6_tmp;
-  accept_all = accept_all_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_opa;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
+             accept_S4, accept_S5, accept_S6, accept_all, accept_init;
+     
+     behavior buch_state_accept_S2_out:
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_in:
+       assumes 1 ≡ accept_S2;
+       ensures 1 ≡ accept_S3;
+     
+     behavior buch_state_accept_S3_out:
+       assumes 0 ≡ accept_S2;
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_S5_out:
+       ensures 0 ≡ accept_S5;
+     
+     behavior buch_state_accept_S6_out:
+       ensures 0 ≡ accept_S6;
+     
+     behavior buch_state_accept_all_out:
+       ensures 0 ≡ accept_all;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void opa_pre_func(void)
+  {
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_S5_tmp;
+    int accept_S6_tmp;
+    int accept_all_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_opa;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_S5_tmp = accept_S5;
+    accept_S6_tmp = accept_S6;
+    accept_all_tmp = accept_all;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_all_tmp = 0;
+    accept_S6_tmp = 0;
+    accept_S5_tmp = 0;
+    accept_S4_tmp = 0;
+    if (accept_S2 == 1) accept_S3_tmp = 1; else accept_S3_tmp = 0;
+    accept_S2_tmp = 0;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_S5 = accept_S5_tmp;
+    accept_S6 = accept_S6_tmp;
+    accept_all = accept_all_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
 
-/*@ requires
-      1 ≡ accept_S3 ∧ 0 ≡ accept_S2 ∧ 0 ≡ accept_S4 ∧
-      0 ≡ accept_S5 ∧ 0 ≡ accept_S6 ∧ 0 ≡ accept_all ∧
-      0 ≡ accept_init;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_opa;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
-            accept_S4, accept_S5, accept_S6, accept_all, accept_init;
-    
-    behavior buch_state_accept_S2_out:
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_in:
-      assumes 1 ≡ accept_S3;
-      ensures 1 ≡ accept_S4;
-    
-    behavior buch_state_accept_S4_out:
-      assumes 0 ≡ accept_S3;
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_S5_out:
-      ensures 0 ≡ accept_S5;
-    
-    behavior buch_state_accept_S6_out:
-      ensures 0 ≡ accept_S6;
-    
-    behavior buch_state_accept_all_out:
-      ensures 0 ≡ accept_all;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void opa_post_func(void)
-{
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_S5_tmp; */
-  /*@ ghost int accept_S6_tmp; */
-  /*@ ghost int accept_all_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_opa;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_S5_tmp = accept_S5;
-  accept_S6_tmp = accept_S6;
-  accept_all_tmp = accept_all;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_all_tmp = 0;
-  accept_S6_tmp = 0;
-  accept_S5_tmp = 0;
-  if (accept_S3 == 1) accept_S4_tmp = 1; else accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  accept_S2_tmp = 0;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_S5 = accept_S5_tmp;
-  accept_S6 = accept_S6_tmp;
-  accept_all = accept_all_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       1 ≡ accept_S3 ∧ 0 ≡ accept_S2 ∧ 0 ≡ accept_S4 ∧
+       0 ≡ accept_S5 ∧ 0 ≡ accept_S6 ∧ 0 ≡ accept_all ∧
+       0 ≡ accept_init;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_opa;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
+             accept_S4, accept_S5, accept_S6, accept_all, accept_init;
+     
+     behavior buch_state_accept_S2_out:
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_in:
+       assumes 1 ≡ accept_S3;
+       ensures 1 ≡ accept_S4;
+     
+     behavior buch_state_accept_S4_out:
+       assumes 0 ≡ accept_S3;
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_S5_out:
+       ensures 0 ≡ accept_S5;
+     
+     behavior buch_state_accept_S6_out:
+       ensures 0 ≡ accept_S6;
+     
+     behavior buch_state_accept_all_out:
+       ensures 0 ≡ accept_all;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void opa_post_func(void)
+  {
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_S5_tmp;
+    int accept_S6_tmp;
+    int accept_all_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_opa;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_S5_tmp = accept_S5;
+    accept_S6_tmp = accept_S6;
+    accept_all_tmp = accept_all;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_all_tmp = 0;
+    accept_S6_tmp = 0;
+    accept_S5_tmp = 0;
+    if (accept_S3 == 1) accept_S4_tmp = 1; else accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    accept_S2_tmp = 0;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_S5 = accept_S5_tmp;
+    accept_S6 = accept_S6_tmp;
+    accept_all = accept_all_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       1 ≡ accept_S2 ∧ 0 ≡ accept_S3 ∧ 0 ≡ accept_S4 ∧
@@ -182,147 +188,153 @@ void opa_post_func(void)
  */
 void opa(void)
 {
-  opa_pre_func();
+  /*@ ghost opa_pre_func(); */
   rr ++;
-  opa_post_func();
+  /*@ ghost opa_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_opb;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
-            accept_S4, accept_S5, accept_S6, accept_all, accept_init;
-    
-    behavior buch_state_accept_S2_out:
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_S5_in:
-      assumes 1 ≡ accept_S4;
-      ensures 1 ≡ accept_S5;
-    
-    behavior buch_state_accept_S5_out:
-      assumes 0 ≡ accept_S4;
-      ensures 0 ≡ accept_S5;
-    
-    behavior buch_state_accept_S6_out:
-      ensures 0 ≡ accept_S6;
-    
-    behavior buch_state_accept_all_out:
-      ensures 0 ≡ accept_all;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void opb_pre_func(void)
-{
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_S5_tmp; */
-  /*@ ghost int accept_S6_tmp; */
-  /*@ ghost int accept_all_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_opb;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_S5_tmp = accept_S5;
-  accept_S6_tmp = accept_S6;
-  accept_all_tmp = accept_all;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_all_tmp = 0;
-  accept_S6_tmp = 0;
-  if (accept_S4 == 1) accept_S5_tmp = 1; else accept_S5_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  accept_S2_tmp = 0;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_S5 = accept_S5_tmp;
-  accept_S6 = accept_S6_tmp;
-  accept_all = accept_all_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_opb;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
+             accept_S4, accept_S5, accept_S6, accept_all, accept_init;
+     
+     behavior buch_state_accept_S2_out:
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_S5_in:
+       assumes 1 ≡ accept_S4;
+       ensures 1 ≡ accept_S5;
+     
+     behavior buch_state_accept_S5_out:
+       assumes 0 ≡ accept_S4;
+       ensures 0 ≡ accept_S5;
+     
+     behavior buch_state_accept_S6_out:
+       ensures 0 ≡ accept_S6;
+     
+     behavior buch_state_accept_all_out:
+       ensures 0 ≡ accept_all;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void opb_pre_func(void)
+  {
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_S5_tmp;
+    int accept_S6_tmp;
+    int accept_all_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_opb;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_S5_tmp = accept_S5;
+    accept_S6_tmp = accept_S6;
+    accept_all_tmp = accept_all;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_all_tmp = 0;
+    accept_S6_tmp = 0;
+    if (accept_S4 == 1) accept_S5_tmp = 1; else accept_S5_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    accept_S2_tmp = 0;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_S5 = accept_S5_tmp;
+    accept_S6 = accept_S6_tmp;
+    accept_all = accept_all_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
 
-/*@ requires
-      1 ≡ accept_S5 ∧ 0 ≡ accept_S2 ∧ 0 ≡ accept_S3 ∧
-      0 ≡ accept_S4 ∧ 0 ≡ accept_S6 ∧ 0 ≡ accept_all ∧
-      0 ≡ accept_init;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_opb;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
-            accept_S4, accept_S5, accept_S6, accept_all, accept_init;
-    
-    behavior buch_state_accept_S2_out:
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_S5_out:
-      ensures 0 ≡ accept_S5;
-    
-    behavior buch_state_accept_S6_in:
-      assumes 1 ≡ accept_S5;
-      ensures 1 ≡ accept_S6;
-    
-    behavior buch_state_accept_S6_out:
-      assumes 0 ≡ accept_S5;
-      ensures 0 ≡ accept_S6;
-    
-    behavior buch_state_accept_all_out:
-      ensures 0 ≡ accept_all;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void opb_post_func(void)
-{
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_S5_tmp; */
-  /*@ ghost int accept_S6_tmp; */
-  /*@ ghost int accept_all_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_opb;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_S5_tmp = accept_S5;
-  accept_S6_tmp = accept_S6;
-  accept_all_tmp = accept_all;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_all_tmp = 0;
-  if (accept_S5 == 1) accept_S6_tmp = 1; else accept_S6_tmp = 0;
-  accept_S5_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  accept_S2_tmp = 0;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_S5 = accept_S5_tmp;
-  accept_S6 = accept_S6_tmp;
-  accept_all = accept_all_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       1 ≡ accept_S5 ∧ 0 ≡ accept_S2 ∧ 0 ≡ accept_S3 ∧
+       0 ≡ accept_S4 ∧ 0 ≡ accept_S6 ∧ 0 ≡ accept_all ∧
+       0 ≡ accept_init;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_opb;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
+             accept_S4, accept_S5, accept_S6, accept_all, accept_init;
+     
+     behavior buch_state_accept_S2_out:
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_S5_out:
+       ensures 0 ≡ accept_S5;
+     
+     behavior buch_state_accept_S6_in:
+       assumes 1 ≡ accept_S5;
+       ensures 1 ≡ accept_S6;
+     
+     behavior buch_state_accept_S6_out:
+       assumes 0 ≡ accept_S5;
+       ensures 0 ≡ accept_S6;
+     
+     behavior buch_state_accept_all_out:
+       ensures 0 ≡ accept_all;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void opb_post_func(void)
+  {
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_S5_tmp;
+    int accept_S6_tmp;
+    int accept_all_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_opb;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_S5_tmp = accept_S5;
+    accept_S6_tmp = accept_S6;
+    accept_all_tmp = accept_all;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_all_tmp = 0;
+    if (accept_S5 == 1) accept_S6_tmp = 1; else accept_S6_tmp = 0;
+    accept_S5_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    accept_S2_tmp = 0;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_S5 = accept_S5_tmp;
+    accept_S6 = accept_S6_tmp;
+    accept_all = accept_all_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       1 ≡ accept_S4 ∧ 0 ≡ accept_S2 ∧ 0 ≡ accept_S3 ∧
@@ -337,134 +349,140 @@ void opb_post_func(void)
  */
 void opb(void)
 {
-  opb_pre_func();
+  /*@ ghost opb_pre_func(); */
   status = 1;
-  opb_post_func();
+  /*@ ghost opb_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_opc;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
-            accept_S4, accept_S5, accept_S6, accept_all, accept_init;
-    
-    behavior buch_state_accept_S2_out:
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_S5_out:
-      ensures 0 ≡ accept_S5;
-    
-    behavior buch_state_accept_S6_out:
-      ensures 0 ≡ accept_S6;
-    
-    behavior buch_state_accept_all_out:
-      ensures 0 ≡ accept_all;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void opc_pre_func(void)
-{
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_S5_tmp; */
-  /*@ ghost int accept_S6_tmp; */
-  /*@ ghost int accept_all_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_opc;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_S5_tmp = accept_S5;
-  accept_S6_tmp = accept_S6;
-  accept_all_tmp = accept_all;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_all_tmp = 0;
-  accept_S6_tmp = 0;
-  accept_S5_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  accept_S2_tmp = 0;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_S5 = accept_S5_tmp;
-  accept_S6 = accept_S6_tmp;
-  accept_all = accept_all_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_opc;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
+             accept_S4, accept_S5, accept_S6, accept_all, accept_init;
+     
+     behavior buch_state_accept_S2_out:
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_S5_out:
+       ensures 0 ≡ accept_S5;
+     
+     behavior buch_state_accept_S6_out:
+       ensures 0 ≡ accept_S6;
+     
+     behavior buch_state_accept_all_out:
+       ensures 0 ≡ accept_all;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void opc_pre_func(void)
+  {
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_S5_tmp;
+    int accept_S6_tmp;
+    int accept_all_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_opc;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_S5_tmp = accept_S5;
+    accept_S6_tmp = accept_S6;
+    accept_all_tmp = accept_all;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_all_tmp = 0;
+    accept_S6_tmp = 0;
+    accept_S5_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    accept_S2_tmp = 0;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_S5 = accept_S5_tmp;
+    accept_S6 = accept_S6_tmp;
+    accept_all = accept_all_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
 
-/*@ requires \false;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_opc;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
-            accept_S4, accept_S5, accept_S6, accept_all, accept_init;
-    
-    behavior buch_state_accept_S2_out:
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_S5_out:
-      ensures 0 ≡ accept_S5;
-    
-    behavior buch_state_accept_S6_out:
-      ensures 0 ≡ accept_S6;
-    
-    behavior buch_state_accept_all_out:
-      ensures 0 ≡ accept_all;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void opc_post_func(void)
-{
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_S5_tmp; */
-  /*@ ghost int accept_S6_tmp; */
-  /*@ ghost int accept_all_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_opc;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_S5_tmp = accept_S5;
-  accept_S6_tmp = accept_S6;
-  accept_all_tmp = accept_all;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_all_tmp = 0;
-  accept_S6_tmp = 0;
-  accept_S5_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  accept_S2_tmp = 0;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_S5 = accept_S5_tmp;
-  accept_S6 = accept_S6_tmp;
-  accept_all = accept_all_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires \false;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_opc;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
+             accept_S4, accept_S5, accept_S6, accept_all, accept_init;
+     
+     behavior buch_state_accept_S2_out:
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_S5_out:
+       ensures 0 ≡ accept_S5;
+     
+     behavior buch_state_accept_S6_out:
+       ensures 0 ≡ accept_S6;
+     
+     behavior buch_state_accept_all_out:
+       ensures 0 ≡ accept_all;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void opc_post_func(void)
+  {
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_S5_tmp;
+    int accept_S6_tmp;
+    int accept_all_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_opc;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_S5_tmp = accept_S5;
+    accept_S6_tmp = accept_S6;
+    accept_all_tmp = accept_all;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_all_tmp = 0;
+    accept_S6_tmp = 0;
+    accept_S5_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    accept_S2_tmp = 0;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_S5 = accept_S5_tmp;
+    accept_S6 = accept_S6_tmp;
+    accept_all = accept_all_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires \false;
     
@@ -491,147 +509,153 @@ void opc_post_func(void)
  */
 void opc(void)
 {
-  opc_pre_func();
+  /*@ ghost opc_pre_func(); */
   rr = 9000;
-  opc_post_func();
+  /*@ ghost opc_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
-            accept_S4, accept_S5, accept_S6, accept_all, accept_init;
-    
-    behavior buch_state_accept_S2_in:
-      assumes 1 ≡ accept_init;
-      ensures 1 ≡ accept_S2;
-    
-    behavior buch_state_accept_S2_out:
-      assumes 0 ≡ accept_init;
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_S5_out:
-      ensures 0 ≡ accept_S5;
-    
-    behavior buch_state_accept_S6_out:
-      ensures 0 ≡ accept_S6;
-    
-    behavior buch_state_accept_all_out:
-      ensures 0 ≡ accept_all;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void main_pre_func(void)
-{
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_S5_tmp; */
-  /*@ ghost int accept_S6_tmp; */
-  /*@ ghost int accept_all_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_S5_tmp = accept_S5;
-  accept_S6_tmp = accept_S6;
-  accept_all_tmp = accept_all;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_all_tmp = 0;
-  accept_S6_tmp = 0;
-  accept_S5_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  if (accept_init == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_S5 = accept_S5_tmp;
-  accept_S6 = accept_S6_tmp;
-  accept_all = accept_all_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
+             accept_S4, accept_S5, accept_S6, accept_all, accept_init;
+     
+     behavior buch_state_accept_S2_in:
+       assumes 1 ≡ accept_init;
+       ensures 1 ≡ accept_S2;
+     
+     behavior buch_state_accept_S2_out:
+       assumes 0 ≡ accept_init;
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_S5_out:
+       ensures 0 ≡ accept_S5;
+     
+     behavior buch_state_accept_S6_out:
+       ensures 0 ≡ accept_S6;
+     
+     behavior buch_state_accept_all_out:
+       ensures 0 ≡ accept_all;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void main_pre_func(void)
+  {
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_S5_tmp;
+    int accept_S6_tmp;
+    int accept_all_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_S5_tmp = accept_S5;
+    accept_S6_tmp = accept_S6;
+    accept_all_tmp = accept_all;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_all_tmp = 0;
+    accept_S6_tmp = 0;
+    accept_S5_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    if (accept_init == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_S5 = accept_S5_tmp;
+    accept_S6 = accept_S6_tmp;
+    accept_all = accept_all_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
 
-/*@ requires
-      1 ≡ accept_S6 ∧ 0 ≡ accept_S2 ∧ 0 ≡ accept_S3 ∧
-      0 ≡ accept_S4 ∧ 0 ≡ accept_S5 ∧ 0 ≡ accept_all ∧
-      0 ≡ accept_init;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
-            accept_S4, accept_S5, accept_S6, accept_all, accept_init;
-    
-    behavior buch_state_accept_S2_out:
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_S5_out:
-      ensures 0 ≡ accept_S5;
-    
-    behavior buch_state_accept_S6_out:
-      ensures 0 ≡ accept_S6;
-    
-    behavior buch_state_accept_all_in:
-      assumes 1 ≡ accept_S6;
-      ensures 1 ≡ accept_all;
-    
-    behavior buch_state_accept_all_out:
-      assumes 0 ≡ accept_S6;
-      ensures 0 ≡ accept_all;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void main_post_func(int res)
-{
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_S5_tmp; */
-  /*@ ghost int accept_S6_tmp; */
-  /*@ ghost int accept_all_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_S5_tmp = accept_S5;
-  accept_S6_tmp = accept_S6;
-  accept_all_tmp = accept_all;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  if (accept_S6 == 1) accept_all_tmp = 1; else accept_all_tmp = 0;
-  accept_S6_tmp = 0;
-  accept_S5_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  accept_S2_tmp = 0;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_S5 = accept_S5_tmp;
-  accept_S6 = accept_S6_tmp;
-  accept_all = accept_all_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       1 ≡ accept_S6 ∧ 0 ≡ accept_S2 ∧ 0 ≡ accept_S3 ∧
+       0 ≡ accept_S4 ∧ 0 ≡ accept_S5 ∧ 0 ≡ accept_all ∧
+       0 ≡ accept_init;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S2, accept_S3,
+             accept_S4, accept_S5, accept_S6, accept_all, accept_init;
+     
+     behavior buch_state_accept_S2_out:
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_S5_out:
+       ensures 0 ≡ accept_S5;
+     
+     behavior buch_state_accept_S6_out:
+       ensures 0 ≡ accept_S6;
+     
+     behavior buch_state_accept_all_in:
+       assumes 1 ≡ accept_S6;
+       ensures 1 ≡ accept_all;
+     
+     behavior buch_state_accept_all_out:
+       assumes 0 ≡ accept_S6;
+       ensures 0 ≡ accept_all;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void main_post_func(int res)
+  {
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_S5_tmp;
+    int accept_S6_tmp;
+    int accept_all_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_S5_tmp = accept_S5;
+    accept_S6_tmp = accept_S6;
+    accept_all_tmp = accept_all;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    if (accept_S6 == 1) accept_all_tmp = 1; else accept_all_tmp = 0;
+    accept_S6_tmp = 0;
+    accept_S5_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    accept_S2_tmp = 0;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_S5 = accept_S5_tmp;
+    accept_S6 = accept_S6_tmp;
+    accept_all = accept_all_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       1 ≡ accept_init ∧ 0 ≡ accept_S2 ∧ 0 ≡ accept_S3 ∧
@@ -653,7 +677,7 @@ void main_post_func(int res)
 int main(void)
 {
   int __retres;
-  main_pre_func();
+  /*@ ghost main_pre_func(); */
   switch (rr) {
     case 1: opa();
     break;
@@ -662,7 +686,7 @@ int main(void)
   }
   opb();
   __retres = 1;
-  main_post_func(__retres);
+  /*@ ghost main_post_func(__retres); */
   return __retres;
 }
 

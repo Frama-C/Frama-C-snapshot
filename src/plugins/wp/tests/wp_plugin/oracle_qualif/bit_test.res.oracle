@@ -1,0 +1,19 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/bit_test.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 3 goals scheduled
+[wp] [Alt-Ergo 2.0.0] Goal typed_bit_test_check1_ensures_ko : Typechecked
+[wp] [Alt-Ergo 2.0.0] Goal typed_bit_test_check2_ensures_ko : Typechecked
+[wp] [Alt-Ergo 2.0.0] Goal typed_bit_test_check3_ensures_ko : Typechecked
+[wp] Proved goals:    0 / 3
+  Alt-Ergo 2.0.0:    0  (unsuccess: 3)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/bit_test.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/bit_test.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+check1              -      -                 1       0.0%
+check2              -      -                 1       0.0%
+check3              -      -                 1       0.0%
+-------------------------------------------------------------

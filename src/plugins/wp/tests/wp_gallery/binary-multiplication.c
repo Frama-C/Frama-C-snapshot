@@ -3,7 +3,7 @@
 */
 
 /* run.config_qualif
-   OPT: -wp-prover=why3:alt-ergo -wp-prop=-lack -then -wp-rte -wp -wp-prop=-lack
+   OPT: -wp-prover=why3:alt-ergo -wp-prop=-lack -wp-timeout 90 -then -wp-rte -wp -wp-prop=-lack
 */
 
 // The use '-wp-prover=z3,why3:alt-ergo' gives better results.
@@ -42,8 +42,7 @@ uint64_t BinaryMultiplication (uint32_t a, uint32_t b) {
       //@ assert a3: ok: x*b == (uint64_t)(x*b);
       //@ assert a4: ok: ((b%2) != 0) ==> 2*x*(b/2) + x == x*b;
       //@ assert a5: ok: ((b%2) == 0) ==> 2*x*(b/2)     == x*b;
-      if (b%2)
-        r=r+x;
+      if (b%2) r=r+x;
       //@ assert a6: lack: ok_z3: r+2*x*(b/2) == \at(a*b, Pre);
       b=b/2;
       if (b==0) break;

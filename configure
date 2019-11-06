@@ -620,8 +620,6 @@ ac_includes_default="\
 #endif"
 
 ac_subst_vars='LABLGTK_PATH
-PTESTSBEST
-HAS_NATIVE_THREADS
 EXTERNAL_PLUGINS
 DEFAULT_CPP_KEEP_COMMENTS
 FRAMAC_GNU_CPP
@@ -640,6 +638,7 @@ EXE
 OCAML_ANNOT_OPTION
 OCAMLWIN32
 OCAMLLIB
+OCAMLVERSION
 OCAMLBEST
 LABLGTK_VERSION
 HAS_LANDMARKS
@@ -656,22 +655,29 @@ HAS_GNOMECANVAS
 GNOMECANVAS
 HAS_GTKSOURCEVIEW
 GTKSOURCEVIEW
-WHY3API
-WHY3COQC
 COQC
+HAS_WHY3
+WHY3
 ENABLE_WP
 ENABLE_VARIADIC
 ENABLE_STUDIA
+SERVER_ZMQ
+HAS_OCAML_ZMQ
+OCAML_ZMQ
+ENABLE_SERVER
 ENABLE_SECURITY_SLICING
 ENABLE_REPORT
 ENABLE_QED
 ENABLE_PRINT_API
 ENABLE_OBFUSCATOR
 ENABLE_NONTERM
+HAS_OCAML_PPX_DERIVING_YOJSON
+OCAML_PPX_DERIVING_YOJSON
+HAS_OCAML_PPX_DERIVING
+OCAML_PPX_DERIVING
+ENABLE_MDR
 ENABLE_LOOP_ANALYSIS
-OCAMLVERSION
 MAY_RUN_TESTS
-OPTIMIZED_RTL
 LTLIBOBJS
 LIBOBJS
 HAVE_DOT
@@ -720,9 +726,6 @@ OCAMLFIND
 OCAMLOPT
 HAS_OCAML408
 HAS_OCAML407
-HAS_OCAML405
-HAS_OCAML404
-HAS_OCAML403
 OCAMLPATCHNB
 OCAMLMINORNB
 OCAMLMAJORNB
@@ -797,17 +800,19 @@ enable_external
 enable_aorai
 enable_e_acsl
 enable_loop_analysis
+enable_mdr
 enable_nonterm
 enable_obfuscator
 enable_print_api
 enable_qed
 enable_report
 enable_security_slicing
+enable_server
+enable_server_zmq
 enable_studia
 enable_variadic
 enable_wp
 enable_wp_coq
-enable_wp_why3
 enable_lablgtk3
 '
       ac_precious_vars='build_alias
@@ -1455,6 +1460,7 @@ Optional Features:
   --enable-aorai          support for Aorai plug-in (default: yes)
   --enable-e_acsl         support for E-ACSL plug-in (default: yes)
   --enable-loop_analysis  support for loop analysis plug-in (default: yes)
+  --enable-mdr            Markdown/SARIF report plug-in (default: yes)
   --enable-nonterm        support for nonterm plug-in (default: yes)
   --enable-obfuscator     support for Obfuscator plug-in (default: yes)
   --enable-print_api      support for print_api plug-in (default: yes)
@@ -1462,11 +1468,12 @@ Optional Features:
   --enable-report         support for report plug-in (default: yes)
   --enable-security_slicing
                           support for Security_slicing plug-in (default: yes)
+  --enable-server         Server plug-in (default: yes)
+  --enable-server-zmq     Server ZeroMQ support (default: yes)
   --enable-studia         support for studia plug-in (default: yes)
   --enable-variadic       support for variadic plug-in (default: yes)
   --enable-wp             WP plug-in (default: yes)
   --enable-wp-coq         Wp precompiled Coq libraries (default: yes)
-  --enable-wp-why3        Wp precompiled Why3-Coq libraries (default: yes)
   --disable-lablgtk3      in case lablgtk2 and lablgtk3 are available, the
                           default is to compile against lablgtk3. Use this
                           option to force compiling against lablgtk2
@@ -2338,6 +2345,10 @@ $as_echo "$as_me: $banner" >&6;}
 # (even if there is no plug-in using it)
 
 
+# 1st param: actual name of the ocamlfind package (often lowercase)
+# 2nd param: warning to display if problem
+
+
 # 1st param: uppercase name of the program
 # 2nd param: program which must exist. See comment on configure_library()
 # on how to deal with multiple choices for a given program.
@@ -2346,7 +2357,12 @@ $as_echo "$as_me: $banner" >&6;}
 # (even if there is no plug-in using it)
 
 
+
 EXTERNAL_PLUGINS=
+
+
+
+
 
 
 
@@ -2734,14 +2750,11 @@ OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLVERSION" >&5
 $as_echo "$OCAMLVERSION" >&6; }
 case $OCAMLVERSION in
-  0.*|1.*|2.*|3.*|4.00.*|4.01.*|4.02.[012])
-     as_fn_error $? "Incompatible OCaml version; use 4.02.3+." "$LINENO" 5;;
+  0.*|1.*|2.*|3.*|4.00.*|4.01.*|4.02.*|4.03.*|4.04.*)
+     as_fn_error $? "Incompatible OCaml version; use 4.05+." "$LINENO" 5;;
    *)
      OCAML_ANNOT_OPTION="-bin-annot";;
 esac
-
-
-
 
 
 
@@ -2755,26 +2768,11 @@ OCAMLMINORNB=$(echo $OCAMLVERSION | cut -f 2 -d .)
 OCAMLPATCHNB=$(echo $OCAMLVERSION | cut -f 3 -d .)
 
 if test $OCAMLMAJORNB -gt 4; then
-  HAS_OCAML403=yes;
-  HAS_OCAML404=yes;
-  HAS_OCAML405=yes;
   HAS_OCAML407=yes;
   HAS_OCAML408=yes;
 else
-  HAS_OCAML403=no;
-  HAS_OCAML404=no;
-  HAS_OCAML405=no;
   HAS_OCAML407=no;
   HAS_OCAML408=no;
-  if test $OCAMLMINORNB -ge 3; then
-    HAS_OCAML403=yes;
-  fi;
-  if test $OCAMLMINORNB -ge 4; then
-    HAS_OCAML404=yes;
-  fi;
-  if test $OCAMLMINORNB -ge 5; then
-    HAS_OCAML405=yes;
-  fi;
   if test $OCAMLMINORNB -ge 7; then
     HAS_OCAML407=yes;
   fi;
@@ -3218,8 +3216,8 @@ ZARITH=$($OCAMLFIND query zarith -format %v)
 if test -z "$ZARITH" ; then
   as_fn_error $? "Cannot find zarith via ocamlfind." "$LINENO" 5
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found $ZARITH" >&5
+$as_echo "found $ZARITH" >&6; }
 fi
 
 # yojson
@@ -3232,6 +3230,9 @@ YOJSON=$($OCAMLFIND query yojson -format %v)
 if test -z "$YOJSON" ; then
   as_fn_error $? "Cannot find yojson via ocamlfind \
 (requires yojson 1.4.1 or higher)." "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found $YOJSON" >&5
+$as_echo "found $YOJSON" >&6; }
 fi
 
 #################################################
@@ -3491,8 +3492,6 @@ fi
   PLATFORM=Win32
   OCAMLWIN32=yes
   EXE=.exe
-  # OCaml on Win32 does not support vmthreads, use native ones.
-  HAS_NATIVE_THREADS=yes
 else
   OCAMLWIN32=no
   if test "$OCAML_OS_TYPE" = "Cygwin"; then
@@ -3511,27 +3510,6 @@ $as_echo "Unix" >&6; }
       PLATFORM=Unix
     fi
     EXE=
-  fi
-
-  if test "$OCAMLBEST" = opt; then
-    # OCaml native threads
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking OCaml native threads" >&5
-$as_echo_n "checking OCaml native threads... " >&6; }
-    echo "let f = Thread.create (fun () -> ())" > test_native_threads.ml
-    if ($OCAMLOPT -thread -o test_native_threads unix.cmxa threads.cmxa \
-         test_native_threads.ml) 2> /dev/null ;
-    then
-      HAS_NATIVE_THREADS=yes
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok." >&5
-$as_echo "ok." >&6; };
-    else
-      HAS_NATIVE_THREADS=no
-      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unsupported." >&5
-$as_echo "$as_me: WARNING: unsupported." >&2;};
-    fi
-    rm -f test_native_threads*;
-  else
-    HAS_NATIVE_THREADS=no; # no native compilation anyway
   fi
 fi
 
@@ -7143,11 +7121,31 @@ fi
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 ##########################################################################
 #                                                                        #
 #  This file is part of the Frama-C's E-ACSL plug-in.                    #
 #                                                                        #
-#  Copyright (C) 2012-2018                                               #
+#  Copyright (C) 2012-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -7333,12 +7331,2390 @@ $as_echo "$as_me: WARNING: e_acsl disabled because unsupported system $HOST_OS" 
 ;;
 esac
 
-# perform additional checks when not compiled
-# directly with main Frama-C distribution
- # end of configuration specific to external compilation mode
 
-# no need to continue checking other features if E-ACSL is disabled
-if test "$ENABLE_E_ACSL" != "no"; then
+
+
+
+
+         if test "$ENABLE_E_ACSL" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/e-acsl";
+         fi
+
+
+###############################
+# Configure contrib libraries #
+###############################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+##############################################
+# LoopAnalysis as a standard Frama-C plug-in #
+##############################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/loop_analysis/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/loop_analysis/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_loop_analysis_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/loop_analysis/Makefile.in"; then
+  ac_cv_file_src_plugins_loop_analysis_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_loop_analysis_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_loop_analysis_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_loop_analysis_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_loop_analysis_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-loop_analysis was given.
+if test "${enable_loop_analysis+set}" = set; then :
+  enableval=$enable_loop_analysis; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "loop_analysis is not available" "$LINENO" 5
+fi
+
+FORCE_LOOP_ANALYSIS=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_LOOP_ANALYSIS
+
+ENABLE_LOOP_ANALYSIS=$ENABLE
+NAME_LOOP_ANALYSIS=loop_analysis
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_LOOP_ANALYSIS=" (not available by default)"
+fi
+
+
+echo "loop_analysis... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/loop_analysis/Makefile"
+
+
+
+         if test "$ENABLE_LOOP_ANALYSIS" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/loop_analysis";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/markdown-report/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/markdown-report/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_markdown_report_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/markdown-report/Makefile.in"; then
+  ac_cv_file_src_plugins_markdown_report_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_markdown_report_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_markdown_report_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_markdown_report_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_markdown_report_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-mdr was given.
+if test "${enable_mdr+set}" = set; then :
+  enableval=$enable_mdr; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "mdr is not available" "$LINENO" 5
+fi
+
+FORCE_MDR=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_MDR
+
+ENABLE_MDR=$ENABLE
+NAME_MDR=mdr
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_MDR=" (not available by default)"
+fi
+
+
+echo "mdr... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+
+        REQUIRE_OCAML_PPX_DERIVING=$REQUIRE_OCAML_PPX_DERIVING" "mdr
+
+
+
+
+        REQUIRE_OCAML_PPX_DERIVING_YOJSON=$REQUIRE_OCAML_PPX_DERIVING_YOJSON" "mdr
+
+
+
+
+
+
+
+
+
+
+
+
+   HAS_OCAML_PPX_DERIVING=
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OCaml package ppx_deriving" >&5
+$as_echo_n "checking for OCaml package ppx_deriving... " >&6; }
+  OCAML_PPX_DERIVING=$(ocamlfind query ppx_deriving -format %v 2>/dev/null)
+  if test -z "$OCAML_PPX_DERIVING" ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found via ocamlfind." >&5
+$as_echo "not found via ocamlfind." >&6; }
+    HAS_OCAML_PPX_DERIVING=no
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: found." >&5
+$as_echo "found." >&6; }
+    HAS_OCAML_PPX_DERIVING=yes
+  fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   HAS_OCAML_PPX_DERIVING_YOJSON=
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OCaml package ppx_deriving_yojson" >&5
+$as_echo_n "checking for OCaml package ppx_deriving_yojson... " >&6; }
+  OCAML_PPX_DERIVING_YOJSON=$(ocamlfind query ppx_deriving_yojson -format %v 2>/dev/null)
+  if test -z "$OCAML_PPX_DERIVING_YOJSON" ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found via ocamlfind." >&5
+$as_echo "not found via ocamlfind." >&6; }
+    HAS_OCAML_PPX_DERIVING_YOJSON=no
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: found." >&5
+$as_echo "found." >&6; }
+    HAS_OCAML_PPX_DERIVING_YOJSON=yes
+  fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         if test "$ENABLE_MDR" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/markdown-report";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+########################################
+# Nonterm as a standard Frama-C plug-in #
+########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/nonterm/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/nonterm/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_nonterm_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/nonterm/Makefile.in"; then
+  ac_cv_file_src_plugins_nonterm_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_nonterm_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_nonterm_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_nonterm_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_nonterm_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-nonterm was given.
+if test "${enable_nonterm+set}" = set; then :
+  enableval=$enable_nonterm; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "nonterm is not available" "$LINENO" 5
+fi
+
+FORCE_NONTERM=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_NONTERM
+
+ENABLE_NONTERM=$ENABLE
+NAME_NONTERM=nonterm
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_NONTERM=" (not available by default)"
+fi
+
+
+echo "nonterm... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+
+
+
+        REQUIRE_EVA=$REQUIRE_EVA" "nonterm
+        REQUIRED_NONTERM=$REQUIRED_NONTERM" "eva
+
+
+
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/nonterm/Makefile"
+
+
+
+         if test "$ENABLE_NONTERM" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/nonterm";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/obfuscator/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/obfuscator/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_obfuscator_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/obfuscator/Makefile.in"; then
+  ac_cv_file_src_plugins_obfuscator_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_obfuscator_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_obfuscator_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_obfuscator_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_obfuscator_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-obfuscator was given.
+if test "${enable_obfuscator+set}" = set; then :
+  enableval=$enable_obfuscator; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "obfuscator is not available" "$LINENO" 5
+fi
+
+FORCE_OBFUSCATOR=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_OBFUSCATOR
+
+ENABLE_OBFUSCATOR=$ENABLE
+NAME_OBFUSCATOR=obfuscator
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_OBFUSCATOR=" (not available by default)"
+fi
+
+
+echo "obfuscator... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/obfuscator/Makefile"
+
+
+
+         if test "$ENABLE_OBFUSCATOR" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/obfuscator";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/print_api" >&5
+$as_echo_n "checking for src/plugins/print_api... " >&6; }
+if ${ac_cv_file_src_plugins_print_api+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/print_api"; then
+  ac_cv_file_src_plugins_print_api=yes
+else
+  ac_cv_file_src_plugins_print_api=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_print_api" >&5
+$as_echo "$ac_cv_file_src_plugins_print_api" >&6; }
+if test "x$ac_cv_file_src_plugins_print_api" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-print_api was given.
+if test "${enable_print_api+set}" = set; then :
+  enableval=$enable_print_api; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "print_api is not available" "$LINENO" 5
+fi
+
+FORCE_PRINT_API=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_PRINT_API
+
+ENABLE_PRINT_API=$ENABLE
+NAME_PRINT_API=print_api
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_PRINT_API=" (not available by default)"
+fi
+
+
+echo "print_api... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+                      if test "$ENABLE_PRINT_API" != "no"; then
+                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/print_api";
+                      fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/qed" >&5
+$as_echo_n "checking for src/plugins/qed... " >&6; }
+if ${ac_cv_file_src_plugins_qed+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/qed"; then
+  ac_cv_file_src_plugins_qed=yes
+else
+  ac_cv_file_src_plugins_qed=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_qed" >&5
+$as_echo "$ac_cv_file_src_plugins_qed" >&6; }
+if test "x$ac_cv_file_src_plugins_qed" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-qed was given.
+if test "${enable_qed+set}" = set; then :
+  enableval=$enable_qed; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "qed is not available" "$LINENO" 5
+fi
+
+FORCE_QED=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_QED
+
+ENABLE_QED=$ENABLE
+NAME_QED=qed
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_QED=" (not available by default)"
+fi
+
+
+echo "qed... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+                      if test "$ENABLE_QED" != "no"; then
+                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/qed";
+                      fi
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+########################################
+# E-ACSL as a standard Frama-C plug-in #
+########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/report/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/report/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_report_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/report/Makefile.in"; then
+  ac_cv_file_src_plugins_report_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_report_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_report_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_report_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_report_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-report was given.
+if test "${enable_report+set}" = set; then :
+  enableval=$enable_report; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "report is not available" "$LINENO" 5
+fi
+
+FORCE_REPORT=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_REPORT
+
+ENABLE_REPORT=$ENABLE
+NAME_REPORT=report
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_REPORT=" (not available by default)"
+fi
+
+
+echo "report... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/report/Makefile"
+
+
+
+         if test "$ENABLE_REPORT" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/report";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/security_slicing/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/security_slicing/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_security_slicing_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/security_slicing/Makefile.in"; then
+  ac_cv_file_src_plugins_security_slicing_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_security_slicing_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_security_slicing_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_security_slicing_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_security_slicing_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-security_slicing was given.
+if test "${enable_security_slicing+set}" = set; then :
+  enableval=$enable_security_slicing; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "security_slicing is not available" "$LINENO" 5
+fi
+
+FORCE_SECURITY_SLICING=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_SECURITY_SLICING
+
+ENABLE_SECURITY_SLICING=$ENABLE
+NAME_SECURITY_SLICING=security_slicing
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_SECURITY_SLICING=" (not available by default)"
+fi
+
+
+echo "security_slicing... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+
+
+
+        REQUIRE_SLICING=$REQUIRE_SLICING" "security_slicing
+        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "slicing
+
+
+
+
+
+
+
+
+
+        REQUIRE_EVA=$REQUIRE_EVA" "security_slicing
+        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "eva
+
+
+
+
+
+
+
+
+
+        REQUIRE_PDG=$REQUIRE_PDG" "security_slicing
+        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "pdg
+
+
+
+
+
+
+
+
+
+        REQUIRE_GUI=$REQUIRE_GUI" "security_slicing
+        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "gui
+
+
+
+
+
+
+
+
+
+
+         if test "$ENABLE_SECURITY_SLICING" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/security_slicing";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+########################################
+# Server as a standard Frama-C plug-in #
+########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/server/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/server/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_server_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/server/Makefile.in"; then
+  ac_cv_file_src_plugins_server_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_server_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_server_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_server_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_server_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-server was given.
+if test "${enable_server+set}" = set; then :
+  enableval=$enable_server; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "server is not available" "$LINENO" 5
+fi
+
+FORCE_SERVER=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_SERVER
+
+ENABLE_SERVER=$ENABLE
+NAME_SERVER=server
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_SERVER=" (not available by default)"
+fi
+
+
+echo "server... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+########################################
+# Server ZMQ Configuration             #
+########################################
+
+# Check whether --enable-server-zmq was given.
+if test "${enable_server_zmq+set}" = set; then :
+  enableval=$enable_server_zmq; SERVER_ZMQ=$enableval
+else
+  SERVER_ZMQ=yes
+
+fi
+
+
+if test "$SERVER_ZMQ" = "yes" ;
+then
+
+
+
+
+
+
+
+
+
+   HAS_OCAML_ZMQ=
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OCaml package zmq" >&5
+$as_echo_n "checking for OCaml package zmq... " >&6; }
+  OCAML_ZMQ=$(ocamlfind query zmq -format %v 2>/dev/null)
+  if test -z "$OCAML_ZMQ" ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found via ocamlfind." >&5
+$as_echo "not found via ocamlfind." >&6; }
+    HAS_OCAML_ZMQ=no
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: found." >&5
+$as_echo "found." >&6; }
+    HAS_OCAML_ZMQ=yes
+  fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+        USE_OCAML_ZMQ=$USE_OCAML_ZMQ" "server
+
+
+        SERVER_ZMQ=$HAS_OCAML_ZMQ
+fi
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/server/Makefile"
+
+
+
+         if test "$ENABLE_SERVER" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/server";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+########################################
+# Studia as a standard Frama-C plug-in #
+########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/studia/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/studia/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_studia_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/studia/Makefile.in"; then
+  ac_cv_file_src_plugins_studia_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_studia_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_studia_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_studia_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_studia_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-studia was given.
+if test "${enable_studia+set}" = set; then :
+  enableval=$enable_studia; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "studia is not available" "$LINENO" 5
+fi
+
+FORCE_STUDIA=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_STUDIA
+
+ENABLE_STUDIA=$ENABLE
+NAME_STUDIA=studia
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_STUDIA=" (not available by default)"
+fi
+
+
+echo "studia... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+
+
+
+        REQUIRE_EVA=$REQUIRE_EVA" "studia
+        REQUIRED_STUDIA=$REQUIRED_STUDIA" "eva
+
+
+
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/studia/Makefile"
+
+
+
+         if test "$ENABLE_STUDIA" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/studia";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+##########################################
+# Variadic as a standard Frama-C plug-in #
+##########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/variadic/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/variadic/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_variadic_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/variadic/Makefile.in"; then
+  ac_cv_file_src_plugins_variadic_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_variadic_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_variadic_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_variadic_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_variadic_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-variadic was given.
+if test "${enable_variadic+set}" = set; then :
+  enableval=$enable_variadic; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "variadic is not available" "$LINENO" 5
+fi
+
+FORCE_VARIADIC=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_VARIADIC
+
+ENABLE_VARIADIC=$ENABLE
+NAME_VARIADIC=variadic
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_VARIADIC=" (not available by default)"
+fi
+
+
+echo "variadic... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/variadic/Makefile"
+
+
+
+         if test "$ENABLE_VARIADIC" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/variadic";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of WP plug-in of Frama-C.                           #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat a l'energie atomique et aux energies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/wp/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/wp/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_wp_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/wp/Makefile.in"; then
+  ac_cv_file_src_plugins_wp_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_wp_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_wp_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_wp_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_wp_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-wp was given.
+if test "${enable_wp+set}" = set; then :
+  enableval=$enable_wp; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "wp is not available" "$LINENO" 5
+fi
+
+FORCE_WP=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_WP
+
+ENABLE_WP=$ENABLE
+NAME_WP=wp
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_WP=" (not available by default)"
+fi
+
+
+echo "wp... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+# Check whether --enable-wp-coq was given.
+if test "${enable_wp_coq+set}" = set; then :
+  enableval=$enable_wp_coq; WPCOQ=$enableval
+else
+  WPCOQ=yes
+
+fi
+
+
+
+
+
+
+        REQUIRE_QED=$REQUIRE_QED" "wp
+        REQUIRED_WP=$REQUIRED_WP" "qed
+
+
+
+
+
+
+
+
+
+        REQUIRE_RTEGEN=$REQUIRE_RTEGEN" "wp
+        REQUIRED_WP=$REQUIRED_WP" "rtegen
+
+
+
+
+
+
+
+
+
+        USE_GUI=$USE_GUI" "wp
+        USED_WP=$USED_WP" "gui
+
+
+
+
+
+
+# Why3 API dependency
+######################
+# REQUIRE_LIBRARY: library *must* be present in order to build plugins
+# USE_LIBRARY: better for plugins if library is present, but not required
+# HAS_LIBRARY: is the library available?
+
+REQUIRE_WHY3=
+USE_WHY3=
+HAS_WHY3=
+
+WHY3_PATH=`ocamlfind query why3 | tr -d '\\r\\n'`
+echo "Ocamlfind -> using $WHY3_PATH"
+WHY3PATH_FOR_CONFIGURE=$WHY3_PATH
+
+
+# No need to check the same thing multiple times.
+
+
+
+
+
+
+
+
+
+# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
+# It works by chance but it is not robust enough.
+# Should be rewritten
+    HAS_WHY3=no
+    if test "$HAS_WHY3" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_WHY3=yes
+else
+  HAS_WHY3=no
+fi
+
+          if test "$HAS_WHY3" = "yes"; then SELECTED_WHY3=$WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX
+          fi
+       fi
+
+    WHY3=$SELECTED_WHY3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        REQUIRE_WHY3=$REQUIRE_WHY3" "wp
+
+
+
+
+
+
+
+
+
+
+
+         if test "$ENABLE_WP" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/wp";
+         fi
+
+
+
+
+
+
+
+
+#####################################################
+# Check for tools/libraries requirements of plugins #
+#####################################################
+
+new_section "configure tools and libraries used by some plug-ins"
+
+# lablgtk2
+##########
+
+
+
+# Check whether --enable-lablgtk3 was given.
+if test "${enable_lablgtk3+set}" = set; then :
+  enableval=$enable_lablgtk3; ENABLE_LABLGTK3=$enableval
+else
+  ENABLE_LABLGTK3=yes
+fi
+
+
+REQUIRE_LABLGTK="$REQUIRE_LABLGTK$REQUIRE_GNOMECANVAS"
+USE_LABLGTK="$USE_LABLGTK$USE_GNOMECANVAS"
+
+LABLGTK_PATH=""
+SOURCEVIEW_PATH=""
+
+if test "$PLATFORM" != "MacOS"; then
+if test "$ENABLE_LABLGTK3" = "yes"; then
+  LABLGTK_PATH=`ocamlfind query lablgtk3 | tr -d '\\r\\n'`;
+fi
+if test "$LABLGTK_PATH" != ""; then
+  SOURCEVIEW_PATH=`ocamlfind query lablgtk3-sourceview3 | tr -d '\\r\\n'`;
+fi
+fi
+
+if test "$SOURCEVIEW_PATH" = ""; then
+  LABLGTK_VERSION=2
+  LABLGTK_PATH=`ocamlfind query lablgtk2 | tr -d '\\r\\n'`
+  if test "$LABLGTK_PATH" = "" -o \
+          "$LABLGTK_PATH" -ef "$OCAMLLIB/lablgtk2" ; then
+       echo "Ocamlfind -> using +lablgtk2.($LABLGTK_PATH,$OCAMLLIB/lablgtk2)"
+       LABLGTK_PATH=+lablgtk2
+       LABLGTKPATH_FOR_CONFIGURE=$OCAMLLIB/lablgtk2
+  else
+       echo "Ocamlfind -> using $LABLGTK_PATH"
+       LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH
+  fi;
+  SOURCEVIEW_PATH=$LABLGTKPATH_FOR_CONFIGURE;
+else
+  LABLGTK_VERSION=3
+  echo "ocamlfind -> using $LABLGTK_PATH"
+  LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH;
+fi
+
+
+# No need to check the same thing multiple times.
+
+
+
+
+
+
+
+
+
+# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
+# It works by chance but it is not robust enough.
+# Should be rewritten
+    HAS_GTKSOURCEVIEW=no
+    if test "$HAS_GTKSOURCEVIEW" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_GTKSOURCEVIEW=yes
+else
+  HAS_GTKSOURCEVIEW=no
+fi
+
+          if test "$HAS_GTKSOURCEVIEW" = "yes"; then SELECTED_GTKSOURCEVIEW=$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX
+          fi
+       fi
+       if test "$HAS_GTKSOURCEVIEW" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_GTKSOURCEVIEW=yes
+else
+  HAS_GTKSOURCEVIEW=no
+fi
+
+          if test "$HAS_GTKSOURCEVIEW" = "yes"; then SELECTED_GTKSOURCEVIEW=$SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX
+          fi
+       fi
+
+    GTKSOURCEVIEW=$SELECTED_GTKSOURCEVIEW
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# No need to check the same thing multiple times.
+
+
+
+
+
+
+
+
+
+# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
+# It works by chance but it is not robust enough.
+# Should be rewritten
+    HAS_GNOMECANVAS=no
+    if test "$HAS_GNOMECANVAS" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_GNOMECANVAS=yes
+else
+  HAS_GNOMECANVAS=no
+fi
+
+          if test "$HAS_GNOMECANVAS" = "yes"; then SELECTED_GNOMECANVAS=$LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX
+          fi
+       fi
+
+    GNOMECANVAS=$SELECTED_GNOMECANVAS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# No need to check the same thing multiple times.
+
+
+
+
+
+
+
+
+
+# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
+# It works by chance but it is not robust enough.
+# Should be rewritten
+    HAS_LABLGTK=no
+    if test "$HAS_LABLGTK" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_LABLGTK=yes
+else
+  HAS_LABLGTK=no
+fi
+
+          if test "$HAS_LABLGTK" = "yes"; then SELECTED_LABLGTK=$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX
+          fi
+       fi
+       if test "$HAS_LABLGTK" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_LABLGTK=yes
+else
+  HAS_LABLGTK=no
+fi
+
+          if test "$HAS_LABLGTK" = "yes"; then SELECTED_LABLGTK=$LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX
+          fi
+       fi
+
+    LABLGTK=$SELECTED_LABLGTK
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# dot and xdot tools
+####################
+
+
+
+
+
+
+
+
+
+
+
+  for file in dot; do
+   HAS_DOT=
+# Extract the first word of "$file", so it can be a program name with args.
+set dummy $file; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_HAS_DOT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$HAS_DOT"; then
+  ac_cv_prog_HAS_DOT="$HAS_DOT" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_HAS_DOT="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_HAS_DOT" && ac_cv_prog_HAS_DOT="no"
+fi
+fi
+HAS_DOT=$ac_cv_prog_HAS_DOT
+if test -n "$HAS_DOT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $HAS_DOT" >&5
+$as_echo "$HAS_DOT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    if test "$HAS_DOT" = "yes"; then SELECTED_VAR=$file break; fi
+  done
+
+
+
+
+
+
+
+
+
+
+
+
+########################
+# Plug-in dependencies #
+########################
+
+new_section "checking for plug-in dependencies"
+
+
+  if test -n "$REQUIRE_LTLTOBA" -o -n "$USE_LTLTOBA" -o "$no" = "yes"; then
+    if test "$HAS_LTLTOBA" = "no"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: ltl2ba not found." >&5
+$as_echo "$as_me: WARNING: ltl2ba not found." >&2;}
+      reason="ltl2ba missing"
+      for p in $REQUIRE_LTLTOBA; do
+        up=`upper "$p"`
+        ep=ENABLE_$up
+        eval enable_p=\$$ep
+        if test "$enable_p" != "no"; then
+          fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" = "yes"; then
+	    as_fn_error $? "$p requested but $reason." "$LINENO" 5
+	  fi
+	  eval $ep="no\ \(see\ warning\ about\ ltl2ba\)"
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
+	  eval INFO_$up=\", $reason\"
+        fi
+      done
+      for p in $USE_LTLTOBA; do
+        up=`upper "$p"`
+        ep=ENABLE_$up
+        eval eep="\$$ep"
+	if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	  eval $ep="partial\ \(see\ warning\ about\ ltl2ba\)"
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
+	  eval INFO_$up=\", $reason\"
+        fi
+      done
+    else
+        LTLTOBA=ltl2ba
+    fi
+  fi
+
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/aorai/Makefile"
+
+
+
 
 ###############################
 # C specific stuff for E-ACSL #
@@ -8750,1782 +11126,79 @@ fi
 
 
 
-
-
         ac_config_files="$ac_config_files src/plugins/e-acsl/Makefile"
 
 
 
-         if test "$ENABLE_E_ACSL" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/e-acsl";
-         fi
-
-
-###############################
-# Configure contrib libraries #
-###############################
-
-
-
-fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                ##########################################################################
-#                                                                        #
-#  This file is part of Frama-C.                                         #
-#                                                                        #
-#  Copyright (C) 2007-2019                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
-#         alternatives)                                                  #
-#                                                                        #
-#  you can redistribute it and/or modify it under the terms of the GNU   #
-#  Lesser General Public License as published by the Free Software       #
-#  Foundation, version 2.1.                                              #
-#                                                                        #
-#  It is distributed in the hope that it will be useful,                 #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
-#  GNU Lesser General Public License for more details.                   #
-#                                                                        #
-#  See the GNU Lesser General Public License version 2.1                 #
-#  for more details (enclosed in the file licenses/LGPLv2.1).            #
-#                                                                        #
-##########################################################################
-
-##############################################
-# LoopAnalysis as a standard Frama-C plug-in #
-##############################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/loop_analysis/Makefile.in" >&5
-$as_echo_n "checking for src/plugins/loop_analysis/Makefile.in... " >&6; }
-if ${ac_cv_file_src_plugins_loop_analysis_Makefile_in+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/loop_analysis/Makefile.in"; then
-  ac_cv_file_src_plugins_loop_analysis_Makefile_in=yes
-else
-  ac_cv_file_src_plugins_loop_analysis_Makefile_in=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_loop_analysis_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_plugins_loop_analysis_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_plugins_loop_analysis_Makefile_in" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-loop_analysis was given.
-if test "${enable_loop_analysis+set}" = set; then :
-  enableval=$enable_loop_analysis; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "loop_analysis is not available" "$LINENO" 5
-fi
-
-FORCE_LOOP_ANALYSIS=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_LOOP_ANALYSIS
-
-ENABLE_LOOP_ANALYSIS=$ENABLE
-NAME_LOOP_ANALYSIS=loop_analysis
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_LOOP_ANALYSIS=" (not available by default)"
-fi
-
-
-echo "loop_analysis... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-#######################
-# Generating Makefile #
-#######################
-
-
-
-
-        ac_config_files="$ac_config_files src/plugins/loop_analysis/Makefile"
-
-
-
-         if test "$ENABLE_LOOP_ANALYSIS" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/loop_analysis";
-         fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                ##########################################################################
-#                                                                        #
-#  This file is part of Frama-C.                                         #
-#                                                                        #
-#  Copyright (C) 2007-2019                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
-#         alternatives)                                                  #
-#                                                                        #
-#  you can redistribute it and/or modify it under the terms of the GNU   #
-#  Lesser General Public License as published by the Free Software       #
-#  Foundation, version 2.1.                                              #
-#                                                                        #
-#  It is distributed in the hope that it will be useful,                 #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
-#  GNU Lesser General Public License for more details.                   #
-#                                                                        #
-#  See the GNU Lesser General Public License version 2.1                 #
-#  for more details (enclosed in the file licenses/LGPLv2.1).            #
-#                                                                        #
-##########################################################################
-
-########################################
-# Nonterm as a standard Frama-C plug-in #
-########################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/nonterm/Makefile.in" >&5
-$as_echo_n "checking for src/plugins/nonterm/Makefile.in... " >&6; }
-if ${ac_cv_file_src_plugins_nonterm_Makefile_in+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/nonterm/Makefile.in"; then
-  ac_cv_file_src_plugins_nonterm_Makefile_in=yes
-else
-  ac_cv_file_src_plugins_nonterm_Makefile_in=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_nonterm_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_plugins_nonterm_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_plugins_nonterm_Makefile_in" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-nonterm was given.
-if test "${enable_nonterm+set}" = set; then :
-  enableval=$enable_nonterm; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "nonterm is not available" "$LINENO" 5
-fi
-
-FORCE_NONTERM=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_NONTERM
-
-ENABLE_NONTERM=$ENABLE
-NAME_NONTERM=nonterm
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_NONTERM=" (not available by default)"
-fi
-
-
-echo "nonterm... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-
-
-
-
-        REQUIRE_EVA=$REQUIRE_EVA" "nonterm
-        REQUIRED_NONTERM=$REQUIRED_NONTERM" "eva
-
-
-
-
-
-
-#######################
-# Generating Makefile #
-#######################
-
-
-
-
-        ac_config_files="$ac_config_files src/plugins/nonterm/Makefile"
-
-
-
-         if test "$ENABLE_NONTERM" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/nonterm";
-         fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                ##########################################################################
-#                                                                        #
-#  This file is part of Frama-C.                                         #
-#                                                                        #
-#  Copyright (C) 2007-2019                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
-#         alternatives)                                                  #
-#                                                                        #
-#  you can redistribute it and/or modify it under the terms of the GNU   #
-#  Lesser General Public License as published by the Free Software       #
-#  Foundation, version 2.1.                                              #
-#                                                                        #
-#  It is distributed in the hope that it will be useful,                 #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
-#  GNU Lesser General Public License for more details.                   #
-#                                                                        #
-#  See the GNU Lesser General Public License version 2.1                 #
-#  for more details (enclosed in the file licenses/LGPLv2.1).            #
-#                                                                        #
-##########################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/obfuscator/Makefile.in" >&5
-$as_echo_n "checking for src/plugins/obfuscator/Makefile.in... " >&6; }
-if ${ac_cv_file_src_plugins_obfuscator_Makefile_in+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/obfuscator/Makefile.in"; then
-  ac_cv_file_src_plugins_obfuscator_Makefile_in=yes
-else
-  ac_cv_file_src_plugins_obfuscator_Makefile_in=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_obfuscator_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_plugins_obfuscator_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_plugins_obfuscator_Makefile_in" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-obfuscator was given.
-if test "${enable_obfuscator+set}" = set; then :
-  enableval=$enable_obfuscator; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "obfuscator is not available" "$LINENO" 5
-fi
-
-FORCE_OBFUSCATOR=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_OBFUSCATOR
-
-ENABLE_OBFUSCATOR=$ENABLE
-NAME_OBFUSCATOR=obfuscator
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_OBFUSCATOR=" (not available by default)"
-fi
-
-
-echo "obfuscator... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-
-
-
-        ac_config_files="$ac_config_files src/plugins/obfuscator/Makefile"
-
-
-
-         if test "$ENABLE_OBFUSCATOR" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/obfuscator";
-         fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/print_api" >&5
-$as_echo_n "checking for src/plugins/print_api... " >&6; }
-if ${ac_cv_file_src_plugins_print_api+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/print_api"; then
-  ac_cv_file_src_plugins_print_api=yes
-else
-  ac_cv_file_src_plugins_print_api=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_print_api" >&5
-$as_echo "$ac_cv_file_src_plugins_print_api" >&6; }
-if test "x$ac_cv_file_src_plugins_print_api" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-print_api was given.
-if test "${enable_print_api+set}" = set; then :
-  enableval=$enable_print_api; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "print_api is not available" "$LINENO" 5
-fi
-
-FORCE_PRINT_API=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_PRINT_API
-
-ENABLE_PRINT_API=$ENABLE
-NAME_PRINT_API=print_api
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_PRINT_API=" (not available by default)"
-fi
-
-
-echo "print_api... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-                      if test "$ENABLE_PRINT_API" != "no"; then
-                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/print_api";
-                      fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/qed" >&5
-$as_echo_n "checking for src/plugins/qed... " >&6; }
-if ${ac_cv_file_src_plugins_qed+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/qed"; then
-  ac_cv_file_src_plugins_qed=yes
-else
-  ac_cv_file_src_plugins_qed=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_qed" >&5
-$as_echo "$ac_cv_file_src_plugins_qed" >&6; }
-if test "x$ac_cv_file_src_plugins_qed" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-qed was given.
-if test "${enable_qed+set}" = set; then :
-  enableval=$enable_qed; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "qed is not available" "$LINENO" 5
-fi
-
-FORCE_QED=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_QED
-
-ENABLE_QED=$ENABLE
-NAME_QED=qed
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_QED=" (not available by default)"
-fi
-
-
-echo "qed... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-                      if test "$ENABLE_QED" != "no"; then
-                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/qed";
-                      fi
-
-
-
-
-
-
-
-
-
-
-
-                ##########################################################################
-#                                                                        #
-#  This file is part of Frama-C.                                         #
-#                                                                        #
-#  Copyright (C) 2007-2019                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
-#         alternatives)                                                  #
-#                                                                        #
-#  you can redistribute it and/or modify it under the terms of the GNU   #
-#  Lesser General Public License as published by the Free Software       #
-#  Foundation, version 2.1.                                              #
-#                                                                        #
-#  It is distributed in the hope that it will be useful,                 #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
-#  GNU Lesser General Public License for more details.                   #
-#                                                                        #
-#  See the GNU Lesser General Public License version 2.1                 #
-#  for more details (enclosed in the file licenses/LGPLv2.1).            #
-#                                                                        #
-##########################################################################
-
-########################################
-# E-ACSL as a standard Frama-C plug-in #
-########################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/report/Makefile.in" >&5
-$as_echo_n "checking for src/plugins/report/Makefile.in... " >&6; }
-if ${ac_cv_file_src_plugins_report_Makefile_in+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/report/Makefile.in"; then
-  ac_cv_file_src_plugins_report_Makefile_in=yes
-else
-  ac_cv_file_src_plugins_report_Makefile_in=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_report_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_plugins_report_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_plugins_report_Makefile_in" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-report was given.
-if test "${enable_report+set}" = set; then :
-  enableval=$enable_report; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "report is not available" "$LINENO" 5
-fi
-
-FORCE_REPORT=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_REPORT
-
-ENABLE_REPORT=$ENABLE
-NAME_REPORT=report
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_REPORT=" (not available by default)"
-fi
-
-
-echo "report... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-#######################
-# Generating Makefile #
-#######################
-
-
-
-
-        ac_config_files="$ac_config_files src/plugins/report/Makefile"
-
-
-
-         if test "$ENABLE_REPORT" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/report";
-         fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                ##########################################################################
-#                                                                        #
-#  This file is part of Frama-C.                                         #
-#                                                                        #
-#  Copyright (C) 2007-2019                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
-#         alternatives)                                                  #
-#                                                                        #
-#  you can redistribute it and/or modify it under the terms of the GNU   #
-#  Lesser General Public License as published by the Free Software       #
-#  Foundation, version 2.1.                                              #
-#                                                                        #
-#  It is distributed in the hope that it will be useful,                 #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
-#  GNU Lesser General Public License for more details.                   #
-#                                                                        #
-#  See the GNU Lesser General Public License version 2.1                 #
-#  for more details (enclosed in the file licenses/LGPLv2.1).            #
-#                                                                        #
-##########################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/security_slicing/Makefile.in" >&5
-$as_echo_n "checking for src/plugins/security_slicing/Makefile.in... " >&6; }
-if ${ac_cv_file_src_plugins_security_slicing_Makefile_in+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/security_slicing/Makefile.in"; then
-  ac_cv_file_src_plugins_security_slicing_Makefile_in=yes
-else
-  ac_cv_file_src_plugins_security_slicing_Makefile_in=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_security_slicing_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_plugins_security_slicing_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_plugins_security_slicing_Makefile_in" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-security_slicing was given.
-if test "${enable_security_slicing+set}" = set; then :
-  enableval=$enable_security_slicing; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "security_slicing is not available" "$LINENO" 5
-fi
-
-FORCE_SECURITY_SLICING=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_SECURITY_SLICING
-
-ENABLE_SECURITY_SLICING=$ENABLE
-NAME_SECURITY_SLICING=security_slicing
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_SECURITY_SLICING=" (not available by default)"
-fi
-
-
-echo "security_slicing... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-
-
-
-
-        REQUIRE_SLICING=$REQUIRE_SLICING" "security_slicing
-        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "slicing
-
-
-
-
-
-
-
-
-
-        REQUIRE_EVA=$REQUIRE_EVA" "security_slicing
-        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "eva
-
-
-
-
-
-
-
-
-
-        REQUIRE_PDG=$REQUIRE_PDG" "security_slicing
-        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "pdg
-
-
-
-
-
-
-
-
-
-        REQUIRE_GUI=$REQUIRE_GUI" "security_slicing
-        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "gui
-
-
-
-
-
-
-
-
-
-
-         if test "$ENABLE_SECURITY_SLICING" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/security_slicing";
-         fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                ##########################################################################
-#                                                                        #
-#  This file is part of Frama-C.                                         #
-#                                                                        #
-#  Copyright (C) 2007-2019                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
-#         alternatives)                                                  #
-#                                                                        #
-#  you can redistribute it and/or modify it under the terms of the GNU   #
-#  Lesser General Public License as published by the Free Software       #
-#  Foundation, version 2.1.                                              #
-#                                                                        #
-#  It is distributed in the hope that it will be useful,                 #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
-#  GNU Lesser General Public License for more details.                   #
-#                                                                        #
-#  See the GNU Lesser General Public License version 2.1                 #
-#  for more details (enclosed in the file licenses/LGPLv2.1).            #
-#                                                                        #
-##########################################################################
-
-########################################
-# Studia as a standard Frama-C plug-in #
-########################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/studia/Makefile.in" >&5
-$as_echo_n "checking for src/plugins/studia/Makefile.in... " >&6; }
-if ${ac_cv_file_src_plugins_studia_Makefile_in+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/studia/Makefile.in"; then
-  ac_cv_file_src_plugins_studia_Makefile_in=yes
-else
-  ac_cv_file_src_plugins_studia_Makefile_in=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_studia_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_plugins_studia_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_plugins_studia_Makefile_in" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-studia was given.
-if test "${enable_studia+set}" = set; then :
-  enableval=$enable_studia; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "studia is not available" "$LINENO" 5
-fi
-
-FORCE_STUDIA=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_STUDIA
-
-ENABLE_STUDIA=$ENABLE
-NAME_STUDIA=studia
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_STUDIA=" (not available by default)"
-fi
-
-
-echo "studia... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-
-
-
-
-        REQUIRE_EVA=$REQUIRE_EVA" "studia
-        REQUIRED_STUDIA=$REQUIRED_STUDIA" "eva
-
-
-
-
-
-
-#######################
-# Generating Makefile #
-#######################
-
-
-
-
-        ac_config_files="$ac_config_files src/plugins/studia/Makefile"
-
-
-
-         if test "$ENABLE_STUDIA" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/studia";
-         fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                ##########################################################################
-#                                                                        #
-#  This file is part of Frama-C.                                         #
-#                                                                        #
-#  Copyright (C) 2007-2019                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
-#         alternatives)                                                  #
-#                                                                        #
-#  you can redistribute it and/or modify it under the terms of the GNU   #
-#  Lesser General Public License as published by the Free Software       #
-#  Foundation, version 2.1.                                              #
-#                                                                        #
-#  It is distributed in the hope that it will be useful,                 #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
-#  GNU Lesser General Public License for more details.                   #
-#                                                                        #
-#  See the GNU Lesser General Public License version 2.1                 #
-#  for more details (enclosed in the file licenses/LGPLv2.1).            #
-#                                                                        #
-##########################################################################
-
-##########################################
-# Variadic as a standard Frama-C plug-in #
-##########################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/variadic/Makefile.in" >&5
-$as_echo_n "checking for src/plugins/variadic/Makefile.in... " >&6; }
-if ${ac_cv_file_src_plugins_variadic_Makefile_in+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/variadic/Makefile.in"; then
-  ac_cv_file_src_plugins_variadic_Makefile_in=yes
-else
-  ac_cv_file_src_plugins_variadic_Makefile_in=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_variadic_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_plugins_variadic_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_plugins_variadic_Makefile_in" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-variadic was given.
-if test "${enable_variadic+set}" = set; then :
-  enableval=$enable_variadic; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "variadic is not available" "$LINENO" 5
-fi
-
-FORCE_VARIADIC=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_VARIADIC
-
-ENABLE_VARIADIC=$ENABLE
-NAME_VARIADIC=variadic
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_VARIADIC=" (not available by default)"
-fi
-
-
-echo "variadic... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-#######################
-# Generating Makefile #
-#######################
-
-
-
-
-        ac_config_files="$ac_config_files src/plugins/variadic/Makefile"
-
-
-
-         if test "$ENABLE_VARIADIC" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/variadic";
-         fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                ##########################################################################
-#                                                                        #
-#  This file is part of WP plug-in of Frama-C.                           #
-#                                                                        #
-#  Copyright (C) 2007-2019                                               #
-#    CEA (Commissariat a l'energie atomique et aux energies              #
-#         alternatives)                                                  #
-#                                                                        #
-#  you can redistribute it and/or modify it under the terms of the GNU   #
-#  Lesser General Public License as published by the Free Software       #
-#  Foundation, version 2.1.                                              #
-#                                                                        #
-#  It is distributed in the hope that it will be useful,                 #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
-#  GNU Lesser General Public License for more details.                   #
-#                                                                        #
-#  See the GNU Lesser General Public License version 2.1                 #
-#  for more details (enclosed in the file licenses/LGPLv2.1).            #
-#                                                                        #
-##########################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/wp/Makefile.in" >&5
-$as_echo_n "checking for src/plugins/wp/Makefile.in... " >&6; }
-if ${ac_cv_file_src_plugins_wp_Makefile_in+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/wp/Makefile.in"; then
-  ac_cv_file_src_plugins_wp_Makefile_in=yes
-else
-  ac_cv_file_src_plugins_wp_Makefile_in=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_wp_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_plugins_wp_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_plugins_wp_Makefile_in" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-wp was given.
-if test "${enable_wp+set}" = set; then :
-  enableval=$enable_wp; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "wp is not available" "$LINENO" 5
-fi
-
-FORCE_WP=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_WP
-
-ENABLE_WP=$ENABLE
-NAME_WP=wp
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_WP=" (not available by default)"
-fi
-
-
-echo "wp... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-# Check whether --enable-wp-coq was given.
-if test "${enable_wp_coq+set}" = set; then :
-  enableval=$enable_wp_coq; WPCOQ=$enableval
-else
-  WPCOQ=yes
-
-fi
-
-
-# Check whether --enable-wp-why3 was given.
-if test "${enable_wp_why3+set}" = set; then :
-  enableval=$enable_wp_why3; WPWHY3COQ=$enableval
-else
-  WPWHY3COQ=yes
-
-fi
-
-
-
-
-
-
-        REQUIRE_QED=$REQUIRE_QED" "wp
-        REQUIRED_WP=$REQUIRED_WP" "qed
-
-
-
-
-
-
-
-
-
-        REQUIRE_RTEGEN=$REQUIRE_RTEGEN" "wp
-        REQUIRED_WP=$REQUIRED_WP" "rtegen
-
-
-
-
-
-
-
-
-
-        USE_GUI=$USE_GUI" "wp
-        USED_WP=$USED_WP" "gui
-
-
-
-
-
-
-
-
-
-
-
-         if test "$ENABLE_WP" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/wp";
-         fi
-
-
-
-
-
-
-
-
-#####################################################
-# Check for tools/libraries requirements of plugins #
-#####################################################
-
-new_section "configure tools and libraries used by some plug-ins"
-
-# lablgtk2
-##########
-
-
-
-# Check whether --enable-lablgtk3 was given.
-if test "${enable_lablgtk3+set}" = set; then :
-  enableval=$enable_lablgtk3; ENABLE_LABLGTK3=$enableval
-else
-  ENABLE_LABLGTK3=yes
-fi
-
-
-REQUIRE_LABLGTK="$REQUIRE_LABLGTK$REQUIRE_GNOMECANVAS"
-USE_LABLGTK="$USE_LABLGTK$USE_GNOMECANVAS"
-
-LABLGTK_PATH=""
-SOURCEVIEW_PATH=""
-
-if test "$PLATFORM" != "MacOS"; then
-if test "$ENABLE_LABLGTK3" = "yes"; then
-  LABLGTK_PATH=`ocamlfind query lablgtk3 | tr -d '\\r\\n'`;
-fi
-if test "$LABLGTK_PATH" != ""; then
-  SOURCEVIEW_PATH=`ocamlfind query lablgtk3-sourceview3 | tr -d '\\r\\n'`;
-fi
-fi
-
-if test "$SOURCEVIEW_PATH" = ""; then
-  LABLGTK_VERSION=2
-  LABLGTK_PATH=`ocamlfind query lablgtk2 | tr -d '\\r\\n'`
-  if test "$LABLGTK_PATH" = "" -o \
-          "$LABLGTK_PATH" -ef "$OCAMLLIB/lablgtk2" ; then
-       echo "Ocamlfind -> using +lablgtk2.($LABLGTK_PATH,$OCAMLLIB/lablgtk2)"
-       LABLGTK_PATH=+lablgtk2
-       LABLGTKPATH_FOR_CONFIGURE=$OCAMLLIB/lablgtk2
-  else
-       echo "Ocamlfind -> using $LABLGTK_PATH"
-       LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH
-  fi;
-  SOURCEVIEW_PATH=$LABLGTKPATH_FOR_CONFIGURE;
-else
-  LABLGTK_VERSION=3
-  echo "ocamlfind -> using $LABLGTK_PATH"
-  LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH;
-fi
-
-
-# No need to check the same thing multiple times.
-
-
-
-
-
-
-
-
-
-# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
-# It works by chance but it is not robust enough.
-# Should be rewritten
-    HAS_GTKSOURCEVIEW=no
-    if test "$HAS_GTKSOURCEVIEW" != "yes"; then
-          as_ac_File=`$as_echo "ac_cv_file_$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX" >&5
-$as_echo_n "checking for $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
-if test -r "$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  HAS_GTKSOURCEVIEW=yes
-else
-  HAS_GTKSOURCEVIEW=no
-fi
-
-          if test "$HAS_GTKSOURCEVIEW" = "yes"; then SELECTED_GTKSOURCEVIEW=$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX
-          fi
-       fi
-       if test "$HAS_GTKSOURCEVIEW" != "yes"; then
-          as_ac_File=`$as_echo "ac_cv_file_$SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX" >&5
-$as_echo_n "checking for $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
-if test -r "$SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  HAS_GTKSOURCEVIEW=yes
-else
-  HAS_GTKSOURCEVIEW=no
-fi
-
-          if test "$HAS_GTKSOURCEVIEW" = "yes"; then SELECTED_GTKSOURCEVIEW=$SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX
-          fi
-       fi
-
-    GTKSOURCEVIEW=$SELECTED_GTKSOURCEVIEW
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# No need to check the same thing multiple times.
-
-
-
-
-
-
-
-
-
-# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
-# It works by chance but it is not robust enough.
-# Should be rewritten
-    HAS_GNOMECANVAS=no
-    if test "$HAS_GNOMECANVAS" != "yes"; then
-          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX" >&5
-$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
-if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  HAS_GNOMECANVAS=yes
-else
-  HAS_GNOMECANVAS=no
-fi
-
-          if test "$HAS_GNOMECANVAS" = "yes"; then SELECTED_GNOMECANVAS=$LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX
-          fi
-       fi
-
-    GNOMECANVAS=$SELECTED_GNOMECANVAS
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# No need to check the same thing multiple times.
-
-
-
-
-
-
-
-
-
-# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
-# It works by chance but it is not robust enough.
-# Should be rewritten
-    HAS_LABLGTK=no
-    if test "$HAS_LABLGTK" != "yes"; then
-          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX" >&5
-$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
-if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  HAS_LABLGTK=yes
-else
-  HAS_LABLGTK=no
-fi
-
-          if test "$HAS_LABLGTK" = "yes"; then SELECTED_LABLGTK=$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX
-          fi
-       fi
-       if test "$HAS_LABLGTK" != "yes"; then
-          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX" >&5
-$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
-if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  HAS_LABLGTK=yes
-else
-  HAS_LABLGTK=no
-fi
-
-          if test "$HAS_LABLGTK" = "yes"; then SELECTED_LABLGTK=$LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX
-          fi
-       fi
-
-    LABLGTK=$SELECTED_LABLGTK
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# dot and xdot tools
-####################
-
-
-
-
-
-
-
-
-
-
-
-  for file in dot; do
-   HAS_DOT=
-# Extract the first word of "$file", so it can be a program name with args.
-set dummy $file; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_HAS_DOT+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$HAS_DOT"; then
-  ac_cv_prog_HAS_DOT="$HAS_DOT" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_HAS_DOT="yes"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_HAS_DOT" && ac_cv_prog_HAS_DOT="no"
-fi
-fi
-HAS_DOT=$ac_cv_prog_HAS_DOT
-if test -n "$HAS_DOT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $HAS_DOT" >&5
-$as_echo "$HAS_DOT" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-    if test "$HAS_DOT" = "yes"; then SELECTED_VAR=$file break; fi
-  done
-
-
-
-
-
-
-
-
-
-
-
-
-# Checking some other things which cannot be done too early
-###########################################################
-
-# Native version of ptests can be used only if
-# - a native compiler exists
-# - native threads are usable
-
-PTESTSBEST=byte
-if test \
-     "$OCAMLBEST" = "opt" -a \
-     "$HAS_NATIVE_THREADS" = "yes"; \
-then
-   PTESTSBEST=opt;
-fi
-
-########################
-# Plug-in dependencies #
-########################
-
-new_section "checking for plug-in dependencies"
-
-
-  if test -n "$REQUIRE_LTLTOBA" -o -n "$USE_LTLTOBA" -o "$no" = "yes"; then
-    if test "$HAS_LTLTOBA" = "no"; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: ltl2ba not found." >&5
-$as_echo "$as_me: WARNING: ltl2ba not found." >&2;}
-      reason="ltl2ba missing"
-      for p in $REQUIRE_LTLTOBA; do
+  if test -n "$REQUIRE_OCAML_PPX_DERIVING" -o -n "$USE_OCAML_PPX_DERIVING" -o "$no" = "yes"; then
+    if test "$HAS_OCAML_PPX_DERIVING" = "no"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: package ppx_deriving not found" >&5
+$as_echo "$as_me: WARNING: package ppx_deriving not found" >&2;}
+      reason="ppx_deriving missing"
+      for p in $REQUIRE_OCAML_PPX_DERIVING; do
         up=`upper "$p"`
         ep=ENABLE_$up
         eval enable_p=\$$ep
         if test "$enable_p" != "no"; then
           fp=FORCE_`upper "$p"`
-	  if eval test "\$$fp" = "yes"; then
-	    as_fn_error $? "$p requested but $reason." "$LINENO" 5
-	  fi
-	  eval $ep="no\ \(see\ warning\ about\ ltl2ba\)"
-	  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
+          if eval test "\$$fp" = "yes"; then
+            as_fn_error $? "$p requested but $reason." "$LINENO" 5
+          fi
+          eval $ep="no\ \(see\ warning\ about\ ppx_deriving\)"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
 $as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
-	  eval INFO_$up=\", $reason\"
+          eval INFO_$up=\", $reason\"
         fi
       done
-      for p in $USE_LTLTOBA; do
+      for p in $USE_OCAML_PPX_DERIVING; do
         up=`upper "$p"`
         ep=ENABLE_$up
         eval eep="\$$ep"
-	if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	  eval $ep="partial\ \(see\ warning\ about\ ltl2ba\)"
-	  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
+        if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+          eval $ep="partial\ \(see\ warning\ about\ ppx_deriving\)"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
 $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
-	  eval INFO_$up=\", $reason\"
+          eval INFO_$up=\", $reason\"
         fi
       done
     else
-        LTLTOBA=ltl2ba
+        OCAML_PPX_DERIVING=PPX_DERIVING
+    fi
+  fi
+
+  if test -n "$REQUIRE_OCAML_PPX_DERIVING_YOJSON" -o -n "$USE_OCAML_PPX_DERIVING_YOJSON" -o "$no" = "yes"; then
+    if test "$HAS_OCAML_PPX_DERIVING_YOJSON" = "no"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: package ppx_deriving_yojson not found" >&5
+$as_echo "$as_me: WARNING: package ppx_deriving_yojson not found" >&2;}
+      reason="ppx_deriving_yojson missing"
+      for p in $REQUIRE_OCAML_PPX_DERIVING_YOJSON; do
+        up=`upper "$p"`
+        ep=ENABLE_$up
+        eval enable_p=\$$ep
+        if test "$enable_p" != "no"; then
+          fp=FORCE_`upper "$p"`
+          if eval test "\$$fp" = "yes"; then
+            as_fn_error $? "$p requested but $reason." "$LINENO" 5
+          fi
+          eval $ep="no\ \(see\ warning\ about\ ppx_deriving_yojson\)"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
+          eval INFO_$up=\", $reason\"
+        fi
+      done
+      for p in $USE_OCAML_PPX_DERIVING_YOJSON; do
+        up=`upper "$p"`
+        ep=ENABLE_$up
+        eval eep="\$$ep"
+        if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+          eval $ep="partial\ \(see\ warning\ about\ ppx_deriving_yojson\)"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
+          eval INFO_$up=\", $reason\"
+        fi
+      done
+    else
+        OCAML_PPX_DERIVING_YOJSON=PPX_DERIVING_YOJSON
     fi
   fi
 
@@ -10533,7 +11206,7 @@ $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
 
 
 
-        ac_config_files="$ac_config_files src/plugins/aorai/Makefile"
+        ac_config_files="$ac_config_files src/plugins/markdown-report/Makefile"
 
 
 
@@ -10544,6 +11217,77 @@ $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
         ac_config_files="$ac_config_files src/plugins/security_slicing/Makefile"
 
 
+
+  if test -n "$REQUIRE_OCAML_ZMQ" -o -n "$USE_OCAML_ZMQ" -o "$no" = "yes"; then
+    if test "$HAS_OCAML_ZMQ" = "no"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Server support for ZeroMQ disabled (try 'opam install zmq')." >&5
+$as_echo "$as_me: WARNING: Server support for ZeroMQ disabled (try 'opam install zmq')." >&2;}
+      reason="zmq missing"
+      for p in $REQUIRE_OCAML_ZMQ; do
+        up=`upper "$p"`
+        ep=ENABLE_$up
+        eval enable_p=\$$ep
+        if test "$enable_p" != "no"; then
+          fp=FORCE_`upper "$p"`
+          if eval test "\$$fp" = "yes"; then
+            as_fn_error $? "$p requested but $reason." "$LINENO" 5
+          fi
+          eval $ep="no\ \(see\ warning\ about\ zmq\)"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
+          eval INFO_$up=\", $reason\"
+        fi
+      done
+      for p in $USE_OCAML_ZMQ; do
+        up=`upper "$p"`
+        ep=ENABLE_$up
+        eval eep="\$$ep"
+        if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+          eval $ep="partial\ \(see\ warning\ about\ zmq\)"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
+          eval INFO_$up=\", $reason\"
+        fi
+      done
+    else
+        OCAML_ZMQ=ZMQ
+    fi
+  fi
+
+    if test -n "$REQUIRE_WHY3" -o -n "$USE_WHY3" -o "$no" = "yes"; then
+      if test "$HAS_WHY3" = "no"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX not found." >&5
+$as_echo "$as_me: WARNING: $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX not found." >&2;}
+        reason="$WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX missing"
+
+        for p in $REQUIRE_WHY3; do
+	  up=`upper "$p"`
+          ep=ENABLE_$up
+          eval enable_p=\$$ep
+          if test "$enable_p" != "no"; then
+            fp=FORCE_`upper "$p"`
+	    if eval test "\$$fp" = "yes"; then
+	      as_fn_error $? "$p requested but $reason." "$LINENO" 5
+	    fi
+	    eval $ep="no\ \(see\ warning\ about\ $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX\)"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
+	    eval INFO_$up=\", $reason\"
+          fi
+        done
+        for p in $USE_WHY3; do
+          up=`upper "$p"`
+          ep=ENABLE_$up
+          eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX\)"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
+	    eval INFO_$up=\", $reason\"
+          fi
+        done
+      fi
+    fi
 
 
 # NB: this would deserve to use plugin_requires mechanism
@@ -10609,93 +11353,6 @@ $as_echo "$as_me: rerun configure to make wp using coq 8.7.2 or higher" >&6;}
   else
     COQC="no"
   fi
-
-
-  ## Configuring for WHY3-COQ
-  if test "$COQC" = "yes" -a "$WPWHY3COQ" = "yes" ; then
-    # Extract the first word of "why3", so it can be a program name with args.
-set dummy why3; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_WHY3COQC+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$WHY3COQC"; then
-  ac_cv_prog_WHY3COQC="$WHY3COQC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_WHY3COQC="yes"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_WHY3COQC" && ac_cv_prog_WHY3COQC="no"
-fi
-fi
-WHY3COQC=$ac_cv_prog_WHY3COQC
-if test -n "$WHY3COQC"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $WHY3COQC" >&5
-$as_echo "$WHY3COQC" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-    if test "$WHY3COQC" = "yes" ; then
-      WHY3VERSION=`why3 --version | sed -n -e 's|.*version *\([^ ]*\)$|\1|p' `
-      case $WHY3VERSION in
-        1.*)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
-$as_echo "why3 version $WHY3VERSION found" >&6; }
-	  WHY3LIB=`why3 --print-libdir`
-	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries found" >&5
-$as_echo "why3 compiled coq libraries found" >&6; }
-	  else
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries not found in $WHY3LIB" >&5
-$as_echo "why3 compiled coq libraries not found in $WHY3LIB" >&6; }
-	    WHY3COQC="no"
-          fi
-          ;;
-        *)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 unsupported version $WHY3VERSION" >&5
-$as_echo "why3 unsupported version $WHY3VERSION" >&6; }
-          WHY3COQC="no"
-          ;;
-      esac
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 (1.0.0+)" >&5
-$as_echo "$as_me: rerun configure to make wp using why3 (1.0.0+)" >&6;}
-    fi
-  else
-    WHY3COQC="no"
-  fi
-
-
-  ## Configuring for WHY3-API
-  WHY3API_VERSION=$($OCAMLFIND query why3 -format %v)
-  case $WHY3API_VERSION in
-    1.*)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 api $WHY3API_VERSION found" >&5
-$as_echo "why3 api $WHY3API_VERSION found" >&6; }
-        WHY3API="yes"
-        ;;
-    *)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 api not found (no why3 prover detection)" >&5
-$as_echo "why3 api not found (no why3 prover detection)" >&6; }
-        WHY3API="no"
-        ;;
-  esac
 
 
 fi
@@ -10910,10 +11567,10 @@ EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
 
 
 
-
-
 # m4_foreach_w is not supported in some old autoconf versions.
 # Sadly AC_FOREACH is deprecated now...
+
+
 
 
 
@@ -11652,10 +12309,12 @@ do
     "default") CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
     "src/plugins/e-acsl/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/e-acsl/Makefile" ;;
     "src/plugins/loop_analysis/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/loop_analysis/Makefile" ;;
+    "src/plugins/markdown-report/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/markdown-report/Makefile" ;;
     "src/plugins/nonterm/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/nonterm/Makefile" ;;
     "src/plugins/obfuscator/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/obfuscator/Makefile" ;;
     "src/plugins/report/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/report/Makefile" ;;
     "src/plugins/security_slicing/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/security_slicing/Makefile" ;;
+    "src/plugins/server/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/server/Makefile" ;;
     "src/plugins/studia/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/studia/Makefile" ;;
     "src/plugins/variadic/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/variadic/Makefile" ;;
     "src/plugins/wp/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/wp/Makefile" ;;
@@ -12214,10 +12873,12 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
     "default":C)    ;;
     "src/plugins/e-acsl/Makefile":F) chmod -w src/plugins/e-acsl/Makefile ;;
     "src/plugins/loop_analysis/Makefile":F) chmod -w src/plugins/loop_analysis/Makefile ;;
+    "src/plugins/markdown-report/Makefile":F) chmod -w src/plugins/markdown-report/Makefile ;;
     "src/plugins/nonterm/Makefile":F) chmod -w src/plugins/nonterm/Makefile ;;
     "src/plugins/obfuscator/Makefile":F) chmod -w src/plugins/obfuscator/Makefile ;;
     "src/plugins/report/Makefile":F) chmod -w src/plugins/report/Makefile ;;
     "src/plugins/security_slicing/Makefile":F) chmod -w src/plugins/security_slicing/Makefile ;;
+    "src/plugins/server/Makefile":F) chmod -w src/plugins/server/Makefile ;;
     "src/plugins/studia/Makefile":F) chmod -w src/plugins/studia/Makefile ;;
     "src/plugins/variadic/Makefile":F) chmod -w src/plugins/variadic/Makefile ;;
     "src/plugins/wp/Makefile":F) chmod -w src/plugins/wp/Makefile ;;
@@ -12267,7 +12928,7 @@ fi
 
 new_section "summary: plug-ins available"
 
-for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS EVA AORAI E_ACSL LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API QED REPORT SECURITY_SLICING STUDIA VARIADIC WP; do
+for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS EVA AORAI E_ACSL LOOP_ANALYSIS MDR NONTERM OBFUSCATOR PRINT_API QED REPORT SECURITY_SLICING SERVER STUDIA VARIADIC WP; do
   n=NAME_$plugin
   e=ENABLE_$plugin
   i=INFO_$plugin

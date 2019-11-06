@@ -1,0 +1,459 @@
+[kernel] Parsing tests/float/logic.i (no preprocessing)
+[kernel:parser:decimal-float] tests/float/logic.i:12: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+[kernel:parser:decimal-float] tests/float/logic.i:17: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+[kernel:parser:decimal-float] tests/float/logic.i:22: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+[kernel:parser:decimal-float] tests/float/logic.i:61: Warning: 
+  Floating-point constant 3.14 is not represented exactly. Will use 0x1.91eb851eb851fp1.
+[kernel:parser:decimal-float] tests/float/logic.i:62: Warning: 
+  Floating-point constant 3.14 is not represented exactly. Will use 0x1.91eb851eb851fp1.
+[kernel:parser:decimal-float] tests/float/logic.i:62: Warning: 
+  Floating-point constant 3.14 is not represented exactly. Will use 0x1.91eb851eb851fp1.
+[kernel:parser:decimal-float] tests/float/logic.i:63: Warning: 
+  Floating-point constant 3.14 is not represented exactly. Will use 0x1.91eb851eb851fp1.
+[kernel:parser:decimal-float] tests/float/logic.i:63: Warning: 
+  Floating-point constant 11.1 is not represented exactly. Will use 0x1.6333333333333p3.
+[kernel:parser:decimal-float] tests/float/logic.i:120: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+[kernel:parser:decimal-float] tests/float/logic.i:129: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+[kernel:parser:decimal-float] tests/float/logic.i:177: Warning: 
+  Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
+[kernel:parser:decimal-float] tests/float/logic.i:178: Warning: 
+  Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
+[kernel:parser:decimal-float] tests/float/logic.i:181: Warning: 
+  Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
+[kernel:parser:decimal-float] tests/float/logic.i:184: Warning: 
+  Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+  any_float ∈ [--..--]
+  any_double ∈ [--..--]
+  undet ∈ [--..--]
+  top_int ∈ [--..--]
+[eva] computing for function test_equality <- main.
+  Called from tests/float/logic.i:189.
+[eva:alarm] tests/float/logic.i:13: Warning: assertion got status unknown.
+[eva:alarm] tests/float/logic.i:18: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva] tests/float/logic.i:23: assertion got status valid.
+[eva] Recording results for test_equality
+[eva] Done for function test_equality
+[eva] computing for function test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:190.
+[eva] computing for function test_comparison_evaluation <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:115.
+[eva] tests/float/logic.i:35: check got status valid.
+[eva] tests/float/logic.i:36: check got status valid.
+[eva] tests/float/logic.i:37: check got status valid.
+[eva] tests/float/logic.i:38: check got status valid.
+[eva] tests/float/logic.i:39: check got status valid.
+[eva:alarm] tests/float/logic.i:40: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:41: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:42: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:43: Warning: check got status invalid.
+[eva] tests/float/logic.i:47: check got status valid.
+[eva] tests/float/logic.i:48: check got status valid.
+[eva:alarm] tests/float/logic.i:49: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:50: Warning: check got status invalid.
+[eva] tests/float/logic.i:51: check got status valid.
+[eva] tests/float/logic.i:52: check got status valid.
+[eva] tests/float/logic.i:53: check got status valid.
+[eva:alarm] tests/float/logic.i:54: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:55: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:56: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:57: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:58: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:64: Warning: check got status unknown.
+[eva:alarm] tests/float/logic.i:65: Warning: check got status unknown.
+[eva:alarm] tests/float/logic.i:66: Warning: check got status unknown.
+[eva] tests/float/logic.i:67: check got status valid.
+[eva:alarm] tests/float/logic.i:68: Warning: check got status invalid.
+[eva] tests/float/logic.i:69: check got status valid.
+[eva] tests/float/logic.i:70: check got status valid.
+[eva:alarm] tests/float/logic.i:71: Warning: check got status unknown.
+[eva] tests/float/logic.i:72: check got status valid.
+[eva:alarm] tests/float/logic.i:73: Warning: check got status unknown.
+[eva:alarm] tests/float/logic.i:74: Warning: check got status invalid.
+[eva:alarm] tests/float/logic.i:75: Warning: check got status invalid.
+[eva] Recording results for test_comparison_evaluation
+[eva] Done for function test_comparison_evaluation
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:117.
+[eva:alarm] tests/float/logic.i:83: Warning: assertion got status unknown.
+[eva] tests/float/logic.i:84: 
+  Frama_C_show_each_eq: {-0x1.0000000000000p0}, [-inf .. inf] ∪ {NaN}
+[eva:alarm] tests/float/logic.i:87: Warning: assertion got status unknown.
+[eva] tests/float/logic.i:88: 
+  Frama_C_show_each_lt: {-0x1.0000000000000p0}, [-inf .. inf] ∪ {NaN}
+[eva:alarm] tests/float/logic.i:91: Warning: assertion got status unknown.
+[eva] tests/float/logic.i:92: 
+  Frama_C_show_each_lt: {-0x1.0000000000000p0}, [-inf .. inf] ∪ {NaN}
+[eva:alarm] tests/float/logic.i:95: Warning: assertion got status unknown.
+[eva] tests/float/logic.i:96: 
+  Frama_C_show_each_eq_double: {-0x1.0000000000000p0}, {-0x1.0000000000000p0}
+[eva:alarm] tests/float/logic.i:99: Warning: assertion got status unknown.
+[eva] tests/float/logic.i:100: 
+  Frama_C_show_each_lt_double:
+  {-0x1.0000000000000p0}, [-inf .. -0x1.0000000000001p0]
+[eva:alarm] tests/float/logic.i:103: Warning: assertion got status unknown.
+[eva] tests/float/logic.i:104: 
+  Frama_C_show_each_le_double:
+  {-0x1.0000000000000p0}, [-inf .. -0x1.0000000000000p0]
+[eva:alarm] tests/float/logic.i:107: Warning: assertion got status unknown.
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double: {-0x1.0000000000000p0}, [-inf .. inf] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:118.
+[eva] tests/float/logic.i:84: 
+  Frama_C_show_each_eq: {-0x0.0000000000000p-1022}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:88: 
+  Frama_C_show_each_lt: {-0x0.0000000000000p-1022}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:92: 
+  Frama_C_show_each_lt: {-0x0.0000000000000p-1022}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:96: 
+  Frama_C_show_each_eq_double:
+  {-0x0.0000000000000p-1022},
+  [-0x0.0000000000000p-1022 .. 0x0.0000000000000p-1022]
+[eva] tests/float/logic.i:100: 
+  Frama_C_show_each_lt_double:
+  {-0x0.0000000000000p-1022}, [-inf .. -0x0.0000000000001p-1022]
+[eva] tests/float/logic.i:104: 
+  Frama_C_show_each_le_double:
+  {-0x0.0000000000000p-1022}, [-inf .. 0x0.0000000000000p-1022]
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double:
+  {-0x0.0000000000000p-1022}, [-inf .. inf] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:119.
+[eva] tests/float/logic.i:84: Frama_C_show_each_eq: {0}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:88: Frama_C_show_each_lt: {0}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:92: Frama_C_show_each_lt: {0}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:96: 
+  Frama_C_show_each_eq_double:
+  {0}, [-0x0.0000000000000p-1022 .. 0x0.0000000000000p-1022]
+[eva] tests/float/logic.i:100: 
+  Frama_C_show_each_lt_double: {0}, [-inf .. -0x0.0000000000001p-1022]
+[eva] tests/float/logic.i:104: 
+  Frama_C_show_each_le_double: {0}, [-inf .. 0x0.0000000000000p-1022]
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double: {0}, [-inf .. inf] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:120.
+[eva] tests/float/logic.i:84: 
+  Frama_C_show_each_eq: {0x1.999999999999ap-4}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:88: 
+  Frama_C_show_each_lt: {0x1.999999999999ap-4}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:92: 
+  Frama_C_show_each_lt: {0x1.999999999999ap-4}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:96: 
+  Frama_C_show_each_eq_double: {0x1.999999999999ap-4}, {0x1.999999999999ap-4}
+[eva] tests/float/logic.i:100: 
+  Frama_C_show_each_lt_double:
+  {0x1.999999999999ap-4}, [-inf .. 0x1.9999999999999p-4]
+[eva] tests/float/logic.i:104: 
+  Frama_C_show_each_le_double:
+  {0x1.999999999999ap-4}, [-inf .. 0x1.999999999999ap-4]
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double: {0x1.999999999999ap-4}, [-inf .. inf] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:124.
+[eva] tests/float/logic.i:84: 
+  Frama_C_show_each_eq:
+  [-0x1.4000000000000p3 .. -0x1.0000000000000p0], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:88: 
+  Frama_C_show_each_lt:
+  [-0x1.4000000000000p3 .. -0x1.0000000000000p0], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:92: 
+  Frama_C_show_each_lt:
+  [-0x1.4000000000000p3 .. -0x1.0000000000000p0], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:96: 
+  Frama_C_show_each_eq_double:
+  [-0x1.4000000000000p3 .. -0x1.0000000000000p0],
+  [-0x1.4000000000000p3 .. -0x1.0000000000000p0]
+[eva] tests/float/logic.i:100: 
+  Frama_C_show_each_lt_double:
+  [-0x1.4000000000000p3 .. -0x1.0000000000000p0],
+  [-inf .. -0x1.0000000000001p0]
+[eva] tests/float/logic.i:104: 
+  Frama_C_show_each_le_double:
+  [-0x1.4000000000000p3 .. -0x1.0000000000000p0],
+  [-inf .. -0x1.0000000000000p0]
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double:
+  [-0x1.4000000000000p3 .. -0x1.0000000000000p0], [-inf .. inf] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:126.
+[eva] tests/float/logic.i:84: 
+  Frama_C_show_each_eq:
+  [-0x1.4000000000000p3 .. -0x0.0000000000000p-1022], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:88: 
+  Frama_C_show_each_lt:
+  [-0x1.4000000000000p3 .. -0x0.0000000000000p-1022], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:92: 
+  Frama_C_show_each_lt:
+  [-0x1.4000000000000p3 .. -0x0.0000000000000p-1022], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:96: 
+  Frama_C_show_each_eq_double:
+  [-0x1.4000000000000p3 .. -0x0.0000000000000p-1022],
+  [-0x1.4000000000000p3 .. 0x0.0000000000000p-1022]
+[eva] tests/float/logic.i:100: 
+  Frama_C_show_each_lt_double:
+  [-0x1.4000000000000p3 .. -0x0.0000000000000p-1022],
+  [-inf .. -0x0.0000000000001p-1022]
+[eva] tests/float/logic.i:104: 
+  Frama_C_show_each_le_double:
+  [-0x1.4000000000000p3 .. -0x0.0000000000000p-1022],
+  [-inf .. 0x0.0000000000000p-1022]
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double:
+  [-0x1.4000000000000p3 .. -0x0.0000000000000p-1022], [-inf .. inf] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:128.
+[eva] tests/float/logic.i:84: 
+  Frama_C_show_each_eq:
+  [-0x1.4000000000000p3 .. 0x0.0000000000000p-1022], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:88: 
+  Frama_C_show_each_lt:
+  [-0x1.4000000000000p3 .. 0x0.0000000000000p-1022], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:92: 
+  Frama_C_show_each_lt:
+  [-0x1.4000000000000p3 .. 0x0.0000000000000p-1022], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:96: 
+  Frama_C_show_each_eq_double:
+  [-0x1.4000000000000p3 .. 0x0.0000000000000p-1022],
+  [-0x1.4000000000000p3 .. 0x0.0000000000000p-1022]
+[eva] tests/float/logic.i:100: 
+  Frama_C_show_each_lt_double:
+  [-0x1.4000000000000p3 .. 0x0.0000000000000p-1022],
+  [-inf .. -0x0.0000000000001p-1022]
+[eva] tests/float/logic.i:104: 
+  Frama_C_show_each_le_double:
+  [-0x1.4000000000000p3 .. 0x0.0000000000000p-1022],
+  [-inf .. 0x0.0000000000000p-1022]
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double:
+  [-0x1.4000000000000p3 .. 0x0.0000000000000p-1022], [-inf .. inf] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:130.
+[eva] tests/float/logic.i:84: 
+  Frama_C_show_each_eq:
+  [-0x1.4000000000000p3 .. 0x1.999999999999ap-4], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:88: 
+  Frama_C_show_each_lt:
+  [-0x1.4000000000000p3 .. 0x1.999999999999ap-4], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:92: 
+  Frama_C_show_each_lt:
+  [-0x1.4000000000000p3 .. 0x1.999999999999ap-4], [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:96: 
+  Frama_C_show_each_eq_double:
+  [-0x1.4000000000000p3 .. 0x1.999999999999ap-4],
+  [-0x1.4000000000000p3 .. 0x1.999999999999ap-4]
+[eva] tests/float/logic.i:100: 
+  Frama_C_show_each_lt_double:
+  [-0x1.4000000000000p3 .. 0x1.999999999999ap-4],
+  [-inf .. 0x1.9999999999999p-4]
+[eva] tests/float/logic.i:104: 
+  Frama_C_show_each_le_double:
+  [-0x1.4000000000000p3 .. 0x1.999999999999ap-4],
+  [-inf .. 0x1.999999999999ap-4]
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double:
+  [-0x1.4000000000000p3 .. 0x1.999999999999ap-4], [-inf .. inf] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:133.
+[eva] tests/float/logic.i:84: 
+  Frama_C_show_each_eq: {inf}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:88: 
+  Frama_C_show_each_lt: {inf}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:92: 
+  Frama_C_show_each_lt: {inf}, [-inf .. inf] ∪ {NaN}
+[eva] tests/float/logic.i:96: Frama_C_show_each_eq_double: {inf}, {inf}
+[eva] tests/float/logic.i:100: 
+  Frama_C_show_each_lt_double: {inf}, [-inf .. 0x1.fffffffffffffp1023]
+[eva] tests/float/logic.i:104: Frama_C_show_each_le_double: {inf}, [-inf .. inf]
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double:
+  {inf}, [-inf .. 0x1.fffffffffffffp1023] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] computing for function test_comparison_reduction <- 
+                          test_builtin_comparisons <- main.
+  Called from tests/float/logic.i:134.
+[eva:alarm] tests/float/logic.i:83: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva:alarm] tests/float/logic.i:87: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva:alarm] tests/float/logic.i:91: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva:alarm] tests/float/logic.i:95: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva:alarm] tests/float/logic.i:99: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva:alarm] tests/float/logic.i:103: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva] tests/float/logic.i:107: assertion got status valid.
+[eva] tests/float/logic.i:108: 
+  Frama_C_show_each_ne_double: NaN, [-inf .. inf] ∪ {NaN}
+[eva] Recording results for test_comparison_reduction
+[eva] Done for function test_comparison_reduction
+[eva] Recording results for test_builtin_comparisons
+[eva] Done for function test_builtin_comparisons
+[eva] computing for function test_is_finite <- main.
+  Called from tests/float/logic.i:191.
+[eva] tests/float/logic.i:157: assertion got status valid.
+[eva:alarm] tests/float/logic.i:166: Warning: assertion got status unknown.
+[eva:alarm] tests/float/logic.i:174: Warning: assertion got status unknown.
+[eva] computing for function my_fabs <- test_is_finite <- main.
+  Called from tests/float/logic.i:177.
+[eva] using specification for function my_fabs
+[eva] Done for function my_fabs
+[eva] computing for function my_fabs <- test_is_finite <- main.
+  Called from tests/float/logic.i:178.
+[eva] Done for function my_fabs
+[eva] computing for function my_ratio <- test_is_finite <- main.
+  Called from tests/float/logic.i:181.
+[eva] using specification for function my_ratio
+[eva] tests/float/logic.i:153: Warning: 
+  no 'assigns \result \from ...' clause specified for function my_ratio
+[eva] Done for function my_ratio
+[eva] computing for function my_ratio_body <- test_is_finite <- main.
+  Called from tests/float/logic.i:184.
+[eva] computing for function my_fabs <- my_ratio_body <- test_is_finite <- main.
+  Called from tests/float/logic.i:148.
+[eva] Done for function my_fabs
+[eva] tests/float/logic.i:146: 
+  function my_ratio_body: postcondition got status valid.
+[eva] tests/float/logic.i:147: 
+  function my_ratio_body: postcondition got status valid.
+[eva] Recording results for my_ratio_body
+[eva] Done for function my_ratio_body
+[eva] Recording results for test_is_finite
+[eva] Done for function test_is_finite
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function my_ratio_body:
+  __retres ∈ {-0x1.bca1b00000000p-1}
+[eva:final-states] Values at end of function test_comparison_evaluation:
+  zero ∈ {0}
+  minus_zero ∈ {-0x0.0000000000000p-1022}
+  one ∈ {0x1.0000000000000p0}
+  higher ∈ [0x1.91eb860000000p1 .. 0x1.9000000000000p3]
+  middle ∈ [-0x1.91eb860000000p1 .. 0x1.91eb860000000p1]
+  lower ∈ [-0x1.6333340000000p3 .. -0x1.91eb860000000p1]
+[eva:final-states] Values at end of function test_comparison_reduction:
+  d ∈ [-inf .. inf] ∪ {NaN}
+[eva:final-states] Values at end of function test_builtin_comparisons:
+  bound ∈ [-0x1.4000000000000p3 .. 0x1.999999999999ap-4]
+[eva:final-states] Values at end of function test_equality:
+  
+[eva:final-states] Values at end of function test_is_finite:
+  f1 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  f2 ∈ [--..--]
+  f3 ∈ [--..--]
+  p ∈ {{ &f2 ; &f3 }}
+  g1 ∈ {0x1.a666660000000p1}
+  g2 ∈ {0x1.a666660000000p1}
+  g3 ∈ [-0x1.fffffe0000000p-1 .. 0x1.fffffe0000000p-1]
+  g4 ∈ {-0x1.bca1b00000000p-1}
+[eva:final-states] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function my_ratio_body
+[from] Computing for function my_fabs <-my_ratio_body
+[from] Done for function my_fabs
+[from] Done for function my_ratio_body
+[from] Computing for function test_comparison_evaluation
+[from] Done for function test_comparison_evaluation
+[from] Computing for function test_comparison_reduction
+[from] Done for function test_comparison_reduction
+[from] Computing for function test_builtin_comparisons
+[from] Done for function test_builtin_comparisons
+[from] Computing for function test_equality
+[from] Done for function test_equality
+[from] Computing for function test_is_finite
+[from] Computing for function my_ratio <-test_is_finite
+[from] Done for function my_ratio
+[from] Done for function test_is_finite
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function my_fabs:
+  \result FROM f
+[from] Function my_ratio:
+  \result FROM ANYTHING(origin:Unknown)
+[from] Function my_ratio_body:
+  \result FROM f
+[from] Function test_comparison_evaluation:
+  NO EFFECTS
+[from] Function test_comparison_reduction:
+  NO EFFECTS
+[from] Function test_builtin_comparisons:
+  NO EFFECTS
+[from] Function test_equality:
+  NO EFFECTS
+[from] Function test_is_finite:
+  NO EFFECTS
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function my_ratio_body:
+    tmp; __retres
+[inout] Inputs for function my_ratio_body:
+    \nothing
+[inout] Out (internal) for function test_comparison_evaluation:
+    zero; minus_zero; one; inf; nan; higher; tmp; middle; tmp_0; lower; tmp_1
+[inout] Inputs for function test_comparison_evaluation:
+    v
+[inout] Out (internal) for function test_comparison_reduction:
+    d
+[inout] Inputs for function test_comparison_reduction:
+    v; any_double
+[inout] Out (internal) for function test_builtin_comparisons:
+    bound
+[inout] Inputs for function test_builtin_comparisons:
+    v; any_double
+[inout] Out (internal) for function test_equality:
+    d; d_0; f
+[inout] Inputs for function test_equality:
+    v
+[inout] Out (internal) for function test_is_finite:
+    f1; f2; f3; p; g1; g2; g3; g4
+[inout] Inputs for function test_is_finite:
+    undet; top_int
+[inout] Out (internal) for function main:
+    __retres
+[inout] Inputs for function main:
+    v; any_double; undet; top_int

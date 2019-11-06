@@ -45,52 +45,58 @@ lemma I_deterministic_trans{L}:
         \at(aorai_CurOpStatus,L) ≡ aorai_Terminated ∧ __retres_f ≡ 0));
  */
 /*@ ghost int aorai_CurStates = I; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_I_in:
-      assumes aorai_CurStates ≡ I;
-      ensures aorai_CurStates ≡ I;
-    
-    behavior buch_state_I_out:
-      assumes aorai_CurStates ≢ I;
-      ensures aorai_CurStates ≢ I;
- */
-void main_pre_func(void)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (0 == aorai_CurStates) aorai_CurStates_tmp = I;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_I_in:
+       assumes aorai_CurStates ≡ I;
+       ensures aorai_CurStates ≡ I;
+     
+     behavior buch_state_I_out:
+       assumes aorai_CurStates ≢ I;
+       ensures aorai_CurStates ≢ I;
+   @/
+  void main_pre_func(void)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (0 == aorai_CurStates) aorai_CurStates_tmp = I;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
 
-/*@ requires aorai_CurStates ≡ I;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_I_in:
-      assumes aorai_CurStates ≡ I;
-      ensures aorai_CurStates ≡ I;
-    
-    behavior buch_state_I_out:
-      assumes aorai_CurStates ≢ I;
-      ensures aorai_CurStates ≢ I;
- */
-void main_post_func(void)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (0 == aorai_CurStates) aorai_CurStates_tmp = I;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires aorai_CurStates ≡ I;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_I_in:
+       assumes aorai_CurStates ≡ I;
+       ensures aorai_CurStates ≡ I;
+     
+     behavior buch_state_I_out:
+       assumes aorai_CurStates ≢ I;
+       ensures aorai_CurStates ≢ I;
+   @/
+  void main_post_func(void)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (0 == aorai_CurStates) aorai_CurStates_tmp = I;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires aorai_CurStates ≡ I;
     
@@ -99,9 +105,9 @@ void main_post_func(void)
  */
 void main(void)
 {
-  main_pre_func();
+  /*@ ghost main_pre_func(); */
   f();
-  main_post_func();
+  /*@ ghost main_post_func(); */
   return;
 }
 

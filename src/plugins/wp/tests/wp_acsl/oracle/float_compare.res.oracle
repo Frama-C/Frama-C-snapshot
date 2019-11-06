@@ -121,13 +121,13 @@ Prove: lt_f64(a_1, b) <-> (r < of_f64(b)).
 
 ------------------------------------------------------------
 
-Goal Assertion (file tests/wp_acsl/float_compare.i, line 62):
+Goal Assertion (file tests/wp_acsl/float_compare.i, line 63):
 Assume { (* Pre-condition *) Have: is_finite_f32(a) /\ is_finite_f64(b). }
 Prove: is_finite_f64(to_f64(of_f32(a))).
 
 ------------------------------------------------------------
 
-Goal Assertion (file tests/wp_acsl/float_compare.i, line 63):
+Goal Assertion (file tests/wp_acsl/float_compare.i, line 64):
 Let r = of_f32(a).
 Let a_1 = to_f64(r).
 Assume {

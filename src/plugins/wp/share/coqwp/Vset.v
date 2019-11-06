@@ -32,146 +32,147 @@ Definition set : forall (a:Type), Type.
 Admitted.
 
 (* Why3 goal *)
-Definition empty: forall {a:Type} {a_WT:WhyType a}, (set a).
+Definition empty {a:Type} {a_WT:WhyType a} : set a.
 Admitted.
 
 (* Why3 goal *)
-Definition singleton: forall {a:Type} {a_WT:WhyType a}, a -> (set a).
+Definition singleton {a:Type} {a_WT:WhyType a} : a -> set a.
 Admitted.
 
 (* Why3 goal *)
-Definition union: forall {a:Type} {a_WT:WhyType a}, (set a) -> (set a) ->
-  (set a).
+Definition union {a:Type} {a_WT:WhyType a} : (set a) -> (set a) -> set a.
 Admitted.
 
 (* Why3 goal *)
-Definition inter: forall {a:Type} {a_WT:WhyType a}, (set a) -> (set a) ->
-  (set a).
+Definition inter {a:Type} {a_WT:WhyType a} : (set a) -> (set a) -> set a.
 Admitted.
 
 (* Why3 goal *)
-Definition member: forall {a:Type} {a_WT:WhyType a}, a -> (set a) -> Prop.
+Definition member {a:Type} {a_WT:WhyType a} : a -> (set a) -> Prop.
 Admitted.
 
 (* Why3 goal *)
-Definition member_bool: forall {a:Type} {a_WT:WhyType a}, a -> (set a) ->
-  bool.
+Definition member_bool {a:Type} {a_WT:WhyType a} : a -> (set a) -> bool.
 Admitted.
 
 (* Why3 goal *)
-Definition range: Z -> Z -> (set Z).
+Definition range : Z -> Z -> set Z.
 Admitted.
 
 (* Why3 goal *)
-Definition range_sup: Z -> (set Z).
+Definition range_sup : Z -> set Z.
 Admitted.
 
 (* Why3 goal *)
-Definition range_inf: Z -> (set Z).
+Definition range_inf : Z -> set Z.
 Admitted.
 
 (* Why3 goal *)
-Definition range_all: (set Z).
+Definition range_all : set Z.
 Admitted.
 
 (* Why3 assumption *)
-Definition eqset {a:Type} {a_WT:WhyType a} (a1:(set a)) (b:(set a)): Prop :=
+Definition eqset {a:Type} {a_WT:WhyType a} (a1:set a) (b:set a) : Prop :=
   forall (x:a), (member x a1) <-> (member x b).
 
 (* Why3 assumption *)
-Definition subset {a:Type} {a_WT:WhyType a} (a1:(set a)) (b:(set a)): Prop :=
-  forall (x:a), (member x a1) -> (member x b).
+Definition subset {a:Type} {a_WT:WhyType a} (a1:set a) (b:set a) : Prop :=
+  forall (x:a), (member x a1) -> member x b.
 
 (* Why3 assumption *)
-Definition disjoint {a:Type} {a_WT:WhyType a} (a1:(set a)) (b:(set
-  a)): Prop := forall (x:a), (member x a1) -> ~ (member x b).
+Definition disjoint {a:Type} {a_WT:WhyType a} (a1:set a) (b:set a) : Prop :=
+  forall (x:a), (member x a1) -> ~ (member x b).
 
 (* Why3 goal *)
-Lemma member_bool1 : forall {a:Type} {a_WT:WhyType a}, forall (x:a),
-  forall (s:(set a)), ((member x s) -> ((member_bool x s) = true)) /\
-  ((~ (member x s)) -> ((member_bool x s) = false)).
+Lemma member_bool1 {a:Type} {a_WT:WhyType a} :
+  forall (x:a), forall (s:set a),
+  ((member x s) -> ((member_bool x s) = true)) /\
+  (~ (member x s) -> ((member_bool x s) = false)).
 Proof.
-intros a a_WT x s.
+intros x s.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma member_empty : forall {a:Type} {a_WT:WhyType a}, forall (x:a),
-  ~ (member x (empty : (set a))).
+Lemma member_empty {a:Type} {a_WT:WhyType a} :
+  forall (x:a), ~ (member x (empty : set a)).
 Proof.
-intros a a_WT x.
+intros x.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma member_singleton : forall {a:Type} {a_WT:WhyType a}, forall (x:a)
-  (y:a), (member x (singleton y)) <-> (x = y).
+Lemma member_singleton {a:Type} {a_WT:WhyType a} :
+  forall (x:a) (y:a), (member x (singleton y)) <-> (x = y).
 Proof.
-intros a a_WT x y.
+intros x y.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma member_union : forall {a:Type} {a_WT:WhyType a}, forall (x:a),
-  forall (a1:(set a)) (b:(set a)), (member x (union a1 b)) <-> ((member x
-  a1) \/ (member x b)).
+Lemma member_union {a:Type} {a_WT:WhyType a} :
+  forall (x:a), forall (a1:set a) (b:set a),
+  (member x (union a1 b)) <-> ((member x a1) \/ (member x b)).
 Proof.
-intros a a_WT x a1 b.
+intros x a1 b.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma member_inter : forall {a:Type} {a_WT:WhyType a}, forall (x:a),
-  forall (a1:(set a)) (b:(set a)), (member x (inter a1 b)) <-> ((member x
-  a1) /\ (member x b)).
+Lemma member_inter {a:Type} {a_WT:WhyType a} :
+  forall (x:a), forall (a1:set a) (b:set a),
+  (member x (inter a1 b)) <-> ((member x a1) /\ (member x b)).
 Proof.
-intros a a_WT x a1 b.
+intros x a1 b.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma union_empty : forall {a:Type} {a_WT:WhyType a}, forall (a1:(set a)),
-  ((union a1 (empty : (set a))) = a1) /\ ((union (empty : (set a)) a1) = a1).
+Lemma union_empty {a:Type} {a_WT:WhyType a} :
+  forall (a1:set a),
+  ((union a1 (empty : set a)) = a1) /\ ((union (empty : set a) a1) = a1).
 Proof.
-intros a a_WT a1.
+intros a1.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma inter_empty : forall {a:Type} {a_WT:WhyType a}, forall (a1:(set a)),
-  ((inter a1 (empty : (set a))) = (empty : (set a))) /\ ((inter (empty : (set
-  a)) a1) = (empty : (set a))).
+Lemma inter_empty {a:Type} {a_WT:WhyType a} :
+  forall (a1:set a),
+  ((inter a1 (empty : set a)) = (empty : set a)) /\
+  ((inter (empty : set a) a1) = (empty : set a)).
 Proof.
-intros a a_WT a1.
+intros a1.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma member_range : forall (x:Z) (a:Z) (b:Z), (member x (range a b)) <->
-  ((a <= x)%Z /\ (x <= b)%Z).
+Lemma member_range :
+  forall (x:Z) (a:Z) (b:Z),
+  (member x (range a b)) <-> ((a <= x)%Z /\ (x <= b)%Z).
 Proof.
 intros x a b.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma member_range_sup : forall (x:Z) (a:Z), (member x (range_sup a)) <->
-  (a <= x)%Z.
+Lemma member_range_sup :
+  forall (x:Z) (a:Z), (member x (range_sup a)) <-> (a <= x)%Z.
 Proof.
 intros x a.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma member_range_inf : forall (x:Z) (b:Z), (member x (range_inf b)) <->
-  (x <= b)%Z.
+Lemma member_range_inf :
+  forall (x:Z) (b:Z), (member x (range_inf b)) <-> (x <= b)%Z.
 Proof.
 intros x b.
 
 Admitted.
 
 (* Why3 goal *)
-Lemma member_range_all : forall (x:Z), (member x range_all).
+Lemma member_range_all : forall (x:Z), member x range_all.
 Proof.
 intros x.
 

@@ -265,9 +265,9 @@ module Hypotheses = struct
 
   let rec fold : type l. ('a -> 'b -> 'b) -> ('a, l) llist -> 'b -> 'b =
     fun f list acc ->
-      match list with
-      | Nil -> acc
-      | Cons (x, tl) -> fold f tl (f x acc)
+    match list with
+    | Nil -> acc
+    | Cons (x, tl) -> fold f tl (f x acc)
 
   let rec fold2:
     type l. ('a -> 'b -> 'c -> 'c) -> ('a, l) llist -> ('b, l) llist -> 'c -> 'c
@@ -298,19 +298,19 @@ module Hypotheses = struct
   (* Pointwise comparison of two lists of subvalues. *)
   let rec compare_subvalues: type l. l subvalues -> l subvalues -> int =
     fun hyp1 hyp2 ->
-      match hyp1, hyp2 with
-      | Nil, Nil -> 0
-      | Cons (v1, tail1), Cons (v2, tail2) ->
-        let n = Cvalue.V.compare v1 v2 in
-        if n = 0 then compare_subvalues tail1 tail2 else n
+    match hyp1, hyp2 with
+    | Nil, Nil -> 0
+    | Cons (v1, tail1), Cons (v2, tail2) ->
+      let n = Cvalue.V.compare v1 v2 in
+      if n = 0 then compare_subvalues tail1 tail2 else n
 
   (* Pointwise join of two lists of subvalues. *)
   let rec join_subvalues: type l. l subvalues -> l subvalues -> l subvalues =
     fun l1 l2 ->
-      match l1, l2 with
-      | Nil, Nil -> Nil
-      | Cons (x1, tl1), Cons (x2, tl2) ->
-        Cons (Cvalue.V.join x1 x2, join_subvalues tl1 tl2)
+    match l1, l2 with
+    | Nil, Nil -> Nil
+    | Cons (x1, tl1), Cons (x2, tl2) ->
+      Cons (Cvalue.V.join x1 x2, join_subvalues tl1 tl2)
 
   (* Extract the extremum of each subvalue of a list. Returns a list of lists
      of values (one for each combination of extremum of the initial values). *)
@@ -368,7 +368,7 @@ module type Forward_Evaluation = sig
 end
 
 module Make
-    (Value : Abstract_value.External)
+    (Value : Abstract.Value.External)
     (Loc : Abstract_location.S with type value = Value.t)
     (Valuation: Valuation with type value = Value.t
                            and type loc = Loc.location)
@@ -379,15 +379,15 @@ module Make
   (* Values are converted to {!Cvalue.V.t}, because those are
      currently the only values on which we can split. *)
 
-  let get_cval = match Value.get Main_values.cvalue_key with
+  let get_cval = match Value.get Main_values.CVal.key with
     | Some get -> get
     | None -> fun _ -> Cvalue.V.top
 
   let set_cval =
-    let set = Value.set Main_values.cvalue_key in
+    let set = Value.set Main_values.CVal.key in
     fun cval v -> set cval v
 
-  let activated = Value.mem Main_values.cvalue_key
+  let activated = Value.mem Main_values.CVal.key
 
   module Clear = Clear_Valuation (Valuation)
 

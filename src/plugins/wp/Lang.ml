@@ -176,7 +176,7 @@ let t_int = Logic.Int
 let t_bool = Logic.Bool
 let t_real = Logic.Real
 let t_prop = Logic.Prop
-let t_addr () = Context.get pointer (Cil_types.TVoid [])
+let t_addr () = Context.get pointer Cil.voidType
 let t_array a = Logic.Array(Logic.Int,a)
 let t_farray a b = Logic.Array(a,b)
 let t_datatype adt ts = Logic.Data(adt,ts)
@@ -390,7 +390,7 @@ and model = {
 }
 
 and source =
-  | Generated of string
+  | Generated of WpContext.context option * string
   | Extern of Engine.link extern
 
 let tau_of_lfun phi ts =
@@ -409,8 +409,15 @@ type balance = Nary | Left | Right
 
 let not_found _ = raise Not_found
 
+let generated ?(context=false) name =
+  let ctxt = if context
+    then Some (WpContext.get_context ())
+    else None in
+  Generated(ctxt,name)
+
 let symbolf
     ?library
+    ?context
     ?link
     ?(balance=Nary) (** specify a default for link *)
     ?(category=Logic.Function)
@@ -425,7 +432,9 @@ let symbolf
        Format.pp_print_flush fmt () ;
        let name = Buffer.contents buffer in
        let source = match library with
-         | None -> assert (link = None); Generated name
+         | None ->
+             assert (link = None);
+             generated ?context name
          | Some th ->
              let conv n = function
                | Nary  -> Engine.F_call n
@@ -492,16 +501,16 @@ let extern_fp ~library ?(params=[]) ?link phi =
                          ~debug:phi)
   }
 
-let generated_f ?category ?params ?sort ?result name =
-  symbolf ?category ?params ?sort ?result name
+let generated_f ?context ?category ?params ?sort ?result name =
+  symbolf ?context ?category ?params ?sort ?result name
 
-let generated_p name =
+let generated_p ?context name =
   Model {
     m_category = Logic.Function ;
     m_params = [] ;
     m_result = Logic.Sprop;
     m_typeof = not_found;
-    m_source = Generated name
+    m_source = generated ?context name
   }
 
 module Fun =
@@ -512,26 +521,38 @@ struct
   let debug = function
     | ACSL f -> logic_id f
     | CTOR c -> ctor_id c
-    | Model({m_source=Generated n}) -> n
+    | Model({m_source=Generated(_,n)}) -> n
     | Model({m_source=Extern e})    -> e.ext_debug
 
   let hash = function
     | ACSL f -> Logic_info.hash f
     | CTOR c -> Logic_ctor_info.hash c
-    | Model({m_source=Generated n}) -> Datatype.String.hash n
+    | Model({m_source=Generated(_,n)}) -> Datatype.String.hash n
     | Model({m_source=Extern e})    -> e.ext_id
+
+  let compare_context c1 c2 =
+    match c1 , c2 with
+    | None , None -> 0
+    | None , _ -> (-1)
+    | _ , None -> 1
+    | Some c1 , Some c2 -> WpContext.S.compare c1 c2
+
+  let compare_source s1 s2 =
+    match s1 , s2 with
+    | Generated(m1,f1), Generated(m2,f2) ->
+        let cmp = String.compare f1 f2 in
+        if cmp<>0 then cmp else compare_context m1 m2
+    | Extern f , Extern g ->
+        ext_compare f g
+    | Generated _ , Extern _ -> (-1)
+    | Extern _ , Generated _ -> 1
 
   let compare f g =
     if f==g then 0 else
       match f , g with
-      | Model({m_source=Generated f}), Model({m_source=Generated g})
-        -> String.compare f g
-      | Model({m_source=Generated _}), _ -> (-1)
-      | _, Model({m_source=Generated _}) -> 1
-      | Model({m_source=Extern f}), Model({m_source=Extern g})
-        -> ext_compare f g
-      | Model({m_source=Extern _}), _ -> (-1)
-      | _, Model({m_source=Extern _}) -> 1
+      | Model {m_source=mf} , Model {m_source=mg} -> compare_source mf mg
+      | Model _ , _ -> (-1)
+      | _ , Model _ -> 1
       | ACSL f , ACSL g -> Logic_info.compare f g
       | ACSL _ , _ -> (-1)
       | _ , ACSL _ -> 1
@@ -583,14 +604,14 @@ class virtual idprinting =
     method link = function
       | ACSL f -> Engine.F_call (self#sanitize_fun (logic_id f))
       | CTOR c -> Engine.F_call (self#sanitize_fun (ctor_id c))
-      | Model({m_source=Generated n}) -> Engine.F_call (self#sanitize_fun n)
-      | Model({m_source=Extern e})    -> self#infoprover e.ext_link
+      | Model({m_source=Generated(_,n)}) -> Engine.F_call (self#sanitize_fun n)
+      | Model({m_source=Extern e}) -> self#infoprover e.ext_link
   end
 
 let name_of_lfun = function
   | ACSL f -> logic_id f
   | CTOR c -> ctor_id c
-  | Model({m_source=Generated f}) -> f
+  | Model({m_source=Generated(_,f)}) -> f
   | Model({m_source=Extern e}) -> e.ext_debug
 
 let name_of_field = function
@@ -656,39 +677,6 @@ struct
       QZERO.typeof ~field ~record ~call e
   end
   include QED
-
-  (* -------------------------------------------------------------------------- *)
-  (* --- Term Checking                                                      --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  module Check =
-  struct
-    let refs = Hashtbl.create 8
-    let empty = ref true
-    let register c =
-      let r = ref false in
-      Hashtbl.add refs c r ; r
-
-    let reset () =
-      Hashtbl.iter (fun _ r -> r := false) refs ; empty := true
-
-    let set c =
-      try (Hashtbl.find refs c) := true ; empty := false
-      with Not_found ->
-        Wp_parameters.warning "[Lang] unknown check '%s'" c
-
-    let iter f =
-      QED.iter_checks
-        (fun ~qed ~raw -> f ~qed ~raw ~goal:(QED.check_unit ~qed ~raw))
-
-    let is_set () = !empty
-  end
-
-  let e_imply =
-    let c = Check.register "e_imply" in
-    fun a b ->
-      let r = QED.e_imply a b in
-      if !c then QED.check (Imply(a,b)) r else r
 
   (* -------------------------------------------------------------------------- *)
   (* --- Term Extensions                                                    --- *)
@@ -757,7 +745,7 @@ struct
   let p_forall = e_forall
   let p_exists = e_exists
   let p_subst = e_subst
-  let p_apply = e_subst_var
+  let p_subst_var = e_subst_var
 
   let p_and p q = e_and [p;q]
   let p_or p q = e_or [p;q]
@@ -774,8 +762,7 @@ struct
 
   let e_vars e = List.sort Var.compare (Vars.elements (vars e))
   let p_vars = e_vars
-
-  let p_call = e_fun
+  let p_call = e_fun ~result:Prop
   let p_close p = p_forall (p_vars p) p
 
   let occurs x t = Vars.mem x (vars t)
@@ -785,13 +772,6 @@ struct
   let varsp = vars
   let p_expr = repr
   let e_expr = repr
-  let p_iter fp fe p =
-    match QED.repr p with
-    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> ()
-    | Eq(a,b) | Neq(a,b) when is_prop a && is_prop b -> fp a ; fp b
-    | Eq _ | Neq _ | Leq _ | Lt _ | Times _ | Add _ | Mul _ | Div _ | Mod _
-    | Acst _ | Aget _ | Aset _ | Rget _ | Rdef _ | Fun _ | Apply _ -> lc_iter fe p
-    | And _ | Or _ | Imply _ | If _ | Not _ | Bind _ -> lc_iter fp p
 
   let pp_tau = Pretty.pp_tau
   let context_pp = Context.create "Lang.F.pp"
@@ -838,6 +818,9 @@ struct
 
   let set_builtin_2 f r =
     set_builtin f (function [a;b] -> r a b | _ -> raise Not_found)
+
+  let set_builtin_2' f r =
+    set_builtin' f (function [a;b] -> r a b | _ -> raise Not_found)
 
   let set_builtin_eqp = set_builtin_eq
 
@@ -909,6 +892,38 @@ let local ?pool ?vars ?gamma f =
   let gamma = match gamma with None -> { hyps=[] ; vars=[] } | Some g -> g in
   Context.bind cpool pool (Context.bind cgamma gamma f)
 
+let sigma () = F.sigma ~pool:(Context.get cpool) ()
+
+let alpha () =
+  let sigma = sigma () in
+  let alpha = ref Tmap.empty in
+  let lookup e x =
+    try Tmap.find e !alpha with Not_found ->
+      let y = F.Subst.fresh sigma (F.tau_of_var x) in
+      let ey = e_var y in alpha := Tmap.add e ey !alpha; ey in
+  let compute e =
+    match F.repr e with
+    | Fvar x -> lookup e x
+    | _ -> raise Not_found in
+  F.Subst.add_fun sigma compute ; sigma
+
+let subst xs vs =
+  let bind w x v = Tmap.add (e_var x) v w in
+  let vmap =
+    try List.fold_left2 bind Tmap.empty xs vs
+    with _ -> raise (Invalid_argument "Wp.Lang.Subst.sigma")
+  in
+  let sigma = sigma () in
+  F.Subst.add_map sigma vmap ; sigma
+
+let e_subst f =
+  let sigma = sigma () in
+  F.Subst.add_fun sigma f ; F.e_subst sigma
+
+let p_subst f =
+  let sigma = sigma () in
+  F.Subst.add_fun sigma f ; F.p_subst sigma
+
 (* -------------------------------------------------------------------------- *)
 (* --- Hypotheses                                                         --- *)
 (* -------------------------------------------------------------------------- *)
@@ -941,61 +956,46 @@ let variables g = List.rev g.vars
 let get_hypotheses () = (Context.get cgamma).hyps
 let get_variables () = (Context.get cgamma).vars
 
-(* -------------------------------------------------------------------------- *)
-(* --- Alpha Conversion                                                   --- *)
-(* -------------------------------------------------------------------------- *)
+(** For why3_api but circular dependency *)
 
-module Alpha =
-struct
+module For_export = struct
 
-  module Vmap = FCMap.Make(Var)
-
-  type t = var Vmap.t ref
-
-  let create () = ref Vmap.empty
-
-  let get w x =
-    try Vmap.find x !w
-    with Not_found ->
-      let y = freshen x in
-      w := Vmap.add x y !w ; y
-
-  let iter f w = Vmap.iter f !w
-
-  let convert w = e_subst
-      (fun e -> match QED.repr e with
-         | Logic.Fvar x -> e_var (get w x)
-         | _ -> raise Not_found)
-
-  let convertp = convert
-
-end
-
-(* -------------------------------------------------------------------------- *)
-(* --- Substitution                                                       --- *)
-(* -------------------------------------------------------------------------- *)
-
-module Subst =
-struct
-  type sigma = {
-    e_apply : F.term -> F.term ;
-    p_apply : F.pred -> F.pred ;
+  type specific_equality = {
+    for_tau:(tau -> bool);
+    mk_new_eq:F.binop;
   }
 
-  let sigma xs vs =
-    let bind w x v = Tmap.add (e_var x) v w in
-    let vmap =
-      try List.fold_left2 bind Tmap.empty xs vs
-      with _ -> raise (Invalid_argument "Wp.Lang.Subst.sigma")
-    in
-    let lookup e = Tmap.find e vmap in
-    let sigma = F.sigma () in
-    let e_apply = F.e_subst ~sigma lookup in
-    let p_apply = F.p_subst ~sigma lookup in
-    { e_apply ; p_apply }
+  (** delay the create at most as possible (due to constants handling in qed) *)
+  let state = ref None
 
-  let e_apply s e = s.e_apply e
-  let p_apply s p = s.p_apply p
+  let init = ref (fun () -> ())
+
+  let add_init f =
+    let old = !init in
+    init := (fun () -> old (); f ())
+
+  let get_state () =
+    match !state with
+    | None ->
+        let st = QZERO.create () in
+        QZERO.in_state st !init ();
+        state := Some st;
+        st
+    | Some st -> st
+
+  let rebuild ?cache t = QZERO.rebuild_in_state (get_state ()) ?cache t
+
+  let set_builtin f c =
+    add_init (fun () -> QZERO.set_builtin f c)
+
+  let set_builtin' f c =
+    add_init (fun () -> QZERO.set_builtin' f c)
+  let set_builtin_eq f c =
+    add_init (fun () -> QZERO.set_builtin_eq f c)
+  let set_builtin_leq f c =
+    add_init (fun () -> QZERO.set_builtin_leq f c)
+
+  let in_state f v = QZERO.in_state (get_state ()) f v
 
 end
 
@@ -1019,5 +1019,29 @@ class type simplifier =
     method simplify_branch : F.pred -> F.pred
     method simplify_goal : F.pred -> F.pred
   end
+
+let is_atomic_pred = function
+  | Neq _ | Eq _ | Leq _ | Lt _ | Fun _ -> true
+  | _ -> false
+let is_literal p = match repr p with
+  | Not p -> is_atomic_pred (repr p)
+  | _ ->  is_atomic_pred (repr p)
+
+let iter_consequence_literals f_literal p =
+  let f_literal = (fun p -> if QED.lc_closed p then f_literal p else ()) in
+  let rec aux_pos p = match repr p with
+    | And ps -> List.iter aux_pos ps
+    | Not p ->  aux_neg p
+    | Bind((Forall|Exists),_,a) -> aux_pos (QED.lc_repr a)
+    | rep when is_atomic_pred rep -> f_literal p
+    | _ -> ()
+  and aux_neg p = match repr p with
+    | Imply (hs,p) -> List.iter aux_pos hs ; aux_neg p
+    | Or ps -> List.iter aux_neg ps
+    | Not p -> aux_pos p
+    | Bind((Forall|Exists),_,a) -> aux_neg (QED.lc_repr a)
+    | rep when is_atomic_pred rep -> f_literal (e_not p)
+    | _ -> ()
+  in aux_pos p
 
 (* -------------------------------------------------------------------------- *)

@@ -1,0 +1,11 @@
+@CONSOLE
+@ZERO "  - "
+@HEAD
+@CHAPTER
+-------------------------------------------------------------
+%chapter  &18:  WP &26: Alt-Ergo (Native) &42: Total &51:Success
+@SECTION
+%name &18:%wp &24: %{native-alt-ergo} %range &42:%total &51: %success%%
+@TAIL
+-------------------------------------------------------------
+@END

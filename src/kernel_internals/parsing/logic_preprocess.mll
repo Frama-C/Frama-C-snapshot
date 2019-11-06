@@ -434,6 +434,9 @@ and string annot = parse
   | "\\\"" { is_newline:=CHAR;
              Buffer.add_string preprocess_buffer "\\\"";
              string annot lexbuf }
+  | "\\\\" { is_newline:=CHAR;
+             Buffer.add_string preprocess_buffer "\\\\";
+             string annot lexbuf }
   | eof { abort_preprocess "eof while parsing a string literal" }
   | _ as c { is_newline:=CHAR;
              Buffer.add_char preprocess_buffer c;

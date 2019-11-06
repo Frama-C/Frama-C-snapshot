@@ -24,13 +24,15 @@ include Plugin.Register
     (struct
       let name = "loop"
       let shortname = "loop"
-      let help = "Find number of iterations in loops, and slevel value"
+      let help = "[DEPRECATED: use Eva's loop unroll annotations and options] \
+                  Find number of iterations in loops, and slevel value"
     end)
 
 module Run = False
     (struct
       let option_name = "-loop"
-      let help = "Launch loop analysis"
+      let help = "[deprecated: use Eva loop unroll annotations or \
+                  -eva-auto-loop-unroll] Launch loop analysis"
     end)
 
 module MaxIterations = Int

@@ -327,7 +327,7 @@ end = struct
   * *)
   class filter_visitor pinfo prj = object(self)
 
-    inherit Visitor.generic_frama_c_visitor (Cil.copy_visit prj)
+    inherit Visitor.generic_frama_c_visitor (Visitor_behavior.copy prj)
 
     val mutable keep_stmts = Stmt.Set.empty
     val mutable fi = None
@@ -396,13 +396,13 @@ end = struct
         (fun v ->
           Varinfo.Hashtbl.add local_visible v ();
           let v' = Cil.copyVarinfo v v.vname in
-          Cil.set_varinfo self#behavior v v';
-          Cil.set_orig_varinfo self#behavior v' v;
+          Visitor_behavior.Set.varinfo self#behavior v v';
+          Visitor_behavior.Set_orig.varinfo self#behavior v' v;
           (match v.vlogic_var_assoc, v'.vlogic_var_assoc with
             None, None -> ()
           | Some lv, Some lv' ->
-            Cil.set_logic_var self#behavior lv lv';
-            Cil.set_orig_logic_var self#behavior lv' lv
+            Visitor_behavior.Set.logic_var self#behavior lv lv';
+            Visitor_behavior.Set_orig.logic_var self#behavior lv' lv
           | _ -> assert false (* copy should be faithful *));
           v')
         formals
@@ -418,13 +418,13 @@ end = struct
           then begin
             Varinfo.Hashtbl.add local_visible var ();
             let var' = Cil.copyVarinfo var var.vname in
-            Cil.set_varinfo self#behavior var var';
-            Cil.set_orig_varinfo self#behavior var' var;
+            Visitor_behavior.Set.varinfo self#behavior var var';
+            Visitor_behavior.Set_orig.varinfo self#behavior var' var;
             (match var.vlogic_var_assoc, var'.vlogic_var_assoc with
               None, None -> ()
             | Some lv, Some lv' ->
-              Cil.set_logic_var self#behavior lv lv';
-              Cil.set_orig_logic_var self#behavior lv' lv
+              Visitor_behavior.Set.logic_var self#behavior lv lv';
+              Visitor_behavior.Set_orig.logic_var self#behavior lv' lv
             | _ -> assert false (* copy should be faithful *));
             var' :: (filter locals)
           end else filter locals
@@ -434,7 +434,8 @@ end = struct
     method! vcode_annot v =
       Extlib.may Cil.CurrentLoc.set (Cil_datatype.Code_annotation.loc v);
       let stmt =
-        Cil.get_original_stmt self#behavior (Extlib.the self#current_stmt)
+        Visitor_behavior.Get_orig.stmt
+          self#behavior (Extlib.the self#current_stmt)
       in
       debug "[annotation] stmt %d : %a @."
         stmt.sid Printer.pp_code_annotation v;
@@ -516,14 +517,14 @@ end = struct
       Cil.ChangeDoChildrenPost (b, optim)
 
     method private change_sid s =
-      let orig = Cil.get_original_stmt self#behavior s in
-      assert (Cil.get_stmt self#behavior orig == s);
+      let orig = Visitor_behavior.Get_orig.stmt self#behavior s in
+      assert (Visitor_behavior.Get.stmt self#behavior orig == s);
       let old = s.sid in
       let keep = Stmt.Set.mem s keep_stmts in
       keep_stmts <- Stmt.Set.remove s keep_stmts;
-      s.sid <- Cil.Sid.next ();
-      Cil.set_stmt self#behavior orig s;
-      Cil.set_orig_stmt self#behavior s orig;
+      s.sid <- Cil_const.Sid.next ();
+      Visitor_behavior.Set.stmt self#behavior orig s;
+      Visitor_behavior.Set_orig.stmt self#behavior s orig;
       if keep then self#add_stmt_keep s;
       debug "@[finalize sid:%d->sid:%d@]@\n@." old s.sid 
 
@@ -539,7 +540,7 @@ end = struct
         | If (_,bthen,belse,loc) ->
           let bthen = Cil.visitCilBlock (self:>Cil.cilVisitor) bthen in
           let belse = Cil.visitCilBlock (self:>Cil.cilVisitor) belse in
-          let s_orig = Cil.get_original_stmt self#behavior s in
+          let s_orig = Visitor_behavior.Get_orig.stmt self#behavior s in
           optim_if finfo keep_stmts s_orig s None bthen belse loc
         | Switch (_exp, body, _, loc) ->
              (* the switch is invisible : it can be translated into a block. *)
@@ -561,7 +562,7 @@ end = struct
              anything to do: it will not appear at all in the function.
           *)
           if Info.loc_var_visible (self#get_finfo()) v then begin
-            let v' = Cil.get_varinfo self#behavior v in
+            let v' = Visitor_behavior.Get.varinfo self#behavior v in
             v'.vdefined <- false;
           end;
           mk_new_stmt s (mk_stmt_skip s)
@@ -584,7 +585,7 @@ end = struct
        we would have multiple syntactic scope for the same variable).
     *)
     method private remove_local_static_attr v =
-      let new_v = Cil.get_varinfo self#behavior v in
+      let new_v = Visitor_behavior.Get.varinfo self#behavior v in
       new_v.vattr <- Cil.dropAttribute Cabs2cil.fc_local_static new_v.vattr
 
     method private process_visible_stmt s =
@@ -612,7 +613,7 @@ end = struct
         self#change_sid s';
         (match s'.skind with
         | If (cond,bthen,belse,loc) ->
-          let s_orig = Cil.get_original_stmt self#behavior s' in
+          let s_orig = Visitor_behavior.Get_orig.stmt self#behavior s' in
           optim_if finfo keep_stmts s_orig s' (Some cond) bthen belse loc
         | Switch (e,b,c,l) ->
           let c' = List.filter (not $ (can_skip keep_stmts)) c in
@@ -703,7 +704,7 @@ end = struct
         (fun () -> Cil.setFormals f new_formals) self#get_filling_actions;
       (* clean up the environment if we have more than one copy of the
          function in the sliced code. *)
-      Cil.reset_behavior_stmt self#behavior;
+      Visitor_behavior.Reset.stmt self#behavior;
       keep_stmts <- Stmt.Set.empty;
       Varinfo.Hashtbl.clear local_visible;
       Varinfo.Hashtbl.add spec_table f.svar
@@ -822,14 +823,14 @@ end = struct
           new_var.vtype <- mytype;
           List.iter2
             (fun x y ->
-              Cil.set_varinfo self#behavior x y;
-              Cil.set_orig_varinfo self#behavior y x;
+              Visitor_behavior.Set.varinfo self#behavior x y;
+              Visitor_behavior.Set_orig.varinfo self#behavior y x;
               match x.vlogic_var_assoc with
                 None -> ();
               | Some lv ->
                 let lv' = Cil.cvar_to_lvar y in
-                Cil.set_logic_var self#behavior lv lv';
-                Cil.set_orig_logic_var self#behavior lv' lv)
+                Visitor_behavior.Set.logic_var self#behavior lv lv';
+                Visitor_behavior.Set_orig.logic_var self#behavior lv' lv)
             old_formals 
 	    new_formals;
           (* adds the new parameters to the formals decl table *)
@@ -856,15 +857,15 @@ end = struct
       let orig_var = Ast_info.Function.get_vi kf.fundec in
       (* The first copy is also the default one for varinfo that are not handled
          by ff_var but directly by the visitor *)
-      if (Cil.get_varinfo self#behavior orig_var) == orig_var then
-        Cil.set_varinfo self#behavior orig_var new_var;
+      if (Visitor_behavior.Get.varinfo self#behavior orig_var) == orig_var then
+        Visitor_behavior.Set.varinfo self#behavior orig_var new_var;
       (* Set the new_var as an already known one, coming from the vi associated
          to the current kf.
        *)
-      Cil.set_varinfo self#behavior new_var new_var;
-      Cil.set_orig_varinfo self#behavior new_var orig_var;
-      Cil.set_kernel_function self#behavior kf new_kf;
-      Cil.set_orig_kernel_function self#behavior new_kf kf;
+      Visitor_behavior.Set.varinfo self#behavior new_var new_var;
+      Visitor_behavior.Set_orig.varinfo self#behavior new_var orig_var;
+      Visitor_behavior.Set.kernel_function self#behavior kf new_kf;
+      Visitor_behavior.Set_orig.kernel_function self#behavior new_kf kf;
       Queue.add 
         (fun () -> Globals.Functions.register new_kf) self#get_filling_actions;
       GFunDecl (Cil.empty_funspec(), new_var, loc), action
@@ -902,10 +903,10 @@ end = struct
           let new_kf = make_new_kf my_kf kf new_fct_var in
           (* Set the new_var as an already known one,
            * coming from the vi associated to the current kf.  *)
-          Cil.set_varinfo self#behavior new_fct_var new_fct_var;
-          Cil.set_orig_varinfo self#behavior new_fct_var fvar;
-          Cil.set_kernel_function self#behavior kf new_kf;
-          Cil.set_orig_kernel_function self#behavior new_kf kf;
+          Visitor_behavior.Set.varinfo self#behavior new_fct_var new_fct_var;
+          Visitor_behavior.Set_orig.varinfo self#behavior new_fct_var fvar;
+          Visitor_behavior.Set.kernel_function self#behavior kf new_kf;
+          Visitor_behavior.Set_orig.kernel_function self#behavior new_kf kf;
           Queue.add
             (fun () -> Globals.Functions.register new_kf)
             self#get_filling_actions;

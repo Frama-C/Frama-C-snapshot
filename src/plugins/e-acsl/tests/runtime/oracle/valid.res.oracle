@@ -1,5 +1,0 @@
-[e-acsl] beginning translation.
-[e-acsl] translation done in project "e-acsl".
-[eva:alarm] tests/runtime/valid.c:47: Warning: 
-  accessing left-value that contains escaping addresses.
-  assert ¬\dangling(&a);

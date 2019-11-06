@@ -34,7 +34,7 @@ __PUSH_FC_STDLIB
 #include "__fc_define_pid_t.h"
 #include "__fc_define_useconds_t.h"
 #include "__fc_define_intptr_t.h"
-#include "__fc_select.h"
+
 
 
 #include "limits.h"
@@ -68,7 +68,7 @@ extern volatile int Frama_C_entropy_source;
 __BEGIN_DECLS
 
 /* Values for the NAME argument to `pathconf' and `fpathconf'.  */
-enum
+enum __fc_pathconf_name
   {
     _PC_LINK_MAX,
 #define	_PC_LINK_MAX			_PC_LINK_MAX
@@ -115,7 +115,7 @@ enum
   };
 
 /* Values for the argument to `sysconf'.  */
-enum
+enum __fc_sysconf_name
   {
     _SC_ARG_MAX,
 #define	_SC_ARG_MAX			_SC_ARG_MAX
@@ -577,7 +577,7 @@ enum
   };
 
 /* Values for the NAME argument to `confstr'.  */
-enum
+enum __fc_confstr_name
   {
     _CS_PATH,			/* The default search path.  */
 #define _CS_PATH		_CS_PATH
@@ -745,7 +745,25 @@ extern int          access(const char *path, int amode);
 
 extern unsigned int alarm(unsigned int);
 extern int          brk(void *);
+
+/*@ // missing: may assign to errno: EACCES, ELOOP, ENAMETOOLONG, ENOENT,
+    //                               ENOTDIR
+    // missing: assigns \result \from 'filesystem'
+  requires valid_string_path: valid_read_string(path);
+  assigns \result \from indirect:path, indirect:path[0..];
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int          chdir(const char *path);
+
+
+/*@ // missing: may assign to errno: EACCES, ELOOP, ENAMETOOLONG, ENOENT,
+    //                               ENOTDIR, EPERM
+    // missing: assigns \result \from 'filesystem, permissions'
+    // missing: assigns 'filesystem view' \from path[0..];
+  requires valid_string_path: valid_read_string(path);
+  assigns \result \from indirect:path, indirect:path[0..];
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int          chroot(const char *path);
 
 
@@ -942,7 +960,19 @@ extern int          isatty(int fd);
 extern int          lchown(const char *, uid_t, gid_t);
 extern int          link(const char *, const char *);
 extern int          lockf(int, int, off_t);
-extern off_t        lseek(int, off_t, int);
+
+/*@ //missing: may assign to errno: EBADF, EINVAL, EOVERFLOW, ESPIPE, ENXIO (Linux);
+  requires valid_fd: 0 <= fd < __FC_MAX_OPEN_FILES;
+  requires valid_whence: whence == SEEK_SET || whence == SEEK_CUR ||
+                         whence == SEEK_END;
+  assigns \result \from indirect:fd, indirect:__fc_fds[fd], indirect:offset,
+                        indirect:whence;
+  assigns __fc_fds[fd] \from indirect:fd, __fc_fds[fd], indirect:offset,
+                             indirect:whence;
+  ensures result_error_or_offset: \result == -1 || 0 <= \result;
+ */
+extern off_t        lseek(int fd, off_t offset, int whence);
+
 extern int          nice(int);
 
 /*@ // missing: may assign to errno: EACCES, EINVAL, ELOOP, ENOENT, ENOTDIR
@@ -955,6 +985,7 @@ extern long pathconf(char const *path, int name);
 extern int          pause(void);
 
 /*@
+  requires valid_pipefd: \valid(pipefd+(0..1));
   assigns pipefd[0..1] \from indirect:__fc_fds[0..];
   assigns \result \from indirect:__fc_fds[0..];
   ensures initialization:pipefd: \initialized(&pipefd[0..1]);
@@ -1066,10 +1097,11 @@ extern int          tcsetpgrp(int, pid_t);
 extern int          truncate(const char *, off_t);
 
 extern volatile char __fc_ttyname[TTY_NAME_MAX];
-extern char *__fc_p_ttyname = __fc_ttyname;
+volatile char *__fc_p_ttyname = __fc_ttyname;
 
 /*@
   // missing: may assign to errno: EBADF, ENOTTY
+  requires valid_fildes: 0 <= fildes < __FC_MAX_OPEN_FILES;
   assigns \result \from __fc_p_ttyname, indirect:fildes;
   ensures result_name_or_null: \result == __fc_p_ttyname || \result == \null;
  */
@@ -1157,6 +1189,15 @@ int getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid);
   ensures result_ok_or_error: \result == 0 || \result == -1;
  */
 int setresgid(gid_t rgid, gid_t egid, gid_t sgid);
+
+extern char *optarg;
+extern int optind, opterr, optopt;
+
+/*@
+  assigns \result, *optarg, optind, opterr, optopt
+             \from argc, argv[0..argc-1], optstring[0..];
+ */
+extern int getopt(int argc, char * const argv[], const char *optstring);
 
 
 __END_DECLS

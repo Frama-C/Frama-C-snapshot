@@ -1,11 +1,12 @@
-{ "wp:global": { "alt-ergo": { "total": 1, "unknown": 1 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 1, "unknown": 1 },
                  "wp:main": { "total": 1, "unknown": 1 } },
   "wp:functions": { "cast_sgn_usgn": { "cast_sgn_usgn_ensures_qed_ko_KO": 
-                                         { "alt-ergo": { "total": 1,
-                                                         "unknown": 1 },
+                                         { "why3:Alt-Ergo,2.0.0": { "total": 1,
+                                                                    "unknown": 1 },
                                            "wp:main": { "total": 1,
                                                         "unknown": 1 } },
-                                       "wp:section": { "alt-ergo": { "total": 1,
-                                                                    "unknown": 1 },
+                                       "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                         { "total": 1,
+                                                           "unknown": 1 },
                                                        "wp:main": { "total": 1,
                                                                     "unknown": 1 } } } } }

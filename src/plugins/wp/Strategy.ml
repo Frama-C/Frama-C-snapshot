@@ -29,8 +29,6 @@ open Lang.F
 open Tactical
 open Conditions
 
-let env seq = Repr.env (Conditions.vars_seq seq)
-
 type lookup = {
   target : Lang.F.term ;
   mutable marked : Tset.t ;

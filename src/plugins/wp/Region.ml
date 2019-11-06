@@ -20,254 +20,630 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* -------------------------------------------------------------------------- *)
-(* --- Logic Path and Regions                                             --- *)
-(* -------------------------------------------------------------------------- *)
+open Cil_datatype
+open Layout
 
-open Qed.Logic
-open Lang
-open Lang.F
-open Vset
-
-type path = offset list
-and offset =
-  | Oindex of term
-  | Ofield of field
-
-let rec access e = function
-  | [] -> e
-  | Oindex k :: path -> access (e_get e k) path
-  | Ofield f :: path -> access (e_getfield e f) path
-
-let rec update e path v =
-  match path with
-  | [] -> v
-  | Oindex k :: tail ->
-      let e_k = update (e_get e k) tail v in
-      e_set e k e_k
-  | Ofield f :: tail ->
-      let e_f = update (e_getfield e f) tail v in
-      e_setfield e f e_f
+module Wp = Wp_parameters
 
 (* -------------------------------------------------------------------------- *)
-(* --- Region                                                             --- *)
+(* --- Access Maps                                                        --- *)
 (* -------------------------------------------------------------------------- *)
 
-type rpath = roffset list
-and roffset =
-  | Rindex of set
-  | Rfield of field
+module Vmap = Varinfo.Map
+module Smap = Datatype.String.Map
+module Rmap = Qed.Intmap
+module Rset = Qed.Intset
+module Dmap = Qed.Listmap.Make(Offset)
+module Dset = Qed.Listset.Make(Deref)
+module Acs = Qed.Listset.Make(Lvalue)
+module Class = Qed.Listset.Make(Datatype.String)
+module Ranks = Qed.Listset.Make(Datatype.Int)
 
-type region =
-  | Empty
-  | Full
-  | Fields of (field * region) list (* SORTED, DEFAULT : empty *)
-  | Indices of set * ( set * region ) list
-  (* Indices for FULL region.
-         Then indices for non-FULL and non-EMPTY regions *)
+type region = {
+  id : int ;
+  mutable garbled : bool ;
+  mutable rw : bool ;
+  mutable pack : bool ;
+  mutable flat : bool ;
+  mutable names : Class.t ;
+  mutable alias : alias ;
+  mutable delta : int Dmap.t ;
+  mutable deref : Dset.t ;
+  mutable read : Acs.t ;
+  mutable written : Acs.t ;
+  mutable shifted : Acs.t ;
+  mutable copiedTo : Rset.t ; (* copies to *)
+  mutable pointsTo : int option ;
+}
 
-let empty = Empty
-let full = Full
+type map = {
+  cache : Offset.cache ;
+  queue : int Queue.t ;
+  mutable rid : int ;
+  mutable vars : int Vmap.t ;
+  mutable return : int ; (* -1 when undefined *)
+  mutable strings : (int * string) Rmap.t ; (* eid -> rid *)
+  mutable index : int Smap.t ;
+  mutable region : region Rmap.t ;
+  mutable aliasing : int Rmap.t ;
+  mutable cluster : region cluster Rmap.t ;
+  mutable roots : root Rmap.t ;
+  mutable froms : region from list Rmap.t ;
+  mutable mranks : Ranks.t Rmap.t ; (* set of sizeof(ds) accessed by shifting *)
+  mutable mdims : int list Rmap.t ; (* common dim prefix accessed from cluster *)
+  mutable domain : Rset.t ; (* reachable regions via clusters *)
+  mutable chunk : region chunk Rmap.t ; (* memory chunks *)
+}
 
-let rec path = function
-  | [] -> Full
-  | Oindex k :: tail ->
-      let r = path tail in
-      let s = Vset.singleton k in
+let create () = {
+  rid = 0 ;
+  return = (-1) ;
+  cache = Offset.cache () ;
+  vars = Vmap.empty ;
+  strings = Rmap.empty ;
+  index = Smap.empty ;
+  region = Rmap.empty ;
+  aliasing = Rmap.empty ;
+  queue = Queue.create () ;
+  cluster = Rmap.empty ;
+  roots = Rmap.empty ;
+  froms = Rmap.empty ;
+  mranks = Rmap.empty ;
+  mdims = Rmap.empty ;
+  domain = Rset.empty ;
+  chunk = Rmap.empty ;
+}
+
+let noid = 0
+let is_empty map = (map.rid = 0)
+
+let fresh map =
+  let id = map.rid in
+  map.rid <- succ id ;
+  let region = {
+    id ;
+    garbled = false ;
+    rw = RW.default () ;
+    flat = Flat.default () ;
+    pack = Pack.default () ;
+    names = [] ;
+    alias = NotUsed ;
+    delta = Dmap.empty ;
+    deref = Dset.empty ;
+    read = Acs.empty ;
+    written = Acs.empty ;
+    shifted = Acs.empty ;
+    copiedTo = Rset.empty ;
+    pointsTo = None ;
+  } in
+  map.region <- Rmap.add id region map.region ;
+  region
+
+(* -------------------------------------------------------------------------- *)
+(* --- Datatype                                                           --- *)
+(* -------------------------------------------------------------------------- *)
+
+module R =
+struct
+  type t = region
+  let id a = a.id
+  let equal a b = (a.id = b.id)
+  let compare a b = Pervasives.compare a.id b.id
+  let pp_rid fmt id = Format.fprintf fmt "R%03d" id
+  let pretty fmt r = pp_rid fmt r.id
+end
+
+module Map = Qed.Idxmap.Make(R)
+module Set = Qed.Idxset.Make(R)
+
+(* -------------------------------------------------------------------------- *)
+(* --- Union Find                                                         --- *)
+(* -------------------------------------------------------------------------- *)
+
+let rec aliasing map i =
+  try
+    let j = aliasing map (Rmap.find i map.aliasing) in
+    if j <> i then map.aliasing <- Rmap.add i j map.aliasing ; j
+  with Not_found -> i
+
+let linkto map i k =
+  if i <> k then
+    begin
+      map.aliasing <- Rmap.add i k map.aliasing ;
+      Queue.add i map.queue ;
+    end
+
+let region map r =
+  try Rmap.find (aliasing map r) map.region
+  with Not_found -> failwith "Wp.Region: Undefined Region"
+
+let join_classes map i j =
+  let k = min i j in (linkto map i k ; linkto map j k ; k)
+
+let join_id map i j =
+  let i = aliasing map i in
+  let j = aliasing map j in
+  if i = j then i else join_classes map i j
+
+let join_region map ra rb =
+  let i = aliasing map ra.id in
+  let j = aliasing map rb.id in
+  let k = join_classes map i j in
+  if k = i then ra else
+  if k = j then rb else
+    (* defensive *) region map k
+
+(* -------------------------------------------------------------------------- *)
+(* --- Aliasing                                                           --- *)
+(* -------------------------------------------------------------------------- *)
+
+let alias map a b =
+  let k = join_id map a.id b.id in
+  let r = region map k in
+  r.alias <- Aliased ; r
+
+let do_alias map a b = ignore (alias map a b)
+
+let add_alias map ~into:a b =
+  let i = aliasing map a.id in
+  let j = aliasing map b.id in
+  let wa = (region map i).alias in
+  let wb = (region map j).alias in
+  let k = join_classes map i j in
+  (* Aliasing has changed *)
+  (region map k).alias <- Alias.alias wa (Alias.use wb)
+
+let get_merged map r =
+  let i = aliasing map r.id in
+  if i <> r.id then Some (region map i) else None
+
+let get_alias map r =
+  let i = aliasing map r.id in
+  if i <> r.id then region map i else r
+
+let eq_alias map a b = (aliasing map a.id = aliasing map b.id)
+
+(* -------------------------------------------------------------------------- *)
+(* --- General Iterator                                                   --- *)
+(* -------------------------------------------------------------------------- *)
+
+let once mark r =
+  if Rset.mem r.id !mark then false
+  else ( mark := Rset.add r.id !mark ; true )
+
+let iter map f =
+  let do_once marks f r = if once marks r then f r else () in
+  Rmap.iter (do_once (ref Rset.empty) f) map.region
+
+(* -------------------------------------------------------------------------- *)
+(* --- Region Accessor                                                    --- *)
+(* -------------------------------------------------------------------------- *)
+
+let id reg = reg.id
+let is_garbled reg = reg.garbled
+let has_pointed reg = reg.pointsTo <> None
+let has_deref reg = not (Dset.is_empty reg.deref)
+let has_layout reg = not (Dmap.is_empty reg.delta)
+let has_offset reg d = Dmap.mem d reg.delta
+let iter_offset map f reg =
+  Dmap.iter (fun ofs r -> f ofs (region map r)) reg.delta
+
+let has_copies reg = not (Rset.is_empty reg.copiedTo)
+let iter_copies map f reg =
+  Rset.iter (fun r -> f (region map r)) reg.copiedTo
+
+let add_offset map reg d =
+  try region map (Dmap.find d reg.delta)
+  with Not_found ->
+    let rd = fresh map in
+    reg.delta <- Dmap.add d rd.id reg.delta ; rd
+
+let add_pointed map reg =
+  match reg.pointsTo with
+  | Some k -> region map k
+  | None ->
+      let r = fresh map in
+      reg.pointsTo <- Some r.id ; r
+
+let get_addrof map reg =
+  let addr = fresh map in
+  addr.pointsTo <- Some reg.id ; addr
+
+let get_pointed map reg =
+  match reg.pointsTo with
+  | None -> None
+  | Some r -> Some (region map r)
+
+let get_offset map reg d =
+  try Some (region map (Dmap.find d reg.delta))
+  with Not_found -> None
+
+let get_copies map reg =
+  List.map (region map) (Rset.elements reg.copiedTo)
+
+(* -------------------------------------------------------------------------- *)
+(* --- Access                                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+let acs_read rg lvalue = rg.read <- Acs.add lvalue rg.read
+let acs_write rg lvalue = rg.written <- Acs.add lvalue rg.written
+let acs_shift rg lvalue = rg.shifted <- Acs.add lvalue rg.shifted
+let acs_deref rg deref = rg.deref <- Dset.add deref rg.deref
+let acs_copy ~src ~tgt =
+  if tgt.id <> src.id then src.copiedTo <- Rset.add tgt.id src.copiedTo
+
+let iter_read f rg = Acs.iter f rg.read
+let iter_write f rg = Acs.iter f rg.written
+let iter_shift f rg = Acs.iter f rg.shifted
+let iter_deref f rg = Dset.iter f rg.deref
+
+let is_read rg = not (Acs.is_empty rg.read)
+let is_written rg = not (Acs.is_empty rg.written)
+let is_shifted rg = not (Acs.is_empty rg.shifted)
+let is_aliased rg = Alias.is_aliased rg.alias
+
+(* -------------------------------------------------------------------------- *)
+(* --- Varinfo Index                                                      --- *)
+(* -------------------------------------------------------------------------- *)
+
+let rvar map x r =
+  let reg = region map r in
+  if reg.id <> r then map.vars <- Vmap.add x reg.id map.vars ; reg
+
+let of_null map = fresh map (* A fresh region each time: polymorphic *)
+
+let of_cvar map x =
+  try rvar map x (Vmap.find x map.vars)
+  with Not_found ->
+    let reg = fresh map in
+    map.vars <- Vmap.add x reg.id map.vars ; reg
+
+let of_return map =
+  if map.return < 0 then
+    let reg = fresh map in
+    map.return <- reg.id ; reg
+  else
+    region map map.return
+
+let has_return map = 0 <= map.return
+
+let iter_vars map f = Vmap.iter (fun x r -> f x (rvar map x r)) map.vars
+
+(* -------------------------------------------------------------------------- *)
+(* --- Field Info Index                                                   --- *)
+(* -------------------------------------------------------------------------- *)
+
+let field_offset map fd = Offset.field_offset map.cache fd
+
+(* -------------------------------------------------------------------------- *)
+(* --- String Literal Index                                               --- *)
+(* -------------------------------------------------------------------------- *)
+
+let of_cstring map ~eid ~cst =
+  try region map (fst @@ Rmap.find eid map.strings)
+  with Not_found ->
+    let reg = fresh map in
+    map.strings <- Rmap.add eid (reg.id,cst) map.strings ; reg
+
+let iter_strings map f =
+  Rmap.iter (fun (rid,cst) -> f (region map rid) cst) map.strings
+
+(* -------------------------------------------------------------------------- *)
+(* --- Region Index                                                       --- *)
+(* -------------------------------------------------------------------------- *)
+
+let rindex map a r =
+  let reg = region map r in
+  if reg.id <> r then map.index <- Smap.add a reg.id map.index ; reg
+
+let of_name map a =
+  try rindex map a (Smap.find a map.index)
+  with Not_found ->
+    let reg = fresh map in
+    reg.names <- [a] ;
+    map.index <- Smap.add a reg.id map.index ; reg
+
+let of_class map = function
+  | None -> fresh map
+  | Some a -> of_name map a
+
+let has_names reg = not (Class.is_empty reg.names)
+let iter_names map f = Smap.iter (fun a r -> f a (rindex map a r)) map.index
+
+(* -------------------------------------------------------------------------- *)
+(* --- Fusion                                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+let merge_pointed map u v =
+  match u,v with
+  | None , w | w , None -> w
+  | Some i , Some j -> Some (join_id map i j)
+
+let merge_delta map _d a b = join_id map a b
+
+let merge_region map ~id a b =
+  {
+    id ;
+    garbled = a.garbled || b.garbled ;
+    rw = RW.merge a.rw b.rw ;
+    flat = Flat.merge a.flat b.flat ;
+    pack = Pack.merge a.pack b.pack ;
+    alias = Alias.merge a.alias b.alias ;
+    names = Class.union a.names b.names ;
+    read = Acs.union a.read b.read ;
+    written = Acs.union a.written b.written ;
+    shifted = Acs.union a.shifted b.shifted ;
+    copiedTo = Rset.union a.copiedTo b.copiedTo ;
+    pointsTo = merge_pointed map a.pointsTo b.pointsTo ;
+    delta = Dmap.union (merge_delta map) a.delta b.delta ;
+    deref = Dset.union a.deref b.deref ;
+  }
+
+let fusion map =
+  while not (Queue.is_empty map.queue) do
+    let i = Queue.pop map.queue in
+    let j = aliasing map i in
+    if i <> j then
       begin
-        match r with (* never Empty *)
-        | Full -> Indices(s,[])
-        | _ -> Indices(Vset.empty,[s,r])
+        if not (Wp.Region_fixpoint.get ()) then
+          Wp.debug "Region %a -> %a" R.pp_rid i R.pp_rid j ;
+        let a = try Rmap.find i map.region with Not_found -> assert false in
+        let b = try Rmap.find j map.region with Not_found -> assert false in
+        assert (i = a.id) ;
+        assert (j = b.id ) ;
+        let c = merge_region map ~id:j a b in
+        map.region <- Rmap.add j c (Rmap.remove i map.region) ;
       end
-  | Ofield f :: tail ->
-      Fields [f,path tail]
+  done
 
-let rec rpath = function
-  | [] -> Full
-  | Rindex s :: tail ->
-      let r = rpath tail in
-      begin
-        match r with (* never Empty *)
-        | Full -> Indices(s,[])
-        | _ -> Indices(Vset.empty,[s,r])
-      end
-  | Rfield f :: tail ->
-      Fields [f,rpath tail]
-
-let rec merge a b =
-  match a , b with
-  | Full , _ | _ , Full -> Full
-  | Empty , c | c , Empty -> c
-  | Fields fxs , Fields gys -> Fields (merge_fields fxs gys)
-  | Indices(s1,kxs) , Indices(s2,kys) ->
-      Indices(Vset.union s1 s2,kxs @ kys)
-  | Fields _ , Indices _
-  | Indices _ , Fields _ -> assert false
-
-and merge_fields fxs gys =
-  match fxs , gys with
-  | [] , w | w , [] -> w
-  | (f,x)::fxstail , (g,y)::gystail ->
-      let c = Field.compare f g in
-      if c < 0 then (f,x)::merge_fields fxstail gys else
-      if c > 0 then (g,y)::merge_fields fxs gystail else
-        (f,merge x y) :: merge_fields fxstail gystail
+let fusionned map = not (Queue.is_empty map.queue)
+let iter_fusion map f = Queue.iter (fun i -> f i (region map i)) map.queue
 
 (* -------------------------------------------------------------------------- *)
-(* --- Disjunction                                                        --- *)
+(* --- Garbling                                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-let rec disjoint a b =
-  match a , b with
-  | Empty , _ | _ , Empty -> p_true
-  | Full , _ | _ , Full -> p_false
-
-  | Fields fxs , Fields gys ->
-      p_conj (disjoint_fields fxs gys)
-
-  | Indices(s,xs) , Indices(t,ts) ->
-      p_conj (disjoint_indices [Vset.disjoint s t] xs ts)
-
-  | Fields _ , Indices _
-  | Indices _ , Fields _ -> assert false
-
-and disjoint_fields frs grs =
-  match frs , grs with
-  | [] , _ | _ , [] -> []
-  | (f,r)::ftail , (g,s)::gtail ->
-      let c = Field.compare f g in
-      if c < 0 then disjoint_fields ftail grs else
-      if c > 0 then disjoint_fields frs gtail else
-        disjoint r s :: disjoint_fields ftail gtail
-
-and disjoint_indices w sr1 sr2 =
-  List.fold_left
-    (fun w (s1,r1) ->
-       List.fold_left
-         (fun w (s2,r2) ->
-            (p_or (Vset.disjoint s1 s2) (disjoint r1 r2)) :: w
-         ) w sr2
-    ) w sr1
+let rec garblify map reg =
+  if not reg.garbled then
+    begin
+      reg.garbled <- true ;
+      Dmap.iter
+        (fun _delta r ->
+           garblify map (region map r) ;
+           ignore (join_id map reg.id r) ;
+        ) reg.delta ;
+      reg.delta <- Dmap.empty ;
+    end
 
 (* -------------------------------------------------------------------------- *)
-(* --- Region Inclusion                                                   --- *)
+(* --- Clustering                                                         --- *)
 (* -------------------------------------------------------------------------- *)
 
-let rec subset r1 r2 =
-  match r1 , r2 with
-  | _ , Full -> p_true
-  | Empty , _ -> p_true
-  | _ , Empty -> p_false
-  | Full , _ -> p_false
-  | Fields frs , Fields grs -> subset_fields frs grs
-  | Indices(s1,ks1) , Indices(s2,ks2) ->
-      p_and
-        (Vset.subset s1 s2) (* because FULL never appears in ks2 *)
-        (p_all (fun (s1,r1) -> subset_indices s1 r1 ks2) ks1)
-  | Fields _ , Indices _
-  | Indices _ , Fields _ -> assert false
+let cluster map reg =
+  try Rmap.find reg.id map.cluster
+  with Not_found -> Layout.Empty
 
-and subset_fields frs grs =
-  match frs , grs with
-  | [] , _ -> p_true
-  | _ , [] -> p_false
-  | (f,r)::ftail , (g,s)::gtail ->
-      let c = Field.compare f g in
-      if c < 0 then p_false (* only f is present *) else
-      if c > 0 then subset_fields frs gtail (* g is not present *)
-      else (* f=g *)
-        p_and (subset r s) (subset_fields ftail gtail)
+module Cluster =
+struct
+  open Layout
 
-(* All path (k,p) in (s1,r1) are in ks2
-   = AND (k in s1 -> p in r1 -> (k,p) in ks2
-   = AND (k in s1 -> p in r1 -> (OR (k in s2 and p in r2) for (s2,r2) in r2)
-   = AND (k in s1 -> OR (k in s2 and r1 in r2) for (s2,r2) in r2)
-   = AND (k in s1 -> subset_index k r1 ks2)
-*)
-and subset_indices s1 r1 ks2 =
-  p_all (fun w ->
-      let xs,e,p = Vset.descr w in
-      p_forall xs
-        (p_imply p (subset_index e r1 ks2))
-    ) s1
+  let rec from_region map reg =
+    try Rmap.find reg.id map.cluster
+    with Not_found ->
+      if reg.garbled then Garbled else
+      if not (Wp.Region_cluster.get ()) then Empty else
+        begin
+          map.cluster <- Rmap.add reg.id Empty map.cluster ;
+          let mu ~raw ra rb =
+            if raw then
+              begin
+                garblify map ra ;
+                garblify map rb ;
+              end ;
+            join_region map ra rb
+          in
+          let cluster =
+            if has_layout reg then
+              Cluster.reshape ~eq:R.equal ~flat:reg.flat ~pack:reg.pack @@
+              from_layout map mu reg
+            else
+              from_deref map mu reg
+          in
+          if cluster = Garbled then garblify map reg ;
+          map.cluster <- Rmap.add reg.id cluster map.cluster ;
+          cluster
+        end
 
-(* OR (k in s2 and r1 in r2) for (s2,r2) in r2) *)
-and subset_index e r1 ks2 =
-  p_any (fun (s2,r2) ->
-      p_and (Vset.member e s2) (subset r1 r2)
-    ) ks2
+  and from_deref map mu reg =
+    let pointed = lazy (add_pointed map reg) in
+    List.fold_left
+      (fun chunk deref ->
+         Cluster.merge R.pretty mu chunk (Cluster.deref ~pointed deref)
+      ) Empty reg.deref
 
-(* -------------------------------------------------------------------------- *)
-(* --- Equality outside a Region                                          --- *)
-(* -------------------------------------------------------------------------- *)
+  and from_layout map mu reg =
+    Dmap.fold
+      (fun offset tgt acc ->
+         let layout = shift map offset (region map tgt) in
+         Cluster.merge R.pretty mu (Layout layout) acc
+      ) reg.delta Empty
 
-let rec equal_but t r a b =
-  match t , r with
-  | _ , Full -> p_true
-  | _ , Empty -> p_equal a b
-  | _ , Fields grs ->
-      let fs = List.sort Field.compare (fields_of_tau t) in
-      p_conj (equal_but_fields a b fs grs)
-  | Array(ta,tb) , Indices(s,krs) ->
-      let x = freshvar ta in
-      let k = e_var x in
-      let a_k = e_get a k in
-      let b_k = e_get b k in
-      p_forall [x] (p_conj (equal_but_index tb k a_k b_k s krs))
-  | _ -> assert false
+  and shift map offset target =
+    let inline = Wp.Region_inline.get () || not (is_aliased target) in
+    let cluster = from_region map target in
+    Cluster.shift map.cache R.pretty offset target ~inline cluster
 
-and equal_but_fields a b fts grs =
-  match fts , grs with
-  | [] , _ -> []
-  | _ , [] ->
-      List.map (fun f -> p_equal (e_getfield a f) (e_getfield b f)) fts
-  | f::ftail , (g,r)::gtail ->
-      let c = Field.compare f g in
-      if c < 0 then
-        let eqf = p_equal (e_getfield a f) (e_getfield b f) in
-        eqf :: equal_but_fields a b ftail grs
-      else
-      if c > 0 then
-        (* field g does not appear *)
-        equal_but_fields a b fts gtail
-      else
-        let tf = tau_of_field f in
-        let eqf = equal_but tf r (e_getfield a f) (e_getfield b f) in
-        eqf :: equal_but_fields a b ftail gtail
+  let compute map reg =
+    begin
+      if has_layout reg && has_deref reg then
+        begin
+          Dset.iter
+            (fun deref ->
+               let target = add_offset map reg (Index(snd deref,1)) in
+               target.read <- Acs.union reg.read target.read ;
+               target.written <- Acs.union reg.written target.written ;
+               acs_deref target deref
+            ) reg.deref ;
+          reg.deref <- Dset.empty ;
+          reg.read <- Acs.empty ;
+          reg.written <- Acs.empty ;
+          Queue.add reg.id map.queue ;
+        end ;
+      ignore (from_region map reg) ;
+    end
 
-and equal_but_index tb k a_k b_k s krs =
-  List.map
-    (fun (s,r) -> p_or (Vset.member k s) (equal_but tb r a_k b_k))
-    ((s,Full)::krs)
+end
 
 (* -------------------------------------------------------------------------- *)
-(* --- Utils                                                              --- *)
+(* --- Froms Analysis                                                     --- *)
 (* -------------------------------------------------------------------------- *)
 
-let rec occurs x = function
-  | Empty | Full -> false
-  | Fields frs -> List.exists (fun (_,r) -> occurs x r) frs
-  | Indices(s,srs) -> Vset.occurs x s || List.exists (occurs_idx x) srs
+let get_froms map reg =
+  try Rmap.find reg.id map.froms
+  with Not_found -> []
 
-and occurs_idx x (s,r) = Vset.occurs x s || occurs x r
+let add_from map ~from ~target =
+  let rs = get_froms map target in
+  map.froms <- Rmap.add target.id (from :: rs) map.froms
 
-let rec vars = function
-  | Empty | Full -> Vars.empty
-  | Fields frs ->
-      List.fold_left
-        (fun xs (_,r) -> Vars.union xs (vars r))
-        Vars.empty frs
-  | Indices(s,srs) ->
-      List.fold_left
-        (fun xs (s,r) -> Vars.union xs (Vars.union (Vset.vars s) (vars r)))
-        (Vset.vars s) srs
+module Froms =
+struct
+  open Layout
+
+  let rec forward map marks ~source ~from ~target =
+    map.domain <- Rset.add source.id map.domain ;
+    add_from map ~from ~target ;
+    if once marks target then add_region map marks target
+
+  and add_region map marks reg =
+    begin
+      add_points_to map marks ~source:reg reg.pointsTo ;
+      add_cluster map marks ~source:reg (cluster map reg) ;
+    end
+
+  and add_points_to map marks ~source = function
+    | None -> ()
+    | Some p -> add_deref map marks ~source ~target:(region map p)
+
+  and add_deref map marks ~source ~target =
+    let from = if is_shifted target then Farray source else Fderef source in
+    forward map marks ~source ~from ~target
+
+  and add_cluster map marks ~source = function
+    | Empty | Garbled | Chunk (Int _ | Float _) -> ()
+    | Chunk (Pointer target) -> add_deref map marks ~source ~target
+    | Layout { layout } -> List.iter (add_range map marks ~source) layout
+
+  and add_range map marks ~source = function
+    | { ofs ; reg = target ; dim = Dim(_,[]) } ->
+        forward map marks ~source ~from:(Ffield(source,ofs)) ~target
+    | { reg = target } ->
+        forward map marks ~source ~from:(Findex source) ~target
+
+end
 
 (* -------------------------------------------------------------------------- *)
-(* --- Pretty                                                             --- *)
+(* --- Roots Analysis                                                     --- *)
 (* -------------------------------------------------------------------------- *)
 
-let pretty fmt = function
-  | Empty -> Format.fprintf fmt "empty"
-  | Full -> Format.fprintf fmt "full"
-  | Fields _ -> Format.fprintf fmt "fields" (*TODO*)
-  | Indices _ -> Format.fprintf fmt "indices" (*TODO*)
+let get_roots map reg =
+  try Rmap.find reg.id map.roots
+  with Not_found -> Rnone
+
+let has_roots map reg = get_roots map reg <> Rnone
+
+module Roots =
+struct
+
+  let rec of_region map region =
+    try Rmap.find region.id map.roots
+    with Not_found ->
+      let froms = get_froms map region in
+      let roots =
+        List.fold_left
+          (fun roots from ->
+             Root.merge roots (Root.from ~root:(of_region map) from)
+          ) Rnone froms
+      in map.roots <- Rmap.add region.id roots map.roots ; roots
+
+  let compute map reg = ignore (of_region map reg)
+
+end
+
+(* -------------------------------------------------------------------------- *)
+(* --- Forward & Backward Propagation                                     --- *)
+(* -------------------------------------------------------------------------- *)
+
+let forward map =
+  begin
+    let marks = ref Rset.empty in
+    map.domain <- Rset.empty ;
+    Vmap.iter
+      (fun x r ->
+         let reg = region map r in
+         let open Cil_types in
+         if x.vglob || x.vformal then
+           add_from map ~from:(Fvar x) ~target:(region map r) ;
+         Froms.add_region map marks reg ;
+      ) map.vars ;
+  end
+
+let backward map =
+  begin
+    Rmap.iter (Roots.compute map) map.region ;
+  end
+
+(* -------------------------------------------------------------------------- *)
+(* --- Chunk Analysis                                                     --- *)
+(* -------------------------------------------------------------------------- *)
+
+let rec chunk map region =
+  try Rmap.find region.id map.chunk
+  with Not_found ->
+    let roots = get_roots map region in
+    let chunk =
+      match cluster map region with
+      | Empty | Garbled -> Mraw (roots,get_pointed map region)
+      | Chunk v ->
+          if is_read region || is_written region then
+            Mmem(roots,v)
+          else
+            begin match v with
+              | Pointer r -> Mref r
+              | _ -> Mraw (roots,get_pointed map region)
+            end
+      | Layout { layout } ->
+          let chunks = Chunk.union_map (fun { reg } -> chunks map reg) layout
+          in Mcomp(chunks,layout)
+
+    in map.chunk <- Rmap.add region.id chunk map.chunk ; chunk
+
+and chunks map region =
+  match chunk map region with
+  | Mcomp(rs,_) -> rs
+  | _ -> Chunk.singleton region.id
+
+(* -------------------------------------------------------------------------- *)
+(* --- Fixpoint                                                           --- *)
+(* -------------------------------------------------------------------------- *)
+
+let fixpoint map =
+  begin
+    let turn = ref 0 in
+    let loop = ref true in
+    while !loop do
+      incr turn ;
+      Wp.feedback ~ontty:`Transient "Region clustering (loop #%d)" !turn ;
+      fusion map ;
+      map.cluster <- Rmap.empty ;
+      iter map (Cluster.compute map) ;
+      loop := fusionned map ;
+    done ;
+    Wp.feedback ~ontty:`Transient "Region forward analysis" ;
+    forward map ;
+    Wp.feedback ~ontty:`Transient "Region backward analysis" ;
+    backward map ;
+    Wp.feedback ~ontty:`Transient "Region fixpoint reached" ;
+  end
+
+(* -------------------------------------------------------------------------- *)

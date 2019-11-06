@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of the Frama-C's E-ACSL plug-in.                    #
 #                                                                        #
-#  Copyright (C) 2012-2018                                               #
+#  Copyright (C) 2012-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -30,51 +30,45 @@ ifndef FRAMAC_SHARE
 FRAMAC_SHARE  :=$(shell frama-c-config -print-share-path)
 endif
 
-# OCAMLVERSION and HAS_OCAML312 are defined in Frama-C common Makefile but
-# cannot be used at this point. Unfortunatly cannot reuse the same variable name
-# here without introducing unexpected interaction with Frama-C compilation when
-# compiling it with --enable-external=e-acsl.
-EACSL_OCAMLVERSION 	?=@OCAMLVERSION@
-ifeq ($(findstring 3.12,$(EACSL_OCAMLVERSION)),)
-EACSL_HAS_OCAML312 = no
-else
-EACSL_HAS_OCAML312 = yes
-endif
+###################
+# Plug-in sources #
+###################
 
-# Utilities used to create the list of contrib/ files to be included in the
-# distribution. In external mode, we can't rely on these variables to be
-# set, as we have to build the list before including Makefile.dynamic.
-# There is no real alternative to cat and sed anyways, which are both part of
-# POSIX, so that the usefulness of the variables is questionable.
-CAT?=cat
-SED?=sed
-
-#########################
-# Plug-in configuration #
-#########################
-
-PLUGIN_DIR ?=.
-PLUGIN_ENABLE:=@ENABLE_E_ACSL@
-PLUGIN_DYNAMIC:=@DYNAMIC_E_ACSL@
-PLUGIN_NAME:=E_ACSL
-PLUGIN_CMO:= local_config \
-	options \
-	rte \
+# libraries
+SRC_LIBRARIES:= \
 	error \
 	builtins \
 	functions \
 	misc \
-	gmpz \
+	gmp_types \
+	varname
+SRC_LIBRARIES:=$(addprefix src/libraries/, $(SRC_LIBRARIES))
+
+# analyses
+SRC_ANALYSES:= \
+	rte \
 	literal_strings \
 	mmodel_analysis \
 	exit_points \
-	label \
 	lscope \
-	env \
-	keep_status \
-	dup_functions \
 	interval \
-	typing \
+	typing
+SRC_ANALYSES:=$(addprefix src/analyses/, $(SRC_ANALYSES))
+
+# project initializer
+SRC_PROJECT_INITIALIZER:= \
+	keep_status \
+	prepare_ast \
+	dup_functions
+SRC_PROJECT_INITIALIZER:=\
+  $(addprefix src/project_initializer/, $(SRC_PROJECT_INITIALIZER))
+
+# code generator
+SRC_CODE_GENERATOR:= \
+	gmp \
+	label \
+	env \
+	rational \
 	loops \
 	quantif \
 	at_with_lscope \
@@ -82,9 +76,30 @@ PLUGIN_CMO:= local_config \
 	logic_functions \
 	translate \
 	temporal \
-	prepare_ast \
-	visit \
-	main
+	visit
+SRC_CODE_GENERATOR:=$(addprefix src/code_generator/, $(SRC_CODE_GENERATOR))
+
+#########################
+# Plug-in configuration #
+#########################
+
+PLUGIN_DIR ?=.
+PLUGIN_EXTRA_DIRS:=\
+	src \
+	src/libraries \
+	src/analyses \
+	src/project_initializer \
+	src/code_generator
+PLUGIN_ENABLE:=@ENABLE_E_ACSL@
+PLUGIN_DYNAMIC:=@DYNAMIC_E_ACSL@
+PLUGIN_NAME:=E_ACSL
+PLUGIN_CMO:= src/local_config \
+	src/options \
+	$(SRC_LIBRARIES) \
+	$(SRC_ANALYSES) \
+	$(SRC_PROJECT_INITIALIZER) \
+	$(SRC_CODE_GENERATOR) \
+	src/main
 
 PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=yes
@@ -92,10 +107,10 @@ PLUGIN_DISTRIBUTED:=yes
 # We "save" this variable so that it can be used once PLUGIN_DIR has been reset
 EACSL_PLUGIN_DIR:=$(PLUGIN_DIR)
 
-# Suppress a spurious warning in ocaml 4.04.0
-$(EACSL_PLUGIN_DIR)/mmodel_analysis.cmo \
-$(EACSL_PLUGIN_DIR)/mmodel_analysis.cmi: E_ACSL_BFLAGS+= -w -60
-$(EACSL_PLUGIN_DIR)/mmodel_analysis.cmx: E_ACSL_OFLAGS+= -w -60
+# Suppress a spurious warning with OCaml >= 4.04.0
+$(EACSL_PLUGIN_DIR)/src/analyses/mmodel_analysis.cmo \
+$(EACSL_PLUGIN_DIR)/src/analyses/mmodel_analysis.cmi: E_ACSL_BFLAGS+= -w -60
+$(EACSL_PLUGIN_DIR)/src/analyses/mmodel_analysis.cmx: E_ACSL_OFLAGS+= -w -60
 
 ###############
 # Local Flags #
@@ -107,13 +122,9 @@ IS_DISTRIBUTED:=no
 # Local configuration #
 #######################
 
-PLUGIN_GENERATED:= $(EACSL_PLUGIN_DIR)/local_config.ml
+PLUGIN_GENERATED:= $(EACSL_PLUGIN_DIR)/src/local_config.ml
 
-ifeq ("$(FRAMAC_INTERNAL)","yes")
 VERSION_FILE=$(FRAMAC_ROOT_SRCDIR)/VERSION
-else
-VERSION_FILE=$(EACSL_PLUGIN_DIR)/VERSION
-endif
 
 ################
 # Version      #
@@ -121,7 +132,7 @@ endif
 
 EACSL_VERSION:=$(shell sed -e 's/\\(.*\\)/\\1/' $(VERSION_FILE))
 
-$(EACSL_PLUGIN_DIR)/local_config.ml: $(EACSL_PLUGIN_DIR)/Makefile.in $(VERSION_FILE)
+$(EACSL_PLUGIN_DIR)/src/local_config.ml: $(EACSL_PLUGIN_DIR)/Makefile.in $(VERSION_FILE)
 	$(PRINT_MAKING) $@
 	$(RM) $@
 	$(ECHO) "(* This file was automatically generated from $<. Don't edit it. *)" >> $@
@@ -136,44 +147,60 @@ ifeq (@MAY_RUN_TESTS@,yes)
 
 -include in_frama_ci
 
-ifeq ($(IN_FRAMA_CI),yes)
-
 PLUGIN_TESTS_DIRS := \
-	gmp \
-	no-main
-
-else
-
-PLUGIN_TESTS_DIRS := \
-	format \
-	reject \
-	runtime \
+	examples \
 	bts \
-	gmp \
-	no-main \
+	constructs \
+	arith \
+	memory \
+	gmp-only \
 	full-mmodel \
+	format \
 	temporal \
 	special
-
 # [JS 2019/02/26] deactivate tests 'builtin' as long as setjmp/longjmp is not
 # supported.
-#	builtin \
-
-
-endif
+#	builtin
 
 PLUGIN_TESTS_LIB := $(EACSL_PLUGIN_DIR)/tests/print.ml
-E_ACSL_TESTS: $(EACSL_PLUGIN_DIR)/tests/test_config
 
-E_ACSL_DEFAULT_TESTS: \
-	$(EACSL_PLUGIN_DIR)/tests/test_config \
+DEV=
+ifeq ("$(DEV)","yes")
+  EACSL_TEST_CONFIG=dev
+else
+  EACSL_TEST_CONFIG:=ci
+endif
+PLUGIN_PTESTS_OPTS:=-config $(EACSL_TEST_CONFIG)
+
+E_ACSL_TESTS E_ACSL_DEFAULT_TESTS: \
+	$(EACSL_PLUGIN_DIR)/tests/ptests_config \
+	$(EACSL_PLUGIN_DIR)/tests/test_config_$(EACSL_TEST_CONFIG) \
 	$(EACSL_PLUGIN_DIR)/tests/print.cmxs \
 	$(EACSL_PLUGIN_DIR)/tests/print.cmo
 
+
+$(EACSL_PLUGIN_DIR)/tests/test_config_ci: \
+		$(EACSL_PLUGIN_DIR)/tests/test_config_ci.in \
+		$(EACSL_PLUGIN_DIR)/Makefile
+	$(PRINT_MAKING) $@
+	$(SED) -e "s|@SEDCMD@|`which sed `|g" $< > $@
+
+$(EACSL_PLUGIN_DIR)/tests/test_config_dev: \
+		$(EACSL_PLUGIN_DIR)/tests/test_config_dev.in \
+		$(EACSL_PLUGIN_DIR)/Makefile
+	$(PRINT_MAKING) $@
+	$(SED) -e "s|@SEDCMD@|`which sed `|g" $< > $@
+
+tests:: $(EACSL_PLUGIN_DIR)/tests/ptests_config
+
 clean::
+	for d in $(E_ACSL_EXTRA_DIRS); do \
+	  $(RM) $$d/*~; \
+	done
 	$(PRINT_RM) cleaning generated test files
 	$(RM) $(E_ACSL_DIR)/tests/*.cm* $(E_ACSL_DIR)/tests/*.o
-	$(RM) $(E_ACSL_DIR)/tests/test_config
+	$(RM) $(E_ACSL_DIR)/tests/test_config_ci \
+		$(E_ACSL_DIR)/tests/test_config_dev
 	$(RM) $(foreach dir, $(PLUGIN_TESTS_DIRS), tests/$(dir)/result/*)
 
 endif
@@ -213,34 +240,10 @@ $(EACSL_DLMALLOC_LIB): $(EACSL_DLMALLOC_SRC)
 	echo 'RANLIB       $@'
 	ranlib $@
 
-############
-# GMP 	   #
-############
-
-EACSL_GMP_REL_DIR:=contrib/libgmp
-EACSL_GMP_DIR := $(EACSL_PLUGIN_DIR)/$(EACSL_GMP_REL_DIR)
-EACSL_GMP_LIBNAME = libeacsl-gmp.a
-EACSL_GMP_LIB = $(EACSL_LIBDIR)/$(EACSL_GMP_LIBNAME)
-EACSL_GMP_OBJ = mini-gmp.o
-EACSL_GMP_SRC = $(EACSL_GMP_DIR)/mini-gmp.c
-EACSL_GMP_FLAGS = \
-	-Dmalloc=__e_acsl_private_malloc \
-	-Drealloc=__e_acsl_private_realloc \
-	-Dfree=__e_acsl_private_free
-
-$(EACSL_GMP_LIB): $(EACSL_GMP_SRC)
-	$(MKDIR) $(EACSL_LIBDIR)
-	echo 'CC           $< '
-	$(CC) $< $(EACSL_GMP_FLAGS) -c -O2 -g3 -o$(EACSL_GMP_OBJ)
-	echo 'AR           $@'
-	$(AR) crus $(EACSL_GMP_LIB) $(EACSL_GMP_OBJ)
-	echo 'RANLIB       $@'
-	ranlib $(EACSL_GMP_LIB)
-
-all:: $(EACSL_DLMALLOC_LIB) $(EACSL_GMP_LIB)
+all:: $(EACSL_DLMALLOC_LIB)
 
 clean::
-	$(RM) $(EACSL_DLMALLOC_LIB) $(EACSL_GMP_LIB)
+	$(RM) $(EACSL_DLMALLOC_LIB)
 
 ############
 # Cleaning #
@@ -248,7 +251,7 @@ clean::
 
 EACSL_CLEANFILES = doc/doxygen/doxygen.cfg \
 	Makefile config.log config.status configure .depend autom4te.cache/* \
-	META.frama-c-e_acsl Makefile.plugin.generated local_config.ml top/*
+	META.frama-c-e_acsl Makefile.plugin.generated src/local_config.ml top/*
 
 e-acsl-distclean:: clean
 	$(PRINT_RM) generated project files
@@ -258,11 +261,7 @@ e-acsl-distclean:: clean
 # Building source distribution #
 ################################
 
-EXPORT = e-acsl-$(EACSL_VERSION)
-
 EACSL_CONTRIB_FILES = \
-  $(EACSL_GMP_REL_DIR)/mini-gmp.c \
-  $(EACSL_GMP_REL_DIR)/mini-gmp.h \
   $(EACSL_DLMALLOC_REL_DIR)/dlmalloc.c
 
 EACSL_MANUAL_FILES = doc/manuals/*.pdf
@@ -274,9 +273,21 @@ EACSL_DOC_FILES = \
 	man/e-acsl-gcc.sh.1
 
 EACSL_TEST_FILES = \
-  tests/test_config.in tests/print.ml
+	tests/test_config_dev.in \
+	tests/test_config_ci.in \
+	tests/gmp-only/test_config_ci \
+	tests/gmp-only/test_config_dev \
+	tests/full-mmodel/test_config_ci \
+	tests/full-mmodel/test_config_dev \
+	tests/builtin/test_config_ci \
+	tests/builtin/test_config_dev \
+	tests/temporal/test_config_ci \
+	tests/temporal/test_config_dev \
+	tests/format/test_config_ci \
+	tests/format/test_config_dev \
+	tests/print.ml
 
-# Test files without header management 
+# Test files without header management
 EACSL_DISTRIB_TESTS = \
   $(foreach dir, $(addprefix tests/,$(PLUGIN_TESTS_DIRS)), \
       $(dir)/*.[ich] \
@@ -287,14 +298,14 @@ EACSL_DISTRIB_TESTS = \
 
 EACSL_RTL_FILES = $(EACSL_RTL_SRC)
 
-EACSL_SCRIPT_FILES = scripts/e-acsl-gcc.sh scripts/testrun.sh
+EACSL_SCRIPT_FILES = scripts/e-acsl-gcc.sh
 
 EACSL_LICENSE_FILES = \
   license/CEA_LGPL license/SPARETIMELABS \
   license/headache_config.txt license/LGPLv2.1
 
 EACSL_MISC_FILES = \
-  configure.ac Makefile.in INSTALL README VERSION
+  configure.ac Makefile.in INSTALL README
 
 EACSL_SHARE_FILES = share/e-acsl/*.[ch] share/e-acsl/*/*.[ch]
 
@@ -315,74 +326,8 @@ PLUGIN_DISTRIB_EXTERNAL:= $(EACSL_DISTRIB_EXTERNAL)
 PLUGIN_HEADER_EXCEPTIONS:=
 
 # Files that are not listed in `DISTRIB_FILES`
-# and decicated to distributed tests
+# and dedicated to distributed tests
 PLUGIN_DISTRIB_TESTS:= $(EACSL_DISTRIB_TESTS)
-
-# for e-csl-distrib target:
-EACSL_OCAML_FILES = *.mli \
-  $(patsubst $(EACSL_PLUGIN_DIR)/%, %, \
-    $(filter-out $(wildcard $(EACSL_PLUGIN_DIR)/*local_config.ml), \
-		 $(wildcard $(EACSL_PLUGIN_DIR)/*.ml)))
-
-EACSL_DISTRIB_FILES = \
-  $(patsubst $(EACSL_PLUGIN_DIR)/%,%,\
-    $(wildcard $(addprefix $(EACSL_PLUGIN_DIR)/, \
-       $(EACSL_OCAML_FILES) $(EACSL_DISTRIB_EXTERNAL) $(EACSL_DISTRIB_TESTS))))
-
-# BE CAREFUL: manually remove all *.ml* files which should not be released!
-e-acsl-distrib:
-	$(PRINT_TAR) tmp-distrib
-	cd $(EACSL_PLUGIN_DIR); \
-	  $(TAR) cf tmp.tar $(EACSL_DISTRIB_FILES)
-	$(PRINT_MAKING) export directories
-	$(MKDIR) $(EACSL_PLUGIN_DIR)/$(EXPORT)
-	$(PRINT_UNTAR) tmp-distrib
-	cd $(EACSL_PLUGIN_DIR)/$(EXPORT); \
-	  pwd && \
-	  $(TAR) xf ../tmp.tar && \
-	  autoconf && \
-	  $(SED) \
-	    -i -e 's/IS_DISTRIBUTED:=no/IS_DISTRIBUTED:=yes/' Makefile.in && \
-	  $(RM) -rf autom4te.cache
-	$(PRINT_RM) tmp-distrib
-	$(RM) $(EACSL_PLUGIN_DIR)/tmp.tar
-	$(PRINT_MAKING) archive $(EACSL_PLUGIN_DIR)/$(EXPORT).tar.gz
-	cd $(EACSL_PLUGIN_DIR) ; \
-	  $(TAR) czf $(EXPORT).tar.gz $(EXPORT)
-	$(PRINT) Cleaning
-	$(RM) -fr $(EACSL_PLUGIN_DIR)/$(EXPORT)
-
-WWW	?= /localhome/julien/frama-c/doc/www
-e-acsl-install-distrib: e-acsl-distrib
-	$(PRINT) Copying to website
-	$(CP) $(EACSL_PLUGIN_DIR)/$(EXPORT).tar.gz \
-	  $(WWW)/distrib/download/e-acsl
-	$(CP) $(addprefix $(EACSL_PLUGIN_DIR)/, $(EACSL_DOC_FILES)) \
-	  $(WWW)/distrib/download/e-acsl
-ifneq ("$(EACSL_MANUAL_FILES)","")
-	$(CP) $(EACSL_PLUGIN_DIR)/doc/manuals/e-acsl-manual.pdf \
-	      $(WWW)/distrib/download/e-acsl/e-acsl-manual-$(EACSL_VERSION).pdf
-	$(CP) $(EACSL_PLUGIN_DIR)/doc/manuals/e-acsl.pdf \
-	      $(WWW)/distrib/download/e-acsl/e-acsl-1.7.pdf
-	$(CP) $(EACSL_PLUGIN_DIR)/doc/manuals/e-acsl-implementation.pdf \
-	      $(WWW)/distrib/download/e-acsl/e-acsl-implementation-$(EACSL_VERSION).pdf
-endif
-
-##############################
-# Check source distribution  #
-##############################
-e-acsl-distrib-check:
-	$(RM) -rf $(EXPORT)*
-	$(MAKE) e-acsl-distrib
-	$(TAR) -xvf $(EXPORT).tar.gz
-	unset FRAMAC_LIB && \
-	  cd $(EXPORT) && \
-	  ./configure && \
-    $(MAKE) && \
-    $(MAKE) doc && \
-    $(MAKE) tests && \
-    cd ../ && \
-    $(RM) -rf $(EXPORT)*
 
 ##########
 # Header #
@@ -396,12 +341,16 @@ EACSL_SHARE_BARE= share/e-acsl/*.[ch] share/e-acsl/*/*.[ch]
 EACSL_SHARE=$(addprefix $(EACSL_PLUGIN_DIR)/, $(EACSL_SHARE_BARE))
 EACSL_CEA_SHARE=$(filter-out $(EACSL_SPARETIMELABS), $(wildcard $(EACSL_SHARE)))
 
-EACSL_CEA_LGPL_BARE= *.ml *.mli Makefile.in configure.ac \
-  scripts/*.sh tests/print.ml man/e-acsl-gcc.sh.1
+EACSL_CEA_LGPL_BARE= src/*.ml src/*/*.ml src/*.mli src/*/*.mli \
+	E_ACSL.mli \
+	Makefile.in configure.ac \
+	scripts/*.sh \
+	tests/print.ml \
+	man/e-acsl-gcc.sh.1
 EACSL_CEA_LGPL=$(addprefix $(EACSL_PLUGIN_DIR)/, $(EACSL_CEA_LGPL_BARE)) \
                $(EACSL_CEA_SHARE)
 
-# valid values: open-source, close-source 
+# valid values: open-source, close-source
 EACSL_HEADERS?=open-source
 headers::
 	@echo "Applying $(EACSL_HEADERS) headers..."
@@ -414,9 +363,6 @@ headers::
 	headache -c $(EACSL_PLUGIN_DIR)/license/headache_config.txt \
                  -h $(EACSL_PLUGIN_DIR)/headers/$(EACSL_HEADERS)/MODIFIED_DLMALLOC \
                  $(EACSL_PLUGIN_DIR)/contrib/libdlmalloc/dlmalloc.c
-	headache -c $(EACSL_PLUGIN_DIR)/license/headache_config.txt \
-                 -h $(EACSL_PLUGIN_DIR)/headers/$(EACSL_HEADERS)/MODIFIED_LIB_GMP \
-                 $(EACSL_PLUGIN_DIR)/contrib/libgmp/mini-gmp.[ch]
 
 endif
 
@@ -470,19 +416,6 @@ uninstall::
 	$(RM) $(BINDIR)/e-acsl-gcc.sh
 	$(PRINT_RM) E-ACSL man pages
 	$(RM) $(MANDIR)/man1/e-acsl-gcc.sh.1
-
-####################
-# Testing (part 2) #
-####################
-
-ifeq (@MAY_RUN_TESTS@,yes)
-
-$(E_ACSL_DIR)/tests/test_config: $(E_ACSL_DIR)/tests/test_config.in \
-	$(E_ACSL_DIR)/Makefile
-	$(PRINT_MAKING) $@
-	$(SED) -e "s|@SEDCMD@|`which sed `|g" $< > $@
-
-endif
 
 #####################################
 # Regenerating the Makefile on need #

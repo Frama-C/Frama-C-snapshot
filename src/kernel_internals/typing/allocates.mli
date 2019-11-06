@@ -20,7 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Generation of default [allocates \nothing] clauses. *)
+(** Generation of default [allocates \nothing] clauses.
+
+    Automatic generation of [allocates \nothing] and [loop allocates \nothing]
+    clauses has been removed until a plugin supports them.
+    To force generation, the following functions can be used.
+*)
 
 val add_allocates_nothing_funspec: Cil_types.kernel_function -> unit
 (** Adds [allocates \nothing] to the default behavior of the function

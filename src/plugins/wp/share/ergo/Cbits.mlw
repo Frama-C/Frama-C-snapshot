@@ -32,6 +32,23 @@
 (** The theory real_RealInfix_ must be appended to this file*)
 (** The theory real_FromInt_ must be appended to this file*)
 (** The theory Cint_ must be appended to this file*)
+
+logic bit_testb : int, int -> bool
+
+logic bit_test : int, int -> prop
+
+logic lnot : int -> int
+
+logic ac land : int, int -> int
+
+logic ac lxor : int, int -> int
+
+logic ac lor : int, int -> int
+
+logic lsl : int, int -> int
+
+logic lsr : int, int -> int
+
 axiom lnot_bool : (lnot(0) = (-1))
 
 axiom lnot_bool1 : (lnot((-1)) = 0)
@@ -514,4 +531,3 @@ axiom lor_addition :
 axiom lxor_addition :
   (forall x:int. forall y:int [land(x, y), lxor(x, y)]. ((land(x, y) = 0) ->
   ((x + y) = lxor(x, y))))
-

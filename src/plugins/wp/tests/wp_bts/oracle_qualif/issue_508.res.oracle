@@ -1,15 +1,15 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_bts/issue_508.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 3 goals scheduled
-[wp] [Alt-Ergo] Goal typed_add_assigns_part1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_add_assigns_part1 : Valid
 [wp] [Qed] Goal typed_add_assigns_part2 : Valid
 [wp] [Qed] Goal typed_add_assigns_part3 : Valid
 [wp] Proved goals:    3 / 3
-  Qed:             2 
-  Alt-Ergo:        1
+  Qed:               2 
+  Alt-Ergo 2.0.0:    1
 [wp] Report in:  'tests/wp_bts/oracle_qualif/issue_508.0.report.json'
 [wp] Report out: 'tests/wp_bts/result_qualif/issue_508.0.report.json'
 -------------------------------------------------------------

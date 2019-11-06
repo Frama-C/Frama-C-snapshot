@@ -1,4 +1,4 @@
-# frama-c -wp -wp-rte -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-rte [...]
 [kernel] Parsing tests/wp_manual/manual.i (no preprocessing)
 [kernel] Parsing tests/wp_manual/working_dir/swap.c (with preprocessing)
 [kernel] Parsing tests/wp_manual/working_dir/swap2.h (with preprocessing)
@@ -6,17 +6,17 @@
 [wp] Loading driver 'share/wp.driver'
 [rte] annotating function swap
 [wp] 8 goals scheduled
-[wp] [Alt-Ergo] Goal typed_swap_ensures_A : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_swap_ensures_A : Valid
 [wp] [Qed] Goal typed_swap_ensures_B : Valid
-[wp] [Alt-Ergo] Goal typed_swap_assert_rte_mem_access : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_swap_assert_rte_mem_access : Valid
 [wp] [Qed] Goal typed_swap_assert_rte_mem_access_2 : Valid
-[wp] [Alt-Ergo] Goal typed_swap_assert_rte_mem_access_3 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_swap_assert_rte_mem_access_3 : Valid
 [wp] [Qed] Goal typed_swap_assert_rte_mem_access_4 : Valid
 [wp] [Qed] Goal typed_swap_assigns_part1 : Valid
 [wp] [Qed] Goal typed_swap_assigns_part2 : Valid
 [wp] Proved goals:    8 / 8
-  Qed:             5 
-  Alt-Ergo:        3
+  Qed:               5 
+  Alt-Ergo 2.0.0:    3
 [wp] Report in:  'tests/wp_manual/oracle_qualif/manual.1.report.json'
 [wp] Report out: 'tests/wp_manual/result_qualif/manual.1.report.json'
 -------------------------------------------------------------

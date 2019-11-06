@@ -1,0 +1,40 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_acsl/float_compare.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 19 goals scheduled
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_finite_32_64 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_finite_32_64_real : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_test_double_compare : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_test_double_compare_greater : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_test_float_compare : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_test_float_compare_greater : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_dd_ensures_DEF : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_dd_ensures_REL1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_dd_ensures_REL2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_fd_ensures_DEF : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_fd_ensures_REL1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_fd_ensures_REL2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_fd_assert : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_fd_assert_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_ff_ensures_DEF : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_ff_ensures_REL1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_cmp_ff_ensures_REL2 : Valid
+[wp] [Qed] Goal typed_cmp_fnan_ensures_POS : Valid
+[wp] [Qed] Goal typed_cmp_fnan_ensures_NEG : Valid
+[wp] Proved goals:   18 / 19
+  Qed:               2 
+  Alt-Ergo 2.0.0:   16  (unsuccess: 1)
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/float_compare.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/float_compare.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Lemma               -       5 (28..40)       6      83.3%
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+cmp_ff              -       3 (20..32)       3       100%
+cmp_dd              -       3 (20..32)       3       100%
+cmp_fd              -       5 (20..32)       5       100%
+cmp_fnan             2     -                 2       100%
+-------------------------------------------------------------

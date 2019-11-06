@@ -1,5 +1,8 @@
+/* run.config
+   STDOPT: +"-wp-no-extensional"
+*/
 /* run.config_qualif
-   OPT: -wp -wp-par 1
+   OPT: -wp -wp-par 1 -wp-no-extensional
 */
 
 typedef struct MSG {

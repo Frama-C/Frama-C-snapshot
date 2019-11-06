@@ -62,12 +62,15 @@ struct
     bind : Bvars.t ;
     sort : sort ;
     repr : repr ;
+    tau  : tau option;
   }
   and repr = (Field.t,ADT.t,Fun.t,var,term,term) term_repr
 
-  type bind = term
+  let pretty_debug :  (_ -> term -> unit) ref = ref (fun _ _ -> ())
 
-  type 'a expression = (Field.t,ADT.t,Fun.t,var,bind,'a) term_repr
+  type lc_term = term
+
+  type 'a expression = (Field.t,ADT.t,Fun.t,var,lc_term,'a) term_repr
 
   (* ------------------------------------------------------------------------ *)
   (* ---  Term Set,Map and Vars                                           --- *)
@@ -317,6 +320,81 @@ struct
     | If(a,b,c) -> 2 + max a.size (max b.size c.size)
     | Bind(_,_,p) -> 3 + p.size
 
+  let repr_iter f = function
+    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> ()
+    | Times(_,e) | Not e | Rget(e,_) | Acst(_,e) -> f e
+    | Add xs | Mul xs | And xs | Or xs -> List.iter f xs
+    | Mod(x,y) | Div(x,y) | Eq(x,y) | Neq(x,y) | Leq(x,y) | Lt(x,y)
+    | Aget(x,y) -> f x ; f y
+    | Rdef fvs -> List.iter (fun (_,v) -> f v) fvs
+    | If(e,a,b) | Aset(e,a,b) -> f e ; f a ; f b
+    | Imply(xs,x) -> List.iter f xs ; f x
+    | Fun(_,xs) -> List.iter f xs
+    | Apply(x,xs) -> f x ; List.iter f xs
+    | Bind(_,_,e) -> f e
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- DEBUG                                                              --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let pp_bind fmt = function
+    | Forall -> Format.pp_print_string fmt "Forall"
+    | Exists -> Format.pp_print_string fmt "Exists"
+    | Lambda -> Format.pp_print_string fmt "Lambda"
+
+  let pp_var fmt x = Format.fprintf fmt "X%03d(%s:%d)" x.vid x.vbase x.vrank
+  let pp_id fmt x = Format.fprintf fmt " #%03d" x.id
+  let pp_ids fmt xs = List.iter (pp_id fmt) xs
+  let pp_field fmt (f,x) = Format.fprintf fmt "@ %a:%a;" Field.pretty f pp_id x
+  let pp_record fmt fxs = List.iter (pp_field fmt) fxs
+  let pp_repr fmt = function
+    | Kint z -> Format.fprintf fmt "constant %s" (Z.to_string z)
+    | Kreal z -> Format.fprintf fmt "real constant %s" (Q.to_string z)
+    | True  -> Format.pp_print_string fmt "true"
+    | False -> Format.pp_print_string fmt "false"
+    | Times(z,x) -> Format.fprintf fmt "times %s%a" (Z.to_string z) pp_id x
+    | Add xs -> Format.fprintf fmt "add%a" pp_ids xs
+    | Mul xs -> Format.fprintf fmt "mul%a" pp_ids xs
+    | And xs -> Format.fprintf fmt "and%a" pp_ids xs
+    | Div(a,b) -> Format.fprintf fmt "div%a%a" pp_id a pp_id b
+    | Mod(a,b) -> Format.fprintf fmt "mod%a%a" pp_id a pp_id b
+    | Or xs -> Format.fprintf fmt "or%a" pp_ids xs
+    | If(e,a,b) -> Format.fprintf fmt "if%a%a%a" pp_id e pp_id a pp_id b
+    | Imply(hs,p) -> Format.fprintf fmt "imply%a =>%a" pp_ids hs pp_id p
+    | Neq(a,b) -> Format.fprintf fmt "neq%a%a" pp_id a pp_id b
+    | Eq(a,b) -> Format.fprintf fmt "eq%a%a" pp_id a pp_id b
+    | Leq(a,b) -> Format.fprintf fmt "leq%a%a" pp_id a pp_id b
+    | Lt(a,b) -> Format.fprintf fmt "lt%a%a" pp_id a pp_id b
+    | Not e -> Format.fprintf fmt "not%a" pp_id e
+    | Fun(f,es) -> Format.fprintf fmt "fun %a%a" Fun.pretty f pp_ids es
+    | Apply(phi,es) -> Format.fprintf fmt "apply%a%a" pp_id phi pp_ids es
+    | Fvar x -> Format.fprintf fmt "var %a" pp_var x
+    | Bvar(k,_) -> Format.fprintf fmt "bvar #%d" k
+    | Bind(q,t,e) -> Format.fprintf fmt "bind %a %a. %a" pp_bind q Tau.pretty t pp_id e
+    | Rdef fxs -> Format.fprintf fmt "@[<hov 2>record {%a }@]" pp_record fxs
+    | Rget(e,f) -> Format.fprintf fmt "field %a.%a" pp_id e Field.pretty f
+    | Aset(m,k,v) -> Format.fprintf fmt "array%a[%a :=%a ]" pp_id m pp_id k pp_id v
+    | Aget(m,k) -> Format.fprintf fmt "array%a[%a ]" pp_id m pp_id k
+    | Acst(t,v) -> Format.fprintf fmt "const[%a ->%a]" Tau.pretty t pp_id v
+  let pp_rid fmt e = pp_repr fmt e.repr
+
+  let rec pp_debug disp fmt e =
+    if not (Intset.mem e.id !disp) then
+      begin
+        Format.fprintf fmt "%a{%a} = %a@."
+          pp_id e Bvars.pretty e.bind pp_repr e.repr ;
+        disp := Intset.add e.id !disp ;
+        pp_children disp fmt e ;
+      end
+
+  and pp_children disp fmt e = repr_iter (pp_debug disp fmt) e.repr
+
+  let debug fmt e =
+    Format.fprintf fmt "%a with:@." pp_id e ;
+    pp_debug (ref Intset.empty) fmt e
+
+  let pretty = debug
+
   (* -------------------------------------------------------------------------- *)
   (* --- Symbols                                                            --- *)
   (* -------------------------------------------------------------------------- *)
@@ -554,7 +632,10 @@ struct
 
     let rec compare a b =
       if a == b then 0 else
-        cmp_struct compare a b
+        let cmp = cmp_struct compare a b in
+        if cmp <> 0 then cmp else
+          Extlib.opt_compare Tau.compare a.tau b.tau
+
 
   end
 
@@ -610,7 +691,7 @@ struct
   type operation =
     | NOT of term (* Only AND, OR and IMPLY *)
     | CMP of cmp * term * term
-    | FUN of Fun.t * term list
+    | FUN of Fun.t * term list * tau option
 
   module C = Cache.Unary
       (struct
@@ -620,11 +701,12 @@ struct
         let hash = function
           | NOT p -> 5 * p.hash
           | CMP(c,a,b) -> hash_op c * Hcons.hash_pair a.hash b.hash
-          | FUN(f,es) -> Hcons.hash_list hash (Fun.hash f) es
+          | FUN(f,es,_) -> Hcons.hash_list hash (Fun.hash f) es
         let equal a b = match a,b with
           | NOT p,NOT q -> p==q
           | CMP(c,a,b),CMP(c',a',b') -> c=c' && a==a' && b==b'
-          | FUN(f,xs) , FUN(g,ys) -> Fun.equal f g && Hcons.equal_list (==) xs ys
+          | FUN(f,xs,t) , FUN(g,ys,t') -> Fun.equal f g && Hcons.equal_list (==) xs ys
+                                          && Extlib.opt_equal Tau.equal t t'
           | _ -> false
       end)
 
@@ -640,9 +722,8 @@ struct
     mutable kid : int ;
     weak : W.t ;
     cache : term C.cache ;
-    mutable checks : STset.t STmap.t ;
-    mutable builtins_fun : (term list -> term) BUILTIN.t ;
-    mutable builtins_get : (term list -> term -> term) BUILTIN.t ;
+    mutable builtins_fun : (term list -> tau option -> term) BUILTIN.t ;
+    mutable builtins_get : (term list -> tau option -> term -> term) BUILTIN.t ;
     mutable builtins_eq  : (term -> term -> term) BUILTIN.t ;
     mutable builtins_leq : (term -> term -> term) BUILTIN.t ;
   }
@@ -651,7 +732,6 @@ struct
     kid = 0 ;
     weak = W.create 32993 ; (* 3-th Leyland Prime number *)
     cache = C.create ~size:0x1000 ; (* 4096 entries *)
-    checks = STmap.empty ;
     builtins_fun = BUILTIN.empty ;
     builtins_get = BUILTIN.empty ;
     builtins_eq  = BUILTIN.empty ;
@@ -661,9 +741,13 @@ struct
   let state = ref (empty ())
   let get_state () = !state
   let set_state st = state := st
-  let release () =
-    C.clear !state.cache ;
-    !state.checks <- STmap.empty
+  let release () = C.clear !state.cache
+
+  let in_state st f x =
+    let old = !state in
+    Extlib.try_finally
+      ~finally:(fun () -> state := old)
+      (fun x -> state := st; f x) x
 
   let clock = ref true
   let constants = ref Tset.empty
@@ -681,7 +765,6 @@ struct
     st.kid <- 0 ;
     W.clear st.weak;
     C.clear st.cache;
-    st.checks <- STmap.empty;
     st.builtins_fun <- BUILTIN.empty ;
     st.builtins_get <- BUILTIN.empty ;
     st.builtins_eq  <- BUILTIN.empty ;
@@ -694,9 +777,9 @@ struct
   (* --- Hconsed insertion                                                  --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let insert r =
+  let insert ?tau r =
     let h = hash_repr r in
-    (* Only [hash] and [repr] are significant for lookup in weak hmap *)
+    (* Only [hash] and [repr] an [tau] are significant for lookup in weak hmap *)
     let e0 = {
       id = 0 ;
       hash = h ;
@@ -705,6 +788,7 @@ struct
       vars = Vars.empty ;
       bind = Bvars.empty ;
       sort = Sdata ;
+      tau;
     } in
     try W.find !state.weak e0
     with Not_found ->
@@ -719,32 +803,9 @@ struct
         bind = bind_repr r ;
         sort = sort_repr r ;
         size = size_repr r ;
+        tau;
       }
       in W.add !state.weak e ; e
-
-  (* -------------------------------------------------------------------------- *)
-  (* --- Checker                                                            --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  let check r x =
-    let y = insert r in
-    if x != y then
-      begin
-        let s =
-          try STmap.find x !state.checks
-          with Not_found -> STset.empty in
-        !state.checks <- STmap.add x (STset.add y s) !state.checks
-      end ;
-    x
-
-  let check_unit ~qed ~raw =
-    let p = insert (Eq(qed,raw)) in p
-  (* TODO:VAR: Vars.fold (fun x p -> insert (Bind(Forall,x,p))) p.vars p *)
-
-  let iter_checks f =
-    STmap.iter
-      (fun qed s -> STset.iter (fun raw -> f ~qed ~raw) s)
-      !state.checks
 
   (* -------------------------------------------------------------------------- *)
   (* --- Constructors for normalized terms                                  --- *)
@@ -759,7 +820,7 @@ struct
   let e_zint z = insert (Kint z)
   let e_real x = insert (Kreal x)
   let e_var x  = insert(Fvar x)
-  let e_bvar k t = insert(Bvar(k,t))
+  let c_bvar k t = insert(Bvar(k,t))
 
   let c_div x y = insert (Div(x,y))
   let c_mod x y = insert (Mod(x,y))
@@ -775,7 +836,7 @@ struct
   let c_eq = sym insert_eq
   let c_neq = sym insert_neq
 
-  let c_fun f xs = insert(Fun(f,xs))
+  let c_fun f xs tau = insert ?tau (Fun(f,xs))
 
   let c_add = function
     | [] -> e_zero
@@ -866,9 +927,9 @@ struct
   (* --- Cache & Builtin Simplifiers                                        --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let builtin_fun f es =
-    try (BUILTIN.find f !state.builtins_fun) es
-    with Not_found -> c_fun f es
+  let builtin_fun ?tau f es =
+    try (BUILTIN.find f !state.builtins_fun) es tau
+    with Not_found -> c_fun f es tau
 
   let simplify_eq e a b =
     match e.repr with
@@ -903,7 +964,7 @@ struct
   let dispatch = function
     | NOT p -> !cached_not p.repr
     | CMP(cmp,a,b) -> builtin_cmp cmp a b
-    | FUN(f,es) -> builtin_fun f es
+    | FUN(f,es,tau) -> builtin_fun ?tau f es
   let operation op = C.compute !state.cache dispatch op
 
   let distribute_if_over_operation force op x y f a b =
@@ -920,18 +981,20 @@ struct
       -> !extern_ite bc (f a b1) (f a b2)
     | _ -> op x y
 
-  let distribute f = function
+  let distribute f tau = function
     | x::[] as xs ->
         begin
           match x.repr with
           | If(c,a,b) ->  !extern_ite c (!extern_fun f [a]) (!extern_fun f [b])
-          | _ -> operation (FUN(f,xs))
+          | _ -> operation (FUN(f,xs,tau))
         end
     | a::b::[] as xs ->
-        distribute_if_over_operation false (fun f xs -> operation (FUN(f,xs))) f xs (fun a b -> !extern_fun f [a;b]) a b
-    | xs -> operation (FUN(f,xs))
+        distribute_if_over_operation false
+          (fun f xs -> operation (FUN(f,xs,tau))) f xs
+          (fun a b -> !extern_fun f [a;b]) a b
+    | xs -> operation (FUN(f,xs,tau))
 
-  let c_builtin_fun f xs = distribute f xs
+  let c_builtin_fun f xs tau = distribute f tau xs
   let c_builtin_eq  a b = distribute_if_over_operation true (fun a b -> operation (CMP(EQ ,a,b))) a b !extern_eq  a b
   let c_builtin_neq a b = distribute_if_over_operation true (fun a b -> operation (CMP(NEQ,a,b))) a b !extern_neq a b
   let c_builtin_lt  a b = distribute_if_over_operation true (fun a b -> operation (CMP(LT ,a,b))) a b !extern_lt  a b
@@ -944,11 +1007,13 @@ struct
           "Builtin already registered for '%s'" (Fun.debug f) in
       raise (Failure msg)
 
-  let set_builtin f p =
+  let set_builtin' f p =
     begin
       prepare_builtin f !state.builtins_fun ;
       !state.builtins_fun <- BUILTIN.add f p !state.builtins_fun ;
     end
+
+  let set_builtin f p = set_builtin' f (fun es _ -> p es)
 
   let set_builtin_get f p =
     begin
@@ -968,7 +1033,7 @@ struct
       !state.builtins_leq <- BUILTIN.add f p !state.builtins_leq ;
     end
 
-  let set_builtin_map f phi = set_builtin f (fun es -> c_fun f (phi es))
+  let set_builtin_map f phi = set_builtin' f (fun es tau -> c_fun f (phi es) tau)
 
   (* -------------------------------------------------------------------------- *)
   (* --- Negation                                                           --- *)
@@ -1041,7 +1106,7 @@ struct
     | E_int k -> e_int k
     | E_true -> e_true
     | E_false -> e_false
-    | E_fun (f,l) -> c_fun f (List.map element l)
+    | E_fun (f,l) -> c_fun f (List.map element l) None
 
   let rec is_element e x = match e , x.repr with
     | E_int k , Kint z -> Z.equal (Z.of_int k) z
@@ -1065,7 +1130,7 @@ struct
     | Operator op -> is_element op.absorbant e
     | _ -> false
 
-  let op_fun f op xs =
+  let op_fun f op xs tau =
     let xs =
       if op.associative then
         let xs = op_revassoc f [] xs in
@@ -1089,14 +1154,14 @@ struct
       match xs with
       | [] when op.neutral <> E_none -> element op.neutral
       | [x] when op.associative -> x
-      | _ -> c_builtin_fun f xs
+      | _ -> c_builtin_fun f xs tau
 
-  let e_fungen f xs =
+  let e_fungen f xs tau =
     match Fun.category f with
-    | Logic.Operator op -> op_fun f op xs
-    | _ -> c_builtin_fun f xs
+    | Logic.Operator op -> op_fun f op xs tau
+    | _ -> c_builtin_fun f xs tau
 
-  let e_fun = e_fungen
+  let e_fun ?result f xs = e_fungen f xs result
   let () = extern_fun := e_fun
 
   (* -------------------------------------------------------------------------- *)
@@ -1119,14 +1184,6 @@ struct
     if Z.lt z Z.zero then Negative else
     if Z.lt Z.zero z then Positive else
       Null
-(*
-  let pp fmt a =
-    match a.repr with
-    | Kint z -> Format.pp_print_string fmt (Z.to_string z)
-    | Kreal q -> Format.pp_print_string fmt (Q.to_string q)
-    | Fvar x -> Var.pretty fmt x
-    | _ -> Format.fprintf fmt "#%d" a.id
-*)
 
   let r_affine_rel fz fe c xs ys =
     let a , xs = r_ground Q.add (Q.of_bigint c) [] xs in
@@ -1657,13 +1714,13 @@ struct
   and eq_invertible x y f xs ys =
     let modified,xs,ys = op_invertible ~ac:(is_ac f) xs ys in
     if modified
-    then eq_symb (e_fun f xs) (e_fun f ys)
+    then eq_symb (e_fun f xs ?result:x.tau) (e_fun f ys ?result:y.tau)
     else c_builtin_eq x y
 
   and eq_invertible_both x y f g xs ys =
     let modified,xs',ys' = op_invertible ~ac:(is_ac f) xs [y] in
     if modified
-    then eq_symb (e_fun f xs') (e_fun f ys')
+    then eq_symb (e_fun f xs' ?result:x.tau) (e_fun f ys' ?result:y.tau)
     else eq_invertible x y g [x] ys
 
   and eq_field (f,x) (g,y) =
@@ -1833,7 +1890,7 @@ struct
         end
     | Fun (g,xs) ->
         begin
-          try (BUILTIN.find g !state.builtins_get) xs k
+          try (BUILTIN.find g !state.builtins_get) xs m.tau k
           with Not_found -> c_get m k
         end
     | _ -> c_get m k
@@ -1873,36 +1930,6 @@ struct
   type record = (Field.t * term) list
 
   (* -------------------------------------------------------------------------- *)
-  (* --- Non-Binding Morphism                                               --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  let rebuild f e =
-    match e.repr with
-    | Kint _ | Kreal _ | Fvar _ | Bvar _ | True | False -> e
-    | Not e -> e_not (f e)
-    | Add xs -> addition (List.map f xs)
-    | Mul xs -> multiplication (List.map f xs)
-    | And xs -> e_and (List.map f xs)
-    | Or  xs -> e_or  (List.map f xs)
-    | Mod(x,y) -> e_mod (f x) (f y)
-    | Div(x,y) -> e_div (f x) (f y)
-    | Eq(x,y)  -> e_eq  (f x) (f y)
-    | Neq(x,y) -> e_neq (f x) (f y)
-    | Lt(x,y)  -> e_lt  (f x) (f y)
-    | Leq(x,y) -> e_leq (f x) (f y)
-    | Times(z,t) -> times z (f t)
-    | If(e,a,b) -> e_if (f e) (f a) (f b)
-    | Imply(hs,p) -> e_imply (List.map f hs) (f p)
-    | Fun(g,xs) -> e_fun g (List.map f xs)
-    | Acst(t,v) -> e_const t v
-    | Aget(x,y) -> e_get (f x) (f y)
-    | Aset(x,y,z) -> e_set (f x) (f y) (f z)
-    | Rget(x,g) -> e_getfield (f x) g
-    | Rdef gxs -> e_record (List.map (fun (g,x) -> g, f x) gxs)
-    | Apply(e,es) -> c_apply (f e) (List.map f es)
-    | Bind(q,t,e) -> c_bind q t (f e)
-
-  (* -------------------------------------------------------------------------- *)
   (* --- Smart Constructors                                                 --- *)
   (* -------------------------------------------------------------------------- *)
 
@@ -1915,59 +1942,336 @@ struct
   let e_mul x y = multiplication [x;y]
 
   (* -------------------------------------------------------------------------- *)
-  (* --- Locally Memoized                                                   --- *)
+  (* --- Caches                                                             --- *)
   (* -------------------------------------------------------------------------- *)
 
-  type sigma = term Tmap.t ref
+  let cache () = ref Tmap.empty
+  let get mu f e =
+    try Tmap.find e !mu with Not_found ->
+      let v = f e in mu := Tmap.add e v !mu ; v
+  let set mu e v = mu := Tmap.add e v !mu
 
-  let sigma () = ref Tmap.empty
-
-  let cache_find m e = Tmap.find e !m
-  let cache_bind m e v = m := Tmap.add e v !m ; v
-
-  let sigma_add m t = m := Tmap.union (fun _ _ v2 -> v2) !m t
 
   (* -------------------------------------------------------------------------- *)
   (* --- Locally Nameless                                                   --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let rec lc_subst_var m x v e =
-    if not (Vars.mem x e.vars) then e else
-      match e.repr with
-      | Fvar y when Var.equal x y -> v
-      | _ ->
-          try cache_find m e
-          with Not_found -> cache_bind m e (rebuild (lc_subst_var m x v) e)
-
-  let lc_bind x e =
-    let k = Bvars.order e.bind in
-    let t = tau_of_var x in
-    lc_subst_var (sigma ()) x (e_bvar k t) e
-
-  let e_subst_var x v e =
-    lc_subst_var (sigma ()) x v e
-
-  let rec lc_open m k v e =
-    if not (Bvars.contains k e.bind) then e else
-      match e.repr with
-      | Bvar _ -> v (* e.bind is a singleton that can only contains k *)
-      | _ ->
-          if is_simple e then e else
-            try cache_find m e
-            with Not_found -> cache_bind m e (rebuild (lc_open m k v) e)
-
-  let lc_open_term t e =
-    let k = Bvars.order e.bind in
-    lc_open (sigma ()) k t e
-
-  let lc_open x e =
-    let k = Bvars.order e.bind in
-    lc_open (sigma ()) k (e_var x) e
-
   let lc_closed e = Bvars.closed e.bind
   let lc_closed_at n e = Bvars.closed_at n e.bind
   let lc_vars e = e.bind
   let lc_repr e = e
+
+  (*
+     Warning: must only be used for alpha-conversion
+     Never re-compute simplifications, only renormalize with
+     respect to hash-consing.
+  *)
+  let lc_alpha f e0 =
+    match e0.repr with
+    | Kint _ | Kreal _ | Fvar _ | Bvar _ | True | False -> e0
+    | Not e -> c_not (f e)
+    | Add xs -> c_add (List.map f xs)
+    | Mul xs -> c_mul (List.map f xs)
+    | And xs -> c_and (List.map f xs)
+    | Or  xs -> c_or (List.map f xs)
+    | Mod(x,y) -> c_mod (f x) (f y)
+    | Div(x,y) -> c_div (f x) (f y)
+    | Eq(x,y)  -> c_eq  (f x) (f y)
+    | Neq(x,y) -> c_neq (f x) (f y)
+    | Lt(x,y)  -> c_lt  (f x) (f y)
+    | Leq(x,y) -> c_leq (f x) (f y)
+    | Times(z,t) -> c_times z (f t)
+    | If(e,a,b) -> c_if (f e) (f a) (f b)
+    | Imply(hs,p) -> c_imply (List.map f hs) (f p)
+    | Fun(g,xs) -> c_fun g (List.map f xs) e0.tau
+    | Acst(t,v) -> c_const t v
+    | Aget(x,y) -> c_get (f x) (f y)
+    | Aset(x,y,z) -> c_set (f x) (f y) (f z)
+    | Rget(x,g) -> c_getfield (f x) g
+    | Rdef gxs -> c_record (List.map (fun (g,x) -> g, f x) gxs)
+    | Apply(e,es) -> c_apply (f e) (List.map f es)
+    | Bind(q,t,e) -> c_bind q t (f e)
+
+  (* Alpha-convert free-variable x with the top-most bound variable *)
+  let lc_close x (lc : lc_term) : lc_term =
+    let rec walk mu x lc =
+      if Vars.mem x lc.vars then
+        get mu (lc_alpha (walk mu x)) lc
+      else lc in
+    let k = Bvars.order lc.bind in
+    let t = tau_of_var x in
+    let mu = cache () in
+    set mu (e_var x) (c_bvar k t) ;
+    walk mu x lc
+
+  (* Alpha-convert top-most bound variable with free-variable x *)
+  let lc_open x (lc : lc_term) : lc_term =
+    let rec walk mu k lc =
+      if Bvars.contains k lc.bind then
+        get mu (lc_alpha (walk mu k)) lc
+      else lc in
+    let k = Bvars.order lc.bind in
+    let t = tau_of_var x in
+    let mu = cache () in
+    set mu (c_bvar k t) (e_var x) ;
+    walk mu k lc
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Non-Binding Morphism                                               --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let rebuild f e0 =
+    match e0.repr with
+    | Kint _ | Kreal _ | Fvar _ | Bvar _ | True | False -> e0
+    | Not e -> e_not (f e)
+    | Add xs -> e_sum (List.map f xs)
+    | Mul xs -> e_prod (List.map f xs)
+    | And xs -> e_and (List.map f xs)
+    | Or  xs -> e_or (List.map f xs)
+    | Mod(x,y) -> e_mod (f x) (f y)
+    | Div(x,y) -> e_div (f x) (f y)
+    | Eq(x,y)  -> e_eq  (f x) (f y)
+    | Neq(x,y) -> e_neq (f x) (f y)
+    | Lt(x,y)  -> e_lt  (f x) (f y)
+    | Leq(x,y) -> e_leq (f x) (f y)
+    | Times(z,t) -> e_times z (f t)
+    | If(e,a,b) -> e_if (f e) (f a) (f b)
+    | Imply(hs,p) -> e_imply (List.map f hs) (f p)
+    | Fun(g,xs) -> e_fun ?result:e0.tau g (List.map f xs)
+    | Acst(t,v) -> e_const t v
+    | Aget(x,y) -> e_get (f x) (f y)
+    | Aset(x,y,z) -> e_set (f x) (f y) (f z)
+    | Rget(x,g) -> e_getfield (f x) g
+    | Rdef gxs -> e_record (List.map (fun (g,x) -> g, f x) gxs)
+    | Bind(q,t,a) -> c_bind q t (f a)
+    | Apply(e,es) -> c_apply (f e) (List.map f es)
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- General Substitution                                               --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  type sigma = {
+    pool : pool ;
+    mutable filter : (term -> bool) list ;
+    mutable shared : sfun ;
+  } and sfun =
+      | EMPTY
+      | FUN of (term -> term) * sfun
+      | MAP of term Tmap.t * sfun
+
+  module Subst =
+  struct
+    type t = sigma
+
+    let create ?pool () = {
+      pool = POOL.create ?copy:pool () ;
+      shared = EMPTY ;
+      filter = [] ;
+    }
+
+    let validate fn e =
+      if not (lc_closed e) then
+        begin
+          Format.eprintf "Invalid %s: %a@." fn pretty e ;
+          raise (Invalid_argument (fn ^ ": non lc-closed binding"))
+        end
+
+    let cache sigma =
+      ref begin
+        match sigma.shared with MAP( m , _ ) -> m | _ -> Tmap.empty
+      end
+
+    let fresh sigma t = fresh sigma.pool t
+
+    let call f e =
+      let v = f e in
+      validate "Qed.Subst.add_fun" v ; v
+
+    let rec compute e = function
+      | EMPTY -> raise Not_found
+      | FUN(f,EMPTY) -> call f e
+      | MAP(m,EMPTY) -> Tmap.find e m
+      | FUN(f,s) -> (try call f e with Not_found -> compute e s)
+      | MAP(m,s) -> (try Tmap.find e m with Not_found -> compute e s)
+
+    let get sigma a = compute a sigma.shared
+
+    let filter sigma a =
+      List.for_all (fun f -> f a) sigma.filter
+
+    let add sigma a b =
+      validate "Qed.Subst.add (domain)" a ;
+      validate "Qed.Subst.add (codomain)" b ;
+      sigma.shared <- match sigma.shared with
+        | MAP(m,s) -> MAP (Tmap.add a b m,s)
+        | (FUN _ | EMPTY) as s -> MAP (Tmap.add a b Tmap.empty,s)
+
+    let add_map sigma m =
+      if not (Tmap.is_empty m) then
+        begin
+          Tmap.iter
+            (fun a b ->
+               validate "Qed.Subst.add_map (domain)" a ;
+               validate "Qed.Subst.add_map (codomain)" b ;
+            ) m ;
+          sigma.shared <- MAP(m,sigma.shared)
+        end
+
+    let add_fun sigma f =
+      sigma.shared <- FUN(f,sigma.shared)
+
+    let add_filter sigma f =
+      sigma.filter <- f :: sigma.filter
+
+    let add_var sigma x = add_var sigma.pool x
+    let add_term sigma e = add_vars sigma.pool e.vars
+    let add_vars sigma xs = add_vars sigma.pool xs
+
+  end
+
+  let sigma = Subst.create
+
+  let filter sigma e =
+    Subst.filter sigma e || not (Bvars.is_empty e.bind)
+
+  let rec subst sigma alpha e =
+    if filter sigma e then
+      incache (Subst.cache sigma) sigma alpha e
+    else e
+
+  and incache mu sigma alpha e =
+    if filter sigma e then
+      get mu (compute mu sigma alpha) e
+    else e
+
+  and compute mu sigma alpha e =
+    try Subst.get sigma e with Not_found ->
+      let r =
+        match e.repr with
+        | Bvar(k,_) -> Intmap.find k alpha
+        | Bind _ ->
+            (* Not in cache *)
+            bind sigma alpha [] e
+        | Apply(e,es) ->
+            let phi = incache mu sigma alpha in
+            apply sigma Intmap.empty (phi e) (List.map phi es)
+        | _ -> rebuild (incache mu sigma alpha) e
+      in
+      (* Only put closed terms in cache *)
+      (if lc_closed e && lc_closed r then Subst.add sigma e r) ;
+      (* Finally returns result *) r
+
+  and bind sigma alpha qs e =
+    match e.repr with
+    | Bind(q,t,a) ->
+        let k = Bvars.order a.bind in
+        let x = Subst.fresh sigma t in
+        let alpha = Intmap.add k (e_var x) alpha in
+        let qs = (q,x) :: qs in
+        bind sigma alpha qs a
+    | _ ->
+        (* HERE:
+           This final binding of variables could be parallelized
+           if Bvars is precise enough *)
+        List.fold_left
+          (fun e (q,x) ->
+             if Vars.mem x e.vars then
+               let t = tau_of_var x in
+               (* HERE:
+                  possible to insert a recursive call to let-intro
+                  it will use a new instance of e_subst_var that
+                  will work on a different sigma *)
+               c_bind q t (lc_close x e)
+             else e
+          ) (subst sigma alpha e) qs
+
+  and apply sigma beta f vs =
+    match f.repr, vs with
+    | Bind(_,_,g) , v::vs ->
+        let k = Bvars.order g.bind in
+        apply sigma (Intmap.add k v beta) g vs
+    | _ ->
+        let f' = if Intmap.is_empty beta then f else subst sigma beta f in
+        c_apply f' vs
+
+  let e_subst sigma e =
+    Subst.validate "Qed.e_subst (target)" e ;
+    subst sigma Intmap.empty e
+
+  let e_subst_var x v e =
+    Subst.validate "Qed.e_subst_var (value)" v ;
+    Subst.validate "Qed.e_subst_var (target)" e ;
+    let filter e = Vars.mem x e.vars in
+    if not (filter e) then e else
+    if Bvars.is_empty v.bind && Bvars.is_empty e.bind then
+      let rec walk mu e =
+        if filter e then
+          get mu (rebuild (walk mu)) e
+        else e
+      in
+      let cache = cache () in
+      set cache (e_var x) v ;
+      walk cache e
+    else
+      let sigma = Subst.create () in
+      Subst.add sigma (e_var x) v ;
+      Subst.add_term sigma v ;
+      Subst.add_term sigma e ;
+      Subst.add_filter sigma filter ;
+      subst sigma Intmap.empty e
+
+  let e_apply e es =
+    let sigma = Subst.create () in
+    Subst.add_term sigma e ;
+    List.iter (Subst.add_term sigma) es ;
+    apply sigma Intmap.empty e es
+
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- convert between states                                             --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let rebuild_in_state to_state ?(cache=Tmap.empty) e =
+    let cache_find m e = Tmap.find e !m in
+    let cache_bind m e v = m := Tmap.add e v !m ; v in
+    let m = ref cache in
+    let rec aux e =
+      try cache_find m e
+      with Not_found ->
+        let r = match e.repr with
+          | Kint i -> e_zint i
+          | Kreal r -> e_real r
+          | Fvar v -> e_var v
+          | Bvar (v,t) -> c_bvar v t
+          | True -> e_true
+          | False -> e_false
+          | Not e -> e_not (aux e)
+          | Add xs -> addition (List.map aux xs)
+          | Mul xs -> multiplication (List.map aux xs)
+          | And xs -> e_and (List.map aux xs)
+          | Or  xs -> e_or  (List.map aux xs)
+          | Mod(x,y) -> e_mod (aux x) (aux y)
+          | Div(x,y) -> e_div (aux x) (aux y)
+          | Eq(x,y)  -> e_eq  (aux x) (aux y)
+          | Neq(x,y) -> e_neq (aux x) (aux y)
+          | Lt(x,y)  -> e_lt  (aux x) (aux y)
+          | Leq(x,y) -> e_leq (aux x) (aux y)
+          | Times(z,t) -> times z (aux t)
+          | If(e,a,b) -> e_if (aux e) (aux a) (aux b)
+          | Imply(hs,p) -> e_imply (List.map aux hs) (aux p)
+          | Fun(g,xs) -> e_fun ?result:e.tau g (List.map aux xs)
+          | Acst(t,v) -> e_const t (aux v)
+          | Aget(x,y) -> e_get (aux x) (aux y)
+          | Aset(x,y,z) -> e_set (aux x) (aux y) (aux z)
+          | Rget(x,g) -> e_getfield (aux x) g
+          | Rdef gxs -> e_record (List.map (fun (g,x) -> g, aux x) gxs)
+          | Apply(e,es) -> c_apply (aux e) (List.map aux es)
+          | Bind(q,t,e) -> c_bind q t (aux e)
+        in
+        cache_bind m e r
+    in
+    let r = in_state to_state aux e in
+    r, !m
 
   (* -------------------------------------------------------------------------- *)
   (* --- Binders                                                            --- *)
@@ -1975,11 +2279,12 @@ struct
 
   let let_intro_case q x a =
     let res = ref None in
+    let found_term t = assert (!res = None);
+      assert (not (Vars.mem x t.vars));
+      if not (lc_closed t) then false else
+        (res := Some t; true)
+    in
     let is_term_ok a b =
-      let found_term t = assert (!res = None);
-        assert (not (Vars.mem x t.vars));
-        res := Some t; true
-      in
       match a.repr with
       | Fvar w -> assert (Var.equal x w); found_term b
       | Add e ->
@@ -2010,8 +2315,16 @@ struct
       | false,true -> is_term_ok v u
       | _,_ -> false
     in
-    let is_eq e  = match e.repr with|Eq(u,v) -> is_var_ok u v |_ -> false in
-    let is_neq e = match e.repr with|Neq(u,v)-> is_var_ok u v |_ -> false in
+    let is_boolean_var polarity_term = function
+      | Fvar w when Var.equal x w -> found_term polarity_term
+      | _ -> false
+    in
+    let is_eq e = match e.repr with | Eq(u,v) -> is_var_ok u v
+                                    | Not q -> is_boolean_var e_false q.repr
+                                    | rep -> is_boolean_var e_true rep in
+    let is_neq e = match e.repr with | Neq(u,v)-> is_var_ok u v
+                                     | Not q -> is_boolean_var e_true q.repr
+                                     | rep -> is_boolean_var e_false rep in
     match q with
     | Lambda -> None
     | Forall ->
@@ -2028,15 +2341,34 @@ struct
           | _ -> is_eq e
         in ignore(exists_case a); !res
 
-  let e_bind q x a =
-    assert (lc_closed a) ;
+  let e_open ~pool ?(forall=true) ?(exists=true) ?(lambda=true) a =
+    match a.repr with
+    | Bind _ ->
+        let filter = function
+          | Forall -> forall
+          | Exists -> exists
+          | Lambda -> lambda in
+        let rec walk qs a = match a.repr with
+          | Bind(q,t,b) when filter q ->
+              let x = fresh pool t in
+              walk ((q,x)::qs) (lc_open x b)
+          | _ -> qs , a
+        in walk [] a
+    | _ -> [],a
+
+  let e_unbind x (lc : lc_term) : term =
+    assert (not (Vars.mem x lc.vars)); lc_open x lc
+
+  let e_bind q x (e : term) =
     let do_bind =
-      match q with Forall | Exists -> Vars.mem x a.vars | Lambda -> true in
+      match q with Forall | Exists -> Vars.mem x e.vars | Lambda -> true in
     if do_bind then
-      match let_intro_case q x a with
-      | None -> c_bind q (tau_of_var x) (lc_bind x a)
-      | Some e -> lc_subst_var (sigma ()) x e a (* case [let x = e ; a] *)
-    else a
+      match let_intro_case q x e with
+      | Some v -> e_subst_var x v e (* case [let x = v ; e] *)
+      | _ -> c_bind q (tau_of_var x) (lc_close x e)
+    else e
+
+  let e_close qs a = List.fold_left (fun b (q,x) -> e_bind q x b) a qs
 
   let rec bind_xs q xs e =
     match xs with [] -> e | x::xs -> e_bind q x (bind_xs q xs e)
@@ -2045,90 +2377,22 @@ struct
   let e_exists = bind_xs Exists
   let e_lambda = bind_xs Lambda
 
-  let rec binders e =
-    match e.repr with
-    | Bind(q,_,e) -> q :: binders e
-    | _ -> []
-
-  (* -------------------------------------------------------------------------- *)
-  (* --- Substitutions                                                      --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  let r_apply = ref (fun _ _ _ -> assert false)
-
-  let rec subst sigma xs d e =
-    (* substitute bound variable d+i with xs.(i) for 0 <= i < xs.length *)
-    if not (Bvars.overlap d (Array.length xs) e.bind)
-    then e else
-      match e.repr with
-      | Bvar(k,_) -> xs.(k-d)
-      | _ ->
-          try cache_find sigma e
-          with Not_found ->
-            cache_bind sigma e
-              begin match e.repr with
-                | Apply(e,es) ->
-                    let e = subst sigma xs d e in
-                    let es = List.map (subst sigma xs d) es in
-                    !r_apply [] e es
-                | _ ->
-                    rebuild (subst sigma xs d) e
-              end
-
-  let rec apply xs a es =
-    match a.repr , es with
-    | Bind(_,_,a) , e::es -> apply (e::xs) a es
-    | _ ->
-        let core =
-          if xs=[] then a else
-            let sigma = sigma () in
-            let xs = Array.of_list xs in
-            let d = Bvars.order a.bind + 1 - Array.length xs in
-            subst sigma xs d a
-        in c_apply core es
-
-  let () = r_apply := apply
-
-  let e_apply e es = apply [] e es
-
-  (* -------------------------------------------------------------------------- *)
-  (* --- General Substitutions                                              --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  let rec gsubst mu sigma e =
-    match e.repr with
-    | True | False | Kint _ | Kreal _ | Bvar _ -> e
-    | _ ->
-        try cache_find mu e
-        with Not_found ->
-          let e0 = rebuild (gsubst mu sigma) e in
-          let e1 =
-            if lc_closed e0 then
-              try sigma e0 with Not_found -> e0
-            else e0 in
-          cache_bind mu e e1
-
-  let e_subst ?sigma f e =
-    let cache = match sigma with None -> ref Tmap.empty | Some c -> c in
-    gsubst cache f e
-
   (* -------------------------------------------------------------------------- *)
   (* --- Iterators                                                          --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let e_repr = function
+  let e_repr ?result = function
+    | Bvar _ | Bind _ -> raise (Invalid_argument "Qed.e_repr")
     | True -> e_true
     | False -> e_false
     | Kint z -> e_zint z
     | Kreal r -> e_real r
     | Fvar x -> e_var x
-    | Bvar(k,t) -> e_bvar k t
-    | Bind(q,t,e) -> c_bind q t e
     | Apply(a,xs) -> e_apply a xs
     | Times(k,e) -> e_times k e
     | Not e -> e_not e
-    | Add xs -> addition xs
-    | Mul xs -> multiplication xs
+    | Add xs -> e_sum xs
+    | Mul xs -> e_prod xs
     | And xs -> e_and xs
     | Or  xs -> e_or xs
     | Mod(x,y) -> e_mod x y
@@ -2139,59 +2403,35 @@ struct
     | Leq(x,y) -> e_leq x y
     | If(e,a,b) -> e_if e a b
     | Imply(hs,p) -> e_imply hs p
-    | Fun(g,xs) -> e_fun g xs
+    | Fun(g,xs) -> e_fun ?result g xs
     | Acst(t,v) -> e_const t v
     | Aget(m,k) -> e_get m k
     | Aset(m,k,v) -> e_set m k v
     | Rget(r,f) -> e_getfield r f
     | Rdef fvs -> e_record fvs
 
-  let e_map pool f e =
+  let lc_iter f e = repr_iter f e.repr
+
+  let f_map ?pool ?forall ?exists ?lambda f e =
     match e.repr with
     | Apply(a,xs) -> e_apply (f a) (List.map f xs)
-    | Bind(q,t,e) ->
-        add_term pool e ;
-        let x = fresh pool t in
-        e_bind q x (f (lc_open x e))
+    | Bind _ ->
+        let pool = match pool with
+          | None -> raise (Invalid_argument "Qed.ogic.Term.f_map")
+          | Some pool -> pool in
+        let ctx,a = e_open ~pool ?forall ?exists ?lambda e in
+        e_close ctx (rebuild f a)
     | _ -> rebuild f e
 
-  let f_map f n e =
+  let f_iter ?pool ?forall ?exists ?lambda f e =
     match e.repr with
-    | Bind(q,t,e) -> c_bind q t (f (succ n) e)
-    | Apply(a,xs) -> e_apply (f n a) (List.map (f n) xs)
-    | _ -> rebuild (f n) e
-
-  let lc_map f e =
-    match e.repr with
-    | Apply(a,xs) -> e_apply (f a) (List.map f xs)
-    | _ -> rebuild f e
-
-  let lc_iter f e =
-    match e.repr with
-    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> ()
-    | Times(_,e) | Not e | Rget(e,_) | Acst(_,e) -> f e
-    | Add xs | Mul xs | And xs | Or xs -> List.iter f xs
-    | Mod(x,y) | Div(x,y) | Eq(x,y) | Neq(x,y) | Leq(x,y) | Lt(x,y)
-    | Aget(x,y) -> f x ; f y
-    | Rdef fvs -> List.iter (fun (_,v) -> f v) fvs
-    | If(e,a,b) | Aset(e,a,b) -> f e ; f a ; f b
-    | Imply(xs,x) -> List.iter f xs ; f x
-    | Fun(_,xs) -> List.iter f xs
-    | Apply(x,xs) -> f x ; List.iter f xs
-    | Bind(_,_,e) -> f e
-
-  let e_iter pool f e =
-    match e.repr with
-    | Bind(_,t,e) ->
-        add_term pool e ;
-        let x = fresh pool t in
-        lc_iter f (lc_open x e)
-    | _ -> lc_iter f e
-
-  let f_iter f n e =
-    match e.repr with
-    | Bind(_,_,e) -> f (succ n) e
-    | _ -> lc_iter (f n) e
+    | Bind _ ->
+        let pool = match pool with
+          | None -> raise (Invalid_argument "Qed.ogic.Term.f_iter")
+          | Some pool -> pool in
+        let _,a = e_open ~pool ?forall ?exists ?lambda e in
+        f a
+    | _ -> repr_iter f e.repr
 
   (* -------------------------------------------------------------------------- *)
   (* --- Sub-terms                                                          --- *)
@@ -2266,7 +2506,7 @@ struct
           | Aset _ -> bad_position ()
           | Rdef _ | Rget _ ->
               failwith "change in place for records not yet implemented"
-          | Fun (f,ops) -> e_fun f (change_in_list ops i l)
+          | Fun (f,ops) -> e_fun ?result:e.tau f (change_in_list ops i l)
           | Bind(q,x,t) when i = 0 -> c_bind q x (aux t l)
           | Bind _ -> bad_position ()
           | Apply(f,args) when i = 0 ->
@@ -2276,67 +2516,7 @@ struct
         end
     in aux e pos
 
-  (* -------------------------------------------------------------------------- *)
-  (* --- DEBUG                                                              --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  let pp_bind fmt = function
-    | Forall -> Format.pp_print_string fmt "Forall"
-    | Exists -> Format.pp_print_string fmt "Exists"
-    | Lambda -> Format.pp_print_string fmt "Lambda"
-
-  let pp_var fmt x = Format.fprintf fmt "X%03d(%s:%d)" x.vid x.vbase x.vrank
-  let pp_id fmt x = Format.fprintf fmt " #%03d" x.id
-  let pp_ids fmt xs = List.iter (pp_id fmt) xs
-  let pp_field fmt (f,x) = Format.fprintf fmt "@ %a:%a;" Field.pretty f pp_id x
-  let pp_record fmt fxs = List.iter (pp_field fmt) fxs
-  let pp_repr fmt = function
-    | Kint z -> Format.fprintf fmt "constant %s" (Z.to_string z)
-    | Kreal z -> Format.fprintf fmt "real constant %s" (Q.to_string z)
-    | True  -> Format.pp_print_string fmt "true"
-    | False -> Format.pp_print_string fmt "false"
-    | Times(z,x) -> Format.fprintf fmt "times %s%a" (Z.to_string z) pp_id x
-    | Add xs -> Format.fprintf fmt "add%a" pp_ids xs
-    | Mul xs -> Format.fprintf fmt "mul%a" pp_ids xs
-    | And xs -> Format.fprintf fmt "and%a" pp_ids xs
-    | Div(a,b) -> Format.fprintf fmt "div%a%a" pp_id a pp_id b
-    | Mod(a,b) -> Format.fprintf fmt "mod%a%a" pp_id a pp_id b
-    | Or xs -> Format.fprintf fmt "or%a" pp_ids xs
-    | If(e,a,b) -> Format.fprintf fmt "if%a%a%a" pp_id e pp_id a pp_id b
-    | Imply(hs,p) -> Format.fprintf fmt "imply%a =>%a" pp_ids hs pp_id p
-    | Neq(a,b) -> Format.fprintf fmt "neq%a%a" pp_id a pp_id b
-    | Eq(a,b) -> Format.fprintf fmt "eq%a%a" pp_id a pp_id b
-    | Leq(a,b) -> Format.fprintf fmt "leq%a%a" pp_id a pp_id b
-    | Lt(a,b) -> Format.fprintf fmt "lt%a%a" pp_id a pp_id b
-    | Not e -> Format.fprintf fmt "not%a" pp_id e
-    | Fun(f,es) -> Format.fprintf fmt "fun %a%a" Fun.pretty f pp_ids es
-    | Apply(phi,es) -> Format.fprintf fmt "apply%a%a" pp_id phi pp_ids es
-    | Fvar x -> Format.fprintf fmt "var %a" pp_var x
-    | Bvar(k,_) -> Format.fprintf fmt "bvar #%d" k
-    | Bind(q,t,e) -> Format.fprintf fmt "bind %a %a. %a" pp_bind q Tau.pretty t pp_id e
-    | Rdef fxs -> Format.fprintf fmt "@[<hov 2>record {%a }@]" pp_record fxs
-    | Rget(e,f) -> Format.fprintf fmt "field %a.%a" pp_id e Field.pretty f
-    | Aset(m,k,v) -> Format.fprintf fmt "array%a[%a :=%a ]" pp_id m pp_id k pp_id v
-    | Aget(m,k) -> Format.fprintf fmt "array%a[%a ]" pp_id m pp_id k
-    | Acst(t,v) -> Format.fprintf fmt "const[%a ->%a]" Tau.pretty t pp_id v
-  let pp_rid fmt e = pp_repr fmt e.repr
-
-  let rec pp_debug disp fmt e =
-    if not (Intset.mem e.id !disp) then
-      begin
-        Format.fprintf fmt "%a{%a} = %a@."
-          pp_id e Bvars.pretty e.bind pp_repr e.repr ;
-        disp := Intset.add e.id !disp ;
-        pp_children disp fmt e ;
-      end
-
-  and pp_children disp fmt e = lc_iter (pp_debug disp fmt) e
-
-  let debug fmt e =
-    Format.fprintf fmt "%a with:@." pp_id e ;
-    pp_debug (ref Intset.empty) fmt e
-
-  let pretty = debug
+  let () = pretty_debug := debug
 
   (* ------------------------------------------------------------------------ *)
   (* ---  Record Decomposition                                            --- *)
@@ -2555,43 +2735,46 @@ struct
   }
 
   let rec typecheck env e =
-    match e.sort with
-    | Sint -> Int
-    | Sreal -> Real
-    | Sbool -> Bool
-    | Sprop -> Prop
-    | Sdata | Sarray _ ->
-        match e.repr with
-        | Bvar (_,ty) -> ty
-        | Fvar x -> tau_of_var x
-        | Acst(t,v) -> Array(t,typecheck env v)
-        | Aset(m,k,v) ->
-            (try typecheck env m
-             with Not_found ->
-               Array(typecheck env k,typecheck env v))
-        | Fun(f,es) ->
-            (try tau_of_sort (Fun.sort f)
-             with Not_found -> env.call f (List.map (typeof env) es))
-        | Aget(m,_) ->
-            (try match typecheck env m with
-               | Array(_,v) -> v
-               | _ -> raise Not_found
-             with Not_found -> tau_of_arraysort m.sort)
-        | Rdef [] -> raise Not_found
-        | Rdef ((f,_)::_) -> env.record f
-        | Rget (_,f) ->
-            (try tau_of_sort (Field.sort f)
-             with Not_found -> env.field f)
-        | True | False -> Bool
-        | Kint _ -> Int
-        | Kreal _ -> Real
-        | Times(_,e) -> typecheck env e
-        | Add es | Mul es -> merge_list Int (typecheck env) es
-        | Div (a,b) | Mod (a,b) | If(_,a,b) ->
-            tau_merge (typecheck env a) (typecheck env b)
-        | Eq _ | Neq _ | Leq _ | Lt _ | And _ | Or _ | Not _ | Imply _ -> Bool
-        | Bind((Forall|Exists),_,_) -> Prop
-        | Apply _ | Bind(Lambda,_,_) -> raise Not_found
+    match e.tau with
+    | Some tau -> tau
+    | None ->
+        match e.sort with
+        | Sint -> Int
+        | Sreal -> Real
+        | Sbool -> Bool
+        | Sprop -> Prop
+        | Sdata | Sarray _ ->
+            match e.repr with
+            | Bvar (_,ty) -> ty
+            | Fvar x -> tau_of_var x
+            | Acst(t,v) -> Array(t,typecheck env v)
+            | Aset(m,k,v) ->
+                (try typecheck env m
+                 with Not_found ->
+                   Array(typecheck env k,typecheck env v))
+            | Fun(f,es) ->
+                (try tau_of_sort (Fun.sort f)
+                 with Not_found -> env.call f (List.map (typeof env) es))
+            | Aget(m,_) ->
+                (try match typecheck env m with
+                   | Array(_,v) -> v
+                   | _ -> raise Not_found
+                 with Not_found -> tau_of_arraysort m.sort)
+            | Rdef [] -> raise Not_found
+            | Rdef ((f,_)::_) -> env.record f
+            | Rget (_,f) ->
+                (try tau_of_sort (Field.sort f)
+                 with Not_found -> env.field f)
+            | True | False -> Bool
+            | Kint _ -> Int
+            | Kreal _ -> Real
+            | Times(_,e) -> typecheck env e
+            | Add es | Mul es -> merge_list Int (typecheck env) es
+            | Div (a,b) | Mod (a,b) | If(_,a,b) ->
+                tau_merge (typecheck env a) (typecheck env b)
+            | Eq _ | Neq _ | Leq _ | Lt _ | And _ | Or _ | Not _ | Imply _ -> Bool
+            | Bind((Forall|Exists),_,_) -> Prop
+            | Apply _ | Bind(Lambda,_,_) -> raise Not_found
 
   and typeof env e = try Some (typecheck env e) with Not_found -> None
 

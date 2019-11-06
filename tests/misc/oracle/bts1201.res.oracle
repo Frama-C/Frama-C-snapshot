@@ -8,7 +8,7 @@
 [eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  1 function analyzed (out of 1): 100% coverage.
+  1 function analyzed (out of 2): 50% coverage.
   In this function, 2 statements reached (out of 2): 100% coverage.
   ----------------------------------------------------------------------------
   No errors or warnings raised during the analysis.
@@ -28,7 +28,7 @@
 [eva] done for function main2
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  1 function analyzed (out of 1): 100% coverage.
+  1 function analyzed (out of 2): 50% coverage.
   In this function, 1 statements reached (out of 1): 100% coverage.
   ----------------------------------------------------------------------------
   No errors or warnings raised during the analysis.

@@ -1,15 +1,16 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/tset.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
+[wp] Warning: native support for coq is deprecated, use tip instead
 [wp] 4 goals scheduled
 [wp] [Qed] Goal typed_lemma_UNION_DESCR : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_UNION_EQ : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_UNION_EQ : Valid
 [wp] [Qed] Goal typed_lemma_UNION_LIFT : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_UNION_RANGE : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_UNION_RANGE : Valid
 [wp] Proved goals:    4 / 4
-  Qed:             2 
-  Alt-Ergo:        2
+  Qed:               2 
+  Alt-Ergo 2.0.0:    2
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/tset.0.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/tset.0.report.json'
 -------------------------------------------------------------

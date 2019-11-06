@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -wp-msg-key print-generated -wp-prover alt-ergo -wp-gen
+   OPT: -wp-msg-key print-generated -wp-prover why3 -wp-gen
 */
 
 /*@ requires \valid(t+(0..9));

@@ -1,5 +1,4 @@
 /* run.config
-   STDOPT: +"-no-val-builtins-auto"
    COMMENT: bts #1390, issue with typing of quantified variables
 */
 

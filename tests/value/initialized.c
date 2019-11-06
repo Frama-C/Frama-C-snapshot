@@ -154,6 +154,41 @@ void g7() {
   //@ assert !\initialized(&key[0..127]);
 }
 
+/* Tests the reduction by the negation of the \initialized predicate. */
+void reduce_by_negation () {
+  int x, y;
+  int *p = rand ? &x : &y;
+  if (rand) x = 0;
+  if (rand) y = 0;
+  if (rand) {
+    //@ assert !\initialized(&x);
+    //@ check invalid: \initialized(&x);
+  }
+  if (rand) {
+    //@ assert !\initialized(p);
+    //@ check unknown: \initialized(&x) && \initialized(&y);
+  }
+  if (rand) {
+    //@ assert !\initialized({&x, &y});
+    //@ check unknown: \initialized(&x) && \initialized(&y);
+  }
+  if (rand) {
+    y = 0;
+    //@ assert !\initialized(p);
+    //@ check unknown: \initialized(&x);
+  }
+  if (rand) {
+    y = 0;
+    //@ assert !\initialized({&x, &y});
+    //@ check invalid: \initialized(&x);
+  }
+  char t[10];
+  for (int i = 0; i < 10; i++)
+    t[i] = i;
+  //@ assert !\initialized(&t[0..9]);
+  //@ check unknown: \initialized(&t[0..9]);
+}
+
 int main () {
   g1();
   g2();
@@ -162,5 +197,6 @@ int main () {
   g5();
   g6();
   g7();
+  reduce_by_negation();
   return 0;
 }

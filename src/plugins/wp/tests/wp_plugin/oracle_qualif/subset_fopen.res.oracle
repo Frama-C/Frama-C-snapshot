@@ -1,17 +1,17 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/subset_fopen.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 5 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_assert_Ok_A : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_assert_Ok_A : Unsuccess
 [wp] [Qed] Goal typed_f_assert_Ok_B : Valid
 [wp] [Qed] Goal typed_f_assert_Ok_C : Valid
 [wp] [Qed] Goal typed_f_assert_Ok_D : Valid
-[wp] [Alt-Ergo] Goal typed_f_assert_Ok_E : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_assert_Ok_E : Valid
 [wp] Proved goals:    4 / 5
-  Qed:             3 
-  Alt-Ergo:        1  (unsuccess: 1)
+  Qed:               3 
+  Alt-Ergo 2.0.0:    1  (unsuccess: 1)
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/subset_fopen.0.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/subset_fopen.0.report.json'
 -------------------------------------------------------------

@@ -7,6 +7,11 @@ void basic(void)
   __asm__ ("xor %eax, %eax\n\t");
 }
 
+void pretty(void)
+{
+__asm__ volatile ("pxor %%""mm7"", %%""mm7""\n\tpcmpeqd %%""mm6"", %%""mm6" : );
+}
+
 int main(unsigned short bit)
 {
   asm goto ("1: jmp %l[t_no]\n"

@@ -1,0 +1,10 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_region/fb_ADD.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 0 goal scheduled
+[wp] Proved goals:    0 / 0
+[wp] Report in:  'tests/wp_region/oracle_qualif/fb_ADD.0.report.json'
+[wp] Report out: 'tests/wp_region/result_qualif/fb_ADD.0.report.json'
+-------------------------------------------------------------

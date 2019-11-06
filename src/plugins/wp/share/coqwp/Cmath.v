@@ -32,9 +32,10 @@ Require real.RealInfix.
 Require Import RIneq.
 
 (* Why3 goal *)
-Lemma abs_def : forall (x:Z), ((0%Z <= x)%Z ->
-  ((ZArith.BinInt.Z.abs x) = x)) /\ ((~ (0%Z <= x)%Z) ->
-  ((ZArith.BinInt.Z.abs x) = (-x)%Z)).
+Lemma abs_def :
+  forall (x:Z),
+  ((0%Z <= x)%Z -> ((ZArith.BinInt.Z.abs x) = x)) /\
+  (~ (0%Z <= x)%Z -> ((ZArith.BinInt.Z.abs x) = (-x)%Z)).
 Proof.
 exact int.Abs.abs_def.
 Qed.

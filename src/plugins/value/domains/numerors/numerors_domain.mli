@@ -20,30 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type value
-type location = Precise_locs.precise_location
-val value_key : value Structure.Key_Value.k
-
-(** True if the numerors domain is available;
-    False if the MPFR library has not been found. *)
-val ok: bool
-
-(** Functions used by the engine to build numerors abstractions. *)
-
-(** Builds the product between a given value module and the numerors value
-    module. If the given value module contains Cvalue, uses cvalues to reduce
-    numerors values on casts from integer to floating-point values.
-    Fails if numerors domain is not available.  *)
-val add_numerors_value:
-  (module Abstract_value.Internal) -> (module Abstract_value.Internal)
-
-(* From a given abstract value product, creates the reduction function that
-   reduces numerors values by using cvalues. Returns the identity if the given
-   value product does not contain numerors and cvalue componants. *)
-val reduce_error:
-  (module Abstract_value.External with type t = 'v) -> ('v -> 'v)
-
-(** Returns the numerors domain module, if available. Fails otherwise. *)
-val numerors_domain:
-  unit -> (module Abstract_domain.Internal with type value = value
-                                            and type location = location)
+(** Numerors domain: computes over-approximations of the rounding errors bounds
+    of floating-point computations.
+    Nothing is exported: the domain is registered as an analysis abstraction
+    in the Eva engine, enabled by the -eva-numerors-domain option. *)

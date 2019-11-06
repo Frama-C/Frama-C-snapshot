@@ -47,7 +47,7 @@ type tree = {
   mutable root : node option ; (* the root node *)
 }
 
-module PROOFS = Model.StaticGenerator(Wpo.S)
+module PROOFS = WpContext.StaticGenerator(Wpo.S)
     (struct
       type key = Wpo.S.t
       type data = tree
@@ -185,8 +185,8 @@ let head t = match t.head with
   | None -> t.main
   | Some n -> n.goal
 let goal n = n.goal
-let tree_model t = t.main.Wpo.po_model
-let node_model n = n.goal.Wpo.po_model
+let tree_context t = Wpo.get_context t.main
+let node_context n = Wpo.get_context n.goal
 let parent n = n.parent
 let title n = n.goal.Wpo.po_name
 let tactical n =
@@ -361,7 +361,8 @@ struct
 
   let create tree ~anchor tactic process =
     let axioms , sequent = Wpo.compute anchor.goal in
-    let dseqs = process sequent in
+    let vars = Conditions.vars_seq sequent in
+    let dseqs = Lang.local ~vars process sequent in
     let title = tactic.ProofScript.header in
     let goals = List.map
         (fun (part,s) -> part , mk_goal tree ~title ~part ~axioms s) dseqs

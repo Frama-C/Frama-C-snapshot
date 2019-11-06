@@ -15,7 +15,11 @@
 (* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+(** The theory int_Exponentiation_ must be appended to this file*)
+(** The theory int_Power_ must be appended to this file*)
 (** The theory real_Real_ must be appended to this file*)
+(** The theory real_FromInt_ must be appended to this file*)
 (** The theory real_Square_ must be appended to this file*)
 (** The theory real_ExpLog_ must be appended to this file*)
 logic pow : real, real -> real
@@ -44,4 +48,8 @@ axiom Pow_one_y : (forall y:real. (pow(1.0, y) = 1.0))
 axiom Pow_x_two : (forall x:real. ((0.0 <  x) -> (pow(x, 2.0) = sqr(x))))
 
 axiom Pow_half : (forall x:real. ((0.0 <  x) -> (pow(x, 0.5) = sqrt(x))))
+
+axiom pow_from_int :
+  (forall x:int. forall y:int. ((0 <  x) -> ((0 <= y) -> (pow(from_int(x),
+  from_int(y)) = from_int(power(x, y))))))
 

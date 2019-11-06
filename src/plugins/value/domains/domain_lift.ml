@@ -37,7 +37,7 @@ end
 
 
 module Make
-    (Domain: Abstract_domain.Internal)
+    (Domain: Abstract_domain.Leaf)
     (Convert : Conversion with type internal_value := Domain.value
                            and type internal_location := Domain.location)
 = struct
@@ -45,7 +45,8 @@ module Make
   include (Domain : Datatype.S_with_collections with type t = Domain.t)
   include (Domain : Abstract_domain.Lattice with type state = Domain.state)
 
-  let structure = Domain.structure
+  let structure = Abstract.Domain.Leaf (Domain.key, (module Domain))
+
   let log_category = Domain.log_category
 
   type value = Convert.extended_value

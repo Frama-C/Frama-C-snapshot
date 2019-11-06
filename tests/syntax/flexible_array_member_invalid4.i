@@ -1,6 +1,6 @@
 // invalid flexible array member (incomplete field is not last)
-struct {
+struct s {
   int len;
   char data[];
   char b;
-} s;
+} ss;

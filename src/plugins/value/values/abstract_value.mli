@@ -181,21 +181,14 @@ module type S = sig
 
 end
 
-(** Key and structure for values. See {structure.mli},
-    and {domain.mli} where the mechanism is explained in detail.*)
+type 'v key = 'v Structure.Key_Value.key
 
-type 'a key = 'a Structure.Key_Value.k
-type 'a structure = 'a Structure.Key_Value.structure
-
-module type Internal = sig
+(** Signature for a leaf module of abstract values. *)
+module type Leaf = sig
   include S
-  val structure : t structure
-end
 
-module type External = sig
-  include S
-  include Structure.External with type t := t
-                              and type 'a key := 'a key
+  (** The key identifies the module and the type [t] of abstract values. *)
+  val key: t key
 end
 
 

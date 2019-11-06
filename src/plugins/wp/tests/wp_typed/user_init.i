@@ -1,7 +1,7 @@
 /* run.config_qualif
-   EXECNOW: rm -rf @PTEST_DIR@/result@PTEST_CONFIG@/@PTEST_NAME@-session-1/
+   EXECNOW: rm -rf @PTEST_DIR@/oracle@PTEST_CONFIG@/@PTEST_NAME@.1.session/script
    OPT: -wp-prop=-lack,-tactic
-   OPT: -wp-prop=tactic -wp-auto=wp:split -session @PTEST_DIR@/result@PTEST_CONFIG@/@PTEST_NAME@-session-@PTEST_NUMBER@
+   OPT: -wp-prop=tactic -wp-auto=wp:split
    OPT: -wp-prop=lack -wp-steps 300
  */
 /*@ requires \valid(a+(0..n-1)) ;

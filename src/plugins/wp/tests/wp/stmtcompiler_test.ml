@@ -90,8 +90,10 @@ let run () =
   in
 
   (** Test on real Cil functions *)
-  let _run_test kf =
-    Model.on_scope (Some kf) (fun () ->
+  let _run_test model kf =
+    let context = model , WpContext.Kf kf in
+    WpContext.on_context context
+      begin fun () ->
         let automaton = Interpreted_automata.Compute.get_automaton ~annotations:true kf in
         (* Format.printf "@[%s body cil:%a@]@." fct Printer.pp_block block; *)
         let seq = {Sigs.pre = Cfg.node (); post = Cfg.node ()} in
@@ -104,11 +106,13 @@ let run () =
         Bag.iter
           (prove_goal kf seq.pre cfg)
           goals;
-      ) ()
+      end ()
   in
 
-  let run_test_ia kf =
-    Model.on_scope (Some kf) (fun () ->
+  let run_test_ia model kf =
+    let context = model , WpContext.Kf kf in
+    WpContext.on_context context
+      begin fun () ->
         let paths,start = Compiler.compute_kf kf in
         let cfg, goals = paths.Compiler.paths_cfg, paths.Compiler.paths_goals in
         let fname = Filename.temp_file "cfg_pre_" (Kernel_function.get_name kf) in
@@ -119,7 +123,7 @@ let run () =
         Bag.iter
           (prove_goal kf start cfg)
           goals;
-      ) ()
+      end ()
   in
 
   let ordered_kf =
@@ -134,10 +138,8 @@ let run () =
       (Globals.Functions.fold (fun kf acc -> kf::acc) []) in
 
   List.iter (fun kf ->
-      if Kernel_function.is_definition kf then begin
-        (* (Model.with_model model (Lang.local run_test) kf); *)
-        (Model.with_model model (Lang.local run_test_ia) kf);
-      end
+      if Kernel_function.is_definition kf then
+        Lang.local (run_test_ia model) kf
     )
     ordered_kf
 

@@ -321,6 +321,24 @@ module type Specific_dir = sig
 
 end
 
+type existence = Must_exist | Must_not_exist | Indifferent
+
+(** signature for normalized pathnames. *)
+module type Filepath = sig
+
+  exception No_file
+  (** raised by {!set} if no file exists and [existence] is [Must_exist]. *)
+
+  exception File_exists
+  (** raised by {!set} if some file exists and [existence] is
+      [Must_nos_exist]. *)
+
+  val existence: existence
+
+  include S with type t = Filepath.Normalized.t
+
+end
+
 (* ************************************************************************** *)
 (** {3 Collections} *)
 (* ************************************************************************** *)
@@ -514,6 +532,13 @@ module type Builder = sig
 
   (** @plugin development guide *)
   module Empty_string(X: Input_with_arg): String
+
+  module Fc_Filepath = Filepath
+
+  module Filepath(X: sig
+      include Input_with_arg
+      val existence: existence
+    end): Filepath
 
   exception Cannot_build of string
   module Make_set

@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/base_offset.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -6,13 +6,13 @@
 [wp] 3 goals scheduled
 [wp] [Qed] Goal typed_f_ensures : Valid
 [wp] [Qed] Goal typed_f_ensures_2 : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_3 : Valid
-[wp] Proved goals:    3 / 3
-  Qed:             2 
-  Alt-Ergo:        1
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_3 : Unsuccess
+[wp] Proved goals:    2 / 3
+  Qed:               2 
+  Alt-Ergo 2.0.0:    0  (unsuccess: 1)
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/base_offset.0.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/base_offset.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-f                    2      1 (8..20)        3       100%
+f                    2     -                 3      66.7%
 -------------------------------------------------------------

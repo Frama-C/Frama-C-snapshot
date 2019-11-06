@@ -29,43 +29,48 @@ type (_,_) eq = Eq : ('a,'a) eq
 
 (** Keys identifying datatypes. *)
 module type Key = sig
-  type 'a k
+  type 'a key
 
-  val create_key: string -> 'a k
-  val eq_type : 'a k -> 'b k -> ('a, 'b) eq option
+  val create_key: string -> 'a key
+  val eq_type : 'a key -> 'b key -> ('a, 'b) eq option
 
-  val print: 'a k Pretty_utils.formatter
-  val compare: 'a k -> 'b k -> int
-  val equal: 'a k -> 'b k -> bool
-  val hash : 'a k -> int
-  val tag: 'a k -> int
+  val print: 'a key Pretty_utils.formatter
+  val compare: 'a key -> 'b key -> int
+  val equal: 'a key -> 'b key -> bool
+  val hash : 'a key -> int
+  val tag: 'a key -> int
 end
+
+module Make (X : sig end) : Key
+
+(** Keys module for the abstract values of Eva. *)
+module Key_Value : Key
+
+(** Keys module for the abstract locations of Eva. *)
+module Key_Location : Key
+
+(** Keys module for the abstract domains of Eva. *)
+module Key_Domain : Key
 
 (** A Key module with its structure type. *)
 module type Shape = sig
   include Key
+  type 'a data
 
   (** The gadt, based on keys giving the type of each node.
       Describes the internal structure of a data type.
       Used internally to automatically generate efficient accessors of its nodes. *)
   type 'a structure =
-    | Void : 'a structure
-    | Leaf : 'a k -> 'a structure
+    | Unit : unit structure
+    | Leaf : 'a key * 'a data -> 'a structure
     | Node : 'a structure * 'b structure -> ('a * 'b) structure
+
+  val eq_structure: 'a structure -> 'b structure -> ('a, 'b) eq option
 end
 
-module Make (X : sig end) : Shape
-
-
-(** Keys module for the abstract values of Eva. *)
-module Key_Value : Shape
-
-(** Keys module for the abstract locations of Eva. *)
-module Key_Location : Shape
-
-(** Keys module for the abstract domains of Eva. *)
-module Key_Domain : Shape
-
+module Shape (Key: Key) (Data: sig type 'a t end) :
+  Shape with type 'a key = 'a Key.key
+         and type 'a data = 'a Data.t
 
 (** Internal view of the tree, with the structure. *)
 module type Internal = sig
@@ -92,4 +97,4 @@ module Open
     (Shape : Shape)
     (Data : Internal with type 'a structure := 'a Shape.structure)
   : External with type t := Data.t
-              and type 'a key := 'a Shape.k
+              and type 'a key := 'a Shape.key

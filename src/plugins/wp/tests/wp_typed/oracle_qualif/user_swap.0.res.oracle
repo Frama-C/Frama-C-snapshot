@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_typed/user_swap.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -7,17 +7,17 @@
 [wp] [Qed] Goal typed_main_assert : Valid
 [wp] [Qed] Goal typed_main_call_swap_requires : Valid
 [wp] [Qed] Goal typed_main_call_swap_requires_2 : Valid
-[wp] [Alt-Ergo] Goal typed_swap_ensures_A : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_swap_ensures_A : Valid
 [wp] [Qed] Goal typed_swap_ensures_B : Valid
 [wp] [Qed] Goal typed_swap_assigns_part1 : Valid
 [wp] [Qed] Goal typed_swap_assigns_part2 : Valid
 [wp] Proved goals:    7 / 7
-  Qed:             6 
-  Alt-Ergo:        1
+  Qed:               6 
+  Alt-Ergo 2.0.0:    1
 [wp] Report in:  'tests/wp_typed/oracle_qualif/user_swap.0.report.json'
 [wp] Report out: 'tests/wp_typed/result_qualif/user_swap.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-swap                 3      1 (16..28)       4       100%
+swap                 3      1 (12..24)       4       100%
 main                 3     -                 3       100%
 -------------------------------------------------------------

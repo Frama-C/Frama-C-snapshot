@@ -8,7 +8,7 @@ Init: { }
 Function f1: { p1[] i }
 Function call_f1: { tt tmp }
 Function f2: { p2[] j }
-Function call_f2: { tt tmp[] __retres }
+Function call_f2: { tt tmp __retres }
 Function f3: { p3[] k }
 Function call_f3: { tp tmp }
 .................................................

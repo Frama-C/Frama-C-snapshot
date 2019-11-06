@@ -18,111 +18,117 @@ int X;
 /*@ ghost int S_in_f = 0; */
 /*@ ghost int Sf = 0; */
 /*@ ghost int in_main = 0; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_f;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S_in_f, Sf,
-            in_main;
-    
-    behavior buch_state_S1_out:
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_out:
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_S_in_f_in:
-      assumes 1 ≡ Sf;
-      ensures 1 ≡ S_in_f;
-    
-    behavior buch_state_S_in_f_out:
-      assumes 0 ≡ Sf;
-      ensures 0 ≡ S_in_f;
-    
-    behavior buch_state_Sf_out:
-      ensures 0 ≡ Sf;
-    
-    behavior buch_state_in_main_out:
-      ensures 0 ≡ in_main;
- */
-void f_pre_func(void)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int S_in_f_tmp; */
-  /*@ ghost int Sf_tmp; */
-  /*@ ghost int in_main_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_f;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  S_in_f_tmp = S_in_f;
-  Sf_tmp = Sf;
-  in_main_tmp = in_main;
-  in_main_tmp = 0;
-  Sf_tmp = 0;
-  if (Sf == 1) S_in_f_tmp = 1; else S_in_f_tmp = 0;
-  S2_tmp = 0;
-  S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  S_in_f = S_in_f_tmp;
-  Sf = Sf_tmp;
-  in_main = in_main_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_f;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S_in_f, Sf,
+             in_main;
+     
+     behavior buch_state_S1_out:
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_out:
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_S_in_f_in:
+       assumes 1 ≡ Sf;
+       ensures 1 ≡ S_in_f;
+     
+     behavior buch_state_S_in_f_out:
+       assumes 0 ≡ Sf;
+       ensures 0 ≡ S_in_f;
+     
+     behavior buch_state_Sf_out:
+       ensures 0 ≡ Sf;
+     
+     behavior buch_state_in_main_out:
+       ensures 0 ≡ in_main;
+   @/
+  void f_pre_func(void)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int S_in_f_tmp;
+    int Sf_tmp;
+    int in_main_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_f;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    S_in_f_tmp = S_in_f;
+    Sf_tmp = Sf;
+    in_main_tmp = in_main;
+    in_main_tmp = 0;
+    Sf_tmp = 0;
+    if (Sf == 1) S_in_f_tmp = 1; else S_in_f_tmp = 0;
+    S2_tmp = 0;
+    S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    S_in_f = S_in_f_tmp;
+    Sf = Sf_tmp;
+    in_main = in_main_tmp;
+    return;
+  }
 
-/*@ requires
-      1 ≡ S_in_f ∧ 0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ Sf ∧ 0 ≡ in_main;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_f;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S_in_f, Sf,
-            in_main;
-    
-    behavior buch_state_S1_out:
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_out:
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_S_in_f_out:
-      ensures 0 ≡ S_in_f;
-    
-    behavior buch_state_Sf_out:
-      ensures 0 ≡ Sf;
-    
-    behavior buch_state_in_main_in:
-      assumes 1 ≡ S_in_f;
-      ensures 1 ≡ in_main;
-    
-    behavior buch_state_in_main_out:
-      assumes 0 ≡ S_in_f;
-      ensures 0 ≡ in_main;
- */
-void f_post_func(void)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int S_in_f_tmp; */
-  /*@ ghost int Sf_tmp; */
-  /*@ ghost int in_main_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_f;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  S_in_f_tmp = S_in_f;
-  Sf_tmp = Sf;
-  in_main_tmp = in_main;
-  if (S_in_f == 1) in_main_tmp = 1; else in_main_tmp = 0;
-  Sf_tmp = 0;
-  S_in_f_tmp = 0;
-  S2_tmp = 0;
-  S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  S_in_f = S_in_f_tmp;
-  Sf = Sf_tmp;
-  in_main = in_main_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       1 ≡ S_in_f ∧ 0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ Sf ∧ 0 ≡ in_main;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_f;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S_in_f, Sf,
+             in_main;
+     
+     behavior buch_state_S1_out:
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_out:
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_S_in_f_out:
+       ensures 0 ≡ S_in_f;
+     
+     behavior buch_state_Sf_out:
+       ensures 0 ≡ Sf;
+     
+     behavior buch_state_in_main_in:
+       assumes 1 ≡ S_in_f;
+       ensures 1 ≡ in_main;
+     
+     behavior buch_state_in_main_out:
+       assumes 0 ≡ S_in_f;
+       ensures 0 ≡ in_main;
+   @/
+  void f_post_func(void)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int S_in_f_tmp;
+    int Sf_tmp;
+    int in_main_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_f;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    S_in_f_tmp = S_in_f;
+    Sf_tmp = Sf;
+    in_main_tmp = in_main;
+    if (S_in_f == 1) in_main_tmp = 1; else in_main_tmp = 0;
+    Sf_tmp = 0;
+    S_in_f_tmp = 0;
+    S2_tmp = 0;
+    S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    S_in_f = S_in_f_tmp;
+    Sf = Sf_tmp;
+    in_main = in_main_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       1 ≡ Sf ∧ 0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S_in_f ∧ 0 ≡ in_main;
@@ -133,117 +139,123 @@ void f_post_func(void)
  */
 void f(void)
 {
-  f_pre_func();
+  /*@ ghost f_pre_func(); */
   X ++;
-  f_post_func();
+  /*@ ghost f_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S_in_f, Sf,
-            in_main;
-    
-    behavior buch_state_S1_out:
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_out:
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_S_in_f_out:
-      ensures 0 ≡ S_in_f;
-    
-    behavior buch_state_Sf_in:
-      assumes 1 ≡ S1;
-      ensures 1 ≡ Sf;
-    
-    behavior buch_state_Sf_out:
-      assumes 0 ≡ S1;
-      ensures 0 ≡ Sf;
-    
-    behavior buch_state_in_main_out:
-      ensures 0 ≡ in_main;
- */
-void main_pre_func(void)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int S_in_f_tmp; */
-  /*@ ghost int Sf_tmp; */
-  /*@ ghost int in_main_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  S_in_f_tmp = S_in_f;
-  Sf_tmp = Sf;
-  in_main_tmp = in_main;
-  in_main_tmp = 0;
-  if (S1 == 1) Sf_tmp = 1; else Sf_tmp = 0;
-  S_in_f_tmp = 0;
-  S2_tmp = 0;
-  S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  S_in_f = S_in_f_tmp;
-  Sf = Sf_tmp;
-  in_main = in_main_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S_in_f, Sf,
+             in_main;
+     
+     behavior buch_state_S1_out:
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_out:
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_S_in_f_out:
+       ensures 0 ≡ S_in_f;
+     
+     behavior buch_state_Sf_in:
+       assumes 1 ≡ S1;
+       ensures 1 ≡ Sf;
+     
+     behavior buch_state_Sf_out:
+       assumes 0 ≡ S1;
+       ensures 0 ≡ Sf;
+     
+     behavior buch_state_in_main_out:
+       ensures 0 ≡ in_main;
+   @/
+  void main_pre_func(void)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int S_in_f_tmp;
+    int Sf_tmp;
+    int in_main_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    S_in_f_tmp = S_in_f;
+    Sf_tmp = Sf;
+    in_main_tmp = in_main;
+    in_main_tmp = 0;
+    if (S1 == 1) Sf_tmp = 1; else Sf_tmp = 0;
+    S_in_f_tmp = 0;
+    S2_tmp = 0;
+    S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    S_in_f = S_in_f_tmp;
+    Sf = Sf_tmp;
+    in_main = in_main_tmp;
+    return;
+  }
 
-/*@ requires
-      1 ≡ in_main ∧ 0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S_in_f ∧ 0 ≡ Sf;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S_in_f, Sf,
-            in_main;
-    
-    behavior buch_state_S1_out:
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_in:
-      assumes 1 ≡ in_main;
-      ensures 1 ≡ S2;
-    
-    behavior buch_state_S2_out:
-      assumes 0 ≡ in_main;
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_S_in_f_out:
-      ensures 0 ≡ S_in_f;
-    
-    behavior buch_state_Sf_out:
-      ensures 0 ≡ Sf;
-    
-    behavior buch_state_in_main_out:
-      ensures 0 ≡ in_main;
- */
-void main_post_func(int res)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int S_in_f_tmp; */
-  /*@ ghost int Sf_tmp; */
-  /*@ ghost int in_main_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  S_in_f_tmp = S_in_f;
-  Sf_tmp = Sf;
-  in_main_tmp = in_main;
-  in_main_tmp = 0;
-  Sf_tmp = 0;
-  S_in_f_tmp = 0;
-  if (in_main == 1) S2_tmp = 1; else S2_tmp = 0;
-  S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  S_in_f = S_in_f_tmp;
-  Sf = Sf_tmp;
-  in_main = in_main_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       1 ≡ in_main ∧ 0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S_in_f ∧ 0 ≡ Sf;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S_in_f, Sf,
+             in_main;
+     
+     behavior buch_state_S1_out:
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_in:
+       assumes 1 ≡ in_main;
+       ensures 1 ≡ S2;
+     
+     behavior buch_state_S2_out:
+       assumes 0 ≡ in_main;
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_S_in_f_out:
+       ensures 0 ≡ S_in_f;
+     
+     behavior buch_state_Sf_out:
+       ensures 0 ≡ Sf;
+     
+     behavior buch_state_in_main_out:
+       ensures 0 ≡ in_main;
+   @/
+  void main_post_func(int res)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int S_in_f_tmp;
+    int Sf_tmp;
+    int in_main_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    S_in_f_tmp = S_in_f;
+    Sf_tmp = Sf;
+    in_main_tmp = in_main;
+    in_main_tmp = 0;
+    Sf_tmp = 0;
+    S_in_f_tmp = 0;
+    if (in_main == 1) S2_tmp = 1; else S2_tmp = 0;
+    S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    S_in_f = S_in_f_tmp;
+    Sf = Sf_tmp;
+    in_main = in_main_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       1 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S_in_f ∧ 0 ≡ Sf ∧ 0 ≡ in_main;
@@ -260,14 +272,14 @@ void main_post_func(int res)
  */
 int main(void)
 {
-  main_pre_func();
+  /*@ ghost main_pre_func(); */
   /*@ assigns X; */
   X ++;
   /*@ assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S_in_f, Sf,
               in_main, X;
   */
   f();
-  main_post_func(X);
+  /*@ ghost main_post_func(X); */
   return X;
 }
 

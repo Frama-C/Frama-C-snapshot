@@ -34,6 +34,6 @@ int main(void) {
   /* At this point the dereference is temporally invalid since [q] should store
      the referent number of [arr1] while in fact it points to [arr2] */
   /*@assert ! \valid(q); */
-  *q = 1;
+  // *q = 1;
   return 0;
 }

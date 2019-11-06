@@ -77,6 +77,8 @@ let dkey_incompatible_states = register_category "incompatible-states"
 let dkey_iterator = register_category "iterator"
 let dkey_callbacks = register_category "callbacks"
 let dkey_widening = register_category "widening"
+let dkey_experimental = register_category "experimental-ok"
+
 
 let () =
   let activate dkey = add_debug_keys dkey in
@@ -98,6 +100,8 @@ let () = set_warn_status wkey_missing_loop_unroll Log.Winactive
 let wkey_missing_loop_unroll_for = register_warn_category "missing-loop-unroll:for"
 let () = set_warn_status wkey_missing_loop_unroll_for Log.Winactive
 let wkey_signed_overflow = register_warn_category "signed-overflow"
+let wkey_invalid_assigns = register_warn_category "invalid-assigns"
+let () = set_warn_status wkey_invalid_assigns Log.Wfeedback
 
 module ForceValues =
   WithOutput
@@ -163,12 +167,31 @@ module SymbolicLocsDomain = Domain_Parameter
       let default = false
     end)
 
+module OctagonDomain = Domain_Parameter
+    (struct
+      let option_name = "-eva-octagon-domain"
+      let help = "Use the octagon domain of Eva."
+      let default = false
+    end)
+
 module BitwiseOffsmDomain = Domain_Parameter
     (struct
       let option_name = "-eva-bitwise-domain"
       let help = "Use the bitwise abstractions of Eva."
       let default = false
     end)
+
+let numerors_available = ref false
+let register_numerors () = numerors_available := true
+
+let numerors_hook _ _ =
+  if not !numerors_available
+  then
+    abort
+      "The numerors domain has been requested but is not available,@ \
+       as Frama-C did not found the MPFR library. The analysis is aborted."
+  else if not (is_debug_key_enabled dkey_experimental) then
+    warning  "The numerors domain is experimental.";
 
 module NumerorsDomain = Domain_Parameter
     (struct
@@ -178,9 +201,20 @@ module NumerorsDomain = Domain_Parameter
                   computations"
       let default = false
     end)
+let () = NumerorsDomain.add_set_hook numerors_hook
 
 let apron_help = "Experimental binding of the numerical domains provided \
                   by the APRON library: http://apron.cri.ensmp.fr/library \n"
+
+let apron_available = ref false
+let register_apron () = apron_available := true
+
+let apron_hook _ _ =
+  if not !apron_available
+  then
+    abort "an Apron domain is requested but the apron binding is not available."
+  else if not (is_debug_key_enabled dkey_experimental) then
+    warning  "The Apron domains binding is experimental.";
 
 module ApronOctagon = Domain_Parameter
     (struct
@@ -188,6 +222,7 @@ module ApronOctagon = Domain_Parameter
       let help = apron_help ^ "Use the octagon domain of apron."
       let default = false
     end)
+let () = ApronOctagon.add_set_hook apron_hook
 
 module ApronBox = Domain_Parameter
     (struct
@@ -195,6 +230,7 @@ module ApronBox = Domain_Parameter
       let help = apron_help ^ "Use the box domain of apron."
       let default = false
     end)
+let () = ApronBox.add_set_hook apron_hook
 
 module PolkaLoose = Domain_Parameter
     (struct
@@ -202,6 +238,7 @@ module PolkaLoose = Domain_Parameter
       let help = apron_help ^ "Use the loose polyhedra domain of apron."
       let default = false
     end)
+let () = PolkaLoose.add_set_hook apron_hook
 
 module PolkaStrict = Domain_Parameter
     (struct
@@ -209,6 +246,7 @@ module PolkaStrict = Domain_Parameter
       let help = apron_help ^ "Use the strict polyhedra domain of apron."
       let default = false
     end)
+let () = PolkaStrict.add_set_hook apron_hook
 
 module PolkaEqualities = Domain_Parameter
     (struct
@@ -216,6 +254,7 @@ module PolkaEqualities = Domain_Parameter
       let help = apron_help ^ "Use the linear equalities domain of apron."
       let default = false
     end)
+let () = PolkaEqualities.add_set_hook apron_hook
 
 module InoutDomain = Domain_Parameter
     (struct
@@ -228,6 +267,13 @@ module SignDomain = Domain_Parameter
     (struct
       let option_name = "-eva-sign-domain"
       let help = "Use the sign domain of Eva. For demonstration purposes only."
+      let default = false
+    end)
+
+module TracesDomain = Domain_Parameter
+    (struct
+      let option_name = "-eva-traces-domain"
+      let help = "Use a domain to record traces of Eva. Experimental."
       let default = false
     end)
 
@@ -274,6 +320,21 @@ module EqualityCallFunction =
 let () = add_precision_dep EqualityCallFunction.parameter
 
 let () = Parameter_customize.set_group domains
+module OctagonCall =
+  Bool
+    (struct
+      let option_name = "-eva-octagon-through-calls"
+      let help = "Whether the relations inferred by the octagon domain are \
+                  propagated through function calls. Disabled by default: \
+                  the octagon analysis is intra-procedural, starting \
+                  each function with an empty octagon state, \
+                  and losing the octagons inferred at the end. \
+                  The interprocedural analysis is more precise but slower."
+      let default = false
+    end)
+let () = add_precision_dep OctagonCall.parameter
+
+let () = Parameter_customize.set_group domains
 module Numerors_Real_Size =
   Int
     (struct
@@ -303,6 +364,43 @@ module Numerors_Mode =
 let () =
   Numerors_Mode.set_possible_values ["relative"; "absolute"; "none"; "both"]
 let () = add_precision_dep Numerors_Mode.parameter
+
+let () = Parameter_customize.set_group domains
+module TracesUnrollLoop =
+  Bool
+    (struct
+      let option_name = "-eva-traces-unroll-loop"
+      let help = "Specify if the traces domain should unroll the loops."
+      let default = true
+    end)
+let () = add_precision_dep TracesUnrollLoop.parameter
+
+let () = Parameter_customize.set_group domains
+module TracesUnifyLoop =
+  Bool
+    (struct
+      let option_name = "-eva-traces-unify-loop"
+      let help = "Specify if all the instances of a loop should try \
+                  to share theirs traces."
+      let default = false
+    end)
+let () = add_precision_dep TracesUnifyLoop.parameter
+
+let () = Parameter_customize.set_group domains
+module TracesDot = Empty_string
+    (struct
+      let option_name = "-eva-traces-dot"
+      let help = "Output to the given filename the Cfg in dot format."
+      let arg_name = "FILENAME"
+    end)
+
+let () = Parameter_customize.set_group domains
+module TracesProject = Bool
+    (struct
+      let option_name = "-eva-traces-project"
+      let help = "Try to convert the Cfg into a program in a new project."
+      let default = false
+    end)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Performance options                                                --- *)
@@ -713,6 +811,20 @@ module MinLoopUnroll =
     end)
 let () = add_precision_dep MinLoopUnroll.parameter
 let () = MinLoopUnroll.set_range 0 max_int
+
+let () = Parameter_customize.set_group precision_tuning
+module AutoLoopUnroll =
+  Int
+    (struct
+      let option_name = "-eva-auto-loop-unroll"
+      let arg_name = "n"
+      let default = 0
+      let help = "limit of the automatic loop unrolling: all loops whose \
+                  number of iterations can be easily bounded by <n> \
+                  are completely unrolled."
+    end)
+let () = add_precision_dep AutoLoopUnroll.parameter
+let () = AutoLoopUnroll.set_range 0 max_int
 
 let () = Parameter_customize.set_group precision_tuning
 module DefaultLoopUnroll =
@@ -1373,8 +1485,8 @@ module MallocLevel =
       let option_name = "-eva-mlevel"
       let default = 0
       let arg_name = "m"
-      let help = "sets to [m] the number of precise dynamic allocation for any \
-                  given callstack"
+      let help = "sets to [m] the number of precise dynamic allocations \
+                  besides the initial one, for each callstack (defaults to 0)"
     end)
 let () = MallocLevel.add_aliases ["-val-mlevel"]
 
@@ -1425,26 +1537,31 @@ let bind (type t) (module P: Parameter_sig.S with type t = t) f =
   let set = set (module P) in
   configures := (fun n -> set ~default:(n < 0) (f n)) :: !configures
 
-(*  power             0   1   2   3   4    5    6    7     8     9     10     11 *)
-let slevel_power = [| 0;  10; 20; 50;  75; 100; 200; 500; 1000; 2000; 5000; 10000 |]
-let ilevel_power = [| 8;  12; 16; 24;  32;  64; 128; 256;  256;  256;  256;   256 |]
-let plevel_power = [| 10; 20; 40; 70; 100; 150; 200; 300;  500;  700; 1000;  2000 |]
+(*  power             0    1   2   3    4    5    6    7    8     9    10    11 *)
+let slevel_power = [| 0;  10; 20; 35;  60; 100; 160; 250; 500; 1000; 2000; 5000 |]
+let ilevel_power = [| 8;  12; 16; 24;  32;  48;  64; 128; 192;  256;  256;  256 |]
+let plevel_power = [| 10; 20; 40; 70; 100; 150; 200; 300; 500;  700; 1000; 2000 |]
+let auto_unroll =  [| 0;  16; 32; 64;  96; 128; 192; 256; 384;  512;  768; 1024 |]
 
 let get array n = if n < 0 then 0 else array.(n)
 
 let () =
-  bind (module MinLoopUnroll) (fun n -> max 0 (n - 4));
-  bind (module SemanticUnrollingLevel) (get slevel_power);
+  bind (module MinLoopUnroll) (fun n -> max 0 (n - 7));
+  bind (module AutoLoopUnroll) (get auto_unroll);
   bind (module WideningDelay) (fun n -> 1 + n / 2);
+  bind (module HistoryPartitioning) (fun n -> (n - 1) / 5);
+  bind (module SemanticUnrollingLevel) (get slevel_power);
   bind (module ILevel) (get ilevel_power);
   bind (module ArrayPrecisionLevel) (get plevel_power);
   bind (module LinearLevel) (fun n -> n * 20);
   bind (module RmAssert) (fun n -> n > 0);
   bind (module SymbolicLocsDomain) (fun n -> n > 0);
   bind (module EqualityDomain) (fun n -> n > 1);
-  bind (module EqualityCall) (fun n -> if n > 2 then "formals" else "none");
-  bind (module GaugesDomain) (fun n -> n > 3);
-  bind (module SplitReturn) (fun n -> if n > 4 then "auto" else "");
+  bind (module GaugesDomain) (fun n -> n > 2);
+  bind (module SplitReturn) (fun n -> if n > 3 then "auto" else "");
+  bind (module OctagonDomain) (fun n -> n > 4);
+  bind (module EqualityCall) (fun n -> if n > 4 then "formals" else "none");
+  bind (module OctagonCall) (fun n -> n > 6);
   ()
 
 let set_analysis n =

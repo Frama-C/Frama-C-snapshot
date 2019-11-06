@@ -1,6 +1,9 @@
+/* run.config
+   STDOPT: +"-wp-no-extensional"
+*/
 /* run.config_qualif
-   OPT: -wp -wp-model Typed -wp-par 1 -wp-prop="-qed_ko,-ko"
-   OPT: -wp -wp-model Typed -wp-par 1 -wp-prop="qed_ko,ko" -wp-steps 50
+   OPT: -wp -wp-model Typed -wp-par 1 -wp-prop="-qed_ko,-ko" -wp-no-extensional
+   OPT: -wp -wp-model Typed -wp-par 1 -wp-prop="qed_ko,ko" -wp-steps 50 -wp-no-extensional
 */
 
 struct T {

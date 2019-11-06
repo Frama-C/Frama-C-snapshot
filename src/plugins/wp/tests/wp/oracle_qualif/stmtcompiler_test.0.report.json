@@ -1,5 +1,5 @@
-{ "wp:global": { "alt-ergo": { "total": 9, "valid": 1, "unknown": 8,
-                               "rank": 2 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 9, "valid": 1,
+                                          "unknown": 8, "rank": 2 },
                  "qed": { "total": 18, "valid": 18 },
                  "wp:main": { "total": 27, "valid": 19, "unknown": 8,
                               "rank": 2 } },
@@ -58,19 +58,21 @@
                                                        "valid": 1 },
                                               "wp:main": { "total": 1,
                                                            "valid": 1 } } },
-                    "not_main": { "not_main_assert_bad": { "alt-ergo": 
+                    "not_main": { "not_main_assert_bad": { "why3:Alt-Ergo,2.0.0": 
                                                              { "total": 1,
                                                                "unknown": 1 },
                                                            "wp:main": 
                                                              { "total": 1,
                                                                "unknown": 1 } },
-                                  "wp:section": { "alt-ergo": { "total": 1,
-                                                                "unknown": 1 },
+                                  "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                    { "total": 1,
+                                                      "unknown": 1 },
                                                   "wp:main": { "total": 1,
                                                                "unknown": 1 } } },
                     "main_assigns_global": { "main_assigns_global_assert_bad": 
-                                               { "alt-ergo": { "total": 1,
-                                                               "unknown": 1 },
+                                               { "why3:Alt-Ergo,2.0.0": 
+                                                   { "total": 1,
+                                                     "unknown": 1 },
                                                  "wp:main": { "total": 1,
                                                               "unknown": 1 } },
                                              "main_assigns_global_assert_2": 
@@ -83,7 +85,7 @@
                                                           "valid": 1 },
                                                  "wp:main": { "total": 1,
                                                               "valid": 1 } },
-                                             "wp:section": { "alt-ergo": 
+                                             "wp:section": { "why3:Alt-Ergo,2.0.0": 
                                                                { "total": 1,
                                                                  "unknown": 1 },
                                                              "qed": { "total": 2,
@@ -92,12 +94,14 @@
                                                                { "total": 3,
                                                                  "valid": 2,
                                                                  "unknown": 1 } } },
-                    "zloop": { "zloop_assert_bad": { "alt-ergo": { "total": 1,
-                                                                   "unknown": 1 },
+                    "zloop": { "zloop_assert_bad": { "why3:Alt-Ergo,2.0.0": 
+                                                       { "total": 1,
+                                                         "unknown": 1 },
                                                      "wp:main": { "total": 1,
                                                                   "unknown": 1 } },
-                               "zloop_assert_3": { "alt-ergo": { "total": 1,
-                                                                 "unknown": 1 },
+                               "zloop_assert_3": { "why3:Alt-Ergo,2.0.0": 
+                                                     { "total": 1,
+                                                       "unknown": 1 },
                                                    "wp:main": { "total": 1,
                                                                 "unknown": 1 } },
                                "zloop_assert_2": { "qed": { "total": 1,
@@ -108,7 +112,7 @@
                                                           "valid": 1 },
                                                  "wp:main": { "total": 1,
                                                               "valid": 1 } },
-                               "zloop_loop_invariant": { "alt-ergo": 
+                               "zloop_loop_invariant": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
                                                              "unknown": 1 },
                                                          "qed": { "total": 1,
@@ -120,8 +124,8 @@
                                                            "valid": 1 },
                                                   "wp:main": { "total": 1,
                                                                "valid": 1 } },
-                               "wp:section": { "alt-ergo": { "total": 3,
-                                                             "unknown": 3 },
+                               "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                 { "total": 3, "unknown": 3 },
                                                "qed": { "total": 4,
                                                         "valid": 4 },
                                                "wp:main": { "total": 7,
@@ -151,19 +155,20 @@
                                                             "valid": 1 },
                                                    "wp:main": { "total": 1,
                                                                 "valid": 1 } } },
-                    "behavior5": { "behavior5_assert_bad": { "alt-ergo": 
+                    "behavior5": { "behavior5_assert_bad": { "why3:Alt-Ergo,2.0.0": 
                                                                { "total": 1,
                                                                  "unknown": 1 },
                                                              "wp:main": 
                                                                { "total": 1,
                                                                  "unknown": 1 } },
-                                   "wp:section": { "alt-ergo": { "total": 1,
-                                                                 "unknown": 1 },
+                                   "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                     { "total": 1,
+                                                       "unknown": 1 },
                                                    "wp:main": { "total": 1,
                                                                 "unknown": 1 } } },
                     "if_assert": { "if_assert_assert_missing_return": 
-                                     { "alt-ergo": { "total": 1,
-                                                     "unknown": 1 },
+                                     { "why3:Alt-Ergo,2.0.0": { "total": 1,
+                                                                "unknown": 1 },
                                        "wp:main": { "total": 1,
                                                     "unknown": 1 } },
                                    "if_assert_assert_3": { "qed": { "total": 1,
@@ -171,23 +176,24 @@
                                                            "wp:main": 
                                                              { "total": 1,
                                                                "valid": 1 } },
-                                   "if_assert_assert_2": { "alt-ergo": 
+                                   "if_assert_assert_2": { "why3:Alt-Ergo,2.0.0": 
                                                              { "total": 1,
                                                                "unknown": 1 },
                                                            "wp:main": 
                                                              { "total": 1,
                                                                "unknown": 1 } },
-                                   "if_assert_assert": { "alt-ergo": 
+                                   "if_assert_assert": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
                                                              "valid": 1,
                                                              "rank": 2 },
                                                          "wp:main": { "total": 1,
                                                                     "valid": 1,
                                                                     "rank": 2 } },
-                                   "wp:section": { "alt-ergo": { "total": 3,
-                                                                 "valid": 1,
-                                                                 "unknown": 2,
-                                                                 "rank": 2 },
+                                   "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                     { "total": 3,
+                                                       "valid": 1,
+                                                       "unknown": 2,
+                                                       "rank": 2 },
                                                    "qed": { "total": 1,
                                                             "valid": 1 },
                                                    "wp:main": { "total": 4,

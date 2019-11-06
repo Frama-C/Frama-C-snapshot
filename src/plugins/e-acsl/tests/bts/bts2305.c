@@ -1,5 +1,5 @@
 /* run.config
-   COMMENT: bts #2252, taking the address of a bitfield
+   COMMENT: bts #2305, taking the address of a bitfield
 */
 
 #include <stdbool.h>

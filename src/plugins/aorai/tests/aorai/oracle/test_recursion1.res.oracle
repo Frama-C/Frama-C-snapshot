@@ -50,80 +50,88 @@ predicate valid_string{L}(char *s) =
 /*@ ghost int T0_S2 = 0; */
 /*@ ghost int T0_init = 1; */
 /*@ ghost int accept_S1 = 0; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_countOne;
-    assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init, accept_S1;
-    
-    behavior buch_state_T0_S2_in:
-      assumes 1 ≡ T0_S2;
-      ensures 1 ≡ T0_S2;
-    
-    behavior buch_state_T0_S2_out:
-      assumes 0 ≡ T0_S2;
-      ensures 0 ≡ T0_S2;
-    
-    behavior buch_state_T0_init_out:
-      ensures 0 ≡ T0_init;
-    
-    behavior buch_state_accept_S1_out:
-      ensures 0 ≡ accept_S1;
- */
-void countOne_pre_func(char *argv)
-{
-  /*@ ghost int T0_S2_tmp; */
-  /*@ ghost int T0_init_tmp; */
-  /*@ ghost int accept_S1_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_countOne;
-  T0_S2_tmp = T0_S2;
-  T0_init_tmp = T0_init;
-  accept_S1_tmp = accept_S1;
-  accept_S1_tmp = 0;
-  T0_init_tmp = 0;
-  if (T0_S2 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
-  T0_S2 = T0_S2_tmp;
-  T0_init = T0_init_tmp;
-  accept_S1 = accept_S1_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_countOne;
+     assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init,
+             accept_S1;
+     
+     behavior buch_state_T0_S2_in:
+       assumes 1 ≡ T0_S2;
+       ensures 1 ≡ T0_S2;
+     
+     behavior buch_state_T0_S2_out:
+       assumes 0 ≡ T0_S2;
+       ensures 0 ≡ T0_S2;
+     
+     behavior buch_state_T0_init_out:
+       ensures 0 ≡ T0_init;
+     
+     behavior buch_state_accept_S1_out:
+       ensures 0 ≡ accept_S1;
+   @/
+  void countOne_pre_func(char *argv)
+  {
+    int T0_S2_tmp;
+    int T0_init_tmp;
+    int accept_S1_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_countOne;
+    T0_S2_tmp = T0_S2;
+    T0_init_tmp = T0_init;
+    accept_S1_tmp = accept_S1;
+    accept_S1_tmp = 0;
+    T0_init_tmp = 0;
+    if (T0_S2 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
+    T0_S2 = T0_S2_tmp;
+    T0_init = T0_init_tmp;
+    accept_S1 = accept_S1_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ T0_S2 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S1;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_countOne;
-    assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init, accept_S1;
-    
-    behavior buch_state_T0_S2_in:
-      assumes 1 ≡ T0_S2;
-      ensures 1 ≡ T0_S2;
-    
-    behavior buch_state_T0_S2_out:
-      assumes 0 ≡ T0_S2;
-      ensures 0 ≡ T0_S2;
-    
-    behavior buch_state_T0_init_out:
-      ensures 0 ≡ T0_init;
-    
-    behavior buch_state_accept_S1_out:
-      ensures 0 ≡ accept_S1;
- */
-void countOne_post_func(int res)
-{
-  /*@ ghost int T0_S2_tmp; */
-  /*@ ghost int T0_init_tmp; */
-  /*@ ghost int accept_S1_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_countOne;
-  T0_S2_tmp = T0_S2;
-  T0_init_tmp = T0_init;
-  accept_S1_tmp = accept_S1;
-  accept_S1_tmp = 0;
-  T0_init_tmp = 0;
-  if (T0_S2 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
-  T0_S2 = T0_S2_tmp;
-  T0_init = T0_init_tmp;
-  accept_S1 = accept_S1_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ T0_S2 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S1;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_countOne;
+     assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init,
+             accept_S1;
+     
+     behavior buch_state_T0_S2_in:
+       assumes 1 ≡ T0_S2;
+       ensures 1 ≡ T0_S2;
+     
+     behavior buch_state_T0_S2_out:
+       assumes 0 ≡ T0_S2;
+       ensures 0 ≡ T0_S2;
+     
+     behavior buch_state_T0_init_out:
+       ensures 0 ≡ T0_init;
+     
+     behavior buch_state_accept_S1_out:
+       ensures 0 ≡ accept_S1;
+   @/
+  void countOne_post_func(int res)
+  {
+    int T0_S2_tmp;
+    int T0_init_tmp;
+    int accept_S1_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_countOne;
+    T0_S2_tmp = T0_S2;
+    T0_init_tmp = T0_init;
+    accept_S1_tmp = accept_S1;
+    accept_S1_tmp = 0;
+    T0_init_tmp = 0;
+    if (T0_S2 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
+    T0_S2 = T0_S2_tmp;
+    T0_init = T0_init_tmp;
+    accept_S1 = accept_S1_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires 1 ≡ T0_S2 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S1;
     requires valid_string(argv);
@@ -137,7 +145,7 @@ int countOne(char *argv)
 {
   int __retres;
   int tmp;
-  countOne_pre_func(argv);
+  /*@ ghost countOne_pre_func(argv); */
   int r = 0;
   if ((int)*(argv + 0) == 0) {
     __retres = 0;
@@ -147,86 +155,95 @@ int countOne(char *argv)
   tmp = countOne(argv + 1);
   r += tmp;
   __retres = r;
-  return_label: {
-                  countOne_post_func(__retres);
-                  return __retres;
-                }
+  return_label:
+  {
+    /*@ ghost countOne_post_func(__retres); */
+    return __retres;
+  }
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_count;
-    assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init, accept_S1;
-    
-    behavior buch_state_T0_S2_in:
-      assumes 1 ≡ accept_S1;
-      ensures 1 ≡ T0_S2;
-    
-    behavior buch_state_T0_S2_out:
-      assumes 0 ≡ accept_S1;
-      ensures 0 ≡ T0_S2;
-    
-    behavior buch_state_T0_init_out:
-      ensures 0 ≡ T0_init;
-    
-    behavior buch_state_accept_S1_out:
-      ensures 0 ≡ accept_S1;
- */
-void count_pre_func(int argc, char **argv)
-{
-  /*@ ghost int T0_S2_tmp; */
-  /*@ ghost int T0_init_tmp; */
-  /*@ ghost int accept_S1_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_count;
-  T0_S2_tmp = T0_S2;
-  T0_init_tmp = T0_init;
-  accept_S1_tmp = accept_S1;
-  accept_S1_tmp = 0;
-  T0_init_tmp = 0;
-  if (accept_S1 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
-  T0_S2 = T0_S2_tmp;
-  T0_init = T0_init_tmp;
-  accept_S1 = accept_S1_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_count;
+     assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init,
+             accept_S1;
+     
+     behavior buch_state_T0_S2_in:
+       assumes 1 ≡ accept_S1;
+       ensures 1 ≡ T0_S2;
+     
+     behavior buch_state_T0_S2_out:
+       assumes 0 ≡ accept_S1;
+       ensures 0 ≡ T0_S2;
+     
+     behavior buch_state_T0_init_out:
+       ensures 0 ≡ T0_init;
+     
+     behavior buch_state_accept_S1_out:
+       ensures 0 ≡ accept_S1;
+   @/
+  void count_pre_func(int argc, char **argv)
+  {
+    int T0_S2_tmp;
+    int T0_init_tmp;
+    int accept_S1_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_count;
+    T0_S2_tmp = T0_S2;
+    T0_init_tmp = T0_init;
+    accept_S1_tmp = accept_S1;
+    accept_S1_tmp = 0;
+    T0_init_tmp = 0;
+    if (accept_S1 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
+    T0_S2 = T0_S2_tmp;
+    T0_init = T0_init_tmp;
+    accept_S1 = accept_S1_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ T0_S2 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S1;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_count;
-    assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init, accept_S1;
-    
-    behavior buch_state_T0_S2_out:
-      ensures 0 ≡ T0_S2;
-    
-    behavior buch_state_T0_init_out:
-      ensures 0 ≡ T0_init;
-    
-    behavior buch_state_accept_S1_in:
-      assumes 1 ≡ T0_S2;
-      ensures 1 ≡ accept_S1;
-    
-    behavior buch_state_accept_S1_out:
-      assumes 0 ≡ T0_S2;
-      ensures 0 ≡ accept_S1;
- */
-void count_post_func(int res)
-{
-  /*@ ghost int T0_S2_tmp; */
-  /*@ ghost int T0_init_tmp; */
-  /*@ ghost int accept_S1_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_count;
-  T0_S2_tmp = T0_S2;
-  T0_init_tmp = T0_init;
-  accept_S1_tmp = accept_S1;
-  if (T0_S2 == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
-  T0_init_tmp = 0;
-  T0_S2_tmp = 0;
-  T0_S2 = T0_S2_tmp;
-  T0_init = T0_init_tmp;
-  accept_S1 = accept_S1_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ T0_S2 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S1;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_count;
+     assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init,
+             accept_S1;
+     
+     behavior buch_state_T0_S2_out:
+       ensures 0 ≡ T0_S2;
+     
+     behavior buch_state_T0_init_out:
+       ensures 0 ≡ T0_init;
+     
+     behavior buch_state_accept_S1_in:
+       assumes 1 ≡ T0_S2;
+       ensures 1 ≡ accept_S1;
+     
+     behavior buch_state_accept_S1_out:
+       assumes 0 ≡ T0_S2;
+       ensures 0 ≡ accept_S1;
+   @/
+  void count_post_func(int res)
+  {
+    int T0_S2_tmp;
+    int T0_init_tmp;
+    int accept_S1_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_count;
+    T0_S2_tmp = T0_S2;
+    T0_init_tmp = T0_init;
+    accept_S1_tmp = accept_S1;
+    if (T0_S2 == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
+    T0_init_tmp = 0;
+    T0_S2_tmp = 0;
+    T0_S2 = T0_S2_tmp;
+    T0_init = T0_init_tmp;
+    accept_S1 = accept_S1_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires 1 ≡ accept_S1 ∧ 0 ≡ T0_S2 ∧ 0 ≡ T0_init;
     requires
@@ -240,96 +257,104 @@ void count_post_func(int res)
  */
 int count(int argc, char **argv)
 {
-  count_pre_func(argc,argv);
+  /*@ ghost count_pre_func(argc,argv); */
   int s = countOne(*(argv + 0));
   if (argc > 1) {
     int tmp_0;
     tmp_0 = count(argc - 1,argv + 1);
     s += tmp_0;
   }
-  count_post_func(s);
+  /*@ ghost count_post_func(s); */
   return s;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init, accept_S1;
-    
-    behavior buch_state_T0_S2_out:
-      ensures 0 ≡ T0_S2;
-    
-    behavior buch_state_T0_init_out:
-      ensures 0 ≡ T0_init;
-    
-    behavior buch_state_accept_S1_in:
-      assumes 1 ≡ T0_init;
-      ensures 1 ≡ accept_S1;
-    
-    behavior buch_state_accept_S1_out:
-      assumes 0 ≡ T0_init;
-      ensures 0 ≡ accept_S1;
- */
-void main_pre_func(int argc, char **argv)
-{
-  /*@ ghost int T0_S2_tmp; */
-  /*@ ghost int T0_init_tmp; */
-  /*@ ghost int accept_S1_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  T0_S2_tmp = T0_S2;
-  T0_init_tmp = T0_init;
-  accept_S1_tmp = accept_S1;
-  if (T0_init == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
-  T0_init_tmp = 0;
-  T0_S2_tmp = 0;
-  T0_S2 = T0_S2_tmp;
-  T0_init = T0_init_tmp;
-  accept_S1 = accept_S1_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init,
+             accept_S1;
+     
+     behavior buch_state_T0_S2_out:
+       ensures 0 ≡ T0_S2;
+     
+     behavior buch_state_T0_init_out:
+       ensures 0 ≡ T0_init;
+     
+     behavior buch_state_accept_S1_in:
+       assumes 1 ≡ T0_init;
+       ensures 1 ≡ accept_S1;
+     
+     behavior buch_state_accept_S1_out:
+       assumes 0 ≡ T0_init;
+       ensures 0 ≡ accept_S1;
+   @/
+  void main_pre_func(int argc, char **argv)
+  {
+    int T0_S2_tmp;
+    int T0_init_tmp;
+    int accept_S1_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    T0_S2_tmp = T0_S2;
+    T0_init_tmp = T0_init;
+    accept_S1_tmp = accept_S1;
+    if (T0_init == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
+    T0_init_tmp = 0;
+    T0_S2_tmp = 0;
+    T0_S2 = T0_S2_tmp;
+    T0_init = T0_init_tmp;
+    accept_S1 = accept_S1_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ accept_S1 ∧ 0 ≡ T0_S2 ∧ 0 ≡ T0_init;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init, accept_S1;
-    
-    behavior buch_state_T0_S2_in:
-      assumes 1 ≡ accept_S1;
-      ensures 1 ≡ T0_S2;
-    
-    behavior buch_state_T0_S2_out:
-      assumes 0 ≡ accept_S1;
-      ensures 0 ≡ T0_S2;
-    
-    behavior buch_state_T0_init_out:
-      ensures 0 ≡ T0_init;
-    
-    behavior buch_state_accept_S1_in:
-      assumes 1 ≡ accept_S1;
-      ensures 1 ≡ accept_S1;
-    
-    behavior buch_state_accept_S1_out:
-      assumes 0 ≡ accept_S1;
-      ensures 0 ≡ accept_S1;
- */
-void main_post_func(int res)
-{
-  /*@ ghost int T0_S2_tmp; */
-  /*@ ghost int T0_init_tmp; */
-  /*@ ghost int accept_S1_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  T0_S2_tmp = T0_S2;
-  T0_init_tmp = T0_init;
-  accept_S1_tmp = accept_S1;
-  if (accept_S1 == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
-  T0_init_tmp = 0;
-  if (accept_S1 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
-  T0_S2 = T0_S2_tmp;
-  T0_init = T0_init_tmp;
-  accept_S1 = accept_S1_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ accept_S1 ∧ 0 ≡ T0_S2 ∧ 0 ≡ T0_init;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, T0_S2, T0_init,
+             accept_S1;
+     
+     behavior buch_state_T0_S2_in:
+       assumes 1 ≡ accept_S1;
+       ensures 1 ≡ T0_S2;
+     
+     behavior buch_state_T0_S2_out:
+       assumes 0 ≡ accept_S1;
+       ensures 0 ≡ T0_S2;
+     
+     behavior buch_state_T0_init_out:
+       ensures 0 ≡ T0_init;
+     
+     behavior buch_state_accept_S1_in:
+       assumes 1 ≡ accept_S1;
+       ensures 1 ≡ accept_S1;
+     
+     behavior buch_state_accept_S1_out:
+       assumes 0 ≡ accept_S1;
+       ensures 0 ≡ accept_S1;
+   @/
+  void main_post_func(int res)
+  {
+    int T0_S2_tmp;
+    int T0_init_tmp;
+    int accept_S1_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    T0_S2_tmp = T0_S2;
+    T0_init_tmp = T0_init;
+    accept_S1_tmp = accept_S1;
+    if (accept_S1 == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
+    T0_init_tmp = 0;
+    if (accept_S1 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
+    T0_S2 = T0_S2_tmp;
+    T0_init = T0_init_tmp;
+    accept_S1 = accept_S1_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires 1 ≡ T0_init ∧ 0 ≡ T0_S2 ∧ 0 ≡ accept_S1;
     requires
@@ -350,11 +375,11 @@ void main_post_func(int res)
 int main(int argc, char **argv)
 {
   int __retres;
-  main_pre_func(argc,argv);
+  /*@ ghost main_pre_func(argc,argv); */
   int somme = 0;
   if (argc > 0) somme = count(argc,argv);
   __retres = 1;
-  main_post_func(__retres);
+  /*@ ghost main_post_func(__retres); */
   return __retres;
 }
 

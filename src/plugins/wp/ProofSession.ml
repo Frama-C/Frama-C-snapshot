@@ -29,12 +29,17 @@ type status =
 
 let files : (string,status) Hashtbl.t = Hashtbl.create 32
 
-let filename ?(legacy=false) wpo =
-  let m = Model.get_id wpo.po_model in
-  let d = Wp_parameters.get_session_dir m in
-  Printf.sprintf "%s/%s.json" d (if legacy then wpo.po_leg else wpo.po_gid)
+let filename wpo =
+  let d = Wp_parameters.get_session_dir "script" in
+  Printf.sprintf "%s/%s.json" d wpo.po_gid
 
-let pretty fmt wpo = Format.pp_print_string fmt (filename wpo)
+let legacies wpo =
+  let m = WpContext.MODEL.id wpo.po_model in
+  let d = Wp_parameters.get_session_dir m in
+  List.map (Printf.sprintf "%s/%s.json" d) [
+    wpo.po_gid ;
+    wpo.po_leg ;
+  ]
 
 let status wpo =
   let f = filename wpo in
@@ -42,13 +47,22 @@ let status wpo =
   with Not_found ->
     let status =
       if Sys.file_exists f then Script f else
-        let f' = filename ~legacy:true wpo in
-        if Sys.file_exists f' then
-          ( Wp_parameters.warning ~current:false
-              "Deprecated script for '%s'" wpo.po_sid ;
-            Deprecated f' )
-        else NoScript in
-    Hashtbl.add files f status ; status
+        try
+          let f' = List.find Sys.file_exists (legacies wpo) in
+          Wp_parameters.warning ~current:false
+            "Deprecated script for '%s' (use prover tip to upgrade)" wpo.po_sid ;
+          Deprecated f'
+        with Not_found -> NoScript
+    in Hashtbl.add files f status ; status
+
+let pp_file fmt s = Filepath.Normalized.(pretty fmt (of_string s))
+
+let pp_status fmt = function
+  | NoScript -> Format.pp_print_string fmt "no script file"
+  | Script f -> Format.fprintf fmt "script '%a'" pp_file f
+  | Deprecated f -> Format.fprintf fmt "script '%a' (deprecated)" pp_file f
+
+let pp_goal fmt wpo = pp_status fmt (status wpo)
 
 let exists wpo =
   match status wpo with NoScript -> false | Script _ | Deprecated _ -> true

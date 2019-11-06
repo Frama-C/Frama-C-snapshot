@@ -24,7 +24,7 @@
 (* --- PO Details View                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
-class pane : GuiConfig.enabled ->
+class pane : GuiConfig.provers ->
   object
 
     method select : Wpo.t option -> unit

@@ -2,6 +2,6 @@
 [kernel] tests/syntax/arg_type.i:15: User Error: 
   Declaration of g does not match previous declaration from tests/syntax/arg_type.i:13 (different integer types:
   'int' and 'short').
-[kernel] tests/syntax/arg_type.i:15: Failure: Cannot resolve variable x
+[kernel] tests/syntax/arg_type.i:15: User Error: Cannot resolve variable x
 [kernel] User Error: stopping on file "tests/syntax/arg_type.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

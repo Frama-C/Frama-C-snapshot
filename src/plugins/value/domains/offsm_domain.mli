@@ -20,6 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module D : Abstract_domain.Internal
+module D : Abstract_domain.Leaf
   with type value = Offsm_value.offsm_or_top
    and type location = Precise_locs.precise_location

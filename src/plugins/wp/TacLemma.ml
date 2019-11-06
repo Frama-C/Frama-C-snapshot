@@ -62,7 +62,7 @@ class browser ?on_cluster f cluster =
   end
 
 let browse f s =
-  if Model.is_model_defined () then
+  if WpContext.is_defined () then
     begin
       let main = Definitions.cluster ~id:"browser" () in
       let visitor = new browser f main in

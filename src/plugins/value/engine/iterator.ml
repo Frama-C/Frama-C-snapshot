@@ -433,9 +433,7 @@ module Make_Dataflow
       edge_info.fireable <- true;
     flow
 
-  let get_cvalue = Domain.get Cvalue_domain.key
-  let gather_cvalues states =
-    match get_cvalue with
+  let gather_cvalues states = match Domain.get_cvalue with
     | Some get -> List.map get states
     | None -> []
 
@@ -633,9 +631,6 @@ module Make_Dataflow
     G.iter_edges_e fill graph;
     Db.Value.merge_conditions table
 
-  let extract_cvalue (state : state) : 'a =
-    Cvalue_domain.extract Domain.get (`Value state)
-
   let is_instr s = match s.skind with Instr _ -> true | _ -> false
 
   let states_after_stmt states_before states_after =
@@ -676,7 +671,7 @@ module Make_Dataflow
         then VertexTable.memo merged_states v get_smashed_store
         else `Bottom
     and lift_to_cvalues table =
-      StmtTable.map (fun _ s -> extract_cvalue s) (Lazy.force table)
+      StmtTable.map (fun _ s -> Domain.get_cvalue_or_top s) (Lazy.force table)
     in
     let merged_pre_states = lazy
       (StmtTable.map' (fun s (v,_) -> get_merged_states ~all:true s v) automaton.stmt_table)
@@ -691,7 +686,7 @@ module Make_Dataflow
       (StmtTable.map (fun _stmt (v,_) ->
            let store = get_vertex_store v in
            let states = Partition.expanded store in
-           List.map (fun x -> extract_cvalue x) states)
+           List.map (fun x -> Domain.get_cvalue_or_top x) states)
           automaton.stmt_table)
     in
     let merged_pre_cvalues = lazy (lift_to_cvalues merged_pre_states)

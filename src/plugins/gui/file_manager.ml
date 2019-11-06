@@ -146,7 +146,7 @@ let preferences (host_window: Design.main_window_extension_points) =
   in
   let theme_group = new Widget.group "" in
   let build_theme_button name =
-    let label = Transitioning.String.capitalize_ascii name in
+    let label = String.capitalize_ascii name in
     let widget = theme_group#add_radio ~label ~value:name () in
     theme_box#add widget#coerce
   in

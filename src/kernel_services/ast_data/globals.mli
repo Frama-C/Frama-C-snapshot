@@ -70,7 +70,7 @@ module Vars: sig
 
   exception AlreadyExists of varinfo * initinfo
   val add: varinfo -> initinfo -> unit
-    (** @raise AlreadyExists if the given varinfo is already registered. *)
+  (** @raise AlreadyExists if the given varinfo is already registered. *)
 
   val remove: varinfo -> unit
   (** Removes the given varinfo, which must have already been removed from the
@@ -79,7 +79,7 @@ module Vars: sig
   *)
 
   val add_decl: varinfo -> unit
-    (** @raise AlreadyExists if the given varinfo is already registered. *)
+  (** @raise AlreadyExists if the given varinfo is already registered. *)
 
   val self: State.t
 
@@ -96,9 +96,9 @@ module Functions: sig
   (** {2 Getters} *)
 
   val get: varinfo -> kernel_function
-    (** @raise Not_found if the given varinfo has no associated kernel function
-        and is not a built-in.
-	@plugin development guide *)
+  (** @raise Not_found if the given varinfo has no associated kernel function
+      and is not a built-in.
+      @plugin development guide *)
 
   val get_params: kernel_function -> varinfo list
   val get_vi: kernel_function -> varinfo
@@ -106,14 +106,14 @@ module Functions: sig
   (** {2 Searching} *)
 
   val find_by_name : string -> kernel_function
-    (** @raise Not_found if there is no function of this name. *)
+  (** @raise Not_found if there is no function of this name. *)
 
   val find_def_by_name : string -> kernel_function
-    (** @raise Not_found if there is no function definition of this name. *)
+  (** @raise Not_found if there is no function definition of this name. *)
 
   val find_decl_by_name : string -> kernel_function
-    (** @raise Not_found if there is no function declaration of this name.
-        @since Aluminium-20160501 *)
+  (** @raise Not_found if there is no function declaration of this name.
+      @since Aluminium-20160501 *)
 
   (** {2 Iterators} *)
 
@@ -126,7 +126,7 @@ module Functions: sig
       Functions of this section should not be called by casual users. *)
 
   val add: cil_function -> unit
-    (**TODO: remove this function and replace all calls by: *)
+  (**TODO: remove this function and replace all calls by: *)
 
   val remove: varinfo -> unit
   (** Removes the given varinfo, which must have already been removed from the
@@ -135,13 +135,13 @@ module Functions: sig
   *)
 
   val replace_by_declaration: funspec -> varinfo -> location -> unit
-    (** Note: if the varinfo is already registered and bound to a definition,
-        the definition will be erased only if [vdefined] is false. Otherwise,
-        you're trying to register a declaration for a varinfo that is supposed
-        to be defined, which does not look very good. *)
+  (** Note: if the varinfo is already registered and bound to a definition,
+      the definition will be erased only if [vdefined] is false. Otherwise,
+      you're trying to register a declaration for a varinfo that is supposed
+      to be defined, which does not look very good. *)
 
   val replace_by_definition: funspec -> fundec -> location -> unit
-    (**TODO: do not take a funspec as argument *)
+  (**TODO: do not take a funspec as argument *)
 
   val register: kernel_function -> unit
 end
@@ -151,23 +151,23 @@ end
 module FileIndex : sig
 
   val self: State.t
-    (** The state kind corresponding to the table of global C symbols.
-        @since Boron-20100401 *)
+  (** The state kind corresponding to the table of global C symbols.
+      @since Boron-20100401 *)
 
   (** {2 Getters} *)
 
   val get_symbols : Datatype.Filepath.t -> global list
-    (** All global C symbols of the given module.
-        @since Boron-20100401 *)
+  (** All global C symbols of the given module.
+      @since Boron-20100401 *)
 
   val find : Datatype.Filepath.t -> Datatype.Filepath.t * global list
   [@@deprecated "Use FileIndex.get_symbols instead."]
-    (** [find path] returns all global C symbols associated with [path],
-        plus [path] itself. The returned [global] list is reversed.
-        @deprecated 18.0-Argon use [get_symbols] instead. *)
+  (** [find path] returns all global C symbols associated with [path],
+      plus [path] itself. The returned [global] list is reversed.
+      @deprecated 18.0-Argon use [get_symbols] instead. *)
 
   val get_files: unit -> Datatype.Filepath.t list
-    (** Get the files list containing all [global] C symbols. *)
+  (** Get the files list containing all [global] C symbols. *)
 
   (** {2 Searching among all [global] C symbols} *)
 
@@ -180,19 +180,19 @@ module FileIndex : sig
 
   val get_functions :
     ?declarations:bool -> Datatype.Filepath.t -> kernel_function list
-    (** Global functions of the given module for the kernel user interface.
-        If [declarations] is true, functions declared in a module but defined
-        in another module are only reported in the latter (default is false).
-    *)
+  (** Global functions of the given module for the kernel user interface.
+      If [declarations] is true, functions declared in a module but defined
+      in another module are only reported in the latter (default is false).
+  *)
 
   val kernel_function_of_local_var_or_param_varinfo :
     varinfo -> (kernel_function * bool)
-    (** kernel_function where the local variable or formal parameter is
-        declared. The boolean result is true for a formal parameter.
-        @raise Not_found if the varinfo is a global one. *)
+  (** kernel_function where the local variable or formal parameter is
+      declared. The boolean result is true for a formal parameter.
+      @raise Not_found if the varinfo is a global one. *)
 
   val remove_global_annotations: global_annotation -> unit
-(** @since Oxygen-20120901 *)
+  (** @since Oxygen-20120901 *)
 
 end
 
@@ -243,17 +243,17 @@ end
 (* ************************************************************************* *)
 
 exception No_such_entry_point of string
-  (** May be raised by [entry_point] below. *)
+(** May be raised by [entry_point] below. *)
 
 val entry_point : unit -> kernel_function * bool
-  (** @return the current function entry point and a boolean indicating if it
-      is a library entry point.
-      @raise No_such_entry_point if the current entrypoint name does not
-      exist. This exception is automatically handled by the Frama-C kernel. Thus
-      you don't have to catch it yourself, except if you do a specific work. *)
+(** @return the current function entry point and a boolean indicating if it
+    is a library entry point.
+    @raise No_such_entry_point if the current entrypoint name does not
+    exist. This exception is automatically handled by the Frama-C kernel. Thus
+    you don't have to catch it yourself, except if you do a specific work. *)
 
 val set_entry_point : string -> bool -> unit
-(** [set_entry_point name lib] sets [Kernel.MainFunction] to [name] and 
+(** [set_entry_point name lib] sets [Kernel.MainFunction] to [name] and
     [Kernel.LibEntry] to [lib].
     Moreover, clear the results of all the analysis which depend on
     [Kernel.MainFunction] or [Kernel.LibEntry].
@@ -267,11 +267,11 @@ val get_comments_global: global -> string list
 (** Gets a list of comments associated to the given global. This function
     is useful only when -keep-comments is on.
 
-    A comment is associated to a global if it occurs after 
+    A comment is associated to a global if it occurs after
     the declaration/definition of the preceding one in the file, before the end
-    of the current declaration/definition and does not occur in the 
+    of the current declaration/definition and does not occur in the
     definition of a function. Note that this function is experimental and
-    may fail to associate comments properly. Use directly 
+    may fail to associate comments properly. Use directly
     {! Cabshelper.Comments.get} to retrieve comments in a given region.
     (see {!Globals.get_comments_stmt} for retrieving comments associated to
     a statement).
@@ -283,11 +283,11 @@ val get_comments_stmt: stmt -> string list
 (** Gets a list of comments associated to the given statement. This function
     is useful only when -keep-comments is on.
 
-    A comment is associated to a statement if it occurs after 
+    A comment is associated to a statement if it occurs after
     the preceding statement and before the current statement ends (except for
     the last statement in a block, to which statements occurring before the end
     of the block are associated). Note that this function is experimental and
-    may fail to associate comments properly. Use directly 
+    may fail to associate comments properly. Use directly
     {! Cabshelper.Comments.get} to retrieve comments in a given region.
 
     @since Nitrogen-20111001
@@ -297,7 +297,7 @@ val get_comments_stmt: stmt -> string list
 (* **/** *)
 (* Forward reference to functions defined in Kernel_function. Do not
    use outside of this module.
- *)
+*)
 val find_first_stmt: (kernel_function -> stmt) ref
 val find_enclosing_block: (stmt -> block) ref
 val find_all_enclosing_blocks: (stmt -> block list) ref

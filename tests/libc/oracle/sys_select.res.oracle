@@ -72,6 +72,10 @@
   function select: precondition 'errorfds' got status valid.
 [eva] tests/libc/sys_select.c:31: 
   function select: precondition 'timeout' got status valid.
+[eva:invalid-assigns] tests/libc/sys_select.c:31: 
+  Completely invalid destination for assigns clause *writefds. Ignoring.
+[eva:invalid-assigns] tests/libc/sys_select.c:31: 
+  Completely invalid destination for assigns clause *errorfds. Ignoring.
 [eva] Done for function select
 [eva] computing for function FD_ISSET <- main.
   Called from tests/libc/sys_select.c:32.

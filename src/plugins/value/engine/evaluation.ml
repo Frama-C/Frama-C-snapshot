@@ -52,8 +52,8 @@ open Eval
      fuel than before, if needed. *)
 
 (* Reductions may happen in the forward evaluation when:
-   - a domain returns a value more precise than the one internally computed;
-   - alarms are emitted by an operation on values. In particular, locations
+   – a domain returns a value more precise than the one internally computed;
+   – alarms are emitted by an operation on values. In particular, locations
      are reduced to their valid part for a read or write operation.
    These reductions are propagated to the sub-expressions by a backward
    evaluation, after the forward evaluation has finished.
@@ -263,7 +263,7 @@ let indeterminate_copy lval result alarms =
 
 
 module type Value = sig
-  include Abstract_value.External
+  include Abstract.Value.External
   val reduce : t -> t
 end
 

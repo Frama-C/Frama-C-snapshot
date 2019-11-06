@@ -1,5 +1,9 @@
 Loop and "slevel" analysis.
 
+Note: this plug-in has been deprecated in favor of newer Eva features, such as
+      `-eva-auto-loop-unroll`, `//@ loop unroll` annotations and trace
+      partitioning. It will be removed in a future release.
+
 * Overview
 
 This plugin performs two analyses.

@@ -5,7 +5,7 @@
 /*@ ghost int ghost_loctable[100]; */
 void acquire_lock(int m)
 {
-  (ghost_loctable[m]) ++;
+  /*@ ghost (ghost_loctable[m]) ++; */
   return;
 }
 
@@ -16,7 +16,7 @@ void acquire_lock(int m)
  */
 void release_lock(int m)
 {
-  (ghost_loctable[m]) --;
+  /*@ ghost (ghost_loctable[m]) --; */
   return;
 }
 

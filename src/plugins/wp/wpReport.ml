@@ -554,6 +554,22 @@ let properties ~config fmt (s:coverage) = function
   | "failed" -> number config fmt (Property.Set.cardinal s.covered - Property.Set.cardinal s.proved)
   | _ -> raise Exit
 
+
+let is_stat_name = function
+  | "success"
+  | "total"
+  | "valid" | ""
+  | "failed"
+  | "status"
+  | "inconclusive"
+  | "unsuccess"
+  | "time"
+  | "perf"
+  | "steps"
+  | "range" -> true
+  | _ -> false
+
+
 let stat ~config fmt s = function
   | "success" -> percent config fmt s.valid s.total
   | "total" -> number config fmt s.total
@@ -585,19 +601,11 @@ let stat ~config fmt s = function
 let pstats ~config fmt s cmd arg =
   match cmd with
   | "wp" | "qed" -> stat ~config fmt (get_prover s VCS.Qed) arg
-  | "alt-ergo" | "ergo" -> stat ~config fmt (get_prover s VCS.AltErgo) arg
-  | "coq" -> stat ~config fmt (get_prover s VCS.Coq) arg
-  | "z3" -> stat ~config fmt (get_prover s (VCS.Why3 "z3")) arg
-  | "gappa" -> stat ~config fmt (get_prover s (VCS.Why3 "gappa")) arg
-  | "simplify" -> stat ~config fmt (get_prover s (VCS.Why3 "simplify")) arg
-  | "vampire" -> stat ~config fmt (get_prover s (VCS.Why3 "vampire")) arg
-  | "zenon" -> stat ~config fmt (get_prover s (VCS.Why3 "zenon")) arg
-  | "cvc3" -> stat ~config fmt (get_prover s (VCS.Why3 "cvc3")) arg
-  | "cvc4" -> stat ~config fmt (get_prover s (VCS.Why3 "cvc4")) arg
-  | "yices" -> stat ~config fmt (get_prover s (VCS.Why3 "yices")) arg
-  | "why3-alt-ergo" | "why3-ergo" ->
-      stat ~config fmt (get_prover s (VCS.Why3 "alt-ergo")) arg
-  | _ -> stat ~config fmt s.main cmd
+  | cmd when is_stat_name cmd -> stat ~config fmt s.main cmd
+  | prover ->
+      match (VCS.prover_of_name prover) with
+      | None -> Wp_parameters.error ~once:true "Unknown prover name %s" prover
+      | Some prover -> stat ~config fmt (get_prover s prover) arg
 
 let pcstats ~config fmt (s,c) cmd arg =
   match cmd with

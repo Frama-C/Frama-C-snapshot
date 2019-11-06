@@ -244,3 +244,37 @@ module UnrollUnnatural : sig
     automaton -> wto -> Compute.wto_index_table -> G.t
 
 end
+
+
+(** Dataflow computation: simple data-flow analysis using interpreted automata.
+    This is mostly intended as an example for using interpreted automata;
+    see also tests/misc/interpreted_automata_dataflow.ml for a complete example
+    using this dataflow. *)
+
+(** Input domain for a simple dataflow analysis. *)
+module type Domain =
+sig
+  type t (** States propagated by the dataflow analysis. *)
+
+  (** Merges two states coming from different paths. *)
+  val join : t -> t -> t
+
+  (** [widen v1 v2] must returns None if [v2] is included in [v1].
+      Otherwise, over-approximates the join between [v1] and [v2] such that
+      any sequence of successive widenings is ultimately stationary,
+      i.e. […widen (widen (widen x0 x1) x2) x3…] eventually returns None.
+      Called on loop heads to ensure the analysis termination. *)
+  val widen : t -> t -> t option
+
+  (** Transfer function for transitions: computes the state after the transition
+      from the state before. Returns None if the end of the transition is not
+      reachable from the given state. *)
+  val transfer : vertex transition ->  t -> t option
+end
+
+(** Builds a simple dataflow analysis over an input domain. *)
+module Dataflow (D : Domain) :
+sig
+  val fixpoint : Cil_types.kernel_function -> D.t -> D.t Vertex.Hashtbl.t
+end
+

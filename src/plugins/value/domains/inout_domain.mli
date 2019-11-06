@@ -22,8 +22,6 @@
 
 (** Computation of inputs of outputs. *)
 
-module D: Abstract_domain.Internal
+module D: Abstract_domain.Leaf
   with type value = Cvalue.V.t
    and type location = Precise_locs.precise_location
-
-val key: D.t Abstract_domain.key

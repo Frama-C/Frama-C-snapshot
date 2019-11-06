@@ -26,7 +26,7 @@
 __PUSH_FC_STDLIB
 __BEGIN_DECLS
 
-#include "__fc_select.h"
+#include "../__fc_select.h"
 
 __END_DECLS
 __POP_FC_STDLIB

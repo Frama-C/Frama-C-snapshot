@@ -42,6 +42,7 @@ struct
   let equal = Hcons.equal_list E.equal
 
   let empty = []
+  let is_empty = function [] -> true | _ -> false
 
   (* used for better sharing between a list and a modified list *)
   let rev_append_until i l1 l2 =

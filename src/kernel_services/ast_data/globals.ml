@@ -30,7 +30,7 @@ open Cil
 
 (* redefinition from Kernel_function.ml
    TODO: this should move to Ast_info
- *)
+*)
 let get_formals f = match f.fundec with
   | Definition(d, _) -> d.sformals
   | Declaration(_, _, None, _) -> []
@@ -41,8 +41,7 @@ let get_locals f = match f.fundec with
   | Declaration(_, _, _, _) -> []
 
 let get_location kf = match kf.fundec with
-  | Definition (_, loc) -> loc
-  | Declaration (_,vi,_, _) -> vi.vdecl
+  | Definition (_, loc) | Declaration (_,_,_, loc) -> loc
 
 let find_first_stmt = Extlib.mk_fun "Globals.find_first_stmt"
 
@@ -56,12 +55,12 @@ let find_englobing_kf = Extlib.mk_fun "Globals.find_englobing_kf"
 module Vars = struct
 
   include Cil_state_builder.Varinfo_hashtbl
-    (Initinfo)
-    (struct
-       let name = "Globals.Vars"
-       let dependencies = [ Ast.self ]
-       let size = 17
-     end)
+      (Initinfo)
+      (struct
+        let name = "Globals.Vars"
+        let dependencies = [ Ast.self ]
+        let size = 17
+      end)
 
   exception AlreadyExists of varinfo * initinfo
 
@@ -80,15 +79,15 @@ module Vars = struct
   exception Found of varinfo
   let find_from_astinfo name = function
     | VGlobal ->
-        (try
-           iter (fun v _ -> if v.vname = name then raise (Found v));
-           raise Not_found
-         with Found v ->
-           v)
+      (try
+         iter (fun v _ -> if v.vname = name then raise (Found v));
+         raise Not_found
+       with Found v ->
+         v)
     | VLocal kf ->
-        List.find (fun v -> v.vname = name) (get_locals kf)
+      List.find (fun v -> v.vname = name) (get_locals kf)
     | VFormal kf ->
-        List.find (fun v -> v.vname = name) (get_formals kf)
+      List.find (fun v -> v.vname = name) (get_formals kf)
 
   let get_astinfo vi = !get_astinfo_ref vi
 
@@ -107,8 +106,8 @@ module Vars = struct
     let treat_global = function
       | GVar(vi,init,_) -> f vi init
       | GVarDecl (vi,_) ->
-         (* If it is defined it will appear with the right init later *)
-         if not vi.vdefined then f vi { init = None }
+        (* If it is defined it will appear with the right init later *)
+        if not vi.vdefined then f vi { init = None }
       | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _ | GEnumTagDecl _
       | GFunDecl _ | GFun _ | GAsm _ | GPragma _ | GText _ | GAnnot _ -> ()
     in
@@ -118,8 +117,8 @@ module Vars = struct
     let treat_global acc = function
       | GVar(vi,init,_) -> f vi init acc
       | GVarDecl (vi,_) ->
-         (* If it is defined it will appear with the right init later *)
-         if vi.vdefined then acc else f vi { init = None } acc
+        (* If it is defined it will appear with the right init later *)
+        if vi.vdefined then acc else f vi { init = None } acc
       | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _ | GEnumTagDecl _
       | GFunDecl _ | GFun _ | GAsm _ | GPragma _ | GText _ | GAnnot _ -> acc
     in
@@ -129,7 +128,7 @@ module Vars = struct
   let fold_in_file_order f acc = fold_globals f acc (Ast.get ()).globals
 
   let iter_in_file_rev_order f = iter_globals f (List.rev (Ast.get ()).globals)
-  let fold_in_file_rev_order f acc = 
+  let fold_in_file_rev_order f acc =
     fold_globals f acc (List.rev (Ast.get ()).globals)
 
 end
@@ -146,10 +145,10 @@ module Functions = struct
     Cil_state_builder.Varinfo_hashtbl
       (Cil_datatype.Kf)
       (struct
-         let name = "Globals.Functions"
-         let dependencies = [ Ast.self ]
-         let size = 17
-       end)
+        let name = "Globals.Functions"
+        let dependencies = [ Ast.self ]
+        let size = 17
+      end)
 
   let self = State.self
 
@@ -169,12 +168,12 @@ module Functions = struct
 
   module Iterator = struct
     module State = State_builder.Ref
-      (Datatype.String.Map.Make(VarinfoAlphaOrderSet.Elts))
-      (struct
-         let name = "Globals.FunctionsOrder.Iterator"
-         let dependencies = [ State.self ]
-         let default () = Datatype.String.Map.empty
-       end)
+        (Datatype.String.Map.Make(VarinfoAlphaOrderSet.Elts))
+        (struct
+          let name = "Globals.FunctionsOrder.Iterator"
+          let dependencies = [ State.self ]
+          let default () = Datatype.String.Map.empty
+        end)
     let add v =
       State.set (Datatype.String.Map.add v.vname v (State.get ()))
     let iter f =
@@ -214,11 +213,11 @@ module Functions = struct
     let args =
       try Some (getFormalsDecl v)
       with Not_found ->
-        try
-          setFormalsDecl v v.vtype;
-          Some (getFormalsDecl v)
-        with Not_found ->
-          None (* function with 0 arg. See setFormalsDecl code for details *)
+      try
+        setFormalsDecl v v.vtype;
+        Some (getFormalsDecl v)
+      with Not_found ->
+        None (* function with 0 arg. See setFormalsDecl code for details *)
     in Declaration(spec, v, args, l)
 
   let register_declaration action spec v l =
@@ -232,23 +231,22 @@ module Functions = struct
          update_orig_name kf; kf)
 
   let update_kf kf fundec spec =
+    let oldloc = get_location kf in
     (match kf.fundec, fundec with
-      (* we never update a definition with a declaration (see bug 1914).
-         If you really want to play this game, just mutate the kf in place and
-         hope for the best.
-       *)
-      | Definition _, Declaration(_,v,_,_) when v.vdefined -> ()
-      | _ -> kf.fundec <- fundec);
-(*    Kernel.feedback "UPDATE Spec of function %a (%a)" 
-      Cil_datatype.Kf.pretty kf Printer.pp_funspec spec;*)
-    let loc = match kf.fundec with
-      | Definition (_, loc) | Declaration (_, _, _, loc) -> loc 
-    in
-    Cil.CurrentLoc.set loc;
-    Logic_utils.merge_funspec kf.spec spec
+     (* we never update a definition with a declaration (see bug 1914).
+        If you really want to play this game, just mutate the kf in place and
+        hope for the best.
+     *)
+     | Definition _, Declaration(_,v,_,_) when v.vdefined -> ()
+     | _ -> kf.fundec <- fundec);
+    (*    Kernel.feedback "UPDATE Spec of function %a (%a)"
+          Cil_datatype.Kf.pretty kf Printer.pp_funspec spec;*)
+    (match fundec with
+     | Definition(_,loc) | Declaration(_,_,_,loc) -> CurrentLoc.set loc);
+    Logic_utils.merge_funspec ~oldloc kf.spec spec
 
   let replace_by_declaration s v l=
-(*    Kernel.feedback "replacing %a by decl" Cil_datatype.Varinfo.pretty v;*)
+    (*    Kernel.feedback "replacing %a by decl" Cil_datatype.Varinfo.pretty v;*)
     if State.mem v then begin
       let fundec = fundec_of_decl s v l in
       let kf = State.find v in
@@ -262,7 +260,7 @@ module Functions = struct
         s v l
 
   let replace_by_definition spec f l =
-(*    Kernel.feedback "replacing %a" Cil_datatype.Varinfo.pretty f.svar;*)
+    (*    Kernel.feedback "replacing %a" Cil_datatype.Varinfo.pretty f.svar;*)
     Iterator.add f.svar;
     if State.mem f.svar then
       update_kf (State.find f.svar) (Definition (f,l)) spec
@@ -278,12 +276,12 @@ module Functions = struct
     match f with
     | Definition (n, l) ->
       Kernel.debug ~dkey:Kernel.dkey_globals
-	"@[<hov 2>Register definition %a with specification@. \"%a\"@]"
+        "@[<hov 2>Register definition %a with specification@. \"%a\"@]"
         Varinfo.pretty n.svar Cil_printer.pp_funspec n.sspec ;
       replace_by_definition n.sspec n l;
     | Declaration (spec, v,_,l) ->
       Kernel.debug ~dkey:Kernel.dkey_globals
-	"@[<hov 2>Register declaration %a with specification@ \"%a\"@]"
+        "@[<hov 2>Register declaration %a with specification@ \"%a\"@]"
         Varinfo.pretty v Cil_printer.pp_funspec spec;
       replace_by_declaration spec v l
 
@@ -294,20 +292,20 @@ module Functions = struct
   let iter_on_fundecs f =
     iter
       (fun kf -> match kf.fundec with
-       | Definition (fundec,_) -> f fundec
-       | Declaration _ -> ())
+         | Definition (fundec,_) -> f fundec
+         | Declaration _ -> ())
 
   let get vi =
     (*Kernel.feedback "get %a in %a" Cil_datatype.Varinfo.pretty vi
-    Project.pretty (Project.current()); *)
+      Project.pretty (Project.current()); *)
     if not (Ast_info.is_function_type vi) then raise Not_found;
-    let add v = 
+    let add v =
       (* Builtins don't automatically get a kernel function (unless they
          are used explicitly), but might still be accessed after AST
          elaboration. Corresponding kf will be built according to needs.
          Other functions must exist in the table whatever happens.
       *)
-      (*Kernel.feedback "adding empty fun for %a" 
+      (*Kernel.feedback "adding empty fun for %a"
         Cil_datatype.Varinfo.pretty vi; *)
       if Cil.is_special_builtin v.vname then
         add_declaration (empty_funspec ()) v v.vdecl
@@ -318,14 +316,14 @@ module Functions = struct
 
   let get_params kf =
     match kf.fundec with
-      | Definition(f,_loc) -> f.sformals
-      | Declaration(_spec,_v,params,_loc) ->
-          match params with None -> [] | Some ls -> ls
+    | Definition(f,_loc) -> f.sformals
+    | Declaration(_spec,_v,params,_loc) ->
+      match params with None -> [] | Some ls -> ls
 
   let get_vi kf =
     match kf.fundec with
-      | Definition(f,_loc) -> f.svar
-      | Declaration(_spec,v,_params,_loc) -> v
+    | Definition(f,_loc) -> f.svar
+    | Declaration(_spec,v,_params,_loc) -> v
 
   let register kf =
     let vi = get_vi kf in
@@ -412,14 +410,14 @@ module Functions = struct
     let o = object
       method fold: 'a. (kernel_function -> 'a -> 'a) -> 'a -> 'a =
         fun f acc ->
-          fold
-            (fun kf acc -> match kf.fundec with
-            | Definition _ -> if is_definition then f kf acc else acc
-            | Declaration _ -> if is_definition then acc else f kf acc)
-            acc
+        fold
+          (fun kf acc -> match kf.fundec with
+             | Definition _ -> if is_definition then f kf acc else acc
+             | Declaration _ -> if is_definition then acc else f kf acc)
+          acc
       method mem kf =
         State.mem (get_vi kf) &&
-          (is_definition = Ast_info.Function.is_definition kf.fundec)
+        (is_definition = Ast_info.Function.is_definition kf.fundec)
     end in
     Parameter_category.create "functions" Cil_datatype.Kf.ty
       ~register:true
@@ -433,11 +431,11 @@ module Functions = struct
     let o = object
       method fold: 'a. (fundec -> 'a -> 'a) -> 'a -> 'a =
         fun f acc ->
-          fold
-            (fun kf acc -> match kf.fundec with
-            | Definition(fundec, _) -> f fundec acc
-            | Declaration _ -> acc)
-            acc
+        fold
+          (fun kf acc -> match kf.fundec with
+             | Definition(fundec, _) -> f fundec acc
+             | Declaration _ -> acc)
+          acc
       method mem f = State.mem f.svar
     end in
     Parameter_category.create "functions" Cil_datatype.Fundec.ty
@@ -476,10 +474,10 @@ module FileIndex = struct
       (Datatype.Filepath.Hashtbl)
       (Datatype.List(Global))
       (struct
-         let name = "Globals.FileIndex"
-         let dependencies = [ Ast.self ]
-         let size = 7
-       end)
+        let name = "Globals.FileIndex"
+        let dependencies = [ Ast.self ]
+        let size = 7
+      end)
 
   let compute, self =
     let compute () =
@@ -487,9 +485,9 @@ module FileIndex = struct
         (Ast.get ())
         (fun glob ->
            let f = (fst (Global.loc glob)).Filepath.pos_path in
-          Kernel.debug ~dkey:Kernel.dkey_globals "Indexing global in file %a@."
-            Datatype.Filepath.pretty f;
-          ignore
+           Kernel.debug ~dkey:Kernel.dkey_globals "Indexing global in file %a@."
+             Datatype.Filepath.pretty f;
+           ignore
              (S.memo
                 ~change:(fun l -> glob :: l) (fun _ -> [ glob ]) f))
     in
@@ -497,14 +495,14 @@ module FileIndex = struct
 
   let remove_global_annotations a =
     let f = (fst (Global_annotation.loc a)).Filepath.pos_path in
-    try 
+    try
       let l = S.find f in
-      let l = 
-	List.filter
-	  (fun g -> match g with
-	  | GAnnot(a', _) -> not (Global_annotation.equal a a')
-	  | _ -> true)
-	  l
+      let l =
+        List.filter
+          (fun g -> match g with
+             | GAnnot(a', _) -> not (Global_annotation.equal a a')
+             | _ -> true)
+          l
       in
       S.replace f l
     with Not_found ->
@@ -522,8 +520,8 @@ module FileIndex = struct
     let l = get_symbols path in
     path, List.rev l
 
- (** get all global variables as (varinfo, initinfo) list with only one
-      occurrence of a varinfo *)
+  (** get all global variables as (varinfo, initinfo) list with only one
+       occurrence of a varinfo *)
   let get_globals path =
     compute ();
     let varinfo_set =
@@ -531,9 +529,9 @@ module FileIndex = struct
       List.fold_right
         (fun glob acc ->
            match glob with
-             | Cil_types.GVar (vi, _, _) | Cil_types.GVarDecl(vi, _)
-                 when vi.vglob -> Varinfo.Set.add vi acc
-             | _ -> acc
+           | Cil_types.GVar (vi, _, _) | Cil_types.GVarDecl(vi, _)
+             when vi.vglob -> Varinfo.Set.add vi acc
+           | _ -> acc
         )
         l
         Varinfo.Set.empty
@@ -545,8 +543,8 @@ module FileIndex = struct
     let l = try S.find path with Not_found -> [] in
     List.fold_right
       (fun glob acc -> match glob with
-      | Cil_types.GAnnot(g, _) -> g :: acc
-      | _ -> acc)
+         | Cil_types.GAnnot(g, _) -> g :: acc
+         | _ -> acc)
       l
       []
 
@@ -558,17 +556,17 @@ module FileIndex = struct
         (fun glob acc ->
            let is_func v = match v with
              | Cil_types.GFun(fundec, _) ->
-                 Some (fundec.svar)
+               Some (fundec.svar)
              | Cil_types.GFunDecl(_,x, _) ->
-                 if declarations ||
-                   (match (Functions.get x).fundec with
+               if declarations ||
+                  (match (Functions.get x).fundec with
                      Definition _ -> false | Declaration _ -> true)
-                 then Some x
-                 else None
+               then Some x
+               else None
              | _ -> None
            in match is_func glob with
-             | None -> acc
-             | Some vi -> Varinfo.Set.add vi acc)
+           | None -> acc
+           | Some vi -> Varinfo.Set.add vi acc)
         l
         Varinfo.Set.empty
     in
@@ -583,18 +581,18 @@ module FileIndex = struct
     let pred g =
       let pred symb = (x.Cil_types.vid = symb.Cil_types.vid)
       in match g with
-        | Cil_types.GFun (fundec, _) ->
-            if List.exists pred fundec.Cil_types.slocals then true
-            else if List.exists pred fundec.Cil_types.sformals then
-              (is_param := true; true)
-            else false
-        | _ -> false
+      | Cil_types.GFun (fundec, _) ->
+        if List.exists pred fundec.Cil_types.slocals then true
+        else if List.exists pred fundec.Cil_types.sformals then
+          (is_param := true; true)
+        else false
+      | _ -> false
     in
     let file = (fst x.Cil_types.vdecl).Filepath.pos_path
     in
     match List.find pred (S.find file) with
     | Cil_types.GFun (fundec, _) ->
-        Functions.get fundec.Cil_types.svar, !is_param
+      Functions.get fundec.Cil_types.svar, !is_param
     | _ -> assert (false)
 
 end
@@ -670,11 +668,11 @@ module Types = struct
   (* Map from enum constant names to an expression containing the constant,
      and its type. *)
   module Enums = State_builder.Hashtbl(Datatype.String.Hashtbl)(PairsExpTyp)
-    (struct
-      let size = 137
-      let dependencies = [Ast.self]
-      let name = "Globals.Types.Enums"
-     end)
+      (struct
+        let size = 137
+        let dependencies = [Ast.self]
+        let name = "Globals.Types.Enums"
+      end)
 
   module Type_Name_Namespace =
     Datatype.Pair_with_collections
@@ -688,7 +686,7 @@ module Types = struct
         let size = 137
         let dependencies = [Ast.self]
         let name = "Globals.Types.Types"
-       end)
+      end)
 
   (* Maps a typename (with its namespace) to its corresponding global. *)
   module TypeNameToGlobal =
@@ -778,7 +776,7 @@ let entry_point () =
       (No_such_entry_point
          (Format.sprintf
             "cannot find entry point `%s'.@;\
-               Please use option `-main' for specifying a valid entry point."
+             Please use option `-main' for specifying a valid entry point."
             kf_name))
   else begin
     if (Cil_datatype.Kf.Set.cardinal fcts > 1) then
@@ -822,7 +820,7 @@ module Comments_global_cache =
       let dependencies =
         [ Cabshelper.Comments.self; FileIndex.self ]
       let size = 17
-     end)
+    end)
 
 module Comments_stmt_cache =
   State_builder.Hashtbl
@@ -832,7 +830,7 @@ module Comments_stmt_cache =
       let name = "Globals.Comments_stmt_cache"
       let dependencies = [ Cabshelper.Comments.self; FileIndex.self ]
       let size = 17
-     end)
+    end)
 
 let get_comments_global g =
   let last_pos (f : Datatype.Filepath.t) =
@@ -846,43 +844,43 @@ let get_comments_global g =
     let my_loc = Cil_datatype.Global.loc g in
     let file = (fst my_loc).Filepath.pos_path in
     let globs = FileIndex.get_symbols file in
-    let globs = List.sort 
-      (fun g1 g2 -> 
-        Cil_datatype.Location.compare 
-          (Cil_datatype.Global.loc g1)
-          (Cil_datatype.Global.loc g2))
-      globs
+    let globs = List.sort
+        (fun g1 g2 ->
+           Cil_datatype.Location.compare
+             (Cil_datatype.Global.loc g1)
+             (Cil_datatype.Global.loc g2))
+        globs
     in
     let rec find_prev l =
       match l with
-        | [] -> 
-          Kernel.fatal "Cannot find global %a in file %a"
-            Cil_printer.pp_global g
-            Datatype.Filepath.pretty file
-        | g' :: l when Cil_datatype.Global.equal g g' ->
-            { Filepath.pos_path = file;
-              Filepath.pos_lnum = 1;
-              Filepath.pos_cnum = 0;
-              Filepath.pos_bol = 0; }, l = []
-        | g' :: g'' :: l when Cil_datatype.Global.equal g'' g ->
-          snd (Cil_datatype.Global.loc g'), l = []
-        | _ :: l -> find_prev l
-    in 
+      | [] ->
+        Kernel.fatal "Cannot find global %a in file %a"
+          Cil_printer.pp_global g
+          Datatype.Filepath.pretty file
+      | g' :: l when Cil_datatype.Global.equal g g' ->
+        { Filepath.pos_path = file;
+          Filepath.pos_lnum = 1;
+          Filepath.pos_cnum = 0;
+          Filepath.pos_bol = 0; }, l = []
+      | g' :: g'' :: l when Cil_datatype.Global.equal g'' g ->
+        snd (Cil_datatype.Global.loc g'), l = []
+      | _ :: l -> find_prev l
+    in
     let first, is_last = find_prev globs in
     match g with
-        GFun (f,_) -> 
-          let kf = Functions.get f.svar in
-          let s = !find_first_stmt kf in
-          let last = fst (Cil_datatype.Stmt.loc s) in
-          let comments = Cabshelper.Comments.get (first,last) in
-          if is_last then begin
-            let first = snd my_loc in
-            let last = last_pos file in
-            comments @ (Cabshelper.Comments.get (first, last))
-          end else comments
-      | _ -> 
-        let last = if is_last then last_pos file else snd my_loc in
-        Cabshelper.Comments.get (first,last)
+      GFun (f,_) ->
+      let kf = Functions.get f.svar in
+      let s = !find_first_stmt kf in
+      let last = fst (Cil_datatype.Stmt.loc s) in
+      let comments = Cabshelper.Comments.get (first,last) in
+      if is_last then begin
+        let first = snd my_loc in
+        let last = last_pos file in
+        comments @ (Cabshelper.Comments.get (first, last))
+      end else comments
+    | _ ->
+      let last = if is_last then last_pos file else snd my_loc in
+      Cabshelper.Comments.get (first,last)
   in Comments_global_cache.memo add g
 
 let get_comments_stmt s =
@@ -890,15 +888,15 @@ let get_comments_stmt s =
     let b = !find_enclosing_block s in
     let rec find_prev l =
       match l with
-        | [] ->
-          Kernel.fatal "Cannot find statement %d in its enclosing block" s.sid
-        | s' :: _ when Cil_datatype.Stmt.equal s s' ->
-          fst (Cil_datatype.Stmt.loc s')
-        | s' :: s'' :: _ when Cil_datatype.Stmt.equal s'' s ->
-          snd (Cil_datatype.Stmt.loc s')
-        | { skind = UnspecifiedSequence l1} :: l2 ->
-          find_prev ((List.map (fun (x,_,_,_,_) -> x) l1) @ l2)
-        | _::l -> find_prev l
+      | [] ->
+        Kernel.fatal "Cannot find statement %d in its enclosing block" s.sid
+      | s' :: _ when Cil_datatype.Stmt.equal s s' ->
+        fst (Cil_datatype.Stmt.loc s')
+      | s' :: s'' :: _ when Cil_datatype.Stmt.equal s'' s ->
+        snd (Cil_datatype.Stmt.loc s')
+      | { skind = UnspecifiedSequence l1} :: l2 ->
+        find_prev ((List.map (fun (x,_,_,_,_) -> x) l1) @ l2)
+      | _::l -> find_prev l
     in
     let first = find_prev b.bstmts in
     let last = snd (Cil_datatype.Stmt.loc s) in

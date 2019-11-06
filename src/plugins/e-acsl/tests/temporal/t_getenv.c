@@ -1,6 +1,5 @@
 /* run.config
    COMMENT: Check temporal validity of environment string (via getenv function)
-   STDOPT: #"-eva-warn-key=libc:unsupported-spec=inactive"
 */
 #include <stdlib.h>
 #include <errno.h>

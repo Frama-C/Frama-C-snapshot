@@ -1,0 +1,173 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2019                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+theory Memory
+
+  use bool.Bool
+  use int.Int
+  use map.Map
+
+  type addr = { base : int ; offset : int }
+
+  predicate addr_le addr addr
+  predicate addr_lt addr addr
+  function addr_le_bool addr addr : bool
+  function addr_lt_bool addr addr : bool
+
+  axiom addr_le_def: forall p q :addr [addr_le p q].
+    p.base = q.base -> (addr_le p q <-> p.offset <= q.offset)
+
+  axiom addr_lt_def: forall p q :addr [addr_lt p q].
+    p.base = q.base -> (addr_lt p q <-> p.offset < q.offset)
+
+  axiom addr_le_bool_def : forall p q : addr [ addr_le_bool p q].
+    addr_le p q <-> addr_le_bool p q = True
+
+  axiom addr_lt_bool_def : forall p q : addr [ addr_lt_bool p q].
+    addr_lt p q <-> addr_lt_bool p q = True
+
+  constant null : addr = { base = 0 ; offset = 0 }
+  function global (b:int) : addr = { base = b ; offset = 0 }
+  meta "inline:no" function null
+  meta "inline:no" function global
+
+  function shift (p:addr) (k:int) : addr = { p with offset = p.offset + k }
+  predicate included (p:addr) (a:int) (q:addr) (b:int) =
+    a > 0 -> ( b >= 0 /\ p.base = q.base
+                     /\ (q.offset <= p.offset)
+                     /\ (p.offset + a <= q.offset + b) )
+
+  predicate separated (p:addr) (a:int) (q:addr) (b:int) =
+       a <= 0 \/ b <= 0
+    \/ p.base <> q.base
+    \/ q.offset + b <= p.offset
+    \/ p.offset + a <= q.offset
+
+  (* Memories *)
+
+  predicate eqmem (m1 m2 : map addr 'a) (p:addr) (a:int) =
+    forall q:addr [m1[p]|m2[q]]. included q 1 p a -> m1[q] = m2[q]
+
+  function havoc (m0 m1 : map addr 'a) (p:addr) (a:int) : map addr 'a
+
+  predicate valid_rw (m : map int int) (p:addr) (n:int) =
+    n > 0 -> (  0 < p.base /\ 0 <= p.offset /\ p.offset + n <= m[p.base] )
+
+  predicate valid_rd (m : map int int) (p:addr) (n:int) =
+    n > 0 -> ( 0 <> p.base /\ 0 <= p.offset /\ p.offset + n <= m[p.base] )
+
+  predicate invalid (m : map int int) (p:addr) (n:int) =
+    n > 0 -> ( m[p.base] <= p.offset \/ p.offset + n <= 0 )
+
+  lemma valid_rw_rd :
+    forall m : map int int.
+    forall p : addr.
+    forall n : int.
+    valid_rw m p n -> valid_rd m p n
+
+  lemma valid_string :
+    forall m : map int int.
+    forall p : addr.
+    p.base < 0 ->
+    0 <= p.offset < m[p.base] ->
+    (valid_rd m p 1 /\ not (valid_rw m p 1))
+
+  lemma separated_1 : forall p q : addr. forall a b i j : int
+    [ separated p a q b , { base = p.base ; offset = i } ,
+                          { base = q.base ; offset = j } ].
+    separated p a q b ->
+    p.offset <= i < p.offset + a ->
+    q.offset <= j < q.offset + b ->
+    { base = p.base ; offset = i } <>
+    { base = q.base ; offset = j }
+
+  (* Regions *)
+
+  function region int : int
+
+  predicate linked (map int int)
+  predicate sconst (map addr int)
+  predicate framed (m : map addr addr) =
+    forall p:addr [m[p]]. region(m[p].base) <= 0
+
+  (* Properties *)
+
+  lemma separated_included :
+    forall p q : addr.
+    forall a b : int
+      [ separated p a q b , included p a q b ].
+    a > 0 -> b > 0 -> separated p a q b -> included p a q b -> false
+
+  lemma included_trans :
+    forall p q r : addr.
+    forall a b c : int
+      [ included p a q b , included q b r c ].
+    included p a q b -> included q b r c -> included p a r c
+
+  lemma separated_trans :
+    forall p q r : addr.
+    forall a b c : int
+      [ included p a q b , separated q b r c ].
+    included p a q b -> separated q b r c -> separated p a r c
+
+  lemma separated_sym :
+    forall p q : addr.
+    forall a b : int
+      [ separated p a q b ].
+    separated p a q b <-> separated q b p a
+
+  lemma eqmem_included :
+    forall m1 m2 : map addr 'a.
+    forall p q : addr.
+    forall a b : int
+      [ eqmem m1 m2 p a,eqmem m1 m2 q b ].
+    included p a q b -> eqmem m1 m2 q b -> eqmem m1 m2 p a
+
+  lemma eqmem_sym :
+    forall m1 m2 : map addr 'a.
+    forall p : addr.
+    forall a : int.
+    eqmem m1 m2 p a -> eqmem m2 m1 p a
+
+  lemma havoc_access :
+    forall m0 m1 : map addr 'a.
+    forall q p : addr.
+    forall a : int.
+    (Map.([]) (havoc m0 m1 p a) (q)) = (if (separated q 1 p a) then (Map.([]) (m1) (q)) else (Map.([]) (m0) (q)))
+
+  (* Physical Address *)
+
+  function int_of_addr addr : int
+  function addr_of_int int : addr
+  function base_offset int : int
+  function base_index int : int
+
+  axiom int_of_addr_bijection :
+    forall a:int. int_of_addr (addr_of_int a) = a
+
+  axiom addr_of_int_bijection :
+    forall p:addr. addr_of_int (int_of_addr p) = p
+
+  axiom addr_of_null :
+    int_of_addr null = 0
+
+end

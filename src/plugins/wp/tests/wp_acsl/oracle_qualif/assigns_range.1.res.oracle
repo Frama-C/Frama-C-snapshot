@@ -1,17 +1,17 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 50 [...]
+# frama-c -wp -wp-steps 50 [...]
 [kernel] Parsing tests/wp_acsl/assigns_range.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 6 goals scheduled
-[wp] [Alt-Ergo] Goal typed_call_assigns_t1_assigns_exit : Unsuccess
-[wp] [Alt-Ergo] Goal typed_call_assigns_t1_assigns_normal : Unsuccess
-[wp] [Alt-Ergo] Goal typed_call_assigns_t2_assigns_exit : Unsuccess
-[wp] [Alt-Ergo] Goal typed_call_assigns_t2_assigns_normal : Unsuccess
-[wp] [Alt-Ergo] Goal typed_call_assigns_t4_assigns_exit : Unsuccess
-[wp] [Alt-Ergo] Goal typed_call_assigns_t4_assigns_normal : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_call_assigns_t1_assigns_exit : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_call_assigns_t1_assigns_normal : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_call_assigns_t2_assigns_exit : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_call_assigns_t2_assigns_normal : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_call_assigns_t4_assigns_exit : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_call_assigns_t4_assigns_normal : Unsuccess
 [wp] Proved goals:    0 / 6
-  Alt-Ergo:        0  (unsuccess: 6)
+  Alt-Ergo 2.0.0:    0  (unsuccess: 6)
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/assigns_range.1.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/assigns_range.1.report.json'
 -------------------------------------------------------------

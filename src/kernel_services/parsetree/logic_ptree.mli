@@ -107,10 +107,6 @@ and lexpr_node =
   | PLrange of lexpr option * lexpr option (** interval of integers. *)
   | PLsizeof of logic_type (** sizeof a type. *)
   | PLsizeofE of lexpr (** sizeof the type of an expression. *)
-  | PLcoercion of lexpr * logic_type
-      (** coercion of an expression in a given type. *)
-  | PLcoercionE of lexpr * lexpr
-      (** coercion of the first expression into the type of the second one. *)
   | PLupdate of lexpr * (path_elt list) * update_term
       (** functional update of the field of a structure. *)
   | PLinitIndex of (lexpr * lexpr) list (** array constructor. *)
@@ -147,8 +143,6 @@ and lexpr_node =
   | PLseparated of lexpr list
       (** separation predicate. *)
   | PLnamed of string * lexpr (** named expression. *)
-  | PLsubtype of lexpr * lexpr
-      (** first type tag is a subtype of second one. *)
       (* tsets *)
   | PLcomprehension of lexpr * quantifiers * lexpr option
       (** set of expression defined in comprehension

@@ -36,7 +36,7 @@ module type Forward_Evaluation = sig
 end
 
 module Make
-    (Value : Abstract_value.External)
+    (Value : Abstract.Value.External)
     (Loc: Abstract_location.S with type value = Value.t)
     (Valuation: Eval.Valuation with type value = Value.t
                                 and type loc = Loc.location)

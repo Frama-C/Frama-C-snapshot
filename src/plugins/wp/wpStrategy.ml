@@ -35,12 +35,12 @@ type annot_kind =
              but not an hypothesis (see Aboth): A /\ ...*)
   | Aboth of bool
   (* annotation can be used as both hypothesis and goal :
-         - with true : considered as both : A /\ A=>..
-         - with false : we just want to use it as hyp right now. *)
+     - with true : considered as both : A /\ A=>..
+     - with false : we just want to use it as hyp right now. *)
   | AcutB of bool
   (* annotation is use as a cut :
-         - with true (A is also a goal) -> A (+ proof obligation A => ...)
-         - with false (A is an hyp only) -> True (+ proof obligation A => ...) *)
+     - with true (A is also a goal) -> A (+ proof obligation A => ...)
+     - with false (A is an hyp only) -> True (+ proof obligation A => ...) *)
   | AcallHyp of kernel_function
   (* annotation is a called function property to consider as an Hyp.
    * The pre are not here but in AcallPre since they can also

@@ -1,4 +1,4 @@
-{ "wp:global": { "alt-ergo": { "total": 1, "valid": 1, "rank": 2 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 1, "valid": 1, "rank": 2 },
                  "qed": { "total": 51, "valid": 51 },
                  "wp:main": { "total": 52, "valid": 52, "rank": 2 } },
   "wp:functions": { "predicate": { "predicate_ensures_r_precedence_ite_naming": 
@@ -86,8 +86,9 @@
                                                                     { "total": 1,
                                                                     "valid": 1 } },
                                    "predicate_ensures_ok_r_precedence_implies_or": 
-                                     { "alt-ergo": { "total": 1, "valid": 1,
-                                                     "rank": 2 },
+                                     { "why3:Alt-Ergo,2.0.0": { "total": 1,
+                                                                "valid": 1,
+                                                                "rank": 2 },
                                        "wp:main": { "total": 1, "valid": 1,
                                                     "rank": 2 } },
                                    "predicate_ensures_l_precedence_or_implies": 
@@ -108,9 +109,10 @@
                                    "predicate_ensures_r_precedence_and_xor": 
                                      { "qed": { "total": 1, "valid": 1 },
                                        "wp:main": { "total": 1, "valid": 1 } },
-                                   "wp:section": { "alt-ergo": { "total": 1,
-                                                                 "valid": 1,
-                                                                 "rank": 2 },
+                                   "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                     { "total": 1,
+                                                       "valid": 1,
+                                                       "rank": 2 },
                                                    "qed": { "total": 29,
                                                             "valid": 29 },
                                                    "wp:main": { "total": 30,

@@ -5,7 +5,7 @@
 */
 
 /* run.config_qualif
-   OPT:
+   OPT: -wp-timeout 1
    OPT: -wp-driver tests/wp_plugin/flash.driver,tests/wp_plugin/flash-ergo.driver
    OPT: -wp-driver tests/wp_plugin/flash.driver -load-module tests/wp_plugin/flash.ml
 */

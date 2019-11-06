@@ -188,9 +188,6 @@ val pvalid_index: ?loc:location -> logic_label * term * term -> predicate
 (** \valid_range: requires bounds having integer type *)
 val pvalid_range: ?loc:location -> logic_label * term * term * term -> predicate
 
-(** subtype relation *)
-val psubtype: ?loc:location -> term * term -> predicate
-
 (** \separated *)
 val pseparated: ?loc:location -> term list -> predicate
 

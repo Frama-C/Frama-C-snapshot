@@ -318,7 +318,7 @@ let copy_block kf switch_label_action break_continue_must_change bl =
       labelled_stmt_tbl calls_tbl stmt =
     let result =
       { labels = []; 
-        sid = Sid.next (); 
+        sid = Cil_const.Sid.next ();
         succs = []; 
         preds = []; 
         skind = stmt.skind; 
@@ -627,14 +627,14 @@ class do_it global_find_init ((force:bool),(times:int)) = object(self)
 	let break_label = fresh_label () in
  	let break_lbl_stmt = mkEmptyStmt () in
 	  break_lbl_stmt.labels <- [break_label];
-	  break_lbl_stmt.sid <- Cil.Sid.next ();
+	  break_lbl_stmt.sid <- Cil_const.Sid.next ();
 	  break_lbl_stmt
       in
       let mk_continue () =
         let continue_label = fresh_label () in
         let continue_lbl_stmt = mkEmptyStmt () in
         continue_lbl_stmt.labels <- [continue_label] ;
-        continue_lbl_stmt.sid <- Cil.Sid.next ();
+        continue_lbl_stmt.sid <- Cil_const.Sid.next ();
         continue_lbl_stmt
       in
       let current_continue = ref (mk_continue ()) in

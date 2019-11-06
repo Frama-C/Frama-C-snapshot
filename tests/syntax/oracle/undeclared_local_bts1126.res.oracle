@@ -32,8 +32,8 @@ extern int ( /* missing proto */ _gnutls_epoch_get)(struct gnutls_session_t x_0,
 
 extern int ( /* missing proto */ gnutls_assert_val)(int x_0);
 
-extern int ( /* missing proto */ _gnutls_cipher_suite_get_cipher_algo)(
-cipher_suite_st *x_0);
+extern int ( /* missing proto */ _gnutls_cipher_suite_get_cipher_algo)
+(cipher_suite_st *x_0);
 
 extern int ( /* missing proto */ _gnutls_cipher_suite_get_mac_algo)(cipher_suite_st *x_0);
 

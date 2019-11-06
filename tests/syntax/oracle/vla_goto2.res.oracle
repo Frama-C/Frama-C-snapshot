@@ -38,17 +38,20 @@ int case2(int arg)
 int case3(int arg)
 {
   int __retres;
-  unsigned int __lengthof_vla;
-  /*@ assert alloca_bounds: 0 < sizeof(int) * arg ≤ 4294967295; */ ;
-  __lengthof_vla = (unsigned int)arg;
-  int *vla = __fc_vla_alloc(sizeof(int) * __lengthof_vla);
-  if (arg >= 10) {
-    __retres = 1;
-    goto return_label;
+  {
+    unsigned int __lengthof_vla;
+    /*@ assert alloca_bounds: 0 < sizeof(int) * arg ≤ 4294967295; */ ;
+    __lengthof_vla = (unsigned int)arg;
+    int *vla = __fc_vla_alloc(sizeof(int) * __lengthof_vla);
+    if (arg >= 10) {
+      __retres = 1;
+      __fc_vla_free((void *)vla);
+      goto return_label;
+    }
+    __retres = 0;
+    __fc_vla_free((void *)vla);
   }
-  __retres = 0;
-  return_label: __fc_vla_free((void *)vla);
-  return __retres;
+  return_label: return __retres;
 }
 
 

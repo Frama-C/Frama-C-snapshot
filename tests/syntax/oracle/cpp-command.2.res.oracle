@@ -1,0 +1,2 @@
+[kernel] Parsing tests/syntax/cpp-command.c (with preprocessing)
+using \% has no effect : \tests/syntax/cpp-command.c

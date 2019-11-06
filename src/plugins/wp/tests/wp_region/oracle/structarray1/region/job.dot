@@ -1,0 +1,70 @@
+digraph "job" {
+  rankdir="LR" ;
+  node [ fontname="monospace" ];
+  edge [ fontname="monospace" ];
+  V000 [ label="M", shape="cds", style="filled", fillcolor="yellow" ];
+  V000:e -> A000 ;
+  V001 [ label="X", shape="cds", style="filled", fillcolor="yellow" ];
+  V001:e -> A001 ;
+  V002 [ label="R", shape="cds", style="filled", fillcolor="yellow" ];
+  V002:e -> A002 ;
+  V003 [ label="i", shape="cds", style="filled", fillcolor="yellow" ];
+  V003:e -> A003 ;
+  V004 [ label="j", shape="cds", style="filled", fillcolor="yellow" ];
+  V004:e -> A004 ;
+  A000 [ label="D", shape="oval" ];
+  _005 [ label="roots:&M", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A000; _005; }
+  _005 -> A000 [ arrowhead="tee" ];
+  _006 [ shape="record", label="<_p1> Ref" ];
+  _006:_p1 -> A005:w [ taillabel="*", labelangle="+30", color="red" ];
+  A000 -> _006:w [ arrowhead="tee" ];
+  A001 [ label="D", shape="oval" ];
+  _007 [ label="roots:&X", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A001; _007; }
+  _007 -> A001 [ arrowhead="tee" ];
+  _008 [ shape="record", label="<_p1> Ref" ];
+  _008:_p1 -> A006:w [ taillabel="*", labelangle="+30", color="red" ];
+  A001 -> _008:w [ arrowhead="tee" ];
+  A002 [ label="D", shape="oval" ];
+  _009 [ label="roots:&R", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A002; _009; }
+  _009 -> A002 [ arrowhead="tee" ];
+  _010 [ shape="record", label="<_p1> Ref" ];
+  _010:_p1 -> A006:w [ taillabel="*", labelangle="+30", color="red" ];
+  A002 -> _010:w [ arrowhead="tee" ];
+  A003 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _011 [ shape="record", label="Var sint32" ];
+  A003 -> _011:w [ arrowhead="tee" ];
+  A004 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _012 [ shape="record", label="Var sint32" ];
+  A004 -> _012:w [ arrowhead="tee" ];
+  A005 [ label="", shape="oval" ];
+  _013 [ label="roots:&M", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A005; _013; }
+  _013 -> A005 [ arrowhead="tee" ];
+  _014 [ shape="record", label="<_p1> 0..511: D32[4,4]" ];
+  _014:_p1 -> A007 [ style="dotted" ];
+  A005 -> _014:w [ arrowhead="tee" ];
+  A006 [ label="&", shape="oval", fillcolor="orange", style="filled" ];
+  _015 [ label="roots:*", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A006; _015; }
+  _015 -> A006 [ arrowhead="tee" ];
+  _016 [ shape="record", label="<_p1> 0..127: D32[4]" ];
+  _016:_p1 -> A008 [ style="dotted" ];
+  A006 -> _016:w [ arrowhead="tee" ];
+  A007 [ label="R", shape="oval", fillcolor="green", style="filled" ];
+  _017 [ label="roots:&M+(..)", style="filled", color="lightblue",
+    shape="box"
+  ];
+  { rank=same; A007; _017; }
+  _017 -> A007 [ arrowhead="tee" ];
+  _018 [ shape="record", label="Mem sint32" ];
+  A007 -> _018:w [ arrowhead="tee" ];
+  A008 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _019 [ label="roots:*", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A008; _019; }
+  _019 -> A008 [ arrowhead="tee" ];
+  _020 [ shape="record", label="Mem sint32" ];
+  A008 -> _020:w [ arrowhead="tee" ];
+}

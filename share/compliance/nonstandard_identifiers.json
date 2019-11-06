@@ -1,0 +1,18 @@
+{
+    "description": "Non-ISO C, Non-POSIX identifiers known to the Frama-C standard library",
+    "source":"Manpages, mostly Linux and BSD",
+    "data":[
+        {"ident":"facilitynames", "header":"syslog.h"},
+        {"ident":"getresgid", "header":"unistd.h"},
+        {"ident":"getresuid", "header":"unistd.h"},
+        {"ident":"option", "header":"getopt.h"},
+        {"ident":"prioritynames", "header":"syslog.h"},
+        {"ident":"setresgid", "header":"unistd.h"},
+        {"ident":"setresuid", "header":"unistd.h"},
+        {"ident":"strcspn", "header":"string.h"},
+        {"ident":"strlcat", "header":"string.h"},
+        {"ident":"strlcpy", "header":"string.h"},
+        {"ident":"wcslcat", "header":"wchar.h"},
+        {"ident":"wcslcpy", "header":"wchar.h"}
+    ]
+}

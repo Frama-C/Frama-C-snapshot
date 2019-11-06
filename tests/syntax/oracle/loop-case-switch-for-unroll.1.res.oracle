@@ -114,7 +114,7 @@
   gen_nondet_i ∈ {31}
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  2 functions analyzed (out of 52): 3% coverage.
+  2 functions analyzed (out of 2): 100% coverage.
   In these functions, 75 statements reached (out of 125): 60% coverage.
   ----------------------------------------------------------------------------
   No errors or warnings raised during the analysis.

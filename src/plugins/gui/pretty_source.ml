@@ -237,18 +237,19 @@ exception Found of int*int
    the same location in the source code, typically because one of them
    is not printed. Feel free to add other heuristics if needed. *)
 let equal_or_same_loc loc1 loc2 =
+  let open Property in
   Localizable.equal loc1 loc2 ||
   match loc1, loc2 with
-  | PIP (Property.IPReachable (_, Kstmt s, _)), PStmt (_, s')
-  | PStmt (_, s'), PIP (Property.IPReachable (_, Kstmt s, _))
-  | PIP (Property.IPPropertyInstance (_, s, _, _)), PStmt (_, s')
-  | PStmt (_, s'), PIP (Property.IPPropertyInstance (_, s, _, _))
+  | PIP (IPReachable {ir_kinstr=Kstmt s}), PStmt (_, s')
+  | PStmt (_, s'), PIP (IPReachable {ir_kinstr=Kstmt s})
+  | PIP (IPPropertyInstance {ii_stmt=s}), PStmt (_, s')
+  | PStmt (_, s'), PIP (IPPropertyInstance {ii_stmt=s})
     when
       Cil_datatype.Stmt.equal s s' -> true
-  | PIP (Property.IPReachable (Some kf, Kglobal, _)),
+  | PIP (IPReachable {ir_kf=Some kf; ir_kinstr=Kglobal}),
     (PVDecl (_, _, vi) | PGlobal (GFun ({ svar = vi }, _)))
   | (PVDecl (_, _, vi) | PGlobal (GFun ({ svar = vi }, _))),
-    PIP (Property.IPReachable (Some kf, Kglobal, _))
+    PIP (IPReachable {ir_kf=Some kf;ir_kinstr=Kglobal})
     when Kernel_function.get_vi kf = vi
     -> true
   | _ -> false
@@ -325,33 +326,33 @@ let display_source globals
              let ((pb,pe),v) = LocsArray.get locs_array !index in
              match v with
              | PStmt (_,ki) ->
-                 (try
-                    let pb,pe = match ki with
-                      | {skind = Instr _ | Return _ | Goto _
-                                 | Break _ | Continue _ | Throw _ } -> pb,pe
-                      | {skind = If _ | Loop _
-                                 | Switch _ } ->
-                          (* These statements contain other statements.
-                             We highlight only until the start of the first
-                             included statement. *)
-                          pb,
-                          (try LocsArray.find_next locs_array (!index+1)
-                                 (fun p -> match p with
-                                    | PStmt _ -> true
-                                    | _ -> false (* Do not stop on expressions*))
-                           with Not_found -> pb+1)
-                      | {skind = Block _ | TryExcept _ | TryFinally _
-                                 | UnspecifiedSequence _ | TryCatch _ } ->
-                          pb,
-                          (try LocsArray.find_next locs_array (!index+1) (fun _ -> true)
-                           with Not_found -> pb+1)
-                    in
-                    highlighter v ~start:pb ~stop:pe
-                  with Not_found -> ())
+               (try
+                  let pb,pe = match ki with
+                    | {skind = Instr _ | Return _ | Goto _
+                               | Break _ | Continue _ | Throw _ } -> pb,pe
+                    | {skind = If _ | Loop _
+                               | Switch _ } ->
+                      (* These statements contain other statements.
+                         We highlight only until the start of the first
+                         included statement. *)
+                      pb,
+                      (try LocsArray.find_next locs_array (!index+1)
+                             (fun p -> match p with
+                                | PStmt _ -> true
+                                | _ -> false (* Do not stop on expressions*))
+                       with Not_found -> pb+1)
+                    | {skind = Block _ | TryExcept _ | TryFinally _
+                               | UnspecifiedSequence _ | TryCatch _ } ->
+                      pb,
+                      (try LocsArray.find_next locs_array (!index+1) (fun _ -> true)
+                       with Not_found -> pb+1)
+                  in
+                  highlighter v ~start:pb ~stop:pe
+                with Not_found -> ())
              | PStmtStart _
              | PTermLval _ | PLval _ | PVDecl _ | PGlobal _
              | PIP _ | PExp _ ->
-                 highlighter v  ~start:pb ~stop:pe
+               highlighter v  ~start:pb ~stop:pe
            with Not_found -> () ) ;
            incr index
          done;
@@ -480,10 +481,10 @@ class pos_to_localizable =
       begin
         match s.skind with
         | If (exp, _, _, _) ->
-            (* conditional expressions are treated in a special way *)
-            insideIf <- Some (Kstmt s);
-            ignore (Cil.visitCilExpr (self :> Cil.cilVisitor) exp);
-            insideIf <- None
+          (* conditional expressions are treated in a special way *)
+          insideIf <- Some (Kstmt s);
+          ignore (Cil.visitCilExpr (self :> Cil.cilVisitor) exp);
+          insideIf <- None
         | _ -> ()
       end;
       Cil.DoChildren
@@ -492,15 +493,15 @@ class pos_to_localizable =
       begin
         match insideIf with
         | Some ki ->
-            (* expressions inside conditionals have a special treatment *)
-            begin
-              match exp.enode with
-              | Lval lv ->
-                  (* lvals must be generated differently from other expressions *)
-                  self#add_range exp.eloc (PLval(self#current_kf, ki, lv))
-              | _ ->
-                  self#add_range exp.eloc (PExp(self#current_kf, ki, exp))
-            end
+          (* expressions inside conditionals have a special treatment *)
+          begin
+            match exp.enode with
+            | Lval lv ->
+              (* lvals must be generated differently from other expressions *)
+              self#add_range exp.eloc (PLval(self#current_kf, ki, lv))
+            | _ ->
+              self#add_range exp.eloc (PExp(self#current_kf, ki, exp))
+          end
         | None -> ()
       end;
       Cil.DoChildren
@@ -582,17 +583,17 @@ let apply_location_heuristics precise_col possible_locs loc =
   match possible_locs, filter_locs possible_locs with
   | [], _ -> (* no possible localizables *) None
   | _, (_ :: _ as exact) ->
-      (* one or more exact localizables; we prioritize expressions *)
-      begin
-        match exps exact with
-        | [] -> (* no expressions, just take the last localizable *) last exact
-        | exps -> (* take the last (usually only) expression *) last exps
-      end
+    (* one or more exact localizables; we prioritize expressions *)
+    begin
+      match exps exact with
+      | [] -> (* no expressions, just take the last localizable *) last exact
+      | exps -> (* take the last (usually only) expression *) last exps
+    end
   | (loc', _) :: __, [] ->
-      (* No exact loc. We consider the innermost statements,
-         ie those at the top of the list *)
-      let filtered = innermost_in loc' possible_locs in
-      last filtered
+    (* No exact loc. We consider the innermost statements,
+       ie those at the top of the list *)
+    let filtered = innermost_in loc' possible_locs in
+    last filtered
 
 let loc_to_localizable ?(precise_col=false) loc =
   if not (MappingLineLocalizable.is_computed ()) then (
@@ -615,8 +616,8 @@ let loc_to_localizable ?(precise_col=false) loc =
       None
   with
   | Not_found ->
-      Gui_parameters.debug ~once:true ~source:loc "no matching localizable found";
-      None
+    Gui_parameters.debug ~once:true ~source:loc "no matching localizable found";
+    None
 
 (*
 Local Variables:

@@ -83,6 +83,8 @@
   function sigprocmask: precondition 'valid_oldset_or_null' got status valid.
 [eva] tests/libc/signal_h.c:35: 
   function sigprocmask: precondition 'separation' got status valid.
+[eva:invalid-assigns] tests/libc/signal_h.c:35: 
+  Completely invalid destination for assigns clause *oldset. Ignoring.
 [eva] Done for function sigprocmask
 [eva] computing for function sigprocmask <- main.
   Called from tests/libc/signal_h.c:38.
@@ -137,6 +139,8 @@
   function sigaction: precondition 'valid_read_act_or_null' got status valid.
 [eva] tests/libc/signal_h.c:51: 
   function sigaction: precondition 'separation,separated_acts' got status valid.
+[eva:invalid-assigns] tests/libc/signal_h.c:51: 
+  Completely invalid destination for assigns clause *oldact. Ignoring.
 [eva] Done for function sigaction
 [eva] Recording results for main
 [eva] done for function main
@@ -176,9 +180,7 @@
                 [15]{.sa_handler; .sa_sigaction} ∈ {0}
                 [15]{.sa_mask; .sa_flags} ∈ [--..--]
                 [16]{.sa_handler; .sa_sigaction} ∈ {0}
-                [16]{.sa_mask; .sa_flags} ∈ [--..--]
-                [17]{.sa_handler; .sa_sigaction} ∈ {0}
-                [17]{.sa_mask; .sa_flags} ∈ [--..--]
+                {[16]{.sa_mask; .sa_flags}; [17]} ∈ [--..--]
                 [18] ∈
                 {{ garbled mix of &{__fc_sigaction}
                  (origin: Library function) }}

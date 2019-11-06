@@ -318,7 +318,7 @@ module Make (Abstract: Abstractions.Eva) = struct
   (* ------------------- Retro propagation on formals ----------------------- *)
 
 
-  let get_precise_location = Location.get Main_locations.ploc_key
+  let get_precise_location = Location.get Main_locations.PLoc.key
 
   (* [is_safe_argument valuation expr] is true iff the expression [expr] could
      not have been written during the last call.
@@ -361,9 +361,9 @@ module Make (Abstract: Abstractions.Eva) = struct
 
   (* At the end of a call, this function gathers the arguments whose value can
      be reduced at the call site. These are the arguments such that:
-     - the formal has not been written during the call, but its value has been
+     – the formal has not been written during the call, but its value has been
        reduced;
-     - no variable of the concrete argument has been written during the call
+     – no variable of the concrete argument has been written during the call
        (thus the concrete argument is still equal to the formal).
      [state] is the state at the return statement of the called function;
      it is used to evaluate the formals; their values are then compared to the
@@ -559,10 +559,6 @@ module Make (Abstract: Abstractions.Eva) = struct
 
   (* ----------------- show_each and dump_each directives ------------------- *)
 
-  let extract_cvalue = match Domain.get Cvalue_domain.key with
-    | None -> fun _ -> Cvalue.Model.top
-    | Some get -> get
-
   (* The product of domains formats the printing of each leaf domains, by
      checking their log_category and adding their name before the dump. If the
      domain is not a product, this needs to be done here. *)
@@ -609,7 +605,7 @@ module Make (Abstract: Abstractions.Eva) = struct
 
   (* For non scalar expressions, prints the offsetmap of the cvalue domain. *)
   let show_offsm =
-    match Domain.get Cvalue_domain.key, Location.get Main_locations.ploc_key with
+    match Domain.get_cvalue, Location.get Main_locations.PLoc.key with
     | None, _ | _, None ->
       fun fmt _ _ -> Format.fprintf fmt "%s" (Unicode.top_string ())
     | Some get_cvalue, Some get_ploc ->
@@ -621,9 +617,7 @@ module Make (Abstract: Abstractions.Eva) = struct
               let offsm =
                 fst (Eval.lvaluate ~for_writing:false state lval)
                 >>- fun (_, loc, _) ->
-                let ploc = get_ploc loc
-                and cvalue_state = get_cvalue state in
-                Eval_op.offsetmap_of_loc ploc cvalue_state
+                Eval_op.offsetmap_of_loc (get_ploc loc) (get_cvalue state)
               in
               let typ = Cil.typeOf expr in
               (Bottom.pretty (Eval_op.pretty_offsetmap typ)) fmt offsm
@@ -634,7 +628,7 @@ module Make (Abstract: Abstractions.Eva) = struct
 
   (* For scalar expressions, prints the cvalue component of their values. *)
   let show_value =
-    match Value.get Main_values.cvalue_key with
+    match Value.get Main_values.CVal.key with
     | None -> fun fmt _ _ -> Format.fprintf fmt "%s" (Unicode.top_string ())
     | Some get_cval ->
       fun fmt expr state ->
@@ -707,7 +701,7 @@ module Make (Abstract: Abstractions.Eva) = struct
      {Cvalue_transfer.start_call}. *)
   let apply_cvalue_callback kf ki_call state =
     let stack_with_call = (kf, ki_call) :: Value_util.call_stack () in
-    let cvalue_state = extract_cvalue state in
+    let cvalue_state = Domain.get_cvalue_or_top state in
     Db.Value.Call_Value_Callbacks.apply (cvalue_state, stack_with_call);
     Db.Value.merge_initial_state (Value_util.call_stack ()) cvalue_state;
     let result =

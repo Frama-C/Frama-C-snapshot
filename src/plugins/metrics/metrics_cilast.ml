@@ -34,10 +34,10 @@ type cilast_metrics = {
 }
 
 (** Syntactic metrics
-   =================
-   The goal is to collect various (syntactic) information about the source code
-   (slocs, assignments, loops, ...).
-   From those one can compute McCabe's cyclomatic complexity.
+    =================
+    The goal is to collect various (syntactic) information about the source code
+    (slocs, assignments, loops, ...).
+    From those one can compute McCabe's cyclomatic complexity.
 *)
 class type sloc_visitor = object
   inherit Visitor.generic_frama_c_visitor
@@ -66,7 +66,7 @@ class type sloc_visitor = object
 
   method get_metrics_map:
     (BasicMetrics.t OptionKf.Map.t) Datatype.Filepath.Map.t
-  (** Compute and return per-function metrics *)
+    (** Compute and return per-function metrics *)
 end
 
 (* Various metrics computing visitor on Cil AST.
@@ -116,23 +116,23 @@ class slocVisitor ~libc : sloc_visitor = object(self)
   method private stats_of_filename filename =
     try Datatype.Filepath.Map.find filename metrics_map
     with
-      | Not_found ->
-        Metrics_parameters.fatal "Metrics for file %a not_found@."
-          Datatype.Filepath.pretty filename
+    | Not_found ->
+      Metrics_parameters.fatal "Metrics for file %a not_found@."
+        Datatype.Filepath.pretty filename
 
   method pp_file_metrics fmt filename =
     Format.fprintf fmt "@[<v 0>%a@]"
       (fun fmt filename ->
-        let fun_tbl = self#stats_of_filename filename in
-        OptionKf.Map.iter (fun _fun_name fmetrics ->
-          Format.fprintf fmt "@ %a" pp_base_metrics fmetrics)
-          fun_tbl;
+         let fun_tbl = self#stats_of_filename filename in
+         OptionKf.Map.iter (fun _fun_name fmetrics ->
+             Format.fprintf fmt "@ %a" pp_base_metrics fmetrics)
+           fun_tbl;
       ) filename
 
   method pp_detailed_text_metrics fmt =
     Datatype.Filepath.Map.iter
       (fun filename _func_tbl ->
-        Format.fprintf fmt "%a" self#pp_file_metrics filename) metrics_map
+         Format.fprintf fmt "%a" self#pp_file_metrics filename) metrics_map
 
   method print_stats fmt =
     Transitioning.Format.pp_set_formatter_stag_functions fmt Metrics_base.html_stag_functions;
@@ -141,60 +141,60 @@ class slocVisitor ~libc : sloc_visitor = object(self)
       Format.fprintf fmt "@{<th>%s@}" hdr_name in
     Datatype.Filepath.Map.iter
       (fun filename func_tbl ->
-        Metrics_parameters.result ~level:2 "%a" self#pp_file_metrics filename;
-        if func_tbl <> OptionKf.Map.empty then
-          begin
-            Format.fprintf fmt
-              "@[<v 0>@{<h3>%a@}<br/>@ \
-               @{<table>\
-               @[<v 2>@ \
-                 @[<v 2>@{<tbody>@ \
-                    @{<tr>@[<v 2>@ \
-                       %a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ @]@}@ \
-                       %a@ \
-                       @}@]@]@ @} \
-               @]@ "
-              Datatype.Filepath.pretty filename
-              pr_hdr "Function" pr_hdr "#If stmts" pr_hdr "#Assignments"
-              pr_hdr "#Loops" pr_hdr "#Calls" pr_hdr "#Gotos"
-              pr_hdr "#Pointer dereferencing" pr_hdr "#Exits"
-              pr_hdr "Cyclomatic value"
-              (fun fmt fun_tbl ->
-                OptionKf.Map.iter
-                  (fun _fname fmetrics ->
-                    Format.fprintf fmt "%a"
-                      pp_base_metrics_as_html_row fmetrics;
-                  ) fun_tbl
-              ) func_tbl;
-          end
-        else 
-          Metrics_parameters.warning
-            "Filename <%a> has no functions@."
-            Datatype.Filepath.pretty filename)
+         Metrics_parameters.result ~level:2 "%a" self#pp_file_metrics filename;
+         if func_tbl <> OptionKf.Map.empty then
+           begin
+             Format.fprintf fmt
+               "@[<v 0>@{<h3>%a@}<br/>@ \
+                @{<table>\
+                @[<v 2>@ \
+                @[<v 2>@{<tbody>@ \
+                @{<tr>@[<v 2>@ \
+                %a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ @]@}@ \
+                %a@ \
+                @}@]@]@ @} \
+                @]@ "
+               Datatype.Filepath.pretty filename
+               pr_hdr "Function" pr_hdr "#If stmts" pr_hdr "#Assignments"
+               pr_hdr "#Loops" pr_hdr "#Calls" pr_hdr "#Gotos"
+               pr_hdr "#Pointer dereferencing" pr_hdr "#Exits"
+               pr_hdr "Cyclomatic value"
+               (fun fmt fun_tbl ->
+                  OptionKf.Map.iter
+                    (fun _fname fmetrics ->
+                       Format.fprintf fmt "%a"
+                         pp_base_metrics_as_html_row fmetrics;
+                    ) fun_tbl
+               ) func_tbl;
+           end
+         else
+           Metrics_parameters.warning
+             "Filename <%a> has no functions@."
+             Datatype.Filepath.pretty filename)
       metrics_map
 
-(* Save the local metrics currently computed.
-   Clears it before starting a new metrics computation (e.g. when entering a new
-   function definition.
-   Global metrics are never reset as they define metrics on the whole Cil.file.
-*)
+  (* Save the local metrics currently computed.
+     Clears it before starting a new metrics computation (e.g. when entering a new
+     function definition.
+     Global metrics are never reset as they define metrics on the whole Cil.file.
+  *)
   method private record_and_clear_function_metrics metrics =
     let filename = metrics.cfile_name in
     let funcname = metrics.cfunc in
     local_metrics := BasicMetrics.set_cyclo !local_metrics
-           (BasicMetrics.compute_cyclo !local_metrics);
+        (BasicMetrics.compute_cyclo !local_metrics);
     global_metrics := BasicMetrics.set_cyclo !global_metrics
-           (!global_metrics.ccyclo + !local_metrics.ccyclo);
+        (!global_metrics.ccyclo + !local_metrics.ccyclo);
     (try
        let fun_tbl = Datatype.Filepath.Map.find filename metrics_map in
        self#update_metrics_map filename
          (OptionKf.Map.add funcname !local_metrics fun_tbl);
      with
-       | Not_found ->
-         let new_kfmap =
-           OptionKf.Map.add funcname !local_metrics
-             OptionKf.Map.empty
-         in self#update_metrics_map filename new_kfmap;
+     | Not_found ->
+       let new_kfmap =
+         OptionKf.Map.add funcname !local_metrics
+           OptionKf.Map.empty
+       in self#update_metrics_map filename new_kfmap;
     );
     local_metrics := empty_metrics;
 
@@ -218,7 +218,7 @@ class slocVisitor ~libc : sloc_visitor = object(self)
       seen_vars <- Varinfo.Set.add vi seen_vars;
     );
     Cil.SkipChildren
-      
+
   method! vfunc fdec =
     if consider_function ~libc fdec.svar then
       begin
@@ -226,13 +226,13 @@ class slocVisitor ~libc : sloc_visitor = object(self)
            let's put it to the "function with source" table. *)
         local_metrics :=
           {!local_metrics with
-            cfile_name = file_of_fundef fdec;
-            cfunc = Some (Globals.Functions.get fdec.svar);
-            cfuncs = 1; (* Only one function is indeed being defined here *)};
+           cfile_name = file_of_fundef fdec;
+           cfunc = Some (Globals.Functions.get fdec.svar);
+           cfuncs = 1; (* Only one function is indeed being defined here *)};
         let fvinfo = fdec.svar in
         (if not (VInfoMap.mem fvinfo !fundef_calls) then
            (* Never seen before, including never been called *)
-            self#add_map fundef_calls fvinfo 0);
+           self#add_map fundef_calls fvinfo 0);
         (* On return record the analysis of the function. *)
         Cil.ChangeDoChildrenPost
           (fdec,
@@ -249,8 +249,8 @@ class slocVisitor ~libc : sloc_visitor = object(self)
   method! vlval (host, _) =
     begin
       match host with
-        | Mem _ -> self#incr_both_metrics incr_ptrs;
-        | _ -> ()
+      | Mem _ -> self#incr_both_metrics incr_ptrs;
+      | _ -> ()
     end;
     Cil.DoChildren
 
@@ -258,35 +258,35 @@ class slocVisitor ~libc : sloc_visitor = object(self)
     self#incr_both_metrics incr_slocs;
     let do_children =
       match s.skind with
-        | If _ ->
-            self#incr_both_metrics incr_ifs;
-            self#incr_both_metrics incr_dpoints;
-            true
-        | Loop _ -> self#incr_both_metrics incr_loops; true
-        | Goto _ -> self#incr_both_metrics incr_gotos; true
-        | Return _ -> self#incr_both_metrics incr_exits; true
-        | Switch (_, _, _slist, _) -> true
-        (* The catching block is one more possible flow alternative *)
-        | TryFinally _
-        | TryExcept _ -> self#incr_both_metrics incr_dpoints; true
-        | UnspecifiedSequence l ->
-            List.iter 
-              (fun (s,_,_,_,_) ->
-                ignore
-                  (Visitor.visitFramacStmt (self:>Visitor.frama_c_visitor) s))
-              l;
-            false
-        | _ -> true
+      | If _ ->
+        self#incr_both_metrics incr_ifs;
+        self#incr_both_metrics incr_dpoints;
+        true
+      | Loop _ -> self#incr_both_metrics incr_loops; true
+      | Goto _ -> self#incr_both_metrics incr_gotos; true
+      | Return _ -> self#incr_both_metrics incr_exits; true
+      | Switch (_, _, _slist, _) -> true
+      (* The catching block is one more possible flow alternative *)
+      | TryFinally _
+      | TryExcept _ -> self#incr_both_metrics incr_dpoints; true
+      | UnspecifiedSequence l ->
+        List.iter
+          (fun (s,_,_,_,_) ->
+             ignore
+               (Visitor.visitFramacStmt (self:>Visitor.frama_c_visitor) s))
+          l;
+        false
+      | _ -> true
     in
     (* Default cases are not path choice points, as normal labels.
        Non-default cases are ... just like if statements.
     *)
     let rec has_case_label labels =
       match labels with
-        | (Case _) :: _->
-          self#incr_both_metrics incr_dpoints;
-        | _ :: labels -> has_case_label labels
-        | [] -> ()
+      | (Case _) :: _->
+        self#incr_both_metrics incr_dpoints;
+      | _ :: labels -> has_case_label labels
+      | [] -> ()
     in has_case_label s.labels;
     if do_children then Cil.DoChildren else Cil.SkipChildren
 
@@ -294,37 +294,37 @@ class slocVisitor ~libc : sloc_visitor = object(self)
     begin
       (* Logical ands and ors are lazy and generate two different paths *)
       match e.enode with
-        | BinOp ((LAnd | LOr), _, _, _) ->
-          self#incr_both_metrics incr_dpoints;
-        | _ -> ()
+      | BinOp ((LAnd | LOr), _, _, _) ->
+        self#incr_both_metrics incr_dpoints;
+      | _ -> ()
     end;
     Cil.DoChildren
 
   method private image (glob:global) =
     (* extract just the name of the global , for printing purposes *)
     match glob with
-      | GVar (v, _, _) -> v.vname ^ " (GVar) "
-      | GVarDecl (v, _) -> v.vname ^ " (GVarDecl) "
-      | GFunDecl (_, v, _) -> v.vname ^ " (GFunDecl) "
-      | GFun (fdec, _) -> fdec.svar.vname ^ " (GFun) "
-      | GType (ty, _) -> ty.tname
-      | GCompTag (ci, _) | GCompTagDecl (ci, _) -> ci.cname
-      | GEnumTagDecl (ei, _) | GEnumTag (ei, _) -> ei.ename
-      | GAsm (_, _) | GPragma _ | GText _ -> ""
-      | GAnnot (an,_) ->
-        begin
-          match an with
-            | Dfun_or_pred (li, _) -> li.l_var_info.lv_name
-            | Dvolatile (_, _, _, _, _) -> " (Volatile) "
-            | Daxiomatic (s, _, _, _) -> s
-            | Dtype (lti, _) ->  lti.lt_name
-            | Dlemma (ln, _, _, _, _, _, _) ->  ln
-            | Dinvariant (toto, _) -> toto.l_var_info.lv_name
-            | Dtype_annot (ta, _) -> ta.l_var_info.lv_name
-            | Dmodel_annot (mi, _) -> mi.mi_name
-            | Dcustom_annot (_c, _n, _, _) -> " (Custom) "
-            | Dextended ((_, n, _, _, _), _, _) -> " (Extension " ^ n ^ ")"
-        end
+    | GVar (v, _, _) -> v.vname ^ " (GVar) "
+    | GVarDecl (v, _) -> v.vname ^ " (GVarDecl) "
+    | GFunDecl (_, v, _) -> v.vname ^ " (GFunDecl) "
+    | GFun (fdec, _) -> fdec.svar.vname ^ " (GFun) "
+    | GType (ty, _) -> ty.tname
+    | GCompTag (ci, _) | GCompTagDecl (ci, _) -> ci.cname
+    | GEnumTagDecl (ei, _) | GEnumTag (ei, _) -> ei.ename
+    | GAsm (_, _) | GPragma _ | GText _ -> ""
+    | GAnnot (an,_) ->
+      begin
+        match an with
+        | Dfun_or_pred (li, _) -> li.l_var_info.lv_name
+        | Dvolatile (_, _, _, _, _) -> " (Volatile) "
+        | Daxiomatic (s, _, _, _) -> s
+        | Dtype (lti, _) ->  lti.lt_name
+        | Dlemma (ln, _, _, _, _, _, _) ->  ln
+        | Dinvariant (toto, _) -> toto.l_var_info.lv_name
+        | Dtype_annot (ta, _) -> ta.l_var_info.lv_name
+        | Dmodel_annot (mi, _) -> mi.mi_name
+        | Dcustom_annot (_c, _n, _, _) -> " (Custom) "
+        | Dextended ({ext_name}, _, _) -> " (Extension " ^ ext_name ^ ")"
+      end
 
   method private images (globs:global list) =
     (* extract just the names of the globals, for printing purposes *)
@@ -347,8 +347,8 @@ class slocVisitor ~libc : sloc_visitor = object(self)
       | Call(v, e, _, _) ->
         self#incr_both_metrics incr_calls;
         (match e.enode with
-          | Lval(Var vinfo, NoOffset) -> self#update_call_maps vinfo 1
-          | _ -> ());
+         | Lval(Var vinfo, NoOffset) -> self#update_call_maps vinfo 1
+         | _ -> ());
         (match v with
          | Some _ -> self#incr_both_metrics incr_assigns
          | None -> ());
@@ -553,35 +553,35 @@ let dump_html fmt cil_visitor =
   let pr_row s fmt n =
     Format.fprintf fmt
       "@{<tr>@[<v 1>@ \
-              @{<td class=\"entry\">%s@}@ \
-              @{<td class=\"stat\">%d@}@]@ @} " s n
+       @{<td class=\"entry\">%s@}@ \
+       @{<td class=\"stat\">%d@}@]@ @} " s n
   in
   let pr_stats fmt visitor =
     let metrics = visitor#get_global_metrics in
     Format.fprintf fmt "@[<v 0>@{<table>%a@}@]"
       (fun fmt metrics ->
-        List.iter2 (fun text value -> pr_row text fmt value)
-          ["SLOC"; "Number of if statements"; "Number of assignments";
-           "Number of loops"; "Number of calls"; "Number of gotos";
-           "Number of pointer accesses";]
-          [metrics.cslocs; metrics.cifs; metrics.cassigns;
-           metrics.cloops; metrics.ccalls; metrics.cgotos;
-           metrics.cptrs;]) metrics
+         List.iter2 (fun text value -> pr_row text fmt value)
+           ["SLOC"; "Number of if statements"; "Number of assignments";
+            "Number of loops"; "Number of calls"; "Number of gotos";
+            "Number of pointer accesses";]
+           [metrics.cslocs; metrics.cifs; metrics.cassigns;
+            metrics.cloops; metrics.ccalls; metrics.cgotos;
+            metrics.cptrs;]) metrics
   in
   let pr_prelude fmt cil_visitor =
     Format.fprintf fmt "@[<v 0>\
-        @{<div>@ \
-        @{<h1>@{<span>Metrics@}@}@ \
-        @{<h2>Synthetic results@}@ <br/>@ \
-        @{<span>Defined function(s)@} (%d): <br/>@ \
-        @[&nbsp; %a@]@ <br/>@ <br/>@ \
-        @{<span>Undefined function(s)@} (%d):@ <br/>@ \
-        @[&nbsp; %a@]@ <br>@ <br/>@ \
-        @{<span>'Extern' global variable(s)@} (%d):@ <br/>@ \
-        @[&nbsp; %a@]@ <br>@ <br/>@ \
-        @{<span>Potential entry point(s)@} (%d):@ <br/>@ \
-        @[&nbsp; %a@]@ <br/>@ <br/>@ \
-        @}@]"
+                        @{<div>@ \
+                        @{<h1>@{<span>Metrics@}@}@ \
+                        @{<h2>Synthetic results@}@ <br/>@ \
+                        @{<span>Defined function(s)@} (%d): <br/>@ \
+                        @[&nbsp; %a@]@ <br/>@ <br/>@ \
+                        @{<span>Undefined function(s)@} (%d):@ <br/>@ \
+                        @[&nbsp; %a@]@ <br>@ <br/>@ \
+                        @{<span>'Extern' global variable(s)@} (%d):@ <br/>@ \
+                        @[&nbsp; %a@]@ <br>@ <br/>@ \
+                        @{<span>Potential entry point(s)@} (%d):@ <br/>@ \
+                        @[&nbsp; %a@]@ <br/>@ <br/>@ \
+                        @}@]"
       (VInfoMap.cardinal cil_visitor#fundef_calls)
       Metrics_base.pretty_set cil_visitor#fundef_calls
       (VInfoMap.cardinal cil_visitor#fundecl_calls)
@@ -593,29 +593,29 @@ let dump_html fmt cil_visitor =
   in
   let pr_detailed_results fmt cil_visitor =
     Format.fprintf fmt "@[<v 0>\
-        @{<div style=\"text-align: left;\">\
-        @[<v 2>@ \
-          @{<h2>Detailed results@}@ \
-          @[<v 0>%a@ @]\
-        @]@}"
+                        @{<div style=\"text-align: left;\">\
+                        @[<v 2>@ \
+                        @{<h2>Detailed results@}@ \
+                        @[<v 0>%a@ @]\
+                        @]@}"
       (fun fmt cil_visitor -> cil_visitor#print_stats fmt) cil_visitor
   in
   Format.fprintf fmt "@[<v 0>\
-      <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\
-          \"http://www.w3.org/TR/html4/strict.dtd\">@ \
-      @{<html>@ \
-      @{<head>@ \
-       @{<title>%s@}@ \
-       <meta content=\"text/html; charset=iso-8859-1\" \
-        http-equiv=\"Content-Type\"/>@ \
-        @{<style type=\"text/css\">%s@}@ \
-      @}@ \
-        @{<body>\
-         @[<v 2>@ \
-         %a@ \
-         %a@ \
-         %a@ \
-         @]@}@}@]@?"
+                      <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\
+                      \"http://www.w3.org/TR/html4/strict.dtd\">@ \
+                      @{<html>@ \
+                      @{<head>@ \
+                      @{<title>%s@}@ \
+                      <meta content=\"text/html; charset=iso-8859-1\" \
+                      http-equiv=\"Content-Type\"/>@ \
+                      @{<style type=\"text/css\">%s@}@ \
+                      @}@ \
+                      @{<body>\
+                      @[<v 2>@ \
+                      %a@ \
+                      %a@ \
+                      %a@ \
+                      @]@}@}@]@?"
     "Metrics"
     Css_html.css
     pr_prelude cil_visitor
@@ -631,12 +631,12 @@ let pp_funinfo fmt vis =
   and fundecl_hdr = Format.sprintf "Undefined functions (%d)" nfundecl
   and extern_hdr = Format.sprintf "'Extern' global variables (%d)" nextern
   and entry_pts_hdr = Format.sprintf "Potential entry points (%d)"
-    (Metrics_base.number_entry_points vis#fundef_calls) in
+      (Metrics_base.number_entry_points vis#fundef_calls) in
   Format.fprintf fmt
     "@[<v 0>@[<v 1>%a@ @[%a@]@]@ @ \
-            @[<v 1>%a@ @[%a@]@]@ @ \
-            @[<v 1>%a@ @[%a@]@]@ @ \
-            @[<v 1>%a@ @[%a@]@]@ \
+     @[<v 1>%a@ @[%a@]@]@ @ \
+     @[<v 1>%a@ @[%a@]@]@ @ \
+     @[<v 1>%a@ @[%a@]@]@ \
      @]"
     (Metrics_base.mk_hdr 1) fundef_hdr
     Metrics_base.pretty_set vis#fundef_calls
@@ -656,7 +656,7 @@ let pp_with_funinfo fmt cil_visitor =
 
 let get_global_metrics ~libc =
   let file = Ast.get () in
-   (* Do as before *)
+  (* Do as before *)
   let cil_visitor = new slocVisitor ~libc in
   Visitor.visitFramacFileSameGlobals
     (cil_visitor:>Visitor.frama_c_visitor) file;
@@ -665,7 +665,7 @@ let get_global_metrics ~libc =
 
 let get_metrics_map ~libc =
   let file = Ast.get () in
-   (* Do as before *)
+  (* Do as before *)
   let cil_visitor = new slocVisitor ~libc in
   Visitor.visitFramacFileSameGlobals
     (cil_visitor:>Visitor.frama_c_visitor) file;
@@ -695,7 +695,7 @@ let compute_on_cilast ~libc =
   if Metrics_parameters.ByFunction.get () then
     Metrics_parameters.result
       "@[<v 0>Cil AST@ %t@]" cil_visitor#pp_detailed_text_metrics;
-(*  let r =  metrics_to_result cil_visitor in *)
+  (*  let r =  metrics_to_result cil_visitor in *)
   (* Print the result to file if required *)
   let out_fname = Metrics_parameters.OutputFile.get () in
   begin
@@ -704,8 +704,8 @@ let compute_on_cilast ~libc =
         let oc = open_out_bin out_fname in
         let fmt = Format.formatter_of_out_channel oc in
         (match Metrics_base.get_file_type out_fname with
-          | Html -> dump_html fmt cil_visitor
-          | Text -> pp_with_funinfo fmt cil_visitor
+         | Html -> dump_html fmt cil_visitor
+         | Text -> pp_with_funinfo fmt cil_visitor
         );
         close_out oc;
       with Sys_error _ ->

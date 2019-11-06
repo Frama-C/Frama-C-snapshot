@@ -1,17 +1,17 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_typed/unit_bitwise.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 61 goals scheduled
-[wp] [Alt-Ergo] Goal typed_lemma_band_sint8 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_band_uint8 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_blsr_sint8 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_blsr_uint8 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_bnot_sint8 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_bor_sint8 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_bor_uint8 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_bxor_sint8 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_band_sint8 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_band_uint8 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_blsr_sint8 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_blsr_uint8 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_bnot_sint8 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_bor_sint8 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_bor_uint8 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_bxor_sint8 : Valid
 [wp] [Qed] Goal typed_lemma_land_abs : Valid
 [wp] [Qed] Goal typed_lemma_land_assoc : Valid
 [wp] [Qed] Goal typed_lemma_land_com : Valid
@@ -23,32 +23,32 @@
 [wp] [Qed] Goal typed_lemma_lxor_assoc : Valid
 [wp] [Qed] Goal typed_lemma_lxor_com : Valid
 [wp] [Qed] Goal typed_band1_uchar_assert_ok : Valid
-[wp] [Alt-Ergo] Goal typed_band1_uchar_assert_ok_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_band1_uchar_assert_ok_2 : Valid
 [wp] [Qed] Goal typed_band1_uint_assert_ok : Valid
-[wp] [Alt-Ergo] Goal typed_band1_uint_assert_ok_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_band1_uint_assert_ok_2 : Valid
 [wp] [Qed] Goal typed_band1_ulong_assert_ok : Valid
-[wp] [Alt-Ergo] Goal typed_band1_ulong_assert_ok_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_band1_ulong_assert_ok_2 : Valid
 [wp] [Qed] Goal typed_band1_ushort_assert_ok : Valid
-[wp] [Alt-Ergo] Goal typed_band1_ushort_assert_ok_2 : Valid
-[wp] [Alt-Ergo] Goal typed_band_char_ensures_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_band1_ushort_assert_ok_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_band_char_ensures_ok : Valid
 [wp] [Qed] Goal typed_band_int_ensures_ok : Valid
 [wp] [Qed] Goal typed_band_int_assert_ok : Valid
-[wp] [Alt-Ergo] Goal typed_band_uchar_ensures_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_band_uchar_ensures_ok : Valid
 [wp] [Qed] Goal typed_band_uint_ensures_ok : Valid
-[wp] [Alt-Ergo] Goal typed_bnot_char_ensures_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_bnot_char_ensures_ok : Valid
 [wp] [Qed] Goal typed_bnot_int_ensures_ok : Valid
 [wp] [Qed] Goal typed_bnot_uchar_ensures_ok : Valid
 [wp] [Qed] Goal typed_bnot_uint_ensures_ok : Valid
-[wp] [Alt-Ergo] Goal typed_bor_char_ensures_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_bor_char_ensures_ok : Valid
 [wp] [Qed] Goal typed_bor_int_ensures_ok : Valid
 [wp] [Qed] Goal typed_bor_uchar_ensures_ok : Valid
 [wp] [Qed] Goal typed_bor_uint_ensures_ok : Valid
-[wp] [Alt-Ergo] Goal typed_bxor_char_ensures_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_bxor_char_ensures_ok : Valid
 [wp] [Qed] Goal typed_bxor_int_ensures_ok : Valid
 [wp] [Qed] Goal typed_bxor_uchar_ensures_ok : Valid
-[wp] [Alt-Ergo] Goal typed_bxor_uchar_ensures_ok_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_bxor_uchar_ensures_ok_2 : Valid
 [wp] [Qed] Goal typed_bxor_uint_ensures_ok : Valid
-[wp] [Alt-Ergo] Goal typed_bxor_uint_ensures_ok_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_bxor_uint_ensures_ok_2 : Valid
 [wp] [Qed] Goal typed_cast_ensures_ok : Valid
 [wp] [Qed] Goal typed_cast_assert_ok : Valid
 [wp] [Qed] Goal typed_cast_assert_ok_2 : Valid
@@ -63,11 +63,11 @@
 [wp] [Qed] Goal typed_lshift_uint_ensures_ok : Valid
 [wp] [Qed] Goal typed_rshift_char_ensures_ok : Valid
 [wp] [Qed] Goal typed_rshift_int_ensures_ok : Valid
-[wp] [Alt-Ergo] Goal typed_rshift_uchar_ensures_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_rshift_uchar_ensures_ok : Valid
 [wp] [Qed] Goal typed_rshift_uint_ensures_ok : Valid
 [wp] Proved goals:   61 / 61
-  Qed:            41 
-  Alt-Ergo:       20
+  Qed:              41 
+  Alt-Ergo 2.0.0:   20
 [wp] Report in:  'tests/wp_typed/oracle_qualif/unit_bitwise.0.report.json'
 [wp] Report out: 'tests/wp_typed/result_qualif/unit_bitwise.0.report.json'
 -------------------------------------------------------------
@@ -91,7 +91,7 @@ rshift_uint          1     -                 1       100%
 band_char           -       1 (12..24)       1       100%
 bor_char            -       1 (12..24)       1       100%
 bxor_char           -       1 (12..24)       1       100%
-bnot_char           -       1 (12..24)       1       100%
+bnot_char           -       1 (8..20)        1       100%
 lshift_char          1     -                 1       100%
 rshift_char          1     -                 1       100%
 band1_uchar          1      1 (12..24)       2       100%

@@ -458,7 +458,7 @@ end
     @since Carbon-20101201 *)
 module SharedCounter(Info : sig val name : string end) : Counter
 
-(** Creates a projectified counter.
+(** Creates a projectified counter. That starts at 0
 
     @since Nitrogen-20111001 *)
 module Counter(Info : sig val name : string end) : Counter

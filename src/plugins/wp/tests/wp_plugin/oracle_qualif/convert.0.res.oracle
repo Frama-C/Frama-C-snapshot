@@ -1,14 +1,16 @@
-# frama-c -wp -wp-timeout 100 -wp-steps 500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/convert.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_lemma_ceil : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_floor : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ceil : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_floor : Valid
 [wp] Proved goals:    2 / 2
-  Qed:             0 
-  Alt-Ergo:        2
+  Qed:               0 
+  Alt-Ergo 2.0.0:    2
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/convert.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/convert.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
-Lemma               -       2                2       100%
+Lemma               -       2 (1..12)        2       100%
 -------------------------------------------------------------

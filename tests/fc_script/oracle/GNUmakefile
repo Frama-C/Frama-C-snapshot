@@ -29,6 +29,8 @@ CPPFLAGS    +=
 
 # (Optional) Frama-C general flags (parsing and kernel)
 FCFLAGS     += \
+  -machdep x86_64 \
+  -json-compilation-database . \
   -kernel-warn-key annot:missing-spec=abort \
   -kernel-warn-key typing:implicit-function-declaration=abort \
 
@@ -48,7 +50,7 @@ all: $(TARGETS)
 # (MANDATORY) List of source files used by MAIN_TARGET.
 # If there is a JSON compilation database,
 # 'frama-c-script list-files' can help obtain it
-$(MAIN_TARGET).parse: file1.c file*.c dir/more_files.c
+$(MAIN_TARGET).parse: fc_stubs.c file1.c file*.c dir/more_files.c
 
 
 # The following targets are optional and provided for convenience only

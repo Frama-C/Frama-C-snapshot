@@ -24,10 +24,10 @@ val product_category: Value_parameters.category
 
 module Make
     (Value: Abstract_value.S)
-    (Left:  Abstract_domain.Internal with type value = Value.t)
-    (Right: Abstract_domain.Internal with type value = Left.value
+    (Left:  Abstract.Domain.Internal with type value = Value.t)
+    (Right: Abstract.Domain.Internal with type value = Left.value
                                       and type location = Left.location)
-  : Abstract_domain.Internal with type value = Value.t
+  : Abstract.Domain.Internal with type value = Value.t
                               and type location = Left.location
                               and type state = Left.state * Right.state
 

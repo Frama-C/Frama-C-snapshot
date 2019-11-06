@@ -32,11 +32,13 @@ module CvalueDomain: Parameter_sig.Bool
 module EqualityDomain: Parameter_sig.Bool
 module GaugesDomain: Parameter_sig.Bool
 module SymbolicLocsDomain: Parameter_sig.Bool
+module OctagonDomain: Parameter_sig.Bool
 module BitwiseOffsmDomain: Parameter_sig.Bool
 module InoutDomain: Parameter_sig.Bool
 module SignDomain: Parameter_sig.Bool
 module PrinterDomain: Parameter_sig.Bool
 module NumerorsDomain: Parameter_sig.Bool
+module TracesDomain: Parameter_sig.Bool
 
 module ApronOctagon: Parameter_sig.Bool
 module ApronBox: Parameter_sig.Bool
@@ -49,12 +51,18 @@ module EqualityCallFunction:
   Parameter_sig.Map with type key = Cil_types.kernel_function
                      and type value = string
 
+module OctagonCall: Parameter_sig.Bool
+
+module TracesUnrollLoop: Parameter_sig.Bool
+module TracesUnifyLoop: Parameter_sig.Bool
+module TracesDot: Parameter_sig.String
+module TracesProject: Parameter_sig.Bool
+
 module EqualityStorage: Parameter_sig.Bool
 module SymbolicLocsStorage: Parameter_sig.Bool
 module GaugesStorage: Parameter_sig.Bool
 module ApronStorage: Parameter_sig.Bool
 module BitwiseOffsmStorage: Parameter_sig.Bool
-
 
 module AutomaticContextMaxDepth: Parameter_sig.Int
 module AutomaticContextMaxWidth: Parameter_sig.Int
@@ -85,6 +93,7 @@ module SlevelFunction:
 module SlevelMergeAfterLoop: Parameter_sig.Kernel_function_set
 
 module MinLoopUnroll : Parameter_sig.Int
+module AutoLoopUnroll : Parameter_sig.Int
 module DefaultLoopUnroll : Parameter_sig.Int
 module HistoryPartitioning : Parameter_sig.Int
 module ValuePartitioning : Parameter_sig.String_set
@@ -204,6 +213,9 @@ val wkey_missing_loop_unroll_for : warn_category
 (** Warning category for signed overflows *)
 val wkey_signed_overflow : warn_category
 
+(** Warning category for 'completely invalid' assigns clause *)
+val wkey_invalid_assigns : warn_category
+
 (** Debug category used to print information about invalid pointer comparisons*)
 val dkey_pointer_comparison: category
 
@@ -226,6 +238,11 @@ val dkey_callbacks : category
 val dkey_widening : category
 
 
+(** Notifies that the binding to Apron domains is available. *)
+val register_apron: unit -> unit
+
+(** Notifies that the numerors domain is available. *)
+val register_numerors: unit -> unit
 
 (*
 Local Variables:

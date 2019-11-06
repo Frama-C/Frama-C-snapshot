@@ -1,126 +1,173 @@
-{ "wp:global": { "why3:alt-ergo": { "total": 22, "valid": 22 },
-                 "wp:main": { "total": 22, "valid": 22 } },
-  "wp:functions": { "f": { "f_ensures_sm3_mod_neg_neg": { "why3:alt-ergo": 
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 22, "valid": 22,
+                                          "rank": 3 },
+                 "wp:main": { "total": 22, "valid": 22, "rank": 2 } },
+  "wp:functions": { "f": { "f_ensures_sm3_mod_neg_neg": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 2 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_sm2_mod_pos_neg": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 2 } },
+                           "f_ensures_sm2_mod_pos_neg": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 2 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_sm1_mod_neg_pos": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 2 } },
+                           "f_ensures_sm1_mod_neg_pos": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 2 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_sm0_mod_pos_pos": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 2 } },
+                           "f_ensures_sm0_mod_pos_pos": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 2 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_m6_mod_0_x": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 2 } },
+                           "f_ensures_m6_mod_0_x": { "why3:Alt-Ergo,2.0.0": 
                                                        { "total": 1,
-                                                         "valid": 1 },
+                                                         "valid": 1,
+                                                         "rank": 3 },
                                                      "wp:main": { "total": 1,
-                                                                  "valid": 1 } },
-                           "f_ensures_m5_mod_x_minus1": { "why3:alt-ergo": 
+                                                                  "valid": 1,
+                                                                  "rank": 3 } },
+                           "f_ensures_m5_mod_x_minus1": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 3 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_m4_mod_x_1": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 3 } },
+                           "f_ensures_m4_mod_x_1": { "why3:Alt-Ergo,2.0.0": 
                                                        { "total": 1,
-                                                         "valid": 1 },
+                                                         "valid": 1,
+                                                         "rank": 0 },
                                                      "wp:main": { "total": 1,
-                                                                  "valid": 1 } },
-                           "f_ensures_m3_mod_neg_neg": { "why3:alt-ergo": 
+                                                                  "valid": 1,
+                                                                  "rank": 0 } },
+                           "f_ensures_m3_mod_neg_neg": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
-                                                             "valid": 1 },
+                                                             "valid": 1,
+                                                             "rank": 0 },
                                                          "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                           "f_ensures_m2_mod_pos_neg": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 0 } },
+                           "f_ensures_m2_mod_pos_neg": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
-                                                             "valid": 1 },
+                                                             "valid": 1,
+                                                             "rank": 0 },
                                                          "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                           "f_ensures_m1_mod_neg_pos": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 0 } },
+                           "f_ensures_m1_mod_neg_pos": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
-                                                             "valid": 1 },
+                                                             "valid": 1,
+                                                             "rank": 0 },
                                                          "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                           "f_ensures_m0_mod_pos_pos": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 0 } },
+                           "f_ensures_m0_mod_pos_pos": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
-                                                             "valid": 1 },
+                                                             "valid": 1,
+                                                             "rank": 0 },
                                                          "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                           "f_ensures_sd3_div_neg_neg": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 0 } },
+                           "f_ensures_sd3_div_neg_neg": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 2 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_sd2_div_pos_neg": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 2 } },
+                           "f_ensures_sd2_div_pos_neg": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 2 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_sd1_div_neg_pos": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 2 } },
+                           "f_ensures_sd1_div_neg_pos": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 2 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_sd0_div_pos_pos": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 2 } },
+                           "f_ensures_sd0_div_pos_pos": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 2 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_d6_div_0_x": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 2 } },
+                           "f_ensures_d6_div_0_x": { "why3:Alt-Ergo,2.0.0": 
                                                        { "total": 1,
-                                                         "valid": 1 },
+                                                         "valid": 1,
+                                                         "rank": 3 },
                                                      "wp:main": { "total": 1,
-                                                                  "valid": 1 } },
-                           "f_ensures_d5_div_x_minus1": { "why3:alt-ergo": 
+                                                                  "valid": 1,
+                                                                  "rank": 3 } },
+                           "f_ensures_d5_div_x_minus1": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 1 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
-                           "f_ensures_d4_div_x_1": { "why3:alt-ergo": 
+                                                              "valid": 1,
+                                                              "rank": 1 } },
+                           "f_ensures_d4_div_x_1": { "why3:Alt-Ergo,2.0.0": 
                                                        { "total": 1,
-                                                         "valid": 1 },
+                                                         "valid": 1,
+                                                         "rank": 1 },
                                                      "wp:main": { "total": 1,
-                                                                  "valid": 1 } },
-                           "f_ensures_d3_div_neg_neg": { "why3:alt-ergo": 
+                                                                  "valid": 1,
+                                                                  "rank": 1 } },
+                           "f_ensures_d3_div_neg_neg": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
-                                                             "valid": 1 },
+                                                             "valid": 1,
+                                                             "rank": 0 },
                                                          "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                           "f_ensures_d2_div_pos_neg": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 0 } },
+                           "f_ensures_d2_div_pos_neg": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
-                                                             "valid": 1 },
+                                                             "valid": 1,
+                                                             "rank": 0 },
                                                          "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                           "f_ensures_d1_div_neg_pos": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 0 } },
+                           "f_ensures_d1_div_neg_pos": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
-                                                             "valid": 1 },
+                                                             "valid": 1,
+                                                             "rank": 0 },
                                                          "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                           "f_ensures_d0_div_pos_pos": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 0 } },
+                           "f_ensures_d0_div_pos_pos": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
-                                                             "valid": 1 },
+                                                             "valid": 1,
+                                                             "rank": 0 },
                                                          "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                           "wp:section": { "why3:alt-ergo": { "total": 22,
-                                                              "valid": 22 },
+                                                                    "valid": 1,
+                                                                    "rank": 0 } },
+                           "wp:section": { "why3:Alt-Ergo,2.0.0": { "total": 22,
+                                                                    "valid": 22,
+                                                                    "rank": 3 },
                                            "wp:main": { "total": 22,
-                                                        "valid": 22 } } } } }
+                                                        "valid": 22,
+                                                        "rank": 2 } } } } }

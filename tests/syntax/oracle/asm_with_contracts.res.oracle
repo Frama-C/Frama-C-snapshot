@@ -25,4 +25,23 @@ int f(int z)
   return x;
 }
 
+__inline static void insw(unsigned short __port, void *__addr,
+                          unsigned long __count)
+{
+  /*@ assigns __addr, __count, *((char *)__addr + (..));
+      assigns __addr
+        \from __port, (indirect: __addr), __count, *((char *)__addr + (..));
+      assigns __count
+        \from __port, (indirect: __addr), __count, *((char *)__addr + (..));
+      assigns *((char *)__addr + (..))
+        \from __port, (indirect: __addr), __count, *((char *)__addr + (..));
+  */
+  __asm__ volatile (
+    "cld ; rep ; insw"
+    : "=D" (__addr), "=c" (__count)
+    : "d" (__port), "0" (__addr), "1" (__count)
+    );
+  return;
+}
+
 

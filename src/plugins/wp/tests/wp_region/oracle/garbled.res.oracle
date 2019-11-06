@@ -1,0 +1,7 @@
+[kernel] Parsing tests/wp_region/garbled.i (no preprocessing)
+[wp:garbled] Garbled Clusters: A=sint32 B=float32
+[wp:garbled] Garbled Clusters: A=garbled B=sint32
+[wp:garbled] Garbled Clusters: A=garbled B=float32
+[wp] Region Graph: tests/wp_region/result/garbled/region/job.dot
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards

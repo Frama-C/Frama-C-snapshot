@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -pp-annot -eva @EVA_CONFIG@ -journal-disable
+   OPT: -eva @EVA_CONFIG@ -journal-disable -print
 */
 
 // see bts 1357
@@ -23,5 +23,8 @@ int f(int x) { return (x + MIN_X); }
 int main() {
   int y = f(MIN_X);
   //@ assert (x) == 1;
+
+  // BTS 2307
+  /*@ assert backslash_string: "\\"[0] == '\\'; */
   return 0;
 }

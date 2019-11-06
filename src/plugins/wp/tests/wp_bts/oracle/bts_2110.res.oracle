@@ -5,98 +5,135 @@
 [wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
 ---------------------------------------------
---- File 'typed/myMain_assigns.ergo' 
+--- Context 'typed_myMain' Cluster 'S2_A' 
 ---------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Assigns 'KO' at call 'myRead' (file tests/wp_bts/bts_2110.i, line 36) --- *)
-(* ---------------------------------------------------------- *)
-
-goal myMain_assigns:
-  forall i : int.
-  forall t : int farray.
-  forall t_1 : (addr,int) farray.
-  forall a_1,a : addr.
-  let a_2 = shiftfield_F1_FD_pos(a) : addr in
-  let x = t_1[a_2] : int in
-  (x <> i) ->
-  (region(a.base) <= 0) ->
-  (region(a_1.base) <= 0) ->
-  linked(t) ->
-  is_sint32(i) ->
-  is_sint32(x) ->
-  (not invalid(t, a_2, 1)) ->
-  (a_2 = a_1)
-
+theory S2_A
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  (* use bool.Bool *)
+  
+  (* use int.Int *)
+  
+  (* use int.ComputerDivision *)
+  
+  (* use real.RealInfix *)
+  
+  (* use frama_c_wp.qed.Qed *)
+  
+  (* use map.Map *)
+  
+  type S2_A =
+    | S2_A1 (F2_A_dummy:int)
+  
+  (* use frama_c_wp.cint.Cint *)
+  
+  predicate IsS2_A (s:S2_A) = is_sint32 (F2_A_dummy s)
+  
+  predicate EqS2_A (s:S2_A) (s1:S2_A) = F2_A_dummy s1 = F2_A_dummy s
+end
 ---------------------------------------------
---- File 'typed/Compound.ergo' 
+--- Context 'typed_myMain' Cluster 'Compound' 
 ---------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Memory Compound Updates                            --- *)
-(* ---------------------------------------------------------- *)
-
-function shiftfield_F1_FD_pos(p:addr) : addr = shift(p, 0)
-
-function shiftfield_F2_A_dummy(p:addr) : addr = shift(p, 0)
-
-function Load_S2_A
-    (p:addr,
-    Mint_0:(addr,int) farray) :
-    S2_A =
-    { F2_A_dummy = Mint_0[shiftfield_F2_A_dummy(p)] }
-
-axiom Q_Load_S2_A_update_Mint:
-  forall p,q : addr.
-  forall Mint_0 : (addr,int) farray.
-  forall v : int
-  [Load_S2_A(p, Mint_0[q <- v])].
-  (q <> p) -> (Load_S2_A(p, Mint_0[q <- v]) = Load_S2_A(p, Mint_0))
-
-axiom Q_Load_S2_A_eqmem_Mint:
-  forall p,q : addr.
-  forall Mint_0,Mint_1 : (addr,int) farray.
-  forall k : int
-  [eqmem(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_0)|
-    eqmem(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_1)].
-  included(p, 1, q, k) -> eqmem(Mint_0, Mint_1, q, k) ->
-    (Load_S2_A(p, Mint_1) = Load_S2_A(p, Mint_0))
-
-axiom Q_Load_S2_A_havoc_Mint:
-  forall p,q : addr.
-  forall Mint_0,Mint_1,Mint_2 : (addr,int) farray.
-  forall k : int
-  [Load_S2_A(p, Mint_0)|Load_S2_A(p, Mint_1)].
-  (havoc(Mint_2, Mint_0, q, k) = Mint_1) -> separated(p, 1, q, k) ->
-    (Load_S2_A(p, Mint_1) = Load_S2_A(p, Mint_0))
-
----------------------------------------------
---- File 'typed/S2_A.ergo' 
----------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Struct 'A'                                         --- *)
-(* ---------------------------------------------------------- *)
-
-type S2_A = { F2_A_dummy : int }
-
-predicate IsS2_A(S:S2_A) = is_sint32(S.F2_A_dummy)
-
-predicate EqS2_A(S:S2_A, S_1:S2_A) = (S_1.F2_A_dummy) = (S.F2_A_dummy)
-
----------------------------------------------
---- File 'typed/myMain_ensures_KO.ergo' 
----------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Post-condition 'KO' in 'myMain'                    --- *)
-(* ---------------------------------------------------------- *)
-
-goal myMain_ensures_KO:
-  forall t_1,t : (addr,int) farray.
-  forall a_1,a : addr.
-  let a_2 = Load_S2_A(a_1, t_1) : S2_A in
-  let a_3 = Load_S2_A(a_1, havoc(t, t_1, a_1, 1)) : S2_A in
-  (region(a.base) <= 0) ->
-  (region(a_1.base) <= 0) ->
-  IsS2_A(a_2) ->
-  IsS2_A(a_3) ->
-  EqS2_A(a_3, a_2)
-
+theory Compound
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  (* use bool.Bool *)
+  
+  (* use int.Int *)
+  
+  (* use int.ComputerDivision *)
+  
+  (* use real.RealInfix *)
+  
+  (* use frama_c_wp.qed.Qed *)
+  
+  (* use map.Map *)
+  
+  (* use frama_c_wp.memory.Memory *)
+  
+  function shiftfield_F1_FD_pos (p:addr) : addr = shift p 0
+  
+  function shiftfield_F2_A_dummy (p:addr) : addr = shift p 0
+  
+  (* use S2_A *)
+  
+  function Load_S2_A (p:addr) (mint:addr -> int) : S2_A =
+    S2_A1 (get mint (shiftfield_F2_A_dummy p))
+  
+  axiom Q_Load_S2_A_update_Mint :
+    forall mint:addr -> int, p:addr, q:addr, v:int
+     [Load_S2_A p (set mint q v)].
+     not q = p -> Load_S2_A p (set mint q v) = Load_S2_A p mint
+  
+  axiom Q_Load_S2_A_eqmem_Mint :
+    forall mint:addr -> int, mint1:addr -> int, n:int, p:addr, q:addr
+     [Load_S2_A p mint, eqmem mint mint1 q n| Load_S2_A p mint1,
+     eqmem mint mint1 q n].
+     included p 1 q n ->
+     eqmem mint mint1 q n -> Load_S2_A p mint1 = Load_S2_A p mint
+  
+  axiom Q_Load_S2_A_havoc_Mint :
+    forall mint:addr -> int, mint1:addr -> int, n:int, p:addr, q:addr
+     [Load_S2_A p (havoc mint1 mint q n)].
+     separated p 1 q n ->
+     Load_S2_A p (havoc mint1 mint q n) = Load_S2_A p mint
+end
+[wp:print-generated] 
+  theory WP
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    (* use frama_c_wp.memory.Memory *)
+    
+    (* use Compound *)
+    
+    goal wp_goal :
+      forall t:int -> int, t1:addr -> int, a:addr, a1:addr, i:int.
+       let a2 = shiftfield_F1_FD_pos a1 in
+       let x = get t1 a2 in
+       not x = i ->
+       region (base a1) <= 0 ->
+       region (base a) <= 0 ->
+       linked t -> is_sint32 i -> is_sint32 x -> not invalid t a2 1 -> a2 = a
+  end
+[wp:print-generated] 
+  theory WP1
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    (* use frama_c_wp.memory.Memory *)
+    
+    (* use S2_A *)
+    
+    (* use Compound *)
+    
+    goal wp_goal :
+      forall t:addr -> int, t1:addr -> int, a:addr, a1:addr.
+       let a2 = Load_S2_A a t in
+       let a3 = Load_S2_A a (havoc t1 t a 1) in
+       region (base a1) <= 0 ->
+       region (base a) <= 0 -> IsS2_A a2 -> IsS2_A a3 -> EqS2_A a3 a2
+  end
 [wp] 2 goals generated

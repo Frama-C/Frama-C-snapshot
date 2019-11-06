@@ -1,0 +1,11 @@
+[kernel] Parsing tests/syntax/ghost_parameters.c (with preprocessing)
+[kernel] tests/syntax/ghost_parameters.c:192: 
+  syntax error:
+  Location: line 192, between columns 35 and 36, before or at token: )
+  190   #ifdef VOID_EMPTY_GHOST_PARAMETER_LIST
+  191   
+  192   void function_void(void) /*@ ghost () */ {
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  193   
+  194   }
+[kernel] Frama-C aborted: invalid user input.

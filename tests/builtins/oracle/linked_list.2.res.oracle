@@ -15,6 +15,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -55,6 +57,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -90,6 +94,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -129,6 +135,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -167,6 +175,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -209,6 +219,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -249,6 +261,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -293,6 +307,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -335,6 +351,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -381,6 +399,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -425,6 +445,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -473,6 +495,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -519,6 +543,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -569,6 +595,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -617,6 +645,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -669,6 +699,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -719,6 +751,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -773,6 +807,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -825,6 +861,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}
@@ -881,6 +919,8 @@
   __fc_stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_tmpnam[0..0x7FF] ∈ {0}
+  __fc_p_tmpnam ∈ {{ &__fc_tmpnam[0] }}
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {0x7FFF}

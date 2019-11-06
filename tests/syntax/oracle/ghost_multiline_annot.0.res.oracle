@@ -3,12 +3,14 @@
 int main(int c)
 {
   int __retres;
-  /*@ requires c ≥ 0; */
-  /*@ ghost int x = c; */
-  /*@ loop invariant x ≥ 0;
-      loop assigns x;
-      loop variant x; */
-  /*@ ghost while (x > 0) x --; */
+  /*@ ghost /@ requires c ≥ 0; @/
+    int x = c; */
+  /*@ ghost
+    /@ loop invariant x ≥ 0;
+       loop assigns x;
+       loop variant x; @/
+    while (x > 0) x --;
+  */
   __retres = 0;
   return __retres;
 }

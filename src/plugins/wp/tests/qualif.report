@@ -5,7 +5,7 @@
 -------------------------------------------------------------
 %chapter  &18:  WP &26: Alt-Ergo &42: Total &51:Success
 @SECTION
-%name &18:%wp &24: %ergo %range &42:%total &51: %success%%
+%name &18:%wp &24: %{Alt-Ergo,2.0.0,} %range &42:%total &51: %success%%
 @TAIL
 -------------------------------------------------------------
 @END

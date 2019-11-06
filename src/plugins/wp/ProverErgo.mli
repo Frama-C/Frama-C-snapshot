@@ -27,4 +27,6 @@ open VCS
 (* --- Alt-Ergo Theorem Prover                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
+val dkey_cluster: Wp_parameters.category
+
 val prove : config:config -> mode:mode -> Wpo.t -> result task

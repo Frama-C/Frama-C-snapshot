@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_typed/cast_fits.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -13,27 +13,27 @@
   Cast with incompatible pointers types (source: sint32*)
      (target: __anonunion_L8_8*)
 [wp] 8 goals scheduled
-[wp] [Alt-Ergo] Goal typed_fits1_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_fits2_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_fits3_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_fits4_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_fits5_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_mismatch1_ensures : Unsuccess (Stronger)
-[wp] [Alt-Ergo] Goal typed_mismatch2_ensures : Unsuccess (Stronger)
-[wp] [Alt-Ergo] Goal typed_mismatch3_ensures : Unsuccess (Stronger)
+[wp] [Alt-Ergo 2.0.0] Goal typed_fits1_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_fits2_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_fits3_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_fits4_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_fits5_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_mismatch1_ensures : Unsuccess (Stronger)
+[wp] [Alt-Ergo 2.0.0] Goal typed_mismatch2_ensures : Unsuccess (Stronger)
+[wp] [Alt-Ergo 2.0.0] Goal typed_mismatch3_ensures : Unsuccess (Stronger)
 [wp] Proved goals:    5 / 8
-  Qed:             0 
-  Alt-Ergo:        5  (unsuccess: 3)
+  Qed:               0 
+  Alt-Ergo 2.0.0:    5  (unsuccess: 3)
 [wp] Report in:  'tests/wp_typed/oracle_qualif/cast_fits.0.report.json'
 [wp] Report out: 'tests/wp_typed/result_qualif/cast_fits.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-fits1               -       1 (20..32)       1       100%
+fits1               -       1 (8..20)        1       100%
 mismatch1           -      -                 1       0.0%
-fits2               -       1 (20..32)       1       100%
-fits3               -       1 (24..36)       1       100%
-fits4               -       1 (28..40)       1       100%
-fits5               -       1 (20..32)       1       100%
+fits2               -       1 (8..20)        1       100%
+fits3               -       1 (16..28)       1       100%
+fits4               -       1 (8..20)        1       100%
+fits5               -       1 (8..20)        1       100%
 mismatch2           -      -                 1       0.0%
 mismatch3           -      -                 1       0.0%
 -------------------------------------------------------------

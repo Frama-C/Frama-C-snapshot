@@ -115,20 +115,21 @@ let eval_assigns kf state assigns =
                not (Kernel_function.is_formal v kf)
            | Base.CLogic_Var _ | Base.Null | Base.String _ -> true)
     in
+    let out_term = out.it_content in
     let outputs_under, outputs_over, deps =
       try
-        if Logic_utils.is_result out.it_content
+        if Logic_const.(is_result out_term || is_exit_status out_term)
         then (Zone.bottom, Zone.bottom, Zone.bottom)
         else
           let loc_out_under, loc_out_over, deps =
-	    !Db.Properties.Interp.loc_to_loc_under_over ~result:None state out.it_content
+	    !Db.Properties.Interp.loc_to_loc_under_over ~result:None state out_term
           in
 	  (enumerate_valid_bits_under Write loc_out_under,
 	   enumerate_valid_bits Write loc_out_over,
 	   clean_deps deps)
       with Db.Properties.Interp.No_conversion ->
         Inout_parameters.warning ~current:true ~once:true
-          "failed to interpret assigns clause '%a'" Printer.pp_term out.it_content;
+          "failed to interpret assigns clause '%a'" Printer.pp_term out_term;
         (Zone.bottom, Zone.top, Zone.top)
     in
     (* Compute all inputs as a zone *)
@@ -699,7 +700,7 @@ module FunctionWise = struct
       let module Computer = Computer(Fenv)(struct
         let _version = "functionwise"
         let _kf = kf
-        let stmt_state = Db.Value.get_stmt_state
+        let stmt_state s = Db.Value.get_stmt_state s
         let at_call stmt kf = get_external_aux ~stmt kf
       end) in
       Stack.iter

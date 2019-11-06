@@ -212,7 +212,7 @@ let fmod round = binary mod_float round
 
 let generate single double =
   fun round prec ->
-    round >>% fun () -> if is_single prec then single else double
+  round >>% fun () -> if is_single prec then single else double
 
 let exp round = generate Floating_point.expf exp round
 let log round = generate Floating_point.logf log round

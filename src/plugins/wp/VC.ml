@@ -30,6 +30,8 @@ type t = Wpo.t
 
 let get_id = Wpo.get_gid
 let get_model = Wpo.get_model
+let get_scope = Wpo.get_scope
+let get_context = Wpo.get_context
 let get_description = Wpo.get_label
 let get_property = Wpo.get_property
 let get_sequent w = snd (Wpo.compute w)
@@ -42,10 +44,9 @@ let is_proved = Wpo.is_proved
 
 let get_formula po =
   match po.po_formula with
-  | GoalCheck c -> c.VC_Check.goal
   | GoalLemma l -> l.VC_Lemma.lemma.Definitions.l_lemma
   | GoalAnnot { VC_Annot.goal = g } ->
-      Model.with_model po.po_model Wpo.GOAL.compute_proof g
+      WpContext.on_context (get_context po) Wpo.GOAL.compute_proof g
 
 let clear = Wpo.clear
 let proof = Wpo.goals_of_property
@@ -95,6 +96,7 @@ let prove = Prover.prove
 let spawn = Prover.spawn ~delayed:true
 
 let server = ProverTask.server
-let command vcs = Register.do_wp_proofs_iter (fun f -> Bag.iter f vcs)
+let command ?provers ?tip vcs =
+  Register.do_wp_proofs_iter ?provers ?tip (fun f -> Bag.iter f vcs)
 
 (* -------------------------------------------------------------------------- *)

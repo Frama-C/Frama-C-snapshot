@@ -24,8 +24,8 @@ Proof.
       rewrite 2!Z.add_assoc.
       apply H6; omega.
   - apply Q_trans with (t_1:=t_1) (a_1:=shift_sint32 a_1 (-i)).
-    + apply IHP_same_elements1. reflexivity. destruct a_1; unfold shift_sint32, shift; simpl. f_equal; omega.
-    + apply IHP_same_elements2. destruct a_1; unfold shift_sint32, shift; simpl. f_equal; omega. reflexivity.
+    + apply IHP_same_elements1. destruct a_1; unfold shift_sint32, shift; simpl. f_equal; omega. reflexivity.
+    + apply IHP_same_elements2. reflexivity. destruct a_1; unfold shift_sint32, shift; simpl. f_equal; omega.
 Qed.
 
 Goal typed_lemma_test.
@@ -37,3 +37,5 @@ destruct H.
   - right. split;assumption.
 (* auto with zarith. *)
 Qed.
+
+

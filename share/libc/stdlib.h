@@ -454,8 +454,11 @@ extern void *realloc(void *ptr, size_t size);
 
 /* ISO C: 7.20.4 */
 
-/*@ assigns \nothing;
-  @ ensures never_terminates: \false; */
+/*@
+  assigns \exit_status \from \nothing;
+  exits status: \exit_status != EXIT_SUCCESS;
+  ensures never_terminates: \false;
+ */
 extern void abort(void) __attribute__ ((__noreturn__));
 
 /*@ assigns \result \from \nothing ;*/
@@ -465,7 +468,8 @@ extern int atexit(void (*func)(void));
 extern int at_quick_exit(void (*func)(void));
 
 /*@
-  assigns \nothing;
+  assigns \exit_status \from status;
+  exits status: \exit_status == status;
   ensures never_terminates: \false;
 */
 extern void exit(int status) __attribute__ ((__noreturn__));

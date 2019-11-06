@@ -27,7 +27,7 @@ export FRAMAC_BYTE=$(FRAMAC_ROOT_SRCDIR)/bin/toplevel.byte$(EXE)
 
 export FRAMAC_INCLUDES=$(addprefix -I $(call winpath,$(FRAMAC_ROOT_SRCDIR))/,$(FRAMAC_SRC_DIRS) lib)
 
-export PTESTS=$(FRAMAC_ROOT_SRCDIR)/bin/ptests.$(PTESTSBEST)$(EXE)
+export PTESTS=$(FRAMAC_ROOT_SRCDIR)/bin/ptests.$(OCAMLBEST)$(EXE)
 
 export FRAMAC_LIB=$(FRAMAC_ROOT_SRCDIR)/lib/fc
 export DOC_DIR=$(FRAMAC_ROOT_SRCDIR)/doc/code

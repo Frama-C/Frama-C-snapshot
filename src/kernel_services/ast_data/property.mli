@@ -34,50 +34,75 @@ open Cil_types
    - use private records instead of tuples whenever possible
    - extend identified_property to any possible annotations
    - design more consistent type
-   For instance,
+     For instance,
    - why code annotations are represented so differently?
    - why type [behavior_or_loop] does not contain "assigns" somewhere in its
-   name?
+     name?
    - why this last type cannot be private? *)
 
 (** assigns can belong either to a contract or a loop annotation *)
 type behavior_or_loop = (* private *)
   | Id_contract of Datatype.String.Set.t * funbehavior
-      (** in case of statement contract, we can have different contracts
-          based on different sets of active behaviors. *)
+  (** in case of statement contract, we can have different contracts
+      based on different sets of active behaviors. *)
   | Id_loop of code_annotation
 
 (** Only AAssert, AInvariant, or APragma. Other code annotations are
     dispatched as identified_property of their own. *)
-type identified_code_annotation = kernel_function * stmt * code_annotation
+type identified_code_annotation = {
+  ica_kf : kernel_function;
+  ica_stmt : stmt;
+  ica_ca : code_annotation
+}
 
-type identified_assigns =
-    kernel_function * kinstr * behavior_or_loop * from list
+type identified_assigns = {
+  ias_kf : kernel_function;
+  ias_kinstr : kinstr;
+  ias_bhv : behavior_or_loop;
+  ias_froms : from list
+}
 
-type identified_allocation =
-    kernel_function * kinstr * behavior_or_loop * (identified_term list * identified_term list)
+type identified_allocation = {
+  ial_kf : kernel_function;
+  ial_kinstr : kinstr;
+  ial_bhv : behavior_or_loop;
+  ial_allocs : identified_term list * identified_term list
+}
 
-type identified_from =
-    kernel_function
-    * kinstr
-    * behavior_or_loop
-    * from
+type identified_from = {
+  if_kf : kernel_function;
+  if_kinstr : kinstr;
+  if_bhv : behavior_or_loop;
+  if_from : from
+}
 
-type identified_decrease =
-    kernel_function * kinstr * code_annotation option * variant
+type identified_decrease = {
+  id_kf : kernel_function;
+  id_kinstr : kinstr;
+  id_ca : code_annotation option;
+  id_variant : variant
+}
 (** code_annotation is None for decreases and [Some { AVariant }] for
     loop variant. *)
 
-type identified_behavior =
-  kernel_function * kinstr * Datatype.String.Set.t * funbehavior
-  (** for statement contract, the set of parent behavior for which the
-      contract is active is part of its identification. If the set is empty,
-      the contract is active for all parent behaviors.
-  *)
+type identified_behavior = {
+  ib_kf : kernel_function;
+  ib_kinstr : kinstr;
+  ib_active : Datatype.String.Set.t;
+  ib_bhv : funbehavior
+}
+(** for statement contract, the set of parent behavior for which the
+    contract is active is part of its identification. If the set is empty,
+    the contract is active for all parent behaviors.
+*)
 
-type identified_complete =
-  kernel_function * kinstr * Datatype.String.Set.t * string list
-  (** Same as for {!identified_behavior}. *)
+type identified_complete = {
+  ic_kf : kernel_function;
+  ic_kinstr : kinstr;
+  ic_active : Datatype.String.Set.t;
+  ic_bhvs : string list
+}
+(** Same as for {!identified_behavior}. *)
 
 type identified_disjoint = identified_complete
 
@@ -87,12 +112,20 @@ type predicate_kind = private
   | PKEnsures of funbehavior * termination_kind
   | PKTerminates
 
-type identified_predicate =
-    predicate_kind * kernel_function * kinstr * Cil_types.identified_predicate
+type identified_predicate = {
+  ip_kind : predicate_kind;
+  ip_kf : kernel_function;
+  ip_kinstr : kinstr;
+  ip_pred : Cil_types.identified_predicate
+}
 
 type program_point = Before | After
 
-type identified_reachable = kernel_function option * kinstr * program_point
+type identified_reachable = {
+  ir_kf : kernel_function option;
+  ir_kinstr : kinstr;
+  ir_program_point : program_point
+}
 (** [None, Kglobal] --> global property
     [None, Some ki] --> impossible
     [Some kf, Kglobal] --> property of a function without code
@@ -109,25 +142,53 @@ type extended_loc =
   | ELStmt of kernel_function * stmt
   | ELGlob
 
-type identified_extended = extended_loc * Cil_types.acsl_extension
+type identified_extended = {
+  ie_loc : extended_loc;
+  ie_ext : Cil_types.acsl_extension
+}
 
-and identified_axiomatic = string * identified_property list
+and identified_axiomatic = {
+  iax_name : string;
+  iax_props : identified_property list
+}
 
-and identified_lemma =
-    string * logic_label list * string list * predicate * location
+and identified_lemma = {
+  il_name : string;
+  il_labels : logic_label list;
+  il_args : string list;
+  il_pred : predicate;
+  il_loc : location
+}
 
 and identified_axiom = identified_lemma
 
 (** Specialization of a property at a given point, identified by a statement
     and a function, along with the predicate transposed at this point (if it
     can be) and the original property. *)
-and identified_instance =
-  kernel_function * stmt * Cil_types.identified_predicate option
-  * identified_property
+and identified_instance = {
+  ii_kf : kernel_function;
+  ii_stmt : stmt;
+  ii_pred : Cil_types.identified_predicate option;
+  ii_ip : identified_property
+}
 
-and identified_type_invariant = string * typ * predicate * location
+and identified_type_invariant = {
+  iti_name : string;
+  iti_type : typ;
+  iti_pred : predicate;
+  iti_loc : location
+}
 
-and identified_global_invariant = string * predicate * location
+and identified_global_invariant = {
+  igi_name : string;
+  igi_pred : predicate;
+  igi_loc : location
+}
+
+and identified_other = {
+  io_name : string;
+  io_loc : other_loc
+}
 
 and identified_property = private
   | IPPredicate of identified_predicate
@@ -147,7 +208,7 @@ and identified_property = private
   | IPPropertyInstance of identified_instance
   | IPTypeInvariant of identified_type_invariant
   | IPGlobalInvariant of identified_global_invariant
-  | IPOther of string * other_loc
+  | IPOther of identified_other
 
 include Datatype.S_with_collections with type t = identified_property
 
@@ -157,7 +218,7 @@ val short_pretty: Format.formatter -> t -> unit
     reverting back to the full ACSL formula if it can't find one.
     The name is not meant to uniquely identify the property.
     @since Neon-20140301
- *)
+*)
 
 (** @since Oxygen-20120901 *)
 val pretty_predicate_kind: Format.formatter -> predicate_kind -> unit
@@ -185,7 +246,7 @@ val ip_other: string -> other_loc -> identified_property
 (** Create a non-standard property.
     @since Nitrogen-20111001
     @modify 18.0-Argon Refine localisation argument
- *)
+*)
 
 val ip_reachable_stmt: kernel_function -> stmt -> identified_property
 (** @since Oxygen-20120901 *)
@@ -259,7 +320,7 @@ val ip_of_assigns:
     See {!ip_allocation_of_behavior} for signification of [active].
     @since Carbon-20110201
     @modify Aluminium-20160501 added active argument
- *)
+*)
 val ip_assigns_of_behavior:
   kernel_function -> kinstr -> active:string list ->
   funbehavior -> identified_property option
@@ -297,7 +358,7 @@ val ip_from_of_code_annot:
     of the [active] argument.
     @since Carbon-20110201
     @modify Aluminium-20160501 added active argument
- *)
+*)
 val ip_post_cond_of_behavior:
   kernel_function -> kinstr -> active:string list ->
   funbehavior -> identified_property list
@@ -381,7 +442,7 @@ val ip_decreases_of_spec:
     See {!ip_post_cond_of_behavior} for more information.
     @since Carbon-20110201
     @modify Aluminium-20160501 added active argument
- *)
+*)
 val ip_post_cond_of_spec:
   kernel_function -> kinstr -> active:string list ->
   funspec -> identified_property list

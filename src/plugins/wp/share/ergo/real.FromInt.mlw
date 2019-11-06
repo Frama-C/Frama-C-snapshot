@@ -37,6 +37,9 @@ axiom Mul :
 
 axiom Neg : (forall x:int. (from_int((-x)) = (-from_int(x))))
 
+axiom Injective :
+  (forall x:int. forall y:int. ((from_int(x) = from_int(y)) -> (x = y)))
+
 axiom Monotonic :
   (forall x:int. forall y:int. ((x <= y) -> (from_int(x) <= from_int(y))))
 

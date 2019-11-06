@@ -35,6 +35,6 @@ axiom Acosh_def :
 logic atanh : real -> real
 
 axiom Atanh_def :
-  (forall x:real. ((((-1.0) <  x) and (x <  1.0)) ->
+  (forall x:real. ((((- 1.0) <  x) and (x <  1.0)) ->
   (atanh(x) = (0.5 * log(((1.0 + x) / (1.0 - x)))))))
 

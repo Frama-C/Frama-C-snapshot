@@ -339,8 +339,7 @@ let json_of_result (p : VCS.prover) (r : VCS.result) =
   let verdict = "verdict" , json_of_verdict r.verdict in
   let time = if r.prover_time > 0.0 then [ "time" , `Float r.prover_time ] else [] in
   let steps = if r.prover_steps > 0 then [ "steps" , `Int r.prover_steps ] else [] in
-  let depth = if r.prover_depth > 0 then [ "depth" , `Int r.prover_depth ] else [] in
-  `Assoc (name :: verdict :: (time @ steps @ depth))
+  `Assoc (name :: verdict :: (time @ steps))
 
 let prover_of_json js =
   try VCS.prover_of_name (js >? "prover" |> Json.string)
@@ -350,8 +349,7 @@ let result_of_json js =
   let verdict = try js >? "verdict" |> verdict_of_json with _ -> VCS.NoResult in
   let time = try js >? "time" |> Json.float with _ -> 0.0 in
   let steps = try js >? "steps" |> Json.int with _ -> 0 in
-  let depth = try js >? "depth" |> Json.int with _ -> 0 in
-  VCS.result ~time ~steps ~depth verdict
+  VCS.result ~time ~steps verdict
 
 (* -------------------------------------------------------------------------- *)
 (* --- Script                                                             --- *)
@@ -447,13 +445,13 @@ class console ~pool ~title =
       ?range:bool -> ?vmin:int -> ?vmax:int ->
       ?filter:(Lang.F.term -> bool) -> 'a field -> unit =
       fun ?enabled ?title ?tooltip ?range ?vmin ?vmax ?filter field ->
-        ignore enabled ;
-        ignore title ;
-        ignore tooltip ;
-        ignore field ;
-        ignore vmin ; ignore vmax ;
-        ignore range ; ignore filter ;
-        ()
+      ignore enabled ;
+      ignore title ;
+      ignore tooltip ;
+      ignore field ;
+      ignore vmin ; ignore vmax ;
+      ignore range ; ignore filter ;
+      ()
 
     val mutable errors = false
     method has_error = errors

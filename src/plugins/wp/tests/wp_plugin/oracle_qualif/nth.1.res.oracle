@@ -1,18 +1,18 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 -wp-depth 16 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/nth.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] 4 goals scheduled
-[wp] [alt-ergo] Goal typed_lemma_access_16_16_ok : Valid
-[wp] [alt-ergo] Goal typed_lemma_access_4_4_ok : Valid
-[wp] [alt-ergo] Goal typed_lemma_access_repeat_concat_3_ok_lack : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_access_16_16_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_access_4_4_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_access_repeat_concat_3_ok_lack : Valid
 [wp] [Qed] Goal typed_lemma_eq_repeat_concat_3_ok : Valid
 [wp] Proved goals:    4 / 4
-  Qed:                1 
-  Alt-Ergo (why3):    3
+  Qed:               1 
+  Alt-Ergo 2.0.0:    3
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/nth.1.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/nth.1.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
-Axiomatic Nth        1     -                 4       100%
+Axiomatic Nth        1      3 (152..176)     4       100%
 -------------------------------------------------------------

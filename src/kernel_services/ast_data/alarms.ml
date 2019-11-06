@@ -267,7 +267,7 @@ module D =
             Printer.pp_exp e1 Printer.pp_exp e2          
         | Overflow(s, e, n, b) ->
           Format.fprintf fmt "%s(@[%a@]@ %s@ @[%a@])"
-            (Transitioning.String.capitalize_ascii (string_of_overflow_kind s))
+            (String.capitalize_ascii (string_of_overflow_kind s))
             Printer.pp_exp e
             (match b with Lower_bound -> ">=" | Upper_bound -> "<=")
             Datatype.Integer.pretty n

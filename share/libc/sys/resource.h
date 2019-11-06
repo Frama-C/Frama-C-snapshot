@@ -65,21 +65,27 @@ extern int getpriority(int which, id_t who);
 /*@ assigns \result \from which,who,prio; */
 extern int setpriority(int which, id_t who, int prio);
 
-/*@ assigns \result \from r;
-  @ assigns rl->rlim_cur \from r;
-  @ assigns rl->rlim_max \from r;
+/*@
+  requires valid_rlp: \valid(rlp);
+  assigns \result, *rlp \from resource;
 */
-extern int getrlimit(int r, struct rlimit *rl);
+extern int getrlimit(int resource, struct rlimit *rlp);
 
-/*@ assigns \result \from r;
-  @ assigns ru->ru_utime \from r;
-  @ assigns ru->ru_stime \from r;
+/*@
+  requires valid_r_usage: \valid(r_usage);
+  assigns *r_usage \from who;
+  assigns \result \from indirect:who;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
 */
-extern int getrusage(int r, struct rusage *ru);
+extern int getrusage(int who, struct rusage *r_usage);
 
-/*@ assigns \result \from r,rl->rlim_cur,rl->rlim_max;
+/*@
+  requires valid_rlp: \valid_read(rlp);
+  assigns *rlp \from resource;
+  assigns \result \from indirect:resource, indirect:*rlp;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
 */
-extern int setrlimit(int r, const struct rlimit * rl);
+extern int setrlimit(int resource, const struct rlimit *rlp);
 
 __END_DECLS
 __POP_FC_STDLIB

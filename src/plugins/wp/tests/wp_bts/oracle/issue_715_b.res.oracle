@@ -1,0 +1,23 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/issue_715_b.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[kernel] tests/wp_bts/issue_715_b.i:9: Warning: 
+  No code nor implicit assigns clause for function dummy, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function foo
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_bts/issue_715_b.i, line 4) in 'dummy'' in 'foo' at call 'dummy' (file tests/wp_bts/issue_715_b.i, line 11)
+:
+Assume { (* Heap *) Have: linked(Malloc_0). }
+Prove: P_isValid(Malloc_0[L_p_28 <- 1], shift_sint32(global(L_p_28), 0)).
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_bts/issue_715_b.i, line 5) in 'dummy'' in 'foo' at call 'dummy' (file tests/wp_bts/issue_715_b.i, line 11)
+:
+Prove: true.
+
+------------------------------------------------------------

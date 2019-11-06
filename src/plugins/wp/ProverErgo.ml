@@ -70,7 +70,7 @@ let rec locate_error files file line =
       else locate_error files file (line-n)
 
 let cluster_file c =
-  let dir = Model.directory () in
+  let dir = WpContext.directory () in
   let base = cluster_id c in
   Printf.sprintf "%s/%s.ergo" dir base
 
@@ -89,7 +89,7 @@ let pp_depend fmt = function
                            Definitions.pp_cluster cluster
 [@@@warning "+32"]
 
-module TYPES = Model.Index
+module TYPES = WpContext.Index
     (struct
       type key = adt
       type data = tau
@@ -233,7 +233,7 @@ let write_cluster c job =
       begin fun fmt ->
         Format.fprintf fmt "---------------------------------------------@\n" ;
         Format.fprintf fmt "--- File '%s/%s.ergo' @\n"
-          (Model.get_id (Model.get_model ())) (cluster_id c) ;
+          (WpContext.get_context () |> WpContext.S.id) (cluster_id c) ;
         Format.fprintf fmt "---------------------------------------------@\n" ;
         Command.pp_from_file fmt f ;
       end ;
@@ -243,7 +243,7 @@ let write_cluster c job =
 (* --- File Assembly                                                      --- *)
 (* -------------------------------------------------------------------------- *)
 
-module CLUSTERS = Model.Index
+module CLUSTERS = WpContext.Index
     (struct
       type key = cluster
       type data = int * depend list
@@ -352,7 +352,6 @@ class altergo ~config ~pid ~gui ~file ~lines ~logout ~logerr =
     val mutable unsat = false
     val mutable timer = 0.0
     val mutable steps = 0
-    val mutable depth = 0
 
     method private time t = timer <- t
 
@@ -398,7 +397,7 @@ class altergo ~config ~pid ~gui ~file ~lines ~logout ~logerr =
                   raise Not_found in
               VCS.result
                 ~time:(if gui then 0.0 else timer)
-                ~steps ~depth verdict
+                ~steps verdict
             with
             | Not_found when Wp_parameters.Check.get () ->
                 if r = 0 then VCS.checked
@@ -422,13 +421,11 @@ class altergo ~config ~pid ~gui ~file ~lines ~logout ~logerr =
 
     method prove =
       files <- lines ;
-      depth <- VCS.get_depth config ;
       if gui then ergo#set_command (Wp_parameters.AltGrErgo.get ()) ;
       if Wp_parameters.Check.get () then
         ergo#add ["-type-only"]
       else
         begin
-          ergo#add_positive ~name:"-age-bound" ~value:depth ;
           ergo#add_parameter ~name:"-proof" Wp_parameters.ProofTrace.get ;
           ergo#add_parameter ~name:"-model" Wp_parameters.ProofTrace.get ;
         end ;
@@ -472,17 +469,18 @@ let prove_file ~config ~pid ~mode ~file ~lines ~logout ~logerr =
       try_prove ~config ~pid ~gui:true ~file ~lines ~logout ~logerr
   | r -> Task.return r
 
-let prove_prop ~config ~pid ~mode ~model ~axioms ~prop =
-  let prover = AltErgo in
+let prove_prop ~config ~pid ~mode ~context ~axioms ~prop =
+  let prover = NativeAltErgo in
+  let model = fst context in
   let file = DISK.file_goal ~pid ~model ~prover in
   let logout = DISK.file_logout ~pid ~model ~prover in
   let logerr = DISK.file_logerr ~pid ~model ~prover in
   let id = WpPropId.get_propid pid in
   let title = Pretty_utils.to_string WpPropId.pretty pid in
-  let lines = Model.with_model model
+  let lines = WpContext.on_context context
       (assemble_goal ~file ~id ~title ~axioms) prop in
   if Wp_parameters.has_print_generated () then
-    Model.with_model model (fun () ->
+    WpContext.on_context context (fun () ->
         let goal = cluster ~id ~title () in
         Wp_parameters.print_generated (cluster_file goal)
       ) () ;
@@ -490,36 +488,27 @@ let prove_prop ~config ~pid ~mode ~model ~axioms ~prop =
   then Task.return VCS.no_result
   else prove_file ~config ~pid ~mode ~file ~lines ~logout ~logerr
 
-let prove_annot model pid vcq ~config ~mode =
+let prove_annot context pid vcq ~config ~mode =
   Task.todo
     begin fun () ->
       let axioms = vcq.VC_Annot.axioms in
       let prop = GOAL.compute_proof vcq.VC_Annot.goal in
-      prove_prop ~pid ~config ~mode ~model ~axioms ~prop
+      prove_prop ~pid ~config ~mode ~context ~axioms ~prop
     end
 
-let prove_lemma model pid vca ~config ~mode =
+let prove_lemma context pid vca ~config ~mode =
   Task.todo
     begin fun () ->
       let lemma = vca.Wpo.VC_Lemma.lemma in
       let depends = vca.Wpo.VC_Lemma.depends in
       let prop = F.p_forall lemma.l_forall lemma.l_lemma in
       let axioms = Some(lemma.l_cluster,depends) in
-      prove_prop ~pid ~config ~mode ~model ~axioms ~prop
-    end
-
-let prove_check model pid vck ~config ~mode =
-  Task.todo
-    begin fun () ->
-      let prop = vck.VC_Check.goal in
-      let axioms = None in
-      prove_prop ~pid ~config ~mode ~model ~axioms ~prop
+      prove_prop ~pid ~config ~mode ~context ~axioms ~prop
     end
 
 let prove ~config ~mode wpo =
   let pid = wpo.Wpo.po_pid in
-  let model = wpo.Wpo.po_model in
+  let context = Wpo.get_context wpo in
   match wpo.Wpo.po_formula with
-  | Wpo.GoalAnnot vcq -> prove_annot model pid vcq ~config ~mode
-  | Wpo.GoalLemma vca -> prove_lemma model pid vca ~config ~mode
-  | Wpo.GoalCheck vck -> prove_check model pid vck ~config ~mode
+  | Wpo.GoalAnnot vcq -> prove_annot context pid vcq ~config ~mode
+  | Wpo.GoalLemma vca -> prove_lemma context pid vca ~config ~mode

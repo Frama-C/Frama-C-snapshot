@@ -1,6 +1,7 @@
-{ "wp:global": { "why3:alt-ergo": { "total": 3, "valid": 3 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 3, "valid": 3,
+                                          "rank": 28 },
                  "qed": { "total": 1, "valid": 1 },
-                 "wp:main": { "total": 4, "valid": 4 } },
+                 "wp:main": { "total": 4, "valid": 4, "rank": 28 } },
   "wp:axiomatics": { "Nth": { "lemma_eq_repeat_concat_3_ok": { "qed": 
                                                                  { "total": 1,
                                                                    "valid": 1 },
@@ -8,21 +9,30 @@
                                                                  { "total": 1,
                                                                    "valid": 1 } },
                               "lemma_access_repeat_concat_3_ok_lack": 
-                                { "why3:alt-ergo": { "total": 1, "valid": 1 },
-                                  "wp:main": { "total": 1, "valid": 1 } },
-                              "lemma_access_4_4_ok": { "why3:alt-ergo": 
+                                { "why3:Alt-Ergo,2.0.0": { "total": 1,
+                                                           "valid": 1,
+                                                           "rank": 28 },
+                                  "wp:main": { "total": 1, "valid": 1,
+                                               "rank": 28 } },
+                              "lemma_access_4_4_ok": { "why3:Alt-Ergo,2.0.0": 
                                                          { "total": 1,
-                                                           "valid": 1 },
+                                                           "valid": 1,
+                                                           "rank": 19 },
                                                        "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                              "lemma_access_16_16_ok": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 19 } },
+                              "lemma_access_16_16_ok": { "why3:Alt-Ergo,2.0.0": 
                                                            { "total": 1,
-                                                             "valid": 1 },
+                                                             "valid": 1,
+                                                             "rank": 28 },
                                                          "wp:main": { "total": 1,
-                                                                    "valid": 1 } },
-                              "wp:section": { "why3:alt-ergo": { "total": 3,
-                                                                 "valid": 3 },
+                                                                    "valid": 1,
+                                                                    "rank": 28 } },
+                              "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                { "total": 3, "valid": 3,
+                                                  "rank": 28 },
                                               "qed": { "total": 1,
                                                        "valid": 1 },
                                               "wp:main": { "total": 4,
-                                                           "valid": 4 } } } } }
+                                                           "valid": 4,
+                                                           "rank": 28 } } } } }

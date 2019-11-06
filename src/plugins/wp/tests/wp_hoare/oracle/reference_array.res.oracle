@@ -230,9 +230,7 @@ Assume {
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (m[i_1] = 0))).
   (* Call Effects *)
-  Have: (forall i_1 : Z. ((i_1 != 0) -> (tt_0[i_1] = tt_1[i_1]))) /\
-      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (((i_1 < 0) \/ (5 <= i_1)) -> (m_1[i_1] = m[i_1]))))).
+  Have: forall i_1 : Z. ((i_1 != 0) -> (tt_0[i_1] = tt_1[i_1])).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       (reg_add_0[i_1] = (reg_load_0[i_1] + m[i_1])))).
@@ -243,19 +241,16 @@ Prove: m_1[i] = reg_load_0[i].
 
 Goal Post-condition 'Preset' in 'calls_on_array_dim_2_to_1':
 Let m = tt_0[0].
-Let m_1 = tt_1[0].
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (m_1[i_1] = reg_load_0[i_1]))).
+      (tt_1[0][i_1] = reg_load_0[i_1]))).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (m[i_1] = 0))).
   (* Call Effects *)
-  Have: (forall i_1 : Z. ((i_1 != 0) -> (tt_1[i_1] = tt_0[i_1]))) /\
-      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (((i_1 < 0) \/ (5 <= i_1)) -> (m_1[i_1] = m[i_1]))))).
+  Have: forall i_1 : Z. ((i_1 != 0) -> (tt_1[i_1] = tt_0[i_1])).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       (reg_add_0[i_1] = (reg_load_0[i_1] + m[i_1])))).
@@ -276,9 +271,7 @@ Assume {
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (m[i_1] = 0))).
   (* Call Effects *)
-  Have: (forall i_1 : Z. ((i_1 != 0) -> (tt_0[i_1] = tt_1[i_1]))) /\
-      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (((i_1 < 0) \/ (5 <= i_1)) -> (m_1[i_1] = m[i_1]))))).
+  Have: forall i_1 : Z. ((i_1 != 0) -> (tt_0[i_1] = tt_1[i_1])).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       (reg_add_0[i_1] = (reg_load_0[i_1] + m[i_1])))).

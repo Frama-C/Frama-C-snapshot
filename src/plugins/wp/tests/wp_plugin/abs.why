@@ -1,10 +1,9 @@
-
 theory Abs
 
-use import int.Int
+   use int.Int
 
-function my_abs int : int
-axiom abs_pos : forall x:int. x>=0 -> my_abs x = x
-axiom abs_neg : forall x:int. x<=0 -> my_abs x = -x
+   function my_abs int : int
+   axiom abs_pos : forall x:int. x>=0 -> my_abs x = x
+   axiom abs_neg : forall x:int. x<=0 -> my_abs x = -x
 
 end

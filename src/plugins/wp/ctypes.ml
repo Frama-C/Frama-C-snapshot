@@ -47,14 +47,14 @@ let signed  = function
   | UInt8 | UInt16 | UInt32 | UInt64 -> false
   | SInt8 | SInt16 | SInt32 | SInt64 -> true
 
-let range = function
+let i_bits = function
   | CBool -> 1
   | UInt8  | SInt8  -> 8
   | UInt16 | SInt16 -> 16
   | UInt32 | SInt32 -> 32
   | UInt64 | SInt64 -> 64
 
-let sizeof_i = function
+let i_bytes = function
   | CBool -> 1
   | UInt8  | SInt8  -> 1
   | UInt16 | SInt16 -> 2
@@ -73,7 +73,8 @@ let is_char = function
   | SInt8 -> not Cil.theMachine.Cil.theMachine.char_is_unsigned
   | UInt16 | SInt16
   | UInt32 | SInt32
-  | UInt64 | SInt64 | CBool -> false
+  | UInt64 | SInt64
+  | CBool -> false
 
 let c_int ikind =
   let mach = Cil.theMachine.Cil.theMachine in
@@ -93,12 +94,15 @@ let c_int ikind =
 
 let c_bool () = c_int IBool
 let c_char () = c_int IChar
-let c_ptr () =
-  make_c_int false Cil.theMachine.Cil.theMachine.sizeof_ptr
+
+let p_bytes () = Cil.theMachine.Cil.theMachine.sizeof_ptr
+let p_bits () = 8 * p_bytes ()
+
+let c_ptr () = make_c_int false (p_bytes ())
 
 let sub_c_int t1 t2 =
-  if (signed t1 = signed t2) then range t1 <= range t2
-  else (not(signed t1) && (range t1 < range t2))
+  if (signed t1 = signed t2) then i_bits t1 <= i_bits t2
+  else (not(signed t1) && (i_bits t1 < i_bits t2))
 
 type c_float =
   | Float32
@@ -106,7 +110,7 @@ type c_float =
 
 let compare_c_float : c_float -> c_float -> _ = Extlib.compare_basic
 
-let sizeof_f = function
+let f_bytes = function
   | Float32 -> 4
   | Float64 -> 8
 
@@ -126,7 +130,7 @@ let c_float fkind =
   | FDouble -> make_c_float mach.sizeof_double
   | FLongDouble -> make_c_float mach.sizeof_longdouble
 
-let equal_float f1 f2 = (f1 = f2)
+let equal_float f1 f2 = f_bits f1 = f_bits f2
 
 (* Array objects, with both the head view and the flatten view. *)
 
@@ -195,15 +199,15 @@ let f_iter f =
 (* --- Bounds                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-let bounds =
-  let i_bounds i =
-    if signed i then
-      let m = Integer.two_power_of_int (range i - 1) in
-      Integer.neg m , Integer.pred m
-    else
-      let m = Integer.two_power_of_int (range i) in
-      Integer.zero , Integer.pred m
-  in i_memo i_bounds
+let i_bounds i =
+  if signed i then
+    let m = Integer.two_power_of_int (i_bits i - 1) in
+    Integer.neg m , Integer.pred m
+  else
+    let m = Integer.two_power_of_int (i_bits i) in
+    Integer.zero , Integer.pred m
+
+let bounds i = i_memo i_bounds i
 
 (* -------------------------------------------------------------------------- *)
 (* --- Pretty Printers                                                    --- *)
@@ -211,7 +215,7 @@ let bounds =
 
 let pp_int fmt i =
   if i = CBool then Format.pp_print_string fmt "bool"
-  else Format.fprintf fmt "%cint%d" (if signed i then 's' else 'u') (range i)
+  else Format.fprintf fmt "%cint%d" (if signed i then 's' else 'u') (i_bits i)
 
 let pp_float fmt f = Format.fprintf fmt "float%d" (f_bits f)
 
@@ -235,6 +239,11 @@ let constant e =
 
 let get_int e =
   match (Cil.constFold true e).enode with
+  | Const(CInt64(k,_,_)) -> Some (Integer.to_int k)
+  | _ -> None
+
+let get_int64 e =
+  match (Cil.constFold true e).enode with
   | Const(CInt64(k,_,_)) -> Some (Integer.to_int64 k)
   | _ -> None
 
@@ -254,14 +263,12 @@ let is_pointer = function
   | C_pointer _ -> true
   | C_int _ | C_float _ | C_array _ | C_comp _ -> false
 
-let is_void = Cil.isVoidType
-
 let rec object_of typ =
   match typ with
   | TInt(i,_) -> C_int (c_int i)
   | TFloat(f,_) -> C_float (c_float f)
-  | TPtr(typ,_) -> C_pointer (if is_void typ then TInt (IChar,[]) else typ)
-  | TFun _ -> C_pointer (TVoid [])
+  | TPtr(typ,_) -> C_pointer (if Cil.isVoidType typ then Cil.charType else typ)
+  | TFun _ -> C_pointer Cil.voidType
   | TEnum ({ekind=i},_) -> C_int (c_int i)
   | TComp (comp,_,_) -> C_comp comp
   | TArray (typ_elt,e_opt,_,_) ->
@@ -272,7 +279,6 @@ let rec object_of typ =
               arr_element = typ_elt;
               arr_flat = None;
             }
-
         | Some e ->
             let dim,ncells,ty_cell = dimension typ in
             C_array {
@@ -444,24 +450,36 @@ let sizeof_defined = function
   | C_array { arr_flat = None } -> false
   | _ -> true
 
+let typ_comp cinfo = TComp(cinfo,Cil.empty_size_cache(),[])
+
+let bits_sizeof_comp cinfo = Cil.bitsSizeOf (typ_comp cinfo)
+
+let bits_sizeof_array ainfo =
+  match ainfo.arr_flat with
+  | Some a ->
+      let csize = Cil.integer ~loc:Cil.builtinLoc a.arr_cell_nbr in
+      let ctype = TArray(a.arr_cell,Some csize,Cil.empty_size_cache(),[]) in
+      Cil.bitsSizeOf ctype
+  | None ->
+      if WpLog.ExternArrays.get () then
+        max_int
+      else
+        WpLog.fatal ~current:true "Sizeof unknown-size array"
+
+
 let sizeof_object = function
-  | C_int i -> sizeof_i i
-  | C_float f -> sizeof_f f
-  | C_pointer _ty -> sizeof_i (c_ptr())
-  | C_comp cinfo ->
-      let ctype = TComp(cinfo,Cil.empty_size_cache(),[]) in
-      (Cil.bitsSizeOf ctype / 8)
-  | C_array ainfo ->
-      match ainfo.arr_flat with
-      | Some a ->
-          let csize = Cil.integer ~loc:Cil.builtinLoc a.arr_cell_nbr in
-          let ctype = TArray(a.arr_cell,Some csize,Cil.empty_size_cache(),[]) in
-          (Cil.bitsSizeOf ctype / 8)
-      | None ->
-          if WpLog.ExternArrays.get () then
-            max_int
-          else
-            WpLog.fatal ~current:true "Sizeof unknown-size array"
+  | C_int i -> i_bytes i
+  | C_float f -> f_bytes f
+  | C_pointer _ty -> p_bytes ()
+  | C_comp cinfo -> bits_sizeof_comp cinfo / 8
+  | C_array ainfo -> bits_sizeof_array ainfo / 8
+
+let bits_sizeof_object = function
+  | C_int i -> i_bits i
+  | C_float f -> f_bits f
+  | C_pointer _ty -> p_bits ()
+  | C_comp cinfo -> bits_sizeof_comp cinfo
+  | C_array ainfo -> bits_sizeof_array ainfo
 
 let field_offset fd =
   if fd.fcomp.cstruct then (* C struct *)
@@ -490,7 +508,7 @@ let field_offset fd =
 (* with greater rank, whatever      *)
 (* their sign.                      *)
 
-let i_convert t1 t2 = if range t1 < range t2 then t2 else t1
+let i_convert t1 t2 = if i_bits t1 < i_bits t2 then t2 else t1
 let f_convert t1 t2 = if f_bits t1 < f_bits t2 then t2 else t1
 
 let promote a1 a2 =

@@ -1,4 +1,4 @@
-# frama-c -wp -wp-rte -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-rte [...]
 [kernel] Parsing tests/wp_plugin/rte.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -6,15 +6,15 @@
 [rte] annotating function job2
 [rte] annotating function job3
 [wp] 6 goals scheduled
-[wp] [Alt-Ergo] Goal typed_job_assert_rte_mem_access : Unsuccess
-[wp] [Alt-Ergo] Goal typed_job_assert_rte_mem_access_2 : Unsuccess
-[wp] [Alt-Ergo] Goal typed_job_assert_rte_signed_overflow : Unsuccess
-[wp] [Alt-Ergo] Goal typed_job_assert_rte_signed_overflow_2 : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_job_assert_rte_mem_access : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_job_assert_rte_mem_access_2 : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_job_assert_rte_signed_overflow : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_job_assert_rte_signed_overflow_2 : Unsuccess
 [wp] [Qed] Goal typed_job_assert_rte_mem_access_3 : Valid
-[wp] [Alt-Ergo] Goal typed_job3_assert_rte_bool_value : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_job3_assert_rte_bool_value : Valid
 [wp] Proved goals:    2 / 6
-  Qed:             1 
-  Alt-Ergo:        1  (unsuccess: 4)
+  Qed:               1 
+  Alt-Ergo 2.0.0:    1  (unsuccess: 4)
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/rte.0.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/rte.0.report.json'
 -------------------------------------------------------------

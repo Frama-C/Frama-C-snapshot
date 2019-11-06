@@ -28,8 +28,8 @@ module Static = struct
     type state = t
 
     let name = "Unit domain"
-    let structure = Abstract_domain.Void
     let log_category = log_key
+    let structure = Abstract.Domain.Unit
 
     let top = ()
     let is_included _ _ = true

@@ -62,108 +62,114 @@ lemma S0_deterministic_trans{L}:
        \at(aorai_CurOpStatus,L) ≡ aorai_Called ∧ c ≡ 0);
  */
 /*@ ghost int aorai_CurStates = Si; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_g;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_S0_out:
-      ensures aorai_CurStates ≢ S0;
-    
-    behavior buch_state_S1_out:
-      ensures aorai_CurStates ≢ S1;
-    
-    behavior buch_state_S2_out:
-      ensures aorai_CurStates ≢ S2;
-    
-    behavior buch_state_S3_out:
-      ensures aorai_CurStates ≢ S3;
-    
-    behavior buch_state_S4_in:
-      assumes aorai_CurStates ≡ S3 ∧ x ≡ 4;
-      ensures aorai_CurStates ≡ S4;
-    
-    behavior buch_state_S4_out:
-      assumes aorai_CurStates ≢ S3 ∨ ¬(x ≡ 4);
-      ensures aorai_CurStates ≢ S4;
-    
-    behavior buch_state_S5_in:
-      assumes aorai_CurStates ≡ S3 ∧ x ≡ 5;
-      ensures aorai_CurStates ≡ S5;
-    
-    behavior buch_state_S5_out:
-      assumes aorai_CurStates ≢ S3 ∨ ¬(x ≡ 5);
-      ensures aorai_CurStates ≢ S5;
-    
-    behavior buch_state_Sf_out:
-      ensures aorai_CurStates ≢ Sf;
-    
-    behavior buch_state_Si_out:
-      ensures aorai_CurStates ≢ Si;
- */
-void g_pre_func(int x)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_g;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (3 == aorai_CurStates) 
-    if (x == 5) aorai_CurStates_tmp = S5;
-  if (3 == aorai_CurStates) 
-    if (x == 4) aorai_CurStates_tmp = S4;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_g;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_S0_out:
+       ensures aorai_CurStates ≢ S0;
+     
+     behavior buch_state_S1_out:
+       ensures aorai_CurStates ≢ S1;
+     
+     behavior buch_state_S2_out:
+       ensures aorai_CurStates ≢ S2;
+     
+     behavior buch_state_S3_out:
+       ensures aorai_CurStates ≢ S3;
+     
+     behavior buch_state_S4_in:
+       assumes aorai_CurStates ≡ S3 ∧ x ≡ 4;
+       ensures aorai_CurStates ≡ S4;
+     
+     behavior buch_state_S4_out:
+       assumes aorai_CurStates ≢ S3 ∨ ¬(x ≡ 4);
+       ensures aorai_CurStates ≢ S4;
+     
+     behavior buch_state_S5_in:
+       assumes aorai_CurStates ≡ S3 ∧ x ≡ 5;
+       ensures aorai_CurStates ≡ S5;
+     
+     behavior buch_state_S5_out:
+       assumes aorai_CurStates ≢ S3 ∨ ¬(x ≡ 5);
+       ensures aorai_CurStates ≢ S5;
+     
+     behavior buch_state_Sf_out:
+       ensures aorai_CurStates ≢ Sf;
+     
+     behavior buch_state_Si_out:
+       ensures aorai_CurStates ≢ Si;
+   @/
+  void g_pre_func(int x)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_g;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (3 == aorai_CurStates) 
+      if (x == 5) aorai_CurStates_tmp = S5;
+    if (3 == aorai_CurStates) 
+      if (x == 4) aorai_CurStates_tmp = S4;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
 
-/*@ requires aorai_CurStates ≡ S4 ∨ aorai_CurStates ≡ S5;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_g;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_S0_out:
-      ensures aorai_CurStates ≢ S0;
-    
-    behavior buch_state_S1_in:
-      assumes aorai_CurStates ≡ S5;
-      ensures aorai_CurStates ≡ S1;
-    
-    behavior buch_state_S1_out:
-      assumes aorai_CurStates ≢ S5;
-      ensures aorai_CurStates ≢ S1;
-    
-    behavior buch_state_S2_out:
-      ensures aorai_CurStates ≢ S2;
-    
-    behavior buch_state_S3_in:
-      assumes aorai_CurStates ≡ S4;
-      ensures aorai_CurStates ≡ S3;
-    
-    behavior buch_state_S3_out:
-      assumes aorai_CurStates ≢ S4;
-      ensures aorai_CurStates ≢ S3;
-    
-    behavior buch_state_S4_out:
-      ensures aorai_CurStates ≢ S4;
-    
-    behavior buch_state_S5_out:
-      ensures aorai_CurStates ≢ S5;
-    
-    behavior buch_state_Sf_out:
-      ensures aorai_CurStates ≢ Sf;
-    
-    behavior buch_state_Si_out:
-      ensures aorai_CurStates ≢ Si;
- */
-void g_post_func(void)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_g;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (4 == aorai_CurStates) aorai_CurStates_tmp = S3;
-  if (5 == aorai_CurStates) aorai_CurStates_tmp = S1;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires aorai_CurStates ≡ S4 ∨ aorai_CurStates ≡ S5;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_g;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_S0_out:
+       ensures aorai_CurStates ≢ S0;
+     
+     behavior buch_state_S1_in:
+       assumes aorai_CurStates ≡ S5;
+       ensures aorai_CurStates ≡ S1;
+     
+     behavior buch_state_S1_out:
+       assumes aorai_CurStates ≢ S5;
+       ensures aorai_CurStates ≢ S1;
+     
+     behavior buch_state_S2_out:
+       ensures aorai_CurStates ≢ S2;
+     
+     behavior buch_state_S3_in:
+       assumes aorai_CurStates ≡ S4;
+       ensures aorai_CurStates ≡ S3;
+     
+     behavior buch_state_S3_out:
+       assumes aorai_CurStates ≢ S4;
+       ensures aorai_CurStates ≢ S3;
+     
+     behavior buch_state_S4_out:
+       ensures aorai_CurStates ≢ S4;
+     
+     behavior buch_state_S5_out:
+       ensures aorai_CurStates ≢ S5;
+     
+     behavior buch_state_Sf_out:
+       ensures aorai_CurStates ≢ Sf;
+     
+     behavior buch_state_Si_out:
+       ensures aorai_CurStates ≢ Si;
+   @/
+  void g_post_func(void)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_g;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (4 == aorai_CurStates) aorai_CurStates_tmp = S3;
+    if (5 == aorai_CurStates) aorai_CurStates_tmp = S1;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires aorai_CurStates ≡ S3;
     requires aorai_CurStates ≡ S3 ⇒ x ≡ 5 ∨ x ≡ 4;
@@ -178,104 +184,110 @@ void g_post_func(void)
  */
 void g(int x)
 {
-  g_pre_func(x);
+  /*@ ghost g_pre_func(x); */
   Y = x;
-  g_post_func();
+  /*@ ghost g_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_f;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_S0_out:
-      ensures aorai_CurStates ≢ S0;
-    
-    behavior buch_state_S1_out:
-      ensures aorai_CurStates ≢ S1;
-    
-    behavior buch_state_S2_out:
-      ensures aorai_CurStates ≢ S2;
-    
-    behavior buch_state_S3_in:
-      assumes aorai_CurStates ≡ S1 ∧ x ≡ 4;
-      ensures aorai_CurStates ≡ S3;
-    
-    behavior buch_state_S3_out:
-      assumes aorai_CurStates ≢ S1 ∨ ¬(x ≡ 4);
-      ensures aorai_CurStates ≢ S3;
-    
-    behavior buch_state_S4_out:
-      ensures aorai_CurStates ≢ S4;
-    
-    behavior buch_state_S5_out:
-      ensures aorai_CurStates ≢ S5;
-    
-    behavior buch_state_Sf_out:
-      ensures aorai_CurStates ≢ Sf;
-    
-    behavior buch_state_Si_out:
-      ensures aorai_CurStates ≢ Si;
- */
-void f_pre_func(int x)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_f;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (1 == aorai_CurStates) 
-    if (x == 4) aorai_CurStates_tmp = S3;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_f;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_S0_out:
+       ensures aorai_CurStates ≢ S0;
+     
+     behavior buch_state_S1_out:
+       ensures aorai_CurStates ≢ S1;
+     
+     behavior buch_state_S2_out:
+       ensures aorai_CurStates ≢ S2;
+     
+     behavior buch_state_S3_in:
+       assumes aorai_CurStates ≡ S1 ∧ x ≡ 4;
+       ensures aorai_CurStates ≡ S3;
+     
+     behavior buch_state_S3_out:
+       assumes aorai_CurStates ≢ S1 ∨ ¬(x ≡ 4);
+       ensures aorai_CurStates ≢ S3;
+     
+     behavior buch_state_S4_out:
+       ensures aorai_CurStates ≢ S4;
+     
+     behavior buch_state_S5_out:
+       ensures aorai_CurStates ≢ S5;
+     
+     behavior buch_state_Sf_out:
+       ensures aorai_CurStates ≢ Sf;
+     
+     behavior buch_state_Si_out:
+       ensures aorai_CurStates ≢ Si;
+   @/
+  void f_pre_func(int x)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_f;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (1 == aorai_CurStates) 
+      if (x == 4) aorai_CurStates_tmp = S3;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
 
-/*@ requires aorai_CurStates ≡ S1;
-    requires aorai_CurStates ≡ S1 ⇒ res ≡ 0 ∧ X ≡ 5;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_f;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_S0_out:
-      ensures aorai_CurStates ≢ S0;
-    
-    behavior buch_state_S1_out:
-      ensures aorai_CurStates ≢ S1;
-    
-    behavior buch_state_S2_in:
-      assumes aorai_CurStates ≡ S1 ∧ res ≡ 0 ∧ X ≡ 5;
-      ensures aorai_CurStates ≡ S2;
-    
-    behavior buch_state_S2_out:
-      assumes aorai_CurStates ≢ S1 ∨ ¬(res ≡ 0 ∧ X ≡ 5);
-      ensures aorai_CurStates ≢ S2;
-    
-    behavior buch_state_S3_out:
-      ensures aorai_CurStates ≢ S3;
-    
-    behavior buch_state_S4_out:
-      ensures aorai_CurStates ≢ S4;
-    
-    behavior buch_state_S5_out:
-      ensures aorai_CurStates ≢ S5;
-    
-    behavior buch_state_Sf_out:
-      ensures aorai_CurStates ≢ Sf;
-    
-    behavior buch_state_Si_out:
-      ensures aorai_CurStates ≢ Si;
- */
-void f_post_func(int res)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_f;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (1 == aorai_CurStates) 
-    if (res == 0) 
-      if (X == 5) aorai_CurStates_tmp = S2;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires aorai_CurStates ≡ S1;
+     requires aorai_CurStates ≡ S1 ⇒ res ≡ 0 ∧ X ≡ 5;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_f;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_S0_out:
+       ensures aorai_CurStates ≢ S0;
+     
+     behavior buch_state_S1_out:
+       ensures aorai_CurStates ≢ S1;
+     
+     behavior buch_state_S2_in:
+       assumes aorai_CurStates ≡ S1 ∧ res ≡ 0 ∧ X ≡ 5;
+       ensures aorai_CurStates ≡ S2;
+     
+     behavior buch_state_S2_out:
+       assumes aorai_CurStates ≢ S1 ∨ ¬(res ≡ 0 ∧ X ≡ 5);
+       ensures aorai_CurStates ≢ S2;
+     
+     behavior buch_state_S3_out:
+       ensures aorai_CurStates ≢ S3;
+     
+     behavior buch_state_S4_out:
+       ensures aorai_CurStates ≢ S4;
+     
+     behavior buch_state_S5_out:
+       ensures aorai_CurStates ≢ S5;
+     
+     behavior buch_state_Sf_out:
+       ensures aorai_CurStates ≢ Sf;
+     
+     behavior buch_state_Si_out:
+       ensures aorai_CurStates ≢ Si;
+   @/
+  void f_post_func(int res)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_f;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (1 == aorai_CurStates) 
+      if (res == 0) 
+        if (X == 5) aorai_CurStates_tmp = S2;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires aorai_CurStates ≡ S1;
     requires aorai_CurStates ≡ S1 ⇒ x ≡ 4;
@@ -287,112 +299,118 @@ void f_post_func(int res)
 int f(int x)
 {
   int __retres;
-  f_pre_func(x);
+  /*@ ghost f_pre_func(x); */
   X = x;
   g(X);
   X ++;
   g(X);
   __retres = 0;
-  f_post_func(__retres);
+  /*@ ghost f_post_func(__retres); */
   return __retres;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_real_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_S0_out:
-      ensures aorai_CurStates ≢ S0;
-    
-    behavior buch_state_S1_in:
-      assumes aorai_CurStates ≡ S0 ∧ c ≢ 0;
-      ensures aorai_CurStates ≡ S1;
-    
-    behavior buch_state_S1_out:
-      assumes aorai_CurStates ≢ S0 ∨ c ≡ 0;
-      ensures aorai_CurStates ≢ S1;
-    
-    behavior buch_state_S2_in:
-      assumes aorai_CurStates ≡ S0 ∧ c ≡ 0;
-      ensures aorai_CurStates ≡ S2;
-    
-    behavior buch_state_S2_out:
-      assumes aorai_CurStates ≢ S0 ∨ ¬(c ≡ 0);
-      ensures aorai_CurStates ≢ S2;
-    
-    behavior buch_state_S3_out:
-      ensures aorai_CurStates ≢ S3;
-    
-    behavior buch_state_S4_out:
-      ensures aorai_CurStates ≢ S4;
-    
-    behavior buch_state_S5_out:
-      ensures aorai_CurStates ≢ S5;
-    
-    behavior buch_state_Sf_out:
-      ensures aorai_CurStates ≢ Sf;
-    
-    behavior buch_state_Si_out:
-      ensures aorai_CurStates ≢ Si;
- */
-void real_main_pre_func(int c)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_real_main;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (0 == aorai_CurStates) 
-    if (c == 0) aorai_CurStates_tmp = S2;
-  if (0 == aorai_CurStates) 
-    if (c != 0) aorai_CurStates_tmp = S1;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_real_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_S0_out:
+       ensures aorai_CurStates ≢ S0;
+     
+     behavior buch_state_S1_in:
+       assumes aorai_CurStates ≡ S0 ∧ c ≢ 0;
+       ensures aorai_CurStates ≡ S1;
+     
+     behavior buch_state_S1_out:
+       assumes aorai_CurStates ≢ S0 ∨ c ≡ 0;
+       ensures aorai_CurStates ≢ S1;
+     
+     behavior buch_state_S2_in:
+       assumes aorai_CurStates ≡ S0 ∧ c ≡ 0;
+       ensures aorai_CurStates ≡ S2;
+     
+     behavior buch_state_S2_out:
+       assumes aorai_CurStates ≢ S0 ∨ ¬(c ≡ 0);
+       ensures aorai_CurStates ≢ S2;
+     
+     behavior buch_state_S3_out:
+       ensures aorai_CurStates ≢ S3;
+     
+     behavior buch_state_S4_out:
+       ensures aorai_CurStates ≢ S4;
+     
+     behavior buch_state_S5_out:
+       ensures aorai_CurStates ≢ S5;
+     
+     behavior buch_state_Sf_out:
+       ensures aorai_CurStates ≢ Sf;
+     
+     behavior buch_state_Si_out:
+       ensures aorai_CurStates ≢ Si;
+   @/
+  void real_main_pre_func(int c)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_real_main;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (0 == aorai_CurStates) 
+      if (c == 0) aorai_CurStates_tmp = S2;
+    if (0 == aorai_CurStates) 
+      if (c != 0) aorai_CurStates_tmp = S1;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
 
-/*@ requires aorai_CurStates ≡ S2;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_real_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_S0_out:
-      ensures aorai_CurStates ≢ S0;
-    
-    behavior buch_state_S1_out:
-      ensures aorai_CurStates ≢ S1;
-    
-    behavior buch_state_S2_out:
-      ensures aorai_CurStates ≢ S2;
-    
-    behavior buch_state_S3_out:
-      ensures aorai_CurStates ≢ S3;
-    
-    behavior buch_state_S4_out:
-      ensures aorai_CurStates ≢ S4;
-    
-    behavior buch_state_S5_out:
-      ensures aorai_CurStates ≢ S5;
-    
-    behavior buch_state_Sf_in:
-      assumes aorai_CurStates ≡ S2;
-      ensures aorai_CurStates ≡ Sf;
-    
-    behavior buch_state_Sf_out:
-      assumes aorai_CurStates ≢ S2;
-      ensures aorai_CurStates ≢ Sf;
-    
-    behavior buch_state_Si_out:
-      ensures aorai_CurStates ≢ Si;
- */
-void real_main_post_func(int res)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_real_main;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (2 == aorai_CurStates) aorai_CurStates_tmp = Sf;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires aorai_CurStates ≡ S2;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_real_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_S0_out:
+       ensures aorai_CurStates ≢ S0;
+     
+     behavior buch_state_S1_out:
+       ensures aorai_CurStates ≢ S1;
+     
+     behavior buch_state_S2_out:
+       ensures aorai_CurStates ≢ S2;
+     
+     behavior buch_state_S3_out:
+       ensures aorai_CurStates ≢ S3;
+     
+     behavior buch_state_S4_out:
+       ensures aorai_CurStates ≢ S4;
+     
+     behavior buch_state_S5_out:
+       ensures aorai_CurStates ≢ S5;
+     
+     behavior buch_state_Sf_in:
+       assumes aorai_CurStates ≡ S2;
+       ensures aorai_CurStates ≡ Sf;
+     
+     behavior buch_state_Sf_out:
+       assumes aorai_CurStates ≢ S2;
+       ensures aorai_CurStates ≢ Sf;
+     
+     behavior buch_state_Si_out:
+       ensures aorai_CurStates ≢ Si;
+   @/
+  void real_main_post_func(int res)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_real_main;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (2 == aorai_CurStates) aorai_CurStates_tmp = Sf;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires aorai_CurStates ≡ S0;
     requires aorai_CurStates ≡ S0 ⇒ c ≡ 0 ∨ c ≢ 0;
@@ -403,101 +421,107 @@ void real_main_post_func(int res)
 int real_main(int c)
 {
   int __retres;
-  real_main_pre_func(c);
+  /*@ ghost real_main_pre_func(c); */
   if (c) f(4);
   __retres = 0;
-  real_main_post_func(__retres);
+  /*@ ghost real_main_post_func(__retres); */
   return __retres;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_S0_in:
-      assumes aorai_CurStates ≡ Si;
-      ensures aorai_CurStates ≡ S0;
-    
-    behavior buch_state_S0_out:
-      assumes aorai_CurStates ≢ Si;
-      ensures aorai_CurStates ≢ S0;
-    
-    behavior buch_state_S1_out:
-      ensures aorai_CurStates ≢ S1;
-    
-    behavior buch_state_S2_out:
-      ensures aorai_CurStates ≢ S2;
-    
-    behavior buch_state_S3_out:
-      ensures aorai_CurStates ≢ S3;
-    
-    behavior buch_state_S4_out:
-      ensures aorai_CurStates ≢ S4;
-    
-    behavior buch_state_S5_out:
-      ensures aorai_CurStates ≢ S5;
-    
-    behavior buch_state_Sf_out:
-      ensures aorai_CurStates ≢ Sf;
-    
-    behavior buch_state_Si_out:
-      ensures aorai_CurStates ≢ Si;
- */
-void main_pre_func(int c)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (7 == aorai_CurStates) aorai_CurStates_tmp = S0;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_S0_in:
+       assumes aorai_CurStates ≡ Si;
+       ensures aorai_CurStates ≡ S0;
+     
+     behavior buch_state_S0_out:
+       assumes aorai_CurStates ≢ Si;
+       ensures aorai_CurStates ≢ S0;
+     
+     behavior buch_state_S1_out:
+       ensures aorai_CurStates ≢ S1;
+     
+     behavior buch_state_S2_out:
+       ensures aorai_CurStates ≢ S2;
+     
+     behavior buch_state_S3_out:
+       ensures aorai_CurStates ≢ S3;
+     
+     behavior buch_state_S4_out:
+       ensures aorai_CurStates ≢ S4;
+     
+     behavior buch_state_S5_out:
+       ensures aorai_CurStates ≢ S5;
+     
+     behavior buch_state_Sf_out:
+       ensures aorai_CurStates ≢ Sf;
+     
+     behavior buch_state_Si_out:
+       ensures aorai_CurStates ≢ Si;
+   @/
+  void main_pre_func(int c)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (7 == aorai_CurStates) aorai_CurStates_tmp = S0;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
 
-/*@ requires aorai_CurStates ≡ Sf;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_S0_out:
-      ensures aorai_CurStates ≢ S0;
-    
-    behavior buch_state_S1_out:
-      ensures aorai_CurStates ≢ S1;
-    
-    behavior buch_state_S2_out:
-      ensures aorai_CurStates ≢ S2;
-    
-    behavior buch_state_S3_out:
-      ensures aorai_CurStates ≢ S3;
-    
-    behavior buch_state_S4_out:
-      ensures aorai_CurStates ≢ S4;
-    
-    behavior buch_state_S5_out:
-      ensures aorai_CurStates ≢ S5;
-    
-    behavior buch_state_Sf_in:
-      assumes aorai_CurStates ≡ Sf;
-      ensures aorai_CurStates ≡ Sf;
-    
-    behavior buch_state_Sf_out:
-      assumes aorai_CurStates ≢ Sf;
-      ensures aorai_CurStates ≢ Sf;
-    
-    behavior buch_state_Si_out:
-      ensures aorai_CurStates ≢ Si;
- */
-void main_post_func(int res)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  aorai_CurStates_tmp = aorai_CurStates;
-  if (6 == aorai_CurStates) aorai_CurStates_tmp = Sf;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires aorai_CurStates ≡ Sf;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_S0_out:
+       ensures aorai_CurStates ≢ S0;
+     
+     behavior buch_state_S1_out:
+       ensures aorai_CurStates ≢ S1;
+     
+     behavior buch_state_S2_out:
+       ensures aorai_CurStates ≢ S2;
+     
+     behavior buch_state_S3_out:
+       ensures aorai_CurStates ≢ S3;
+     
+     behavior buch_state_S4_out:
+       ensures aorai_CurStates ≢ S4;
+     
+     behavior buch_state_S5_out:
+       ensures aorai_CurStates ≢ S5;
+     
+     behavior buch_state_Sf_in:
+       assumes aorai_CurStates ≡ Sf;
+       ensures aorai_CurStates ≡ Sf;
+     
+     behavior buch_state_Sf_out:
+       assumes aorai_CurStates ≢ Sf;
+       ensures aorai_CurStates ≢ Sf;
+     
+     behavior buch_state_Si_out:
+       ensures aorai_CurStates ≢ Si;
+   @/
+  void main_post_func(int res)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    aorai_CurStates_tmp = aorai_CurStates;
+    if (6 == aorai_CurStates) aorai_CurStates_tmp = Sf;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires aorai_CurStates ≡ Si;
     
@@ -507,9 +531,9 @@ void main_post_func(int res)
 int main(int c)
 {
   int tmp;
-  main_pre_func(c);
+  /*@ ghost main_pre_func(c); */
   tmp = real_main(c);
-  main_post_func(tmp);
+  /*@ ghost main_post_func(tmp); */
   return tmp;
 }
 

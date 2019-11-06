@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/flash.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -7,17 +7,17 @@
 [wp] Warning: Missing RTE guards
 [wp] 6 goals scheduled
 [wp] [Qed] Goal typed_flash_flash-ergo_job_ensures_Events : Valid
-[wp] [Alt-Ergo] Goal typed_flash_flash-ergo_job_ensures_A_reads : Valid
-[wp] [Alt-Ergo] Goal typed_flash_flash-ergo_job_ensures_B_reads : Valid
-[wp] [Alt-Ergo] Goal typed_flash_flash-ergo_job_ensures_B_writes : Valid
-[wp] [Alt-Ergo] Goal typed_flash_flash-ergo_job_ensures_ReadValues : Valid
-[wp] [Alt-Ergo] Goal typed_flash_flash-ergo_job_ensures_WriteValues : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_flash_flash-ergo_job_ensures_A_reads : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_flash_flash-ergo_job_ensures_B_reads : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_flash_flash-ergo_job_ensures_B_writes : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_flash_flash-ergo_job_ensures_ReadValues : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_flash_flash-ergo_job_ensures_WriteValues : Valid
 [wp] Proved goals:    6 / 6
-  Qed:             1 
-  Alt-Ergo:        5
+  Qed:               1 
+  Alt-Ergo 2.0.0:    5
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/flash.1.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/flash.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-job                  1      5 (88..112)      6       100%
+job                  1      5 (32..44)       6       100%
 -------------------------------------------------------------

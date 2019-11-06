@@ -87,3 +87,5 @@ val mk_behavior :
   ?extended:Logic_ptree.extension list ->
   unit ->
   Logic_ptree.behavior
+
+val mk_asm_templates : string list -> string list

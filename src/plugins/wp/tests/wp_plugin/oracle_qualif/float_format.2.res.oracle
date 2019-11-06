@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 1 -wp-steps 50 [...]
 [kernel] Parsing tests/wp_plugin/float_format.i (no preprocessing)
 [kernel:parser:decimal-float] tests/wp_plugin/float_format.i:10: Warning: 
   Floating-point constant 0.2 is not represented exactly. Will use 0x1.999999999999ap-3.
@@ -7,9 +7,9 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp] [alt-ergo] Goal typed_output_ensures_KO : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_output_ensures_KO : Unsuccess
 [wp] Proved goals:    0 / 1
-  Alt-Ergo (why3):    0  (unsuccess: 1)
+  Alt-Ergo 2.0.0:    0  (unsuccess: 1)
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/float_format.2.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/float_format.2.report.json'
 -------------------------------------------------------------

@@ -22,48 +22,54 @@ int f(void);
 /*@ ghost enum aorai_ListOper aorai_CurOperation = op_main; */
 /*@ ghost enum aorai_OpStatusList aorai_CurOpStatus = aorai_Called; */
 /*@ ghost int aorai_CurStates = s0; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_s0_out:
-      ensures aorai_CurStates ≢ s0;
- */
-void main_pre_func(void)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  aorai_CurStates_tmp = aorai_CurStates;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_s0_out:
+       ensures aorai_CurStates ≢ s0;
+   @/
+  void main_pre_func(void)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    aorai_CurStates_tmp = aorai_CurStates;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
 
-/*@ requires \false;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
-    
-    behavior buch_state_s0_out:
-      ensures aorai_CurStates ≢ s0;
- */
-void main_post_func(int res)
-{
-  /*@ ghost int aorai_CurStates_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  aorai_CurStates_tmp = aorai_CurStates;
-  aorai_CurStates = aorai_CurStates_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires \false;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
+     
+     behavior buch_state_s0_out:
+       ensures aorai_CurStates ≢ s0;
+   @/
+  void main_post_func(int res)
+  {
+    int aorai_CurStates_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    aorai_CurStates_tmp = aorai_CurStates;
+    aorai_CurStates = aorai_CurStates_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires \false; */
 int main(void)
 {
   int tmp;
-  main_pre_func();
+  /*@ ghost main_pre_func(); */
   tmp = f();
-  main_post_func(tmp);
+  /*@ ghost main_post_func(tmp); */
   return tmp;
 }
 

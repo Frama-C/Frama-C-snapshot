@@ -1,0 +1,14 @@
+[kernel] Parsing tests/syntax/ghost_parameters.c (with preprocessing)
+[kernel] tests/syntax/ghost_parameters.c:89: User Error: 
+  Declaration of function does not match previous declaration from tests/syntax/ghost_parameters.c:85 (different number of arguments).
+[kernel] tests/syntax/ghost_parameters.c:89: User Error: 
+  Inconsistent formals
+  87    }
+  88    
+  89    void function(int a, int b) /*@ ghost(int c, int d) */ {
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  90    
+  91    }
+[kernel] User Error: stopping on file "tests/syntax/ghost_parameters.c" that has errors. Add
+  '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

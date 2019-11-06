@@ -33,38 +33,6 @@
 
 (** {1 OCaml} *)
 
-(** In OCaml 4.03, many functions [f] from String have been deprecated
-    in favor of [f_ascii], which operate only on the ASCII charset, while
-    the deprecated [f] knew about iso-8859-1.
-    We use the new names here, so that when support of 4.02.3 is dropped,
-    client code will just have to erase [Transitioning.] to use directly
-    the stdlib version
-*)
-module String: sig
-  val uppercase_ascii: string -> string (** 4.03 *)
-  val capitalize_ascii: string -> string (** 4.03 *)
-  val uncapitalize_ascii: string -> string (** 4.03 *)
-  val lowercase_ascii: string -> string (** 4.03 *)
-  val split_on_char: char -> string -> string list (** 4.04 *)
-end
-
-(** See above documentation for [String] *)
-module Char: sig
-  val uppercase_ascii: char -> char (** 4.03 *)
-  val lowercase_ascii: char -> char (** 4.03 *)
-end
-
-module Stack: sig
-  val fold: ('a -> 'b -> 'a) -> 'a -> 'b Stack.t -> 'a (** 4.03 *)
-end
-
-module List: sig
-  val nth_opt: 'a list -> int -> 'a option (** 4.05 *)
-  val find_opt: ('a -> bool) -> 'a list -> 'a option (** 4.05 *)
-  val assoc_opt: 'a -> ('a * 'b) list -> 'b option (** 4.05 *)
-  val assq_opt: 'a -> ('a * 'b) list -> 'b option (** 4.05 *)
-end
-
 (** 4.08 *)
 module Stdlib: sig
   val compare: 'a -> 'a -> int
@@ -72,11 +40,18 @@ module Stdlib: sig
   val incr: int ref -> unit
   val min: 'a -> 'a -> 'a
   val max: 'a -> 'a -> 'a
+  val min_int: int
+  val max_int: int
 end
 
 (** 4.08 *)
 module Dynlink: sig
   val init: unit -> unit
+end
+
+(** 4.07 *)
+module Float: sig
+  val max_float: float
 end
 
 (** 4.08 *)

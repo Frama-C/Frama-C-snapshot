@@ -13,41 +13,37 @@
 (**************************************************************************)
 
 (* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
-logic comp_div: int, int -> int
-axiom comp_div_def: forall x, y:int. x >= 0 and y > 0 -> comp_div(x,y) = x / y
-logic comp_mod: int, int -> int
-axiom comp_mod_def: forall x, y:int. x >= 0 and y > 0 -> comp_mod(x,y) = x % y
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
 (** The theory int_Int_ must be appended to this file*)
 (** The theory int_Abs_ must be appended to this file*)
+logic div : int, int -> int
+
+logic mod : int, int -> int
+
 axiom Div_bound :
-  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
-  (0 <= comp_div(x,y))))
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) -> (0 <= div(x, y))))
 
 axiom Div_bound1 :
-  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
-  (comp_div(x,y) <= x)))
+  (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) -> (div(x, y) <= x)))
 
-axiom Div_1 : (forall x:int. (comp_div(x,1) = x))
+axiom Div_1 : (forall x:int. (div(x, 1) = x))
 
-axiom Mod_1 : (forall x:int. (comp_mod(x,1) = 0))
+axiom Mod_1 : (forall x:int. (mod(x, 1) = 0))
 
 axiom Div_inf :
-  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
-  (comp_div(x,y) = 0)))
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) -> (div(x, y) = 0)))
 
 axiom Mod_inf :
-  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
-  (comp_mod(x,y) = x)))
+  (forall x:int. forall y:int. (((0 <= x) and (x <  y)) -> (mod(x, y) = x)))
 
 axiom Div_mult :
-  (forall x:int. forall y:int. forall z:int [comp_div(((x * y) + z),x)].
-  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
-  (comp_div(((x * y) + z),x) = (y + comp_div(z,x)))))
+  (forall x:int. forall y:int. forall z:int [div(((x * y) + z), x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) -> (div(((x * y) + z),
+  x) = (y + div(z, x)))))
 
 axiom Mod_mult :
-  (forall x:int. forall y:int. forall z:int [comp_mod(((x * y) + z),x)].
-  (((0 <  x) and ((0 <= y) and (0 <= z))) ->
-  (comp_mod(((x * y) + z),x) = comp_mod(z,x))))
+  (forall x:int. forall y:int. forall z:int [mod(((x * y) + z), x)].
+  (((0 <  x) and ((0 <= y) and (0 <= z))) -> (mod(((x * y) + z), x) = mod(z,
+  x))))
 

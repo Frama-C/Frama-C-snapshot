@@ -36,6 +36,7 @@
 [kernel] Parsing share/libc/__fc_define_wint_t.h (with preprocessing)
 [kernel] Parsing share/libc/__fc_gcc_builtins.h (with preprocessing)
 [kernel] Parsing share/libc/__fc_inet.h (with preprocessing)
+[kernel] Parsing share/libc/__fc_integer.h (with preprocessing)
 [kernel] Parsing share/libc/__fc_machdep.h (with preprocessing)
 skipping share/libc/__fc_machdep_linux_shared.h
 [kernel] Parsing share/libc/__fc_select.h (with preprocessing)
@@ -55,6 +56,7 @@ skipping share/libc/complex.h
 [kernel] Parsing share/libc/fenv.h (with preprocessing)
 [kernel] Parsing share/libc/float.h (with preprocessing)
 [kernel] Parsing share/libc/fnmatch.h (with preprocessing)
+[kernel] Parsing share/libc/ftw.h (with preprocessing)
 [kernel] Parsing share/libc/getopt.h (with preprocessing)
 [kernel] Parsing share/libc/glob.h (with preprocessing)
 [kernel] Parsing share/libc/grp.h (with preprocessing)

@@ -18,6 +18,6 @@
 (** The theory map_Map_ must be appended to this file*)
 logic const : 'b -> ('a,'b) farray
 
-axiom Const :
-  (forall b:'b1. forall a:'a1. (((const(b) : ('a1,'b1) farray)[a]) = b))
+axiom const_def :
+  (forall v:'b. forall us:'a. (((const(v) : ('a,'b) farray)[us]) = v))
 

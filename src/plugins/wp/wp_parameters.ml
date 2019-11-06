@@ -20,8 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Fc_config = Config
-module STRING = String
+module Fc_Config = Config
+
 let () = Plugin.is_share_visible ()
 let () = Plugin.is_session_visible ()
 include Plugin.Register
@@ -105,23 +105,6 @@ module Properties =
     end)
 let () = on_reset Properties.clear
 
-type job =
-  | WP_None
-  | WP_All
-  | WP_SkipFct of Cil_datatype.Kf.Set.t
-  | WP_Fct of Cil_datatype.Kf.Set.t
-
-let job () =
-  if WP.get () || not (Functions.is_empty()) ||
-     not (Behaviors.is_empty()) || not (Properties.is_empty())
-  then
-    if Functions.is_empty() then
-      if SkipFunctions.is_empty () then WP_All
-      else WP_SkipFct (SkipFunctions.get())
-    else
-      WP_Fct (Cil_datatype.Kf.Set.diff (Functions.get()) (SkipFunctions.get()))
-  else WP_None
-
 let () = Parameter_customize.set_group wp_generation
 module StatusAll =
   False(struct
@@ -149,6 +132,42 @@ module StatusMaybe =
     let option_name = "-wp-status-maybe"
     let help = "Select properties with status 'Maybe'."
   end)
+
+(* ------------------------------------------------------------------------ *)
+(* --- Selected Functions                                               --- *)
+(* ------------------------------------------------------------------------ *)
+
+module Fct = Cil_datatype.Kf.Set
+
+type functions =
+  | Fct_none
+  | Fct_all
+  | Fct_skip of Fct.t
+  | Fct_list of Fct.t
+
+let iter_fct phi = function
+  | Fct_none -> ()
+  | Fct_all -> Globals.Functions.iter phi
+  | Fct_skip fs ->
+      Globals.Functions.iter
+        (fun kf -> if not (Fct.mem kf fs) then phi kf)
+  | Fct_list fs -> Fct.iter phi fs
+
+let get_kf () =
+  if Functions.is_empty() then
+    if SkipFunctions.is_empty () then Fct_all
+    else Fct_skip (SkipFunctions.get())
+  else
+    Fct_list (Fct.diff (Functions.get()) (SkipFunctions.get()))
+
+let get_wp () =
+  if WP.get () || not (Functions.is_empty()) ||
+     not (Behaviors.is_empty()) || not (Properties.is_empty())
+  then get_kf ()
+  else Fct_none
+
+let iter_wp f = iter_fct f (get_wp ())
+let iter_kf f = iter_fct f (get_kf ())
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Memory Models                                                   --- *)
@@ -201,6 +220,13 @@ module InHeap =
     end)
 
 let () = Parameter_customize.set_group wp_model
+module AliasInit =
+  False(struct
+    let option_name = "-wp-alias-init"
+    let help = "Use initializers for aliasing propagation."
+  end)
+
+let () = Parameter_customize.set_group wp_model
 module InCtxt =
   String_set
     (struct
@@ -214,13 +240,6 @@ module ExternArrays =
   False(struct
     let option_name = "-wp-extern-arrays"
     let help = "Put some default size for extern arrays."
-  end)
-
-let () = Parameter_customize.set_group wp_model
-module ExtEqual =
-  False(struct
-    let option_name = "-wp-extensional"
-    let help = "Use extensional equality on compounds (hypotheses only)."
   end)
 
 let () = Parameter_customize.set_group wp_model
@@ -246,6 +265,83 @@ module Volatile =
                 Use -wp-no-volatile to ignore volatile attributes."
   end)
 
+(* -------------------------------------------------------------------------- *)
+(* --- Region Model                                                       --- *)
+(* -------------------------------------------------------------------------- *)
+
+let wp_region = add_group "Region Analysis"
+
+let () = Parameter_customize.set_group wp_region
+let () = Parameter_customize.do_not_save ()
+module Region =
+  False
+    (struct
+      let option_name = "-wp-region"
+      let help = "Perform Region Analysis (experimental)"
+    end)
+
+let () = Parameter_customize.set_group wp_region
+let () = Parameter_customize.do_not_save ()
+module Region_fixpoint =
+  True
+    (struct
+      let option_name = "-wp-region-fixpoint"
+      let help = "Compute region aliasing fixpoint"
+    end)
+
+let () = Parameter_customize.set_group wp_region
+let () = Parameter_customize.do_not_save ()
+module Region_cluster =
+  True
+    (struct
+      let option_name = "-wp-region-cluster"
+      let help = "Compute region clustering fixpoint"
+    end)
+
+let () = Parameter_customize.set_group wp_region
+let () = Parameter_customize.do_not_save ()
+module Region_inline =
+  True
+    (struct
+      let option_name = "-wp-region-inline"
+      let help = "Inline aliased sub-clusters"
+    end)
+
+let () = Parameter_customize.set_group wp_region
+let () = Parameter_customize.do_not_save ()
+module Region_rw =
+  True
+    (struct
+      let option_name = "-wp-region-rw"
+      let help = "Written region are considered read-write by default"
+    end)
+
+let () = Parameter_customize.set_group wp_region
+let () = Parameter_customize.do_not_save ()
+module Region_pack =
+  True
+    (struct
+      let option_name = "-wp-region-pack"
+      let help = "Pack clusters by default"
+    end)
+
+let () = Parameter_customize.set_group wp_region
+let () = Parameter_customize.do_not_save ()
+module Region_flat =
+  False
+    (struct
+      let option_name = "-wp-region-flat"
+      let help = "Flatten arrays by default"
+    end)
+
+let () = Parameter_customize.set_group wp_region
+module Region_annot =
+  False
+    (struct
+      let option_name = "-region-annot"
+      let help = "Register '@region' ACSL Annotations (auto with -wp-region)"
+    end)
+
 (* ------------------------------------------------------------------------ *)
 (* ---  WP Strategy                                                     --- *)
 (* ------------------------------------------------------------------------ *)
@@ -254,15 +350,9 @@ let wp_strategy = add_group "Computation Strategies"
 
 let () = Parameter_customize.set_group wp_strategy
 module Init =
-  False(struct
+  True(struct
     let option_name = "-wp-init-const"
     let help = "Use initializers for global const variables."
-  end)
-
-module InitAlias =
-  False(struct
-    let option_name = "-wp-init-alias"
-    let help = "Use initializers for aliasing propagation."
   end)
 
 let () = Parameter_customize.set_group wp_strategy
@@ -373,10 +463,17 @@ module Reduce =
   end)
 
 let () = Parameter_customize.set_group wp_simplifier
+module ExtEqual =
+  True(struct
+    let option_name = "-wp-extensional"
+    let help = "Use extensional equality on compounds (hypotheses only)."
+  end)
+
+let () = Parameter_customize.set_group wp_simplifier
 module Filter =
   True(struct
     let option_name = "-wp-filter"
-    let help = "Use variable filtering."
+    let help = "Filter non-used variables and related hypotheses."
   end)
 
 let () = Parameter_customize.set_group wp_simplifier
@@ -444,14 +541,6 @@ module BoundForallUnfolding =
     let default = 1000
   end)
 
-let () = Parameter_customize.set_group wp_simplifier
-module QedChecks =
-  String_set(struct
-    let option_name = "-wp-qed-checks"
-    let arg_name = "qed-key,..."
-    let help = "Check internal simplifications."
-  end)
-
 (* ------------------------------------------------------------------------ *)
 (* ---  Prover Interface                                                --- *)
 (* ------------------------------------------------------------------------ *)
@@ -470,9 +559,30 @@ module Provers = String_list
          - 'tip' (failed scripts only)\n\
          - 'alt-ergo' (default)\n\
          - 'altgr-ergo' (gui)\n\
-         - 'coq', 'coqide' (see also -wp-script)\n\
+         - 'coq', 'coqide' (see also -wp-coq-script)\n\
          - 'why3:<dp>' or '<dp>' (why3 prover, see -wp-detect)\n\
-         - 'why3ide' (why3 gui)"
+         - 'native:alt-ergo'\n\
+         - 'native:coq'\n\
+         - 'native:coqide'\
+        "
+    end)
+
+let () = Parameter_customize.set_group wp_prover
+module Cache = String
+    (struct
+      let option_name = "-wp-cache"
+      let arg_name = "mode"
+      let default = ""
+      let help =
+        "WP cache mode:\n\
+         - 'none': no cache, run provers (default)\n\
+         - 'update': use cache or run provers and update cache\n\
+         - 'cleanup': update mode with garbage collection\n\
+         - 'replay': update mode with no cache update\n\
+         - 'rebuild': always run provers and update cache\n\
+         - 'offline': use cache but never run provers\n\
+         This option is overriden by environment variable FRAMAC_WP_CACHE.\
+        "
     end)
 
 let () = Parameter_customize.set_group wp_prover
@@ -499,15 +609,6 @@ module Drivers =
       let arg_name = "file,..."
       let help = "Load drivers for linking to external libraries"
     end)
-
-let () = Parameter_customize.set_group wp_prover
-module Depth =
-  Int(struct
-    let option_name = "-wp-depth"
-    let default = 0
-    let arg_name = "p"
-    let help = "Set depth of exploration for provers."
-  end)
 
 let () = Parameter_customize.set_group wp_prover
 module Steps =
@@ -586,8 +687,7 @@ module Auto = String_list
       let arg_name = "s"
       let help =
         "Activate auto-search with strategy <s>.\n\
-         Implies -wp-prover 'tip'.\n\
-         Use '-wp-prover ?' for listing strategies."
+         Use '-wp-auto <?>' for available strategies."
     end)
 
 let () = Parameter_customize.set_group wp_prover
@@ -626,7 +726,7 @@ module BackTrack = Int
 let () = Parameter_customize.set_group wp_prover_options
 module Script =
   String(struct
-    let option_name = "-wp-script"
+    let option_name = "-wp-coq-script"
     let arg_name = "f.script"
     let default = ""
     let help = "Set user's file for Coq proofs."
@@ -635,7 +735,7 @@ module Script =
 let () = Parameter_customize.set_group wp_prover_options
 module UpdateScript =
   True(struct
-    let option_name = "-wp-update-script"
+    let option_name = "-wp-update-coq-script"
     let help = "If turned off, do not save or modify user's proofs."
   end)
 
@@ -689,7 +789,7 @@ let () = Parameter_customize.set_group wp_prover_options
 module CoqTactic =
   String
     (struct
-      let option_name = "-wp-tactic"
+      let option_name = "-wp-coq-tactic"
       let arg_name = "proof"
       let default = "auto with zarith"
       let help = "Default tactic for Coq"
@@ -699,7 +799,7 @@ let () = Parameter_customize.set_group wp_prover_options
 module TryHints =
   False
     (struct
-      let option_name = "-wp-tryhints"
+      let option_name = "-wp-coq-tryhints"
       let help = "Try scripts from other goals (see also -wp-hints)"
     end)
 
@@ -707,19 +807,10 @@ let () = Parameter_customize.set_group wp_prover_options
 module Hints =
   Int
     (struct
-      let option_name = "-wp-hints"
+      let option_name = "-wp-coq-hints"
       let arg_name = "n"
       let default = 3
       let help = "Maximum number of proposed Coq scripts (default 3)"
-    end)
-
-let () = Parameter_customize.set_group wp_prover_options
-module Includes =
-  String_list
-    (struct
-      let option_name = "-wp-include"
-      let arg_name = "dir,...,++sharedir"
-      let help = "Directory where to find libraries and drivers for provers"
     end)
 
 let () = Parameter_customize.set_group wp_prover_options
@@ -732,29 +823,11 @@ module CoqLibs =
     end)
 
 let () = Parameter_customize.set_group wp_prover_options
-module Why3 =
-  String(struct
-    let option_name = "-wp-why3"
-    let default = "why3"
-    let arg_name = "cmd"
-    let help = "Command to run Why-3 (default: 'why3')"
-  end)
-
-let () = Parameter_customize.set_group wp_prover_options
-module WhyLibs =
-  String_list
-    (struct
-      let option_name = "-wp-why-lib"
-      let arg_name = "*.why"
-      let help = "Additional libraries for Why"
-    end)
-
-let () = Parameter_customize.set_group wp_prover_options
 let () = Parameter_customize.no_category ()
-module WhyFlags =
+module Why3Flags =
   String_list
     (struct
-      let option_name = "-wp-why-opt"
+      let option_name = "-wp-why3-opt"
       let arg_name = "option,..."
       let help = "Additional options for Why3"
     end)
@@ -890,7 +963,7 @@ module Check =
 let () = on_reset Print.clear
 
 (* -------------------------------------------------------------------------- *)
-(* --- OS environment variables                                           --- *)
+(* --- Overflows                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
 let active_unless_rte option =
@@ -902,24 +975,13 @@ let active_unless_rte option =
 
 let get_overflows () = Overflows.get () && active_unless_rte "-wp-overflows"
 
-let dkey = register_category "env"
-
-let get_env ?default var =
-  try
-    let varval = Sys.getenv var in
-    debug ~dkey "ENV %s=%S" var varval ; varval
-  with Not_found ->
-    debug ~dkey "ENV %s not set." var ;
-    match default with
-    | Some varval ->
-        debug ~dkey "ENV %s default(%S)" var varval ; varval
-    | None ->
-        debug ~dkey "ENV %s undefined." var ;
-        raise Not_found
+(* -------------------------------------------------------------------------- *)
+(* --- Output Dir                                                         --- *)
+(* -------------------------------------------------------------------------- *)
 
 let dkey = register_category "prover"
 
-let is_out () = !Fc_config.is_gui || OutputDir.get() <> ""
+let has_out () = OutputDir.get () <> ""
 
 let make_output_dir dir =
   if Sys.file_exists dir then
@@ -974,23 +1036,15 @@ let base_output () =
   | None -> let output =
               match OutputDir.get () with
               | "" ->
-                  if !Fc_config.is_gui
+                  if !Fc_Config.is_gui
                   then make_gui_dir ()
                   else make_tmp_dir ()
               | dir ->
                   make_output_dir dir ; dir in
       base_output := Some output;
-      Filepath.add_symbolic_dir "WPOUT" output ;
+      Fc_Filepath.add_symbolic_dir "WPOUT" output ;
       output
   | Some output -> output
-
-
-let get_session () = Session.dir ~error:false ()
-
-let get_session_dir d =
-  let base = get_session () in
-  let path = Printf.sprintf "%s/%s" base d in
-  make_output_dir path ; path
 
 let get_output () =
   let base = base_output () in
@@ -1006,15 +1060,22 @@ let get_output_dir d =
   let path = Printf.sprintf "%s/%s" base d in
   make_output_dir path ; path
 
-let get_includes () =
-  List.map
-    (fun d ->
-       if STRING.get d 0 = '+' then
-         Printf.sprintf "%s/%s"
-           (Kernel.Share.dir ())
-           (STRING.sub d 1 (STRING.length d - 1))
-       else d)
-    (Includes.get ())
+(* -------------------------------------------------------------------------- *)
+(* --- Session dir                                                        --- *)
+(* -------------------------------------------------------------------------- *)
+
+let default = Sys.getcwd () ^ "/.frama-c"
+
+let has_session () =
+  Session.Dir_name.is_set () ||
+  ( Sys.file_exists default && Sys.is_directory default )
+
+let get_session () = Session.dir ~error:false ()
+
+let get_session_dir d =
+  let base = get_session () in
+  let path = Printf.sprintf "%s/%s" base d in
+  make_output_dir path ; path
 
 let cat_print_generated = register_category "print-generated"
 
@@ -1022,7 +1083,7 @@ let has_print_generated () = has_dkey cat_print_generated
 
 let print_generated ?header file =
   let header = match header with
-    | None -> Filepath.Normalized.to_pretty_string (Datatype.Filepath.of_string file)
+    | None -> Fc_Filepath.Normalized.to_pretty_string (Datatype.Filepath.of_string file)
     | Some head -> head in
   debug ~dkey:cat_print_generated "%S@\n%t@." header
     begin fun fmt ->

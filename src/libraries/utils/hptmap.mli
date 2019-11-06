@@ -49,6 +49,11 @@ end
     new maps whose shape are already known. *)
 module Shape (Key : Id_Datatype): sig
   type 'value t
+  val compare: ('value -> 'value -> int) -> 'value t -> 'value t -> int
+  val equal : 'value t -> 'value t -> bool
+  val pretty: 'value Pretty_utils.formatter -> 'value t Pretty_utils.formatter
+  val hash: 'value t -> int
+  val iter: (Key.t -> 'value -> unit) -> 'value t -> unit
 end
 
 module Make

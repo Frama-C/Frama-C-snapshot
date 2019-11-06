@@ -1,16 +1,16 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp/sharing.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp] [Alt-Ergo] Goal typed_f_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures : Valid
 [wp] Proved goals:    1 / 1
-  Qed:             0 
-  Alt-Ergo:        1
+  Qed:               0 
+  Alt-Ergo 2.0.0:    1
 [wp] Report in:  'tests/wp/oracle_qualif/sharing.0.report.json'
 [wp] Report out: 'tests/wp/result_qualif/sharing.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-f                   -       1 (48..60)       1       100%
+f                   -       1 (28..40)       1       100%
 -------------------------------------------------------------

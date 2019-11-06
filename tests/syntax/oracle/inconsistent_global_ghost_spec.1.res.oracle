@@ -1,0 +1,13 @@
+[kernel] Parsing tests/syntax/inconsistent_global_ghost_spec.c (with preprocessing)
+[kernel] tests/syntax/inconsistent_global_ghost_spec.c:22: User Error: 
+  Inconsistent ghost specification for function.
+  Previous declaration was at: tests/syntax/inconsistent_global_ghost_spec.c:21
+  20    
+  21    /*@ ghost void function(void) ; */
+  22    void function(void){ }
+        ^^^^^^^^^^^^^^^^^^^^^^
+  23    
+  24    void user(void){
+[kernel] User Error: stopping on file "tests/syntax/inconsistent_global_ghost_spec.c" that has
+  errors. Add '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

@@ -1,5 +1,6 @@
 /* run.config_qualif
    OPT: -wp-prover why3:alt-ergo
+   OPT: -wp-model real
  */
 
 /*@ lemma test_float_compare:

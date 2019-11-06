@@ -1,0 +1,87 @@
+##########################################################################
+#                                                                        #
+#  This file is part of WP plug-in of Frama-C.                           #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat a l'energie atomique et aux energies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+
+WPLSHARE=$(Wp_DIR)/share
+
+# --------------------------------------------------------------------------
+# ---  Coq Compilation
+# --------------------------------------------------------------------------
+
+.PHONY: coqwpcompile
+
+COQWPINCLUDES= -R $(WPLSHARE)/coqwp ''
+COQWPBINARIES= $(addprefix $(WPLSHARE)/, $(ALL_COQ_BINARIES))
+
+coqwpcompile: $(COQWPBINARIES)
+
+$(WPLSHARE)/coqwp/%.vo: $(WPLSHARE)/coqwp/%.v
+	echo "Coqc         $<"
+	coqc -w none $(COQWPINCLUDES) $<
+
+$(WPLSHARE)/coqwp/%.ide: $(WPLSHARE)/coqwp/%.v
+	echo "Coqide       $<"
+	coqide $(COQWPINCLUDES) $<
+
+$(WPLSHARE)/coqwp/.depend: $(addprefix $(WPLSHARE)/, $(WP_COQ_SOURCES))
+	echo "Coqdep       $(WPLSHARE)/coqwp"
+	@coqdep $(COQWPINCLUDES) $(WPLSHARE)/coqwp/*.v $(WPLSHARE)/coqwp/**/*.v > $@
+
+# --------------------------------------------------------------------------
+# ---  Additional Targets
+# --------------------------------------------------------------------------
+
+.PHONY: wp-coq-compile wp-coq-clean wp-coq-install wp-coq-uninstall
+
+wp-coq-compile: coqwpcompile
+	@echo "Run 'make wp-coq-install' to install all precompiled libraries"
+
+wp-coq-clean:
+	find $(Wp_DIR) \( -name "*.vo" -or -name "*.glob" -or -name ".*.aux" \) -delete
+	rm -f $(WPLSHARE)/coqwp/.depend
+
+wp-coq-install:
+	$(PRINT_INSTALL) "Coq Libraries"
+	$(INSTALL_SHARE) -f -p -s \
+		-i $(Wp_DIR)/share \
+		-d $(FRAMAC_DATADIR)/wp \
+		$(ALL_COQ_BINARIES)
+
+wp-coq-uninstall:
+	$(PRINT_RM) "Coq Libraries"
+	@rm -f $(FRAMAC_DATADIR)/wp/why3/*.vo
+	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*.vo
+	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*/*.vo
+
+# --------------------------------------------------------------------------
+# ---  Coq Dependencies
+# --------------------------------------------------------------------------
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),distclean)
+ifneq ($(MAKECMDGOALS),smartclean)
+sinclude $(WPLSHARE)/coqwp/.depend
+endif
+endif
+endif
+
+# --------------------------------------------------------------------------

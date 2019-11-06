@@ -134,7 +134,7 @@
   function strtok: precondition 'valid_string_delim' got status valid.
 [eva] tests/libc/string_h.c:72: 
   function strtok, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status valid.
-[eva] tests/libc/string_h.c:72: Warning: 
+[eva:invalid-assigns] tests/libc/string_h.c:72: 
   Completely invalid destination for assigns clause *(s + (0 ..)). Ignoring.
 [eva] Done for function strtok
 [eva:alarm] tests/libc/string_h.c:73: Warning: assertion got status unknown.
@@ -144,7 +144,7 @@
   function strtok: precondition 'valid_string_delim' got status valid.
 [eva:alarm] tests/libc/string_h.c:75: Warning: 
   function strtok, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status unknown.
-[eva] tests/libc/string_h.c:75: Warning: 
+[eva:invalid-assigns] tests/libc/string_h.c:75: 
   Completely invalid destination for assigns clause *(s + (0 ..)). Ignoring.
 [eva] Done for function strtok
 [eva:alarm] tests/libc/string_h.c:76: Warning: 
@@ -221,7 +221,7 @@
   function strtok_r: precondition 'valid_saveptr' got status valid.
 [eva] tests/libc/string_h.c:102: 
   function strtok_r, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status valid.
-[eva] tests/libc/string_h.c:102: Warning: 
+[eva:invalid-assigns] tests/libc/string_h.c:102: 
   Completely invalid destination for assigns clause *(s + (0 ..)). Ignoring.
 [eva] Done for function strtok_r
 [eva:alarm] tests/libc/string_h.c:103: Warning: assertion got status unknown.
@@ -233,7 +233,7 @@
   function strtok_r: precondition 'valid_saveptr' got status valid.
 [eva:alarm] tests/libc/string_h.c:105: Warning: 
   function strtok_r, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status unknown.
-[eva] tests/libc/string_h.c:105: Warning: 
+[eva:invalid-assigns] tests/libc/string_h.c:105: 
   Completely invalid destination for assigns clause *(s + (0 ..)). Ignoring.
 [eva] Done for function strtok_r
 [eva:alarm] tests/libc/string_h.c:106: Warning: 
@@ -247,6 +247,8 @@
   The specification of function 'strdup' is currently not supported by Eva.
   Consider adding ./share/libc/string.c to the analyzed source files.
 [eva] tests/libc/string_h.c:119: Warning: ignoring unsupported \allocates clause
+[eva] tests/libc/string_h.c:119: 
+  function strdup: precondition 'valid_string_s' got status valid.
 [eva] Done for function strdup
 [eva] computing for function strndup <- main.
   Called from tests/libc/string_h.c:120.

@@ -1,0 +1,19 @@
+[kernel] Parsing tests/syntax/void_parameter.i (no preprocessing)
+[kernel] tests/syntax/void_parameter.i:7: User Error: 
+  named parameter 'parameter' has void type
+[kernel] tests/syntax/void_parameter.i:8: User Error: 
+  'void' must be the only parameter if specified
+[kernel] tests/syntax/void_parameter.i:9: User Error: 
+  'void' must be the only parameter if specified
+[kernel] tests/syntax/void_parameter.i:9: User Error: 
+  named parameter 'parameter' has void type
+[kernel] tests/syntax/void_parameter.i:13: User Error: 
+  named parameter 'parameter' has void type
+[kernel] tests/syntax/void_parameter.i:14: User Error: 
+  'void' must be the only parameter if specified
+[kernel] tests/syntax/void_parameter.i:15: User Error: 
+  'void' must be the only parameter if specified
+[kernel] tests/syntax/void_parameter.i:15: User Error: 
+  named parameter 'parameter' has void type
+[kernel] User Error: stopping on file "tests/syntax/void_parameter.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

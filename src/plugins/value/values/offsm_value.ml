@@ -381,12 +381,10 @@ module Datatype_Offsm_or_top = Datatype.Make_with_collections(struct
   end)
 
 
-let offsm_key = Structure.Key_Value.create_key "offsetmap_value"
-
-module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
+module Offsm : Abstract_value.Leaf with type t = offsm_or_top = struct
   include Datatype_Offsm_or_top
 
-  let structure = Structure.Key_Value.Leaf offsm_key
+  let key = Structure.Key_Value.create_key "offsetmap_value"
 
   let pretty_typ typ fmt = function
     | Top as o -> pretty fmt o
@@ -480,9 +478,13 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
 end
 
 
-module CvalueOffsm : Abstract_value.Internal with type t = V.t * offsm_or_top
+module CvalueOffsm : Abstract.Value.Internal with type t = V.t * offsm_or_top
 = struct
   include Value_product.Make (Main_values.CVal) (Offsm)
+
+  let structure =
+    Abstract.Value.(Node (Leaf (Main_values.CVal.key, (module Main_values.CVal)),
+                          Leaf (Offsm.key, (module Offsm))))
 
   let size typ = Integer.of_int (Cil.bitsSizeOf typ)
 

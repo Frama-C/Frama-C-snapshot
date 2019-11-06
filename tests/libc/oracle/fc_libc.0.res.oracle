@@ -4,10 +4,10 @@
 [eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   
-[eva] tests/libc/fc_libc.c:148: assertion got status valid.
-[eva] tests/libc/fc_libc.c:149: assertion got status valid.
-[eva] tests/libc/fc_libc.c:150: assertion got status valid.
-[eva] tests/libc/fc_libc.c:151: assertion got status valid.
+[eva] tests/libc/fc_libc.c:153: assertion got status valid.
+[eva] tests/libc/fc_libc.c:154: assertion got status valid.
+[eva] tests/libc/fc_libc.c:155: assertion got status valid.
+[eva] tests/libc/fc_libc.c:156: assertion got status valid.
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
@@ -40,7 +40,7 @@
    unsetenv (0 call); wcscat (0 call); wcscpy (0 call); wcslen (2 calls);
    wcsncat (0 call); wcsncpy (0 call); wmemcpy (0 call); wmemset (0 call); 
   
-  Undefined functions (379)
+  Undefined functions (384)
   =========================
    FD_CLR (0 call); FD_ISSET (0 call); FD_SET (0 call); FD_ZERO (0 call);
    Frama_C_int_interval (0 call); Frama_C_long_interval (0 call);
@@ -61,19 +61,20 @@
    __builtin_umull_overflow (0 call); __builtin_umulll_overflow (0 call);
    __builtin_usub_overflow (0 call); __builtin_usubl_overflow (0 call);
    __builtin_usubll_overflow (0 call); __fc_fpclassify (0 call);
-   __fc_fpclassifyf (0 call); __va_fcntl_flock (0 call);
-   __va_fcntl_int (0 call); __va_fcntl_void (0 call); __va_ioctl_int (0 call);
-   __va_ioctl_ptr (0 call); __va_ioctl_void (0 call);
-   __va_open_mode_t (0 call); __va_open_void (0 call);
-   __va_openat_mode_t (0 call); __va_openat_void (0 call); _exit (0 call);
-   abort (0 call); accept (0 call); access (0 call); acos (0 call);
-   acosf (0 call); acosh (0 call); acoshf (0 call); acoshl (0 call);
-   acosl (0 call); alloca (0 call); asin (0 call); asinf (0 call);
-   asinl (0 call); at_quick_exit (0 call); atan (0 call); atan2 (0 call);
-   atan2f (0 call); atanf (0 call); atanl (0 call); atexit (0 call);
-   atof (0 call); atol (0 call); atoll (0 call); basename (0 call);
-   bind (0 call); bsearch (0 call); bzero (0 call); ceil (0 call);
-   ceilf (0 call); ceill (0 call); chown (0 call); clearerr (0 call);
+   __fc_fpclassifyf (0 call); __fc_infinity (0 call); __fc_nan (0 call);
+   __va_fcntl_flock (0 call); __va_fcntl_int (0 call);
+   __va_fcntl_void (0 call); __va_ioctl_int (0 call); __va_ioctl_ptr (0 call);
+   __va_ioctl_void (0 call); __va_open_mode_t (0 call);
+   __va_open_void (0 call); __va_openat_mode_t (0 call);
+   __va_openat_void (0 call); _exit (0 call); abort (0 call); accept (0 call);
+   access (0 call); acos (0 call); acosf (0 call); acosh (0 call);
+   acoshf (0 call); acoshl (0 call); acosl (0 call); alloca (0 call);
+   asin (0 call); asinf (0 call); asinl (0 call); at_quick_exit (0 call);
+   atan (0 call); atan2 (0 call); atan2f (0 call); atanf (0 call);
+   atanl (0 call); atexit (0 call); atof (0 call); atol (0 call);
+   atoll (0 call); basename (0 call); bind (0 call); bsearch (0 call);
+   bzero (0 call); ceil (0 call); ceilf (0 call); ceill (0 call);
+   chdir (0 call); chown (0 call); chroot (0 call); clearerr (0 call);
    clearerr_unlocked (0 call); clock (0 call); clock_gettime (0 call);
    clock_nanosleep (0 call); close (0 call); closedir (0 call);
    closelog (0 call); connect (0 call); cos (0 call); cosf (0 call);
@@ -108,16 +109,16 @@
    listen (0 call); llabs (0 call); lldiv (0 call); localtime (0 call);
    log (0 call); log10 (0 call); log10f (0 call); log10l (0 call);
    log2 (0 call); log2f (0 call); log2l (0 call); logf (0 call); logl (0 call);
-   longjmp (0 call); lrand48 (0 call); malloc (7 calls); mblen (0 call);
-   mbstowcs (0 call); mbtowc (0 call); mkdir (0 call); mkstemp (0 call);
-   mktime (0 call); mrand48 (0 call); nan (0 call); nanf (0 call);
-   nanl (0 call); nanosleep (0 call); nrand48 (0 call); ntohl (0 call);
-   ntohs (0 call); open (0 call); openat (0 call); opendir (0 call);
-   openlog (0 call); pathconf (0 call); pclose (0 call); perror (0 call);
-   pipe (0 call); poll (0 call); popen (0 call); pow (0 call); powf (0 call);
-   pthread_cond_broadcast (0 call); pthread_cond_destroy (0 call);
-   pthread_cond_init (0 call); pthread_cond_wait (0 call);
-   pthread_create (0 call); pthread_join (0 call);
+   longjmp (0 call); lrand48 (0 call); lseek (0 call); malloc (7 calls);
+   mblen (0 call); mbstowcs (0 call); mbtowc (0 call); mkdir (0 call);
+   mkstemp (0 call); mktime (0 call); mrand48 (0 call); nan (0 call);
+   nanf (0 call); nanl (0 call); nanosleep (0 call); nrand48 (0 call);
+   ntohl (0 call); ntohs (0 call); open (0 call); openat (0 call);
+   opendir (0 call); openlog (0 call); pathconf (0 call); pclose (0 call);
+   perror (0 call); pipe (0 call); poll (0 call); popen (0 call); pow (0 call);
+   powf (0 call); pthread_cond_broadcast (0 call);
+   pthread_cond_destroy (0 call); pthread_cond_init (0 call);
+   pthread_cond_wait (0 call); pthread_create (0 call); pthread_join (0 call);
    pthread_mutex_destroy (0 call); pthread_mutex_init (0 call);
    pthread_mutex_lock (0 call); pthread_mutex_unlock (0 call); putc (0 call);
    putc_unlocked (0 call); putchar (0 call); putchar_unlocked (0 call);
@@ -156,12 +157,12 @@
    wcstombs (0 call); wctomb (0 call); wmemchr (0 call); wmemcmp (0 call);
    wmemmove (0 call); write (0 call); 
   
-  'Extern' global variables (15)
+  'Extern' global variables (17)
   ==============================
    __fc_basename; __fc_dirname; __fc_getpwuid_pw_dir; __fc_getpwuid_pw_name;
-   __fc_getpwuid_pw_passwd; __fc_getpwuid_pw_shell; __fc_hostname;
-   __fc_mblen_state; __fc_mbtowc_state; __fc_ttyname; __fc_wctomb_state;
-   optarg; opterr; optopt; tzname
+   __fc_getpwuid_pw_passwd; __fc_getpwuid_pw_shell; __fc_hostname; __fc_locale;
+   __fc_locale_names; __fc_mblen_state; __fc_mbtowc_state; __fc_ttyname;
+   __fc_wctomb_state; optarg; opterr; optopt; tzname
   
   Potential entry points (1)
   ==========================
@@ -171,13 +172,13 @@
   ============== 
   Sloc = 1083
   Decision point = 204
-  Global variables = 66
+  Global variables = 70
   If = 195
   Loop = 43
   Goto = 89
   Assignment = 438
   Exit point = 82
-  Function = 461
+  Function = 466
   Function call = 89
   Pointer dereferencing = 158
   Cyclomatic complexity = 286
@@ -185,7 +186,6 @@
 #include "__fc_builtin.c"
 #include "__fc_builtin.h"
 #include "__fc_define_fd_set_t.h"
-#include "__fc_define_useconds_t.h"
 #include "__fc_gcc_builtins.h"
 #include "__fc_select.h"
 #include "alloca.h"
@@ -213,6 +213,7 @@
 #include "math.h"
 #include "netdb.c"
 #include "netdb.h"
+#include "netinet/in.h"
 #include "poll.h"
 #include "pthread.h"
 #include "pwd.h"

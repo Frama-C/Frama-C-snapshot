@@ -31,10 +31,9 @@ type call_init_state =
   | ISEmpty (** completely empty state, without impact on Memexec. *)
 
 
-module Make (Value : Abstract_value.External) : sig
-  include Abstract_domain.Internal with type value = Value.t
-                                    and type location = Precise_locs.precise_location
-  val key : t Abstract_domain.key
+module Make (Value : Abstract.Value.External) : sig
+  include Abstract_domain.Leaf with type value = Value.t
+                                and type location = Precise_locs.precise_location
 
   val pretty_debug : Format.formatter -> t -> unit
 

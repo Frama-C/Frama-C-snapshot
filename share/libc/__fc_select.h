@@ -51,11 +51,7 @@ extern int pselect(int nfds, fd_set * readfds,
   requires errorfds: errorfds == \null || \valid(errorfds);
   requires timeout: timeout == \null || \valid(timeout);
   assigns __fc_fds_state \from __fc_fds_state;
-  assigns readfds  == \null ? \empty : *readfds,
-          writefds == \null ? \empty : *writefds,
-          errorfds == \null ? \empty : *errorfds,
-          timeout == \null ? \empty : *timeout,
-          \result
+  assigns *readfds, *writefds, *errorfds, *timeout, \result
     \from indirect:nfds,
           indirect:readfds, indirect:*readfds,
           indirect:writefds, indirect:*writefds,

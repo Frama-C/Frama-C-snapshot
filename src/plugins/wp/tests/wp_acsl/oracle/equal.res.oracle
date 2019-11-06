@@ -7,7 +7,7 @@
   Function simple_array
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_acsl/equal.i, line 18) in 'simple_array':
+Goal Post-condition (file tests/wp_acsl/equal.i, line 22) in 'simple_array':
 Let x = t0_0[0].
 Let x_1 = t0_0[1].
 Assume {
@@ -21,7 +21,7 @@ Prove: EqArray1_int(2, t0_0, t1_0[0 <- x][1 <- x_1]).
   Function simple_struct
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_acsl/equal.i, line 12) in 'simple_struct':
+Goal Post-condition (file tests/wp_acsl/equal.i, line 16) in 'simple_struct':
 Prove: true.
 
 ------------------------------------------------------------
@@ -29,7 +29,7 @@ Prove: true.
   Function with_array_struct
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_acsl/equal.i, line 24) in 'with_array_struct':
+Goal Post-condition (file tests/wp_acsl/equal.i, line 28) in 'with_array_struct':
 Let a = st0_0.F2_St_tab.
 Let a_1 = st1_0.F2_St_tab.
 Assume {
@@ -45,7 +45,7 @@ Prove: EqS2_St(st0_0, st1_0).
   Function with_ptr_and_array_struct
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_acsl/equal.i, line 43) in 'with_ptr_and_array_struct':
+Goal Post-condition (file tests/wp_acsl/equal.i, line 47) in 'with_ptr_and_array_struct':
 Let a = q0_0.F4_Q_qs.
 Let a_1 = q1_0.F4_Q_qs.
 Let a_2 = q0_0.F4_Q_qt.
@@ -64,7 +64,7 @@ Prove: EqS4_Q(q0_0, q1_0).
   Function with_ptr_array
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_acsl/equal.i, line 36) in 'with_ptr_array':
+Goal Post-condition (file tests/wp_acsl/equal.i, line 40) in 'with_ptr_array':
 Assume {
   (* Goal *)
   When: forall i : Z. ((0 <= i) -> ((i <= 4) -> (tp1_0[i] = tp0_0[i]))).
@@ -76,7 +76,7 @@ Prove: EqArray1_pointer(5, tp0_0, tp1_0).
   Function with_ptr_struct
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_acsl/equal.i, line 30) in 'with_ptr_struct':
+Goal Post-condition (file tests/wp_acsl/equal.i, line 34) in 'with_ptr_struct':
 Assume { (* Goal *) When: (sp1_0.F3_Sp_p) = (sp0_0.F3_Sp_p). }
 Prove: EqS3_Sp(sp0_0, sp1_0).
 

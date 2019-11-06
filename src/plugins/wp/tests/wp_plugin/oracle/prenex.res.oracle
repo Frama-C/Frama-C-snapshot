@@ -16,8 +16,8 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= m) /\ (0 <= n).
   (* Invariant 'PI' *)
-  Have: forall i_3,i_2 : Z. ((0 <= i_2) -> ((i_2 < m) -> ((0 <= i_3) ->
-      ((i_3 < i_1) ->
+  Have: forall i_3,i_2 : Z. ((0 <= i_3) -> ((i_3 < i_1) -> ((0 <= i_2) ->
+      ((i_2 < m) ->
       (Mint_0[shift_sint32(p, i_3)] < Mint_0[shift_sint32(q, i_2)]))))).
   (* Invariant 'I' *)
   Have: (0 <= i_1) /\ (i_1 <= n).
@@ -56,8 +56,8 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= m) /\ (0 <= n).
   (* Invariant 'PI' *)
-  Have: forall i_2,i_1 : Z. ((0 <= i_1) -> ((i_1 < m) -> ((0 <= i_2) ->
-      ((i_2 < i) ->
+  Have: forall i_2,i_1 : Z. ((0 <= i_2) -> ((i_2 < i) -> ((0 <= i_1) ->
+      ((i_1 < m) ->
       (Mint_0[shift_sint32(p, i_2)] < Mint_0[shift_sint32(q, i_1)]))))).
   (* Invariant 'I' *)
   Have: (0 <= i) /\ (i <= n).
@@ -91,8 +91,8 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= m) /\ (0 <= n).
   (* Invariant 'PI' *)
-  Have: forall i_4,i_3 : Z. ((0 <= i_3) -> ((i_3 < m) -> ((0 <= i_4) ->
-      ((i_4 < i_2) ->
+  Have: forall i_4,i_3 : Z. ((0 <= i_4) -> ((i_4 < i_2) -> ((0 <= i_3) ->
+      ((i_3 < m) ->
       (Mint_0[shift_sint32(p, i_4)] < Mint_0[shift_sint32(q, i_3)]))))).
   (* Invariant 'I' *)
   Have: (0 <= i_2) /\ (i_2 <= n).
@@ -126,8 +126,8 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= m) /\ (0 <= n).
   (* Invariant 'PI' *)
-  Have: forall i_2,i_1 : Z. ((0 <= i_1) -> ((i_1 < m) -> ((0 <= i_2) ->
-      ((i_2 < i) ->
+  Have: forall i_2,i_1 : Z. ((0 <= i_2) -> ((i_2 < i) -> ((0 <= i_1) ->
+      ((i_1 < m) ->
       (Mint_0[shift_sint32(p, i_2)] < Mint_0[shift_sint32(q, i_1)]))))).
   (* Invariant 'I' *)
   Have: (0 <= i) /\ (i <= n).
@@ -165,8 +165,8 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= m) /\ (0 <= n).
   (* Invariant 'PI' *)
-  Have: forall i_3,i_2 : Z. ((0 <= i_2) -> ((i_2 < m) -> ((0 <= i_3) ->
-      ((i_3 < i) ->
+  Have: forall i_3,i_2 : Z. ((0 <= i_3) -> ((i_3 < i) -> ((0 <= i_2) ->
+      ((i_2 < m) ->
       (Mint_0[shift_sint32(p, i_3)] < Mint_0[shift_sint32(q, i_2)]))))).
   (* Invariant 'I' *)
   Have: (0 <= i) /\ (i <= n).

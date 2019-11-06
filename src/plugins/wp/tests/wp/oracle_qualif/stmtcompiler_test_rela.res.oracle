@@ -1,3 +1,95 @@
-[kernel] User Error: compilation of 'tests/wp/stmtcompiler_test_rela.ml' failed
-[kernel] User Error: Deferred error message was emitted during execution. See above messages for more information.
-[kernel] Frama-C aborted: invalid user input.
+# frama-c -wp [...]
+[kernel] Parsing tests/wp/stmtcompiler_test_rela.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 1 goal scheduled
+[wp] [Qed] Goal typed_empty_assert : Valid
+[wp] Proved goals:    1 / 1
+  Qed:             1
+[wp] Report in:  'tests/wp/oracle_qualif/stmtcompiler_test_rela.0.report.json'
+[wp] Report out: 'tests/wp/result_qualif/stmtcompiler_test_rela.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+empty                1     -                 1       100%
+-------------------------------------------------------------
+------The pred (c_11<c_23) -> (result_0<result_1) 
+#######################################################################
+Sequent: Assume {
+           (* Leaving scope [tmp]: effect: ta_tmp_2 /\ (not ta_tmp_3) *)
+           If (node_0=true)
+           Then {
+             Have: (ta_tmp_0=false) /\ (ta_tmp_1=true).
+             Have: (node_1=true).
+           }
+           If (node_2=true)
+           Then { Have: (node_0=true). }
+           (* Set: tmp = c *)
+           If (node_3=true)
+           Then { Have: tmp_0 = c_2. Have: (node_2=true). }
+           (* Set: c = c + 100 *)
+           If (node_4=true)
+           Then { Have: (100 + c_3) = c_2. Have: (node_3=true). }
+           (* Set: c = c + 10 *)
+           If (node_5=true)
+           Then { Have: (10 + c_4) = c_2. Have: (node_3=true). }
+           If (node_6=true)
+           Then {
+             If c < 0
+             Then { Have: (node_7=true). }
+             Else { Have: (node_8=true). }
+           }
+           (* Entering scope [tmp]: effect: (not ta_tmp_0) /\ ta_tmp_1 *)
+           If (node_9=true)
+           Then {
+             Have: (ta_tmp_1=true) /\ (ta_tmp_2=false).
+             Have: (node_6=true).
+           }
+           If (node_7=true)
+           Then { Have: c = c_4. Have: (node_5=true). }
+           If (node_8=true)
+           Then { Have: c = c_3. Have: (node_4=true). }
+           Have: ((node_2=true) -> (tmp_0 = result_0)).
+           Have: (node_1=true).
+           Have: (node_9=true).
+           (* Leaving scope [tmp]: effect: ta_tmp_8 /\ (not ta_tmp_9) *)
+           If (node_10=true)
+           Then {
+             Have: (ta_tmp_3=false) /\ (ta_tmp_4=true).
+             Have: (node_11=true).
+           }
+           If (node_12=true)
+           Then { Have: (node_10=true). }
+           (* Set: tmp = c *)
+           If (node_13=true)
+           Then { Have: tmp_1 = c_5. Have: (node_12=true). }
+           (* Set: c = c + 100 *)
+           If (node_14=true)
+           Then { Have: (100 + c_6) = c_5. Have: (node_13=true). }
+           (* Set: c = c + 10 *)
+           If (node_15=true)
+           Then { Have: (10 + c_7) = c_5. Have: (node_13=true). }
+           If (node_16=true)
+           Then {
+             If c_1 < 0
+             Then { Have: (node_17=true). }
+             Else { Have: (node_18=true). }
+           }
+           (* Entering scope [tmp]: effect: (not ta_tmp_6) /\ ta_tmp_7 *)
+           If (node_19=true)
+           Then {
+             Have: (ta_tmp_4=true) /\ (ta_tmp_5=false).
+             Have: (node_16=true).
+           }
+           If (node_17=true)
+           Then { Have: c_1 = c_7. Have: (node_15=true). }
+           If (node_18=true)
+           Then { Have: c_1 = c_6. Have: (node_14=true). }
+           Have: ((node_12=true) -> (tmp_1 = result_1)).
+           Have: (node_11=true).
+           Have: (node_19=true).
+         }
+Prove: ((c < c_1) -> (result_0 < result_1)).
+#######################################################################
+[Alt-Ergo 2.0.0] Valid
+

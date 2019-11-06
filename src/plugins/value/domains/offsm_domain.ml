@@ -103,7 +103,6 @@ module Internal  : Domain_builder.InputDomain
            end)
 
   let name = "Bitwise domain"
-  let structure = Abstract_domain.Void
   let log_category = dkey
 
   let empty _ = Memory.empty_map

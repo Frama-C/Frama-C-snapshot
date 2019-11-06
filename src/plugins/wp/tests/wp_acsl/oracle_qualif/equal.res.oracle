@@ -1,18 +1,18 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/equal.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 6 goals scheduled
-[wp] [Alt-Ergo] Goal typed_simple_array_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_simple_array_ensures : Valid
 [wp] [Qed] Goal typed_simple_struct_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_with_array_struct_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_with_ptr_and_array_struct_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_with_ptr_array_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_with_ptr_struct_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_with_array_struct_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_with_ptr_and_array_struct_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_with_ptr_array_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_with_ptr_struct_ensures : Valid
 [wp] Proved goals:    6 / 6
-  Qed:             1 
-  Alt-Ergo:        5
+  Qed:               1 
+  Alt-Ergo 2.0.0:    5
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/equal.0.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/equal.0.report.json'
 -------------------------------------------------------------
@@ -22,5 +22,5 @@ simple_array        -       1 (12..24)       1       100%
 with_array_struct   -       1 (12..24)       1       100%
 with_ptr_struct     -       1 (4..16)        1       100%
 with_ptr_array      -       1 (12..24)       1       100%
-with_ptr_and_array_struct  -     1 (28..40)   1      100%
+with_ptr_and_array_struct  -     1 (20..32)   1      100%
 -------------------------------------------------------------

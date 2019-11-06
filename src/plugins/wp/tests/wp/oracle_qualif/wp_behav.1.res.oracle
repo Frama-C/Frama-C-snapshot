@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 50 [...]
+# frama-c -wp -wp-steps 50 [...]
 [kernel] Parsing tests/wp/wp_behav.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -8,16 +8,16 @@
 [wp] tests/wp/wp_behav.c:69: Warning: 
   Missing assigns clause (assigns 'everything' instead)
 [wp] 8 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_ensures_qed_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_f_x1_ensures_qed_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_f_x2_ensures_qed_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_min_bx_ensures_qed_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_min_by_ensures_qed_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_stmt_contract_ko_ensures_qed_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_stmt_contract_ko_without_asgn_ensures_qed_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_stmt_contract_assigns_ko_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_x1_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_x2_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_min_bx_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_min_by_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_stmt_contract_ko_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_stmt_contract_ko_without_asgn_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_stmt_contract_assigns_ko_ensures_qed_ko : Unsuccess
 [wp] Proved goals:    0 / 8
-  Alt-Ergo:        0  (unsuccess: 8)
+  Alt-Ergo 2.0.0:    0  (unsuccess: 8)
 [wp] Report in:  'tests/wp/oracle_qualif/wp_behav.1.report.json'
 [wp] Report out: 'tests/wp/result_qualif/wp_behav.1.report.json'
 -------------------------------------------------------------

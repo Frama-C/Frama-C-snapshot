@@ -1,0 +1,4 @@
+[kernel] Parsing tests/wp_region/structarray1.i (no preprocessing)
+[wp] Region Graph: tests/wp_region/result/structarray1/region/job.dot
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards

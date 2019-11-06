@@ -1,11 +1,12 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/abs.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
+[wp] Warning: native support for coq is deprecated, use tip instead
 [wp] 1 goal scheduled
 [wp] [Coq] Goal typed_abs_abs_ensures : Saved script
-[wp] [Coq] Goal typed_abs_abs_ensures : Valid
+[wp] [Coq (Native)] Goal typed_abs_abs_ensures : Valid
 [wp] Proved goals:    1 / 1
   Qed:             0 
   Coq:             1

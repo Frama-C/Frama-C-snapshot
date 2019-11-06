@@ -1,0 +1,3 @@
+CMD: @frama-c@ -no-autoload-plugins -load-module wp
+LOG: @PTEST_NAME@/region/job.dot
+OPT: -wp-prover none -wp-region -wp-msg-key dot,chunk,roots,garbled -wp-out @PTEST_DIR@/result/@PTEST_NAME@ -wp-fct job

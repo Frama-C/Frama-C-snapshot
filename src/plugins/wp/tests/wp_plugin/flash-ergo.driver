@@ -1,2 +1,2 @@
 library INDEX: const
-logic index INDEX_init = "const(0)" ;
+logic index INDEX_init = {coq="dumb"; altergo="const(0)"; why3="Flash.init"; } ;

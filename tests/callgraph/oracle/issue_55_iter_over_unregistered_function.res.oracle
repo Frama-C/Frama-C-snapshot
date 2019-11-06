@@ -11,7 +11,7 @@
   assertion 'Eva,initialization' got final status invalid.
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  1 function analyzed (out of 3): 33% coverage.
+  1 function analyzed (out of 1): 100% coverage.
   In this function, 1 statements reached (out of 3): 33% coverage.
   ----------------------------------------------------------------------------
   No errors or warnings raised during the analysis.

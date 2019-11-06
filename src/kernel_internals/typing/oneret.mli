@@ -87,6 +87,21 @@ type goto_annot =
 
 type callback = returns_clause -> goto_annot list -> unit
 
+(** If there are local variables with destructors belonging to the main block
+    of [f], [encapsulate_local_vars f] will move [ret], the return
+    statement of [f] outside of this main block (changing [f.sbody] to
+    a two-statement block composed of the old block and [ret]) to
+    avoid having gotos to [ret] bypassing the initialization of these variables.
+
+    This function assumes that {!Oneret.oneret} has already been run on [f],
+    i.e. that there is exactly one return statement in there.
+
+    @since 20.0-Calcium
+
+    @raise Abort.fatal if the function is not defined.
+*)
+val encapsulate_local_vars: Cil_types.fundec -> unit
+
 (** Make sure that there is only one Return statement in the whole body. 
     Replace all the other returns with Goto. Make sure that there is a return 
     if the function is supposed to return something, and it is not declared to 

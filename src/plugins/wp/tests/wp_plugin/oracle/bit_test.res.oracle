@@ -1,0 +1,32 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/bit_test.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function check1
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'check1':
+Assume { Type: is_sint32(order1_0) /\ is_sint32(order2_0). }
+Prove: bit_testb(order2_0, 0) = bit_testb(order1_0, 0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function check2
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'check2':
+Assume { Type: is_sint32(order1_0) /\ is_sint32(order2_0). }
+Prove: bit_test(order2_0, 0) <-> bit_test(order1_0, 0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function check3
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'check3':
+Assume { Type: is_sint32(order1_0) /\ is_sint32(order2_0). }
+Prove: bit_test(order2_0, 0) <-> bit_test(order1_0, 0).
+
+------------------------------------------------------------

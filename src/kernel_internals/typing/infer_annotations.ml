@@ -56,14 +56,14 @@ let assigns_from_prototype kf =
         if Cil.isVoidPtrType typ then
           let const = typeHasAttribute "const" (Cil.typeOf_pointed typ) in
           let typ' = if const then Cil.charConstPtrType else Cil.charPtrType in
-          (Logic_utils.mk_cast ~loc typ' t, typ')
-        else (t, typ)
+          (vi.vghost, Logic_utils.mk_cast ~loc typ' t, typ')
+        else (vi.vghost, t, typ)
       ) pointer_args
   in
   (* Generate the term [*(t+(0..))] with the appropriate array bounds (if
      they are known), and possibly add some [[..]] if v has points to one or
      more arrays *)
-  let mk_star (t, typ) =
+  let mk_star (g, t, typ) =
     let loc = t.term_loc in
     let zero = Logic_const.tinteger ~loc 0 in
     (* Range [0..length-1], or [0..] if length is not known *)
@@ -108,14 +108,16 @@ let assigns_from_prototype kf =
     let t_range =
       Logic_const.term ~loc t_range_node (if set then make_set_type (Ctype typ) else Ctype typ)
     in
-    Logic_const.new_identified_term
-      (term ~loc (TLval (TMem t_range, offset_arrays)) typ_with_offset)
+    let t = Logic_const.new_identified_term
+        (term ~loc (TLval (TMem t_range, offset_arrays)) typ_with_offset)
+    in
+    (g, t)
   in
   let to_assign =
     List.map
       mk_star
       (List.filter
-         (fun (_t, typ) ->
+         (fun (_g, _t, typ) ->
             let pointed_type = typeOf_pointed typ in
             not (typeHasAttribute "const" pointed_type)
          )
@@ -125,28 +127,36 @@ let assigns_from_prototype kf =
     List.map mk_star pointer_args
   in
   let inputs =
-    (pointer_args_content
-     @(List.map
-         (fun v ->
-           Logic_const.new_identified_term
-             { term_node = TLval (TVar (cvar_to_lvar v),TNoOffset);
-               term_type = Ctype v.vtype;
-               term_name = [];
-                  term_loc = v.vdecl })
-         basic_args))
+    (pointer_args_content)
+    @(List.map
+        (fun v ->
+           v.vghost,
+           (Logic_const.new_identified_term
+              { term_node = TLval (TVar (cvar_to_lvar v),TNoOffset);
+                term_type = Ctype v.vtype;
+                term_name = [];
+                term_loc = v.vdecl })
+        ) basic_args)
   in
+  let inputs_no_ghost = List.fold_right
+      (fun (g, t) acc -> if g then acc else t :: acc) inputs []
+  in
+  let inputs = List.map (fun (_g, t) -> t) inputs in
+  let inputs g = if g then inputs else inputs_no_ghost in
   let arguments =
-    List.map (fun content -> content, From inputs) to_assign
+    List.map
+      (fun (g, content) -> content, From (inputs g))
+      to_assign
   in
   match rtyp with
   | TVoid _ ->
     (* assigns all pointer args from basic args and content of pointer args *)
-      arguments
+    arguments
   | _ -> 
     (* assigns result from basic args and content of pointer args *)
     let loc = vi.vdecl in
     let result = Logic_const.(new_identified_term (tresult ~loc rtyp)) in
-    (result, From inputs):: arguments
+    (result, From (inputs vi.vghost)):: arguments
 
 let is_frama_c_builtin name =
   Ast_info.is_frama_c_builtin name

@@ -27,7 +27,7 @@ export FRAMAC_BYTE=$(BINDIR)/frama-c.byte$(EXE)
 
 export FRAMAC_INCLUDES=-I "$(FRAMAC_LIBDIR)"
 
-export PTESTS=$(BINDIR)/ptests.$(PTESTSBEST)$(EXE)
+export PTESTS=$(BINDIR)/ptests.$(OCAMLBEST)$(EXE)
 
 export FRAMAC_LIB=$(FRAMAC_LIBDIR)
 export DOC_DIR=$(FRAMAC_SHARE)/doc/code

@@ -57,20 +57,20 @@ let t_cut ?(by="") (p : F.pred) (pi : Tactical.process) (hs,g) =
 
 let t_case (p : F.pred) (a : Tactical.process) (b : Tactical.process) =
   fun (hs,g) ->
-    List.append
-      (a (hs,F.p_imply p g))
-      (b (hs,F.p_imply (F.p_not p) g))
+  List.append
+    (a (hs,F.p_imply p g))
+    (b (hs,F.p_imply (F.p_not p) g))
 
 let t_cases ?(complete = "complete") (dps : (pred * Tactical.process) list) =
   fun (hs,g) ->
-    let pool = ref [] in
-    List.iter
-      (fun (p,pi) ->
-         List.iter
-           (fun u -> pool := u :: !pool)
-           (pi (hs , p_imply p g))
-      ) dps ;
-    ( complete , (hs , p_any fst dps) ) :: List.rev !pool
+  let pool = ref [] in
+  List.iter
+    (fun (p,pi) ->
+       List.iter
+         (fun u -> pool := u :: !pool)
+         (pi (hs , p_imply p g))
+    ) dps ;
+  ( complete , (hs , p_any fst dps) ) :: List.rev !pool
 
 let t_range e a b ~upper ~lower ~range s =
   if (not (a <= b)) then raise (Invalid_argument "Wp.Auto.t_range") ;

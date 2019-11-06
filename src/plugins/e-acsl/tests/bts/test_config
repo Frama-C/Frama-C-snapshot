@@ -1,3 +1,0 @@
-LOG: gen_@PTEST_NAME@.c
-OPT: -variadic-no-translation -machdep gcc_x86_64 -check -e-acsl -then-last -load-script tests/print.cmxs -print -ocode tests/bts/result/gen_@PTEST_NAME@.c -kernel-verbose 0 -eva -eva-verbose 0
-EXEC: ./scripts/testrun.sh @PTEST_NAME@ bts "" "--frama-c=@frama-c@"

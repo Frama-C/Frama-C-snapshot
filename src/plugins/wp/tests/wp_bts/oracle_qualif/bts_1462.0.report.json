@@ -1,11 +1,12 @@
-{ "wp:global": { "alt-ergo": { "total": 3, "valid": 2, "unknown": 1,
-                               "rank": 2 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 3, "valid": 2,
+                                          "unknown": 1, "rank": 2 },
                  "qed": { "total": 10, "valid": 10 },
                  "wp:main": { "total": 13, "valid": 12, "unknown": 1,
                               "rank": 2 } },
   "wp:functions": { "wrong": { "wrong_assert_consequence_of_false_invariant": 
-                                 { "alt-ergo": { "total": 1, "valid": 1,
-                                                 "rank": 2 },
+                                 { "why3:Alt-Ergo,2.0.0": { "total": 1,
+                                                            "valid": 1,
+                                                            "rank": 2 },
                                    "wp:main": { "total": 1, "valid": 1,
                                                 "rank": 2 } },
                                "wrong_loop_invariant_C": { "qed": { "total": 2,
@@ -18,7 +19,7 @@
                                                            "wp:main": 
                                                              { "total": 2,
                                                                "valid": 2 } },
-                               "wrong_loop_invariant_A_KO": { "alt-ergo": 
+                               "wrong_loop_invariant_A_KO": { "why3:Alt-Ergo,2.0.0": 
                                                                 { "total": 1,
                                                                   "unknown": 1 },
                                                               "qed": 
@@ -28,7 +29,7 @@
                                                                 { "total": 2,
                                                                   "valid": 1,
                                                                   "unknown": 1 } },
-                               "wrong_assert_for_value": { "alt-ergo": 
+                               "wrong_assert_for_value": { "why3:Alt-Ergo,2.0.0": 
                                                              { "total": 1,
                                                                "valid": 1,
                                                                "rank": 1 },
@@ -40,10 +41,9 @@
                                                                 "valid": 1 },
                                                        "wp:main": { "total": 1,
                                                                     "valid": 1 } },
-                               "wp:section": { "alt-ergo": { "total": 3,
-                                                             "valid": 2,
-                                                             "unknown": 1,
-                                                             "rank": 2 },
+                               "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                 { "total": 3, "valid": 2,
+                                                   "unknown": 1, "rank": 2 },
                                                "qed": { "total": 6,
                                                         "valid": 6 },
                                                "wp:main": { "total": 9,

@@ -9,9 +9,9 @@
 [kernel:annot:missing-spec] tests/value/leaf_spec.i:27: Warning: 
   Neither code nor specification for function f, generating default assigns from the prototype
 [eva] using specification for function f
-[eva] tests/value/leaf_spec.i:27: Warning: 
+[eva:invalid-assigns] tests/value/leaf_spec.i:27: 
   Completely invalid destination for assigns clause *x. Ignoring.
-[eva] tests/value/leaf_spec.i:27: Warning: 
+[eva:invalid-assigns] tests/value/leaf_spec.i:27: 
   Completely invalid destination for assigns clause *y. Ignoring.
 [eva] Done for function f
 [eva] Recording results for main1

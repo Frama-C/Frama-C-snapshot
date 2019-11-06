@@ -1,0 +1,18 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/issue-684-exit.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 4 goals scheduled
+[wp] [Qed] Goal typed_inconditional_exit_ensures : Valid
+[wp] [Qed] Goal typed_inconditional_exit_exits : Valid
+[wp] [Qed] Goal typed_inconditional_exit_assigns_exit : Valid
+[wp] [Qed] Goal typed_inconditional_exit_assigns_normal : Valid
+[wp] Proved goals:    4 / 4
+  Qed:             4
+[wp] Report in:  'tests/wp_bts/oracle_qualif/issue-684-exit.0.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/issue-684-exit.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+inconditional_exit   4     -                 4       100%
+-------------------------------------------------------------

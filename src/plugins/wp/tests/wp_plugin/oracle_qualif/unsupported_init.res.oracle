@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/unsupported_init.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -8,10 +8,10 @@
   (r1: \initialized(Y + (0 .. 99)))
 [wp] 2 goals scheduled
 [wp] [Qed] Goal typed_f_assert_a1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_call_cp_requires_r1 : Unsuccess (Degenerated)
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_call_cp_requires_r1 : Unsuccess (Degenerated)
 [wp] Proved goals:    1 / 2
-  Qed:             1 
-  Alt-Ergo:        0  (unsuccess: 1)
+  Qed:               1 
+  Alt-Ergo 2.0.0:    0  (unsuccess: 1)
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/unsupported_init.0.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/unsupported_init.0.report.json'
 -------------------------------------------------------------

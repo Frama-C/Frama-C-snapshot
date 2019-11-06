@@ -105,6 +105,7 @@ PLUGIN_LIB_DIR	?= $(PLUGIN_DIR)
 PLUGIN_GUI_LIB_DIR ?= $(PLUGIN_DIR)/gui
 PLUGIN_INSTALL_DIR ?=$(DESTDIR)$(FRAMAC_PLUGINDIR)
 
+ifneq ($(PLUGIN_ENABLE),no)
 ######################## TESTS #################
 .PHONY: $(PLUGIN_NAME)_TESTS plugins_ptests_config
 
@@ -167,6 +168,7 @@ $(eval $(call TESTS_template))
 external_tests: $(PLUGIN_NAME)_TESTS
 
 endif
+endif # PLUGIN_ENABLE
 ################################################
 
 PLUGIN_FLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES)

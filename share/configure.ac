@@ -212,6 +212,74 @@ m4_define([configure_library],
   ])
 ])
 
+# 1st param: actual name of the ocamlfind package (often lowercase)
+# 2nd param: warning to display if problem
+m4_define([configure_pkg],
+[
+define([PKG_UP],[tovarname($1)])
+m4_ifdef([HAS_OCAML_]PKG_UP,,
+  [
+  define([VAR],[[OCAML_]PKG_UP])
+  define([require],[$[REQUIRE_OCAML_]PKG_UP])
+  define([use],[$[USE_OCAML_]PKG_UP])
+  define([msg],[$2])
+  define([has],[[HAS_OCAML_]PKG_UP])
+
+   has=
+  AC_MSG_CHECKING(for OCaml package $1)
+  VAR=$(ocamlfind query $1 -format %v 2>/dev/null)
+  if test -z "$VAR" ; then
+    AC_MSG_RESULT(not found via ocamlfind.)
+    has=no
+  else
+    AC_MSG_RESULT(found.)
+    has=yes
+  fi
+  m4_divert_push(frama_c_configure_tool)
+  if test -n "require" -o -n "use" -o "$force_check" = "yes"; then
+    if test "$has" = "no"; then
+      AC_MSG_WARN([msg])
+      reason="$1 missing"
+      for p in require; do
+        up=`upper "$p"`
+        ep=ENABLE_$up
+        eval enable_p=\$$ep
+        if test "$enable_p" != "no"; then
+          fp=FORCE_`upper "$p"`
+          if eval test "\$$fp" = "yes"; then
+            AC_MSG_ERROR([$p requested but $reason.])
+          fi
+          eval $ep="no\ \(see\ warning\ about\ $1\)"
+          AC_MSG_WARN([$p disabled because $reason.])
+          eval INFO_$up=\", $reason\"
+        fi
+      done
+      for p in use; do
+        up=`upper "$p"`
+        ep=ENABLE_$up
+        eval eep="\$$ep"
+        if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+          eval $ep="partial\ \(see\ warning\ about\ $1\)"
+          AC_MSG_WARN([$p partially enabled because $reason.])
+          eval INFO_$up=\", $reason\"
+        fi
+      done
+    else
+        VAR=PKG_UP
+    fi
+  fi
+  m4_divert_pop(frama_c_configure_tool)
+  AC_SUBST(VAR)
+  AC_SUBST(has)
+  undefine([PKG_UP])
+  undefine([VAR])
+  undefine([require])
+  undefine([use])
+  undefine([msg])
+  undefine([has])
+])
+])
+
 # 1st param: uppercase name of the program
 # 2nd param: program which must exist. See comment on configure_library()
 # on how to deal with multiple choices for a given program.
@@ -280,6 +348,7 @@ AC_CHECK_PROG(has,$file,yes,no)
 ])
 ])
 
+
 EXTERNAL_PLUGINS=
 
 define([plugin_require_external],
@@ -291,6 +360,20 @@ define([plugin_require_external],
 
 define([plugin_use_external],
        [m4_define([UPORIG],tovarname($2))
+        m4_define([USE],[USE_]UPORIG)
+        USE=$USE" "$1
+        m4_undefine([USE])
+        m4_undefine([UPORIG])])
+
+define([plugin_require_pkg],
+       [m4_define([UPORIG],[OCAML_]tovarname($2))
+        m4_define([REQUIRE],[REQUIRE_]UPORIG)
+        REQUIRE=$REQUIRE" "$1
+        m4_undefine([REQUIRE])
+        m4_undefine([UPORIG])])
+
+define([plugin_use_pkg],
+       [m4_define([UPORIG],[OCAML_]tovarname($2))
         m4_define([USE],[USE_]UPORIG)
         USE=$USE" "$1
         m4_undefine([USE])

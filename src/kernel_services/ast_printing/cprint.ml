@@ -251,9 +251,9 @@ and print_decl (n: string) fmt = function
   | ARRAY (d, al, e) ->
     fprintf fmt "%a[@[%a%a@]]"
       (print_decl n) d print_attributes al print_expression e
-  | PROTO(d, args, isva) ->
-    fprintf fmt "@[%a@;(%a)@]"
-      (print_decl n) d print_params (args,isva)
+  | PROTO(d, args, ghost_args, isva) ->
+    fprintf fmt "@[%a@;(%a) /*@@@ ghost (%a) */ @]"
+      (print_decl n) d print_params (args,isva) print_params (ghost_args, false)
 
 and print_fields fmt (flds : field_group list) =
   pp_list ~sep:"@ " print_field_group fmt flds
@@ -366,12 +366,12 @@ and print_expression_level (lvl: int) fmt (exp : expression) =
       fprintf fmt "(@[%a@])@;%a"
         print_onlytype typ print_cast_expression iexp
     | CALL ({ expr_node = VARIABLE "__builtin_va_arg"},
-            [arg; { expr_node = TYPE_SIZEOF (bt, dt) } ]) ->
+            [arg; { expr_node = TYPE_SIZEOF (bt, dt) } ], _) ->
       fprintf fmt "__builtin_va_arg(@[%a,@ %a@])"
         (print_expression_level 0) arg print_onlytype (bt, dt)
-    | CALL (exp, args) ->
-      fprintf fmt "%a(@[@;%a@])"
-        print_expression exp print_comma_exps args
+    | CALL (exp, args, ghost_args) ->
+      fprintf fmt "%a(@[@;%a@]) /*@@@ ghost (@[@;%a@]) */"
+        print_expression exp print_comma_exps args print_comma_exps ghost_args
     | CONSTANT (CONST_INT i) -> pp_print_string fmt i
     | CONSTANT (CONST_FLOAT f) -> pp_print_string fmt f
     | CONSTANT (CONST_CHAR c) -> fprintf fmt "'%s'" (escape_wstring c)

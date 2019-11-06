@@ -32,44 +32,44 @@ open Cil_datatype
 open Promelaast
 open Bool3
 
-let func_body_dkey = Aorai_option.register_category "func-body" 
+let func_body_dkey = Aorai_option.register_category "func-body"
 let action_dkey = Aorai_option.register_category "action"
 
 let rename_pred v1 v2 p =
   let r =
-  object
-    inherit Visitor.frama_c_copy (Project.current())
-    method! vlogic_var_use v =
-      if Cil_datatype.Logic_var.equal v v1 then Cil.ChangeTo v2
-      else Cil.JustCopy
-  end
+    object
+      inherit Visitor.frama_c_copy (Project.current())
+      method! vlogic_var_use v =
+        if Cil_datatype.Logic_var.equal v v1 then Cil.ChangeTo v2
+        else Cil.JustCopy
+    end
   in
   Visitor.visitFramacPredicate r p
 
 (** Given a transition a function name and a function status (call or
     return) it returns if the cross condition can be satisfied with
     only function status.
- *)
+*)
 let isCrossable tr func st =
   let rec isCross p =
     match p with
-      | TOr  (c1, c2) -> bool3or (isCross c1) (isCross c2)
-      | TAnd (c1, c2) -> bool3and (isCross c1) (isCross c2)
-      | TNot c1 -> bool3not (isCross c1)
-      | TCall (kf,None) when Kernel_function.equal func kf && st=Call -> True
-      | TCall (kf, Some _) when Kernel_function.equal func kf && st=Call ->
-        Undefined
-      | TCall _ -> False
-      | TReturn kf when Kernel_function.equal func kf && st=Return -> True
-      | TReturn _ -> False
-      | TTrue -> True
-      | TFalse -> False
-      | TRel _ -> Undefined
+    | TOr  (c1, c2) -> bool3or (isCross c1) (isCross c2)
+    | TAnd (c1, c2) -> bool3and (isCross c1) (isCross c2)
+    | TNot c1 -> bool3not (isCross c1)
+    | TCall (kf,None) when Kernel_function.equal func kf && st=Call -> True
+    | TCall (kf, Some _) when Kernel_function.equal func kf && st=Call ->
+      Undefined
+    | TCall _ -> False
+    | TReturn kf when Kernel_function.equal func kf && st=Return -> True
+    | TReturn _ -> False
+    | TTrue -> True
+    | TFalse -> False
+    | TRel _ -> Undefined
   in
   let cond,_ = tr.cross in
   let res = isCross cond <> False in
   Aorai_option.debug ~level:2 "Function %a %s-state, \
-    transition %s -> %s is%s possible" Kernel_function.pretty func
+                               transition %s -> %s is%s possible" Kernel_function.pretty func
     (if st=Call then "pre" else "post")
     tr.start.Promelaast.name
     tr.stop.Promelaast.name
@@ -77,7 +77,7 @@ let isCrossable tr func st =
   res
 
 (** Returns the lval associated to the curState generated variable *)
-let state_lval () = 
+let state_lval () =
   Cil.var (get_varinfo curState)
 
 (* ************************************************************************* *)
@@ -87,23 +87,23 @@ let find_enum, set_enum =
     State_builder.Int_hashtbl
       (Cil_datatype.Enumitem)
       (struct
-         let name = "ltl_states_enum"
-         let size = 17
-         let dependencies = (* TODO: projectify the automata
-                               and depend on it.
-                             *)
-           [ Ast.self;
-             Aorai_option.Ltl_File.self;
-             Aorai_option.Buchi.self;
-             Aorai_option.Ya.self
-           ]
-       end)
+        let name = "ltl_states_enum"
+        let size = 17
+        let dependencies = (* TODO: projectify the automata
+                              and depend on it.
+                           *)
+          [ Ast.self;
+            Aorai_option.Ltl_File.self;
+            Aorai_option.Buchi.self;
+            Aorai_option.Ya.self
+          ]
+      end)
   in
   (fun n ->
-    try H.find n
-    with Not_found ->
-      Aorai_option.fatal
-        "Could not find the enum item corresponding to a state"),
+     try H.find n
+     with Not_found ->
+       Aorai_option.fatal
+         "Could not find the enum item corresponding to a state"),
   (List.iter (fun (n,item) -> H.add n item))
 
 (* ************************************************************************* *)
@@ -122,148 +122,148 @@ let isCrossableAtInit tr func =
       in
       let bool3_res dft test =
         match test with
-          | True -> bool_res true
-          | False -> bool_res false
-          | Undefined -> dft
+        | True -> bool_res true
+        | False -> bool_res false
+        | Undefined -> dft
       in
       let is_true t =
         match t with
-          | TConst(Integer(i,_)) ->
-            Bool3.bool3_of_bool (not (Integer.is_zero i))
-          | TConst(LChr c) -> Bool3.bool3_of_bool (not (Char.code c <> 0))
-          | TConst(LReal r) -> Bool3.bool3_of_bool (not (r.r_nearest <> 0.))
-          | TConst(LStr _ | LWStr _) -> Bool3.True
-          | _ -> Bool3.Undefined
+        | TConst(Integer(i,_)) ->
+          Bool3.bool3_of_bool (not (Integer.is_zero i))
+        | TConst(LChr c) -> Bool3.bool3_of_bool (not (Char.code c <> 0))
+        | TConst(LReal r) -> Bool3.bool3_of_bool (not (r.r_nearest <> 0.))
+        | TConst(LStr _ | LWStr _) -> Bool3.True
+        | _ -> Bool3.Undefined
       in
       let rec aux t =
         match t.term_node with
-          | TConst (LEnum ei) ->
-            aux (Logic_utils.expr_to_term ~cast:false ei.eival)
-          | TLval lv ->
-            (match aux_lv lv with
-              | Some t -> t
-              | None -> t)
-          | TUnOp(op,t1) ->
-            let t1 = aux t1 in
-            (match op,t1.term_node with
-               | Neg, TConst(Integer(i,_)) ->
-                   { t with term_node = TConst(Integer(Integer.neg i,None)) }
-               | Neg, TConst(LReal r) ->
-                   let f = ~-. (r.r_nearest) in
-                   let r = { 
-                     r_literal = string_of_float f ;
-                     r_nearest = f ;
-                     r_upper = ~-. (r.r_lower) ;
-                     r_lower = ~-. (r.r_upper) ;
-                   } in
-                   { t with term_node = TConst(LReal r) }
-               | LNot, t1 ->  bool3_res t (is_true t1)
-              | _ -> t)
-          | TBinOp(op,t1,t2) ->
-            let t1 = aux t1 in
-            let t2 = aux t2 in
-            let rec comparison comp t1 t2 =
-              match t1.term_node,t2.term_node with
-                | TConst (Integer(i1,_)), TConst (Integer(i2,_)) ->
-                  bool_res (comp (Integer.compare i1 i2))
-                | TConst (LChr c1), TConst (LChr c2) ->
-                  bool_res (comp (Char.compare c1 c2))
-                | TConst(LReal r1), TConst (LReal r2) ->
-                  bool_res (comp (compare r1.r_nearest r2.r_nearest))
-                | TCastE(ty1,t1), TCastE(ty2,t2)
-                  when Cil_datatype.Typ.equal ty1 ty2 ->
-                  comparison comp t1 t2
-                | _ -> t
-            in
-            (match op, t1.term_node, t2.term_node with
+        | TConst (LEnum ei) ->
+          aux (Logic_utils.expr_to_term ~cast:false ei.eival)
+        | TLval lv ->
+          (match aux_lv lv with
+           | Some t -> t
+           | None -> t)
+        | TUnOp(op,t1) ->
+          let t1 = aux t1 in
+          (match op,t1.term_node with
+           | Neg, TConst(Integer(i,_)) ->
+             { t with term_node = TConst(Integer(Integer.neg i,None)) }
+           | Neg, TConst(LReal r) ->
+             let f = ~-. (r.r_nearest) in
+             let r = {
+               r_literal = string_of_float f ;
+               r_nearest = f ;
+               r_upper = ~-. (r.r_lower) ;
+               r_lower = ~-. (r.r_upper) ;
+             } in
+             { t with term_node = TConst(LReal r) }
+           | LNot, t1 ->  bool3_res t (is_true t1)
+           | _ -> t)
+        | TBinOp(op,t1,t2) ->
+          let t1 = aux t1 in
+          let t2 = aux t2 in
+          let rec comparison comp t1 t2 =
+            match t1.term_node,t2.term_node with
+            | TConst (Integer(i1,_)), TConst (Integer(i2,_)) ->
+              bool_res (comp (Integer.compare i1 i2))
+            | TConst (LChr c1), TConst (LChr c2) ->
+              bool_res (comp (Char.compare c1 c2))
+            | TConst(LReal r1), TConst (LReal r2) ->
+              bool_res (comp (compare r1.r_nearest r2.r_nearest))
+            | TCastE(ty1,t1), TCastE(ty2,t2)
+              when Cil_datatype.Typ.equal ty1 ty2 ->
+              comparison comp t1 t2
+            | _ -> t
+          in
+          (match op, t1.term_node, t2.term_node with
 
-              | PlusA, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
+           | PlusA, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
+             { t with term_node =
+                        TConst(Integer(Integer.add i1 i2,None))}
+           | MinusA, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
+             { t with term_node =
+                        TConst(Integer(Integer.sub i1 i2,None)) }
+           | Mult, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
+             { t with term_node =
+                        TConst(Integer(Integer.mul i1 i2,None)) }
+           | Div, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
+             (try
                 { t with term_node =
-                    TConst(Integer(Integer.add i1 i2,None))}
-              | MinusA, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
+                           TConst(Integer(Integer.c_div i1 i2,None)) }
+              with Division_by_zero -> t)
+           | Mod, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
+             (try
                 { t with term_node =
-                    TConst(Integer(Integer.sub i1 i2,None)) }
-              | Mult, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
-                { t with term_node =
-                    TConst(Integer(Integer.mul i1 i2,None)) }
-              | Div, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
-                (try
-                   { t with term_node =
-                       TConst(Integer(Integer.c_div i1 i2,None)) }
-                 with Division_by_zero -> t)
-              | Mod, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
-                (try
-                   { t with term_node =
-                       TConst(Integer(Integer.c_rem i1 i2,None)) }
-                 with Division_by_zero -> t)
-              | Shiftlt, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
-                { t with term_node =
-                    TConst(Integer(Integer.shift_left i1 i2,None)) }
-              | Shiftrt, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
-                { t with term_node =
-                    TConst(Integer(Integer.shift_right i1 i2,None)) }
-              | Lt, _, _ -> comparison ((<) 0) t1 t2
-              | Gt, _, _ -> comparison ((>) 0) t1 t2
-              | Le, _, _ -> comparison ((<=) 0) t1 t2
-              | Ge, _, _ -> comparison ((>=) 0) t1 t2
-              | Eq, _, _ -> comparison ((=) 0) t1 t2
-              | Ne, _, _ -> comparison ((<>) 0) t1 t2
-              | LAnd, t1, t2 ->
-                bool3_res t (Bool3.bool3and (is_true t1) (is_true t2))
-              | LOr, t1, t2 ->
-                bool3_res t (Bool3.bool3or (is_true t1) (is_true t2))
-              | _ -> t)
-          | TCastE(ty,t1) ->
-            let t1 = aux t1 in
-            (match t1.term_type with
-                Ctype ty1 when Cil_datatype.Typ.equal ty ty1 -> t1
-              | _ -> { t with term_node = TCastE(ty,t1) })
-          | _ -> t
+                           TConst(Integer(Integer.c_rem i1 i2,None)) }
+              with Division_by_zero -> t)
+           | Shiftlt, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
+             { t with term_node =
+                        TConst(Integer(Integer.shift_left i1 i2,None)) }
+           | Shiftrt, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
+             { t with term_node =
+                        TConst(Integer(Integer.shift_right i1 i2,None)) }
+           | Lt, _, _ -> comparison ((<) 0) t1 t2
+           | Gt, _, _ -> comparison ((>) 0) t1 t2
+           | Le, _, _ -> comparison ((<=) 0) t1 t2
+           | Ge, _, _ -> comparison ((>=) 0) t1 t2
+           | Eq, _, _ -> comparison ((=) 0) t1 t2
+           | Ne, _, _ -> comparison ((<>) 0) t1 t2
+           | LAnd, t1, t2 ->
+             bool3_res t (Bool3.bool3and (is_true t1) (is_true t2))
+           | LOr, t1, t2 ->
+             bool3_res t (Bool3.bool3or (is_true t1) (is_true t2))
+           | _ -> t)
+        | TCastE(ty,t1) ->
+          let t1 = aux t1 in
+          (match t1.term_type with
+             Ctype ty1 when Cil_datatype.Typ.equal ty ty1 -> t1
+           | _ -> { t with term_node = TCastE(ty,t1) })
+        | _ -> t
       and aux_lv (base,off) =
         match base with
-          | TVar v ->
-            (try
-               Extlib.opt_bind
-                 (fun v ->
-                   let init = Globals.Vars.find v in
-                   let init = match init.Cil_types.init with
-                       None -> Cil.makeZeroInit ~loc:v.vdecl v.vtype
-                     | Some i -> i
-                   in
-                   aux_init off init)
-                 v.lv_origin
-             with Not_found -> None)
-          | TMem t ->
-            (match (aux t).term_node with
-              | TAddrOf lv -> aux_lv (Logic_const.addTermOffsetLval off lv)
-              | _ -> None)
-          | TResult _ -> None
+        | TVar v ->
+          (try
+             Extlib.opt_bind
+               (fun v ->
+                  let init = Globals.Vars.find v in
+                  let init = match init.Cil_types.init with
+                      None -> Cil.makeZeroInit ~loc:v.vdecl v.vtype
+                    | Some i -> i
+                  in
+                  aux_init off init)
+               v.lv_origin
+           with Not_found -> None)
+        | TMem t ->
+          (match (aux t).term_node with
+           | TAddrOf lv -> aux_lv (Logic_const.addTermOffsetLval off lv)
+           | _ -> None)
+        | TResult _ -> None
       and aux_init off initinfo =
         match off, initinfo with
-          | TNoOffset, SingleInit e ->
-            Some (aux (Logic_utils.expr_to_term ~cast:false e))
-          | TIndex(t,oth), CompoundInit (ct,initl) ->
-            (match (aux t).term_node with
-              | TConst(Integer(i1,_)) ->
-                Cil.foldLeftCompound ~implicit:true
-                  ~doinit:
-                  (fun o i _ t ->
+        | TNoOffset, SingleInit e ->
+          Some (aux (Logic_utils.expr_to_term ~cast:false e))
+        | TIndex(t,oth), CompoundInit (ct,initl) ->
+          (match (aux t).term_node with
+           | TConst(Integer(i1,_)) ->
+             Cil.foldLeftCompound ~implicit:true
+               ~doinit:
+                 (fun o i _ t ->
                     match o with
-                      | Index({ enode = Const(CInt64(i2,_,_))},_)
-                          when Integer.equal i1 i2 -> aux_init oth i
-                      | _ -> t)
-                  ~ct ~initl ~acc:None
-              | _ -> None)
-          | TField(f1,oth), CompoundInit(ct,initl) ->
-            Cil.foldLeftCompound ~implicit:true
-              ~doinit:
+                    | Index({ enode = Const(CInt64(i2,_,_))},_)
+                      when Integer.equal i1 i2 -> aux_init oth i
+                    | _ -> t)
+               ~ct ~initl ~acc:None
+           | _ -> None)
+        | TField(f1,oth), CompoundInit(ct,initl) ->
+          Cil.foldLeftCompound ~implicit:true
+            ~doinit:
               (fun o i _ t ->
-                match o with
-                  | Field(f2,_) when Cil_datatype.Fieldinfo.equal f1 f2 ->
-                    aux_init oth i
-                  | _ -> t)
-              ~ct ~initl ~acc:None
-          | _ -> None
+                 match o with
+                 | Field(f2,_) when Cil_datatype.Fieldinfo.equal f1 f2 ->
+                   aux_init oth i
+                 | _ -> t)
+            ~ct ~initl ~acc:None
+        | _ -> None
       in
       aux t
     end
@@ -282,15 +282,15 @@ let isCrossableAtInit tr func =
     in
     let rec comparison t1 t2 =
       match t1.term_node,t2.term_node with
-        | TConst (Integer(i1,_)), TConst (Integer(i2,_)) ->
-          Bool3.bool3_of_bool (comp (Integer.compare i1 i2))
-        | TConst (LChr c1), TConst (LChr c2) ->
-          Bool3.bool3_of_bool (comp (Char.compare c1 c2))
-        | TConst(LReal r1), TConst (LReal r2) ->
-          Bool3.bool3_of_bool (comp (compare r1.r_nearest r2.r_nearest))
-        | TCastE(ty1,t1), TCastE(ty2,t2) when Cil_datatype.Typ.equal ty1 ty2 ->
-          comparison t1 t2
-        | _ -> Bool3.Undefined
+      | TConst (Integer(i1,_)), TConst (Integer(i2,_)) ->
+        Bool3.bool3_of_bool (comp (Integer.compare i1 i2))
+      | TConst (LChr c1), TConst (LChr c2) ->
+        Bool3.bool3_of_bool (comp (Char.compare c1 c2))
+      | TConst(LReal r1), TConst (LReal r2) ->
+        Bool3.bool3_of_bool (comp (compare r1.r_nearest r2.r_nearest))
+      | TCastE(ty1,t1), TCastE(ty2,t2) when Cil_datatype.Typ.equal ty1 ty2 ->
+        comparison t1 t2
+      | _ -> Bool3.Undefined
     in
     comparison t1 t2
   in
@@ -309,8 +309,8 @@ let isCrossableAtInit tr func =
   in
   let (cond,_) = tr.cross in
   match isCross cond with
-    | Bool3.True | Bool3.Undefined -> true
-    | Bool3.False -> false
+  | Bool3.True | Bool3.Undefined -> true
+  | Bool3.False -> false
 
 (* ************************************************************************* *)
 (** {b Expressions management} *)
@@ -323,7 +323,7 @@ let mk_int_exp value =
 (** This function rewrites a cross condition into an ACSL expression.
     Moreover, by giving current operation name and its status (call or
     return) the generation simplifies the generated expression.
- *)
+*)
 let crosscond_to_pred cross curr_f curr_status =
   let check_current_event f status pred =
     if Kernel_function.equal curr_f f && curr_status = status then pred
@@ -334,41 +334,41 @@ let crosscond_to_pred cross curr_f curr_status =
     (* Lazy evaluation of logic operators if the result can be statically
        computed *)
     | TOr  (c1, c2) -> (*BinOp(LOr,convert c1,convert c2,Cil.intType)*)
-        begin
-          let (c1_val,c1_pred) = convert c1 in
-          match c1_val with
-            | Bool3.True      -> (c1_val,c1_pred)
-            | Bool3.False     -> convert c2
-            | Undefined ->
-                let (c2_val,c2_pred) = convert c2 in
-                match c2_val with
-                  | Bool3.True      -> (c2_val,c2_pred)
-                  | Bool3.False     -> (c1_val,c1_pred)
-                  | Undefined -> (Undefined,Logic_const.por(c1_pred, c2_pred))
-        end
+      begin
+        let (c1_val,c1_pred) = convert c1 in
+        match c1_val with
+        | Bool3.True      -> (c1_val,c1_pred)
+        | Bool3.False     -> convert c2
+        | Undefined ->
+          let (c2_val,c2_pred) = convert c2 in
+          match c2_val with
+          | Bool3.True      -> (c2_val,c2_pred)
+          | Bool3.False     -> (c1_val,c1_pred)
+          | Undefined -> (Undefined,Logic_const.por(c1_pred, c2_pred))
+      end
 
     | TAnd (c1, c2) -> (*BinOp(LAnd,convert c1,convert c2,Cil.intType)*)
-        begin
-          let (c1_val,c1_pred) = convert c1 in
-          match c1_val with
-            | Bool3.True      -> convert c2
-            | Bool3.False     -> (c1_val,c1_pred)
-            | Undefined ->
-                let (c2_val,c2_pred) = convert c2 in
-                match c2_val with
-                  | Bool3.True      -> (c1_val,c1_pred)
-                  | Bool3.False     -> (c2_val,c2_pred)
-                  | Undefined -> (Undefined,Logic_const.pand(c1_pred, c2_pred))
-        end
+      begin
+        let (c1_val,c1_pred) = convert c1 in
+        match c1_val with
+        | Bool3.True      -> convert c2
+        | Bool3.False     -> (c1_val,c1_pred)
+        | Undefined ->
+          let (c2_val,c2_pred) = convert c2 in
+          match c2_val with
+          | Bool3.True      -> (c1_val,c1_pred)
+          | Bool3.False     -> (c2_val,c2_pred)
+          | Undefined -> (Undefined,Logic_const.pand(c1_pred, c2_pred))
+      end
 
     | TNot (c1)     -> (*UnOp(LNot,convert c1,Cil.intType)*)
-        begin
-          let (c1_val,c1_pred) = convert c1 in
-          match c1_val with
-            | Bool3.True      -> (Bool3.False,pfalse)
-            | Bool3.False     -> (Bool3.True,ptrue)
-            | Undefined -> (c1_val,Logic_const.pnot(c1_pred))
-        end
+      begin
+        let (c1_val,c1_pred) = convert c1 in
+        match c1_val with
+        | Bool3.True      -> (Bool3.False,pfalse)
+        | Bool3.False     -> (Bool3.True,ptrue)
+        | Undefined -> (c1_val,Logic_const.pnot(c1_pred))
+      end
 
     | TCall (f,b) ->
       let pred = match b with
@@ -390,41 +390,41 @@ let crosscond_to_pred cross curr_f curr_status =
   in
   snd (convert cross)
 
-(* Translate a term into the correct expression at the location in argument. 
+(* Translate a term into the correct expression at the location in argument.
    Be careful if you wish to re-use this function elsewhere, some cases are
    not treated generically.
    Used in crosscond_to_exp. *)
 
-  let rec term_to_exp t res =
-    let loc = t.term_loc in
-    match t.term_node with 
-    | TConst (Integer (value,repr)) -> Cil.kinteger64 ~loc ?repr value
-    | TConst (LStr str) -> new_exp loc (Const (CStr str))
-    | TConst (LWStr l) -> new_exp loc (Const (CWStr l))
-    | TConst (LChr c) -> new_exp loc (Const (CChr c))
-    | TConst (LReal l_real) ->
-      (* r_nearest is by definition in double precision. *)
-      new_exp loc (Const (CReal (l_real.r_nearest, FDouble, None)))
-    | TConst (LEnum e) -> new_exp loc (Const (CEnum e))
-    | TLval tlval -> new_exp loc (Lval (tlval_to_lval tlval res))
-    | TSizeOf ty -> new_exp loc (SizeOf ty)
-    | TSizeOfE t -> new_exp loc (SizeOfE(term_to_exp t res))
-    | TSizeOfStr s -> new_exp loc (SizeOfStr s)
-    | TAlignOf ty -> new_exp loc (AlignOf ty)
-    | TAlignOfE t -> new_exp loc (AlignOfE (term_to_exp t res))
-    | TUnOp (unop, t) ->
-      new_exp loc (UnOp (unop, term_to_exp t res, Cil.intType))
-    | TBinOp (binop, t1, t2)->
-      new_exp loc
-        (BinOp(binop, term_to_exp t1 res, term_to_exp t2 res, Cil.intType))
-    | TCastE (ty, t) -> new_exp loc (CastE (ty, term_to_exp t res))
-    | TAddrOf tlval -> new_exp loc (AddrOf (tlval_to_lval tlval res))
-    | TStartOf tlval -> new_exp loc (StartOf (tlval_to_lval tlval res))
-    | TLogic_coerce (_,t) -> term_to_exp t res
-    | _ ->
-      Aorai_option.fatal
-        "Term %a cannot be transformed into exp."
-        Printer.pp_term t
+let rec term_to_exp t res =
+  let loc = t.term_loc in
+  match t.term_node with
+  | TConst (Integer (value,repr)) -> Cil.kinteger64 ~loc ?repr value
+  | TConst (LStr str) -> new_exp loc (Const (CStr str))
+  | TConst (LWStr l) -> new_exp loc (Const (CWStr l))
+  | TConst (LChr c) -> new_exp loc (Const (CChr c))
+  | TConst (LReal l_real) ->
+    (* r_nearest is by definition in double precision. *)
+    new_exp loc (Const (CReal (l_real.r_nearest, FDouble, None)))
+  | TConst (LEnum e) -> new_exp loc (Const (CEnum e))
+  | TLval tlval -> new_exp loc (Lval (tlval_to_lval tlval res))
+  | TSizeOf ty -> new_exp loc (SizeOf ty)
+  | TSizeOfE t -> new_exp loc (SizeOfE(term_to_exp t res))
+  | TSizeOfStr s -> new_exp loc (SizeOfStr s)
+  | TAlignOf ty -> new_exp loc (AlignOf ty)
+  | TAlignOfE t -> new_exp loc (AlignOfE (term_to_exp t res))
+  | TUnOp (unop, t) ->
+    new_exp loc (UnOp (unop, term_to_exp t res, Cil.intType))
+  | TBinOp (binop, t1, t2)->
+    new_exp loc
+      (BinOp(binop, term_to_exp t1 res, term_to_exp t2 res, Cil.intType))
+  | TCastE (ty, t) -> new_exp loc (CastE (ty, term_to_exp t res))
+  | TAddrOf tlval -> new_exp loc (AddrOf (tlval_to_lval tlval res))
+  | TStartOf tlval -> new_exp loc (StartOf (tlval_to_lval tlval res))
+  | TLogic_coerce (_,t) -> term_to_exp t res
+  | _ ->
+    Aorai_option.fatal
+      "Term %a cannot be transformed into exp."
+      Printer.pp_term t
 
 and tlval_to_lval (tlhost, toffset) res =
   let rec t_to_loffset t_offset = match t_offset with
@@ -433,36 +433,36 @@ and tlval_to_lval (tlhost, toffset) res =
     | TIndex (t, t_off) -> Index (term_to_exp t res, t_to_loffset t_off)
     | TModel _ -> Aorai_option.fatal "TModel cannot be treated as exp."
   in
-  match tlhost with 
-  | TVar l_var -> 
-    let v_info = 
+  match tlhost with
+  | TVar l_var ->
+    let v_info =
       begin
         match l_var.lv_origin with
-          | Some vinfo -> vinfo
-          | None -> Aorai_option.fatal "TVar not coming from a C Variable"
+        | Some vinfo -> vinfo
+        | None -> Aorai_option.fatal "TVar not coming from a C Variable"
       end
     in
     (Var v_info, t_to_loffset toffset)
   |TMem t -> mkMem (term_to_exp t res) (t_to_loffset toffset)
   |TResult _ ->
     (match res with
-       | Some res -> Var res, t_to_loffset toffset
-       (* This should not happen, as we always pass a real variable when
-          generating body for a post-function when the original function
-          has a non-void result. pre-functions and functions that return void
-          should not see \result. *)
-       | None -> Aorai_option.fatal "Unexpected \\result")
+     | Some res -> Var res, t_to_loffset toffset
+     (* This should not happen, as we always pass a real variable when
+        generating body for a post-function when the original function
+        has a non-void result. pre-functions and functions that return void
+        should not see \result. *)
+     | None -> Aorai_option.fatal "Unexpected \\result")
 
-(* Translate the cross condition of an automaton edge to an expression. 
+(* Translate the cross condition of an automaton edge to an expression.
    Used in mk_stmt. *)
-let crosscond_to_exp curr_f curr_status loc (cond,_) res = 
+let crosscond_to_exp curr_f curr_status loc (cond,_) res =
 
   let check_current_event f status =
     if Kernel_function.equal curr_f f && curr_status = status then
       Cil.one loc
     else Cil.zero loc
   in
-  let rel_convert = function 
+  let rel_convert = function
     | Rlt -> Lt
     | Rgt -> Gt
     | Rle -> Le
@@ -489,11 +489,11 @@ let crosscond_to_exp curr_f curr_status loc (cond,_) res =
       (match Cil.isInteger e1 with
        | None -> Cil.new_exp loc (UnOp(LNot, e1,Cil.intType))
        | Some i when Integer.is_zero i -> Cil.one loc
-       | Some _ -> Cil.zero loc)    
+       | Some _ -> Cil.zero loc)
     | TCall (f,_) -> check_current_event f Promelaast.Call
     | TReturn f -> check_current_event f Promelaast.Return
     | TTrue -> (Cil.one loc)
-    | TFalse -> (Cil.zero loc) 
+    | TFalse -> (Cil.zero loc)
     | TRel(rel,t1,t2) ->
       Cil.mkBinOp
         loc (rel_convert rel) (term_to_exp t1 res) (term_to_exp t2 res)
@@ -515,25 +515,25 @@ let initFile f =
   Globals.Vars.iter (fun vi _ -> set_varinfo vi.vname vi);
   Globals.Functions.iter
     (fun kf ->
-      let fname = Kernel_function.get_name kf in
-      List.iter
-        (fun vi -> set_paraminfo fname vi.vname vi)
-        (Kernel_function.get_formals kf);
-      if not (Data_for_aorai.isIgnoredFunction fname) then
-        begin
-          try
-            let ret  = Kernel_function.find_return kf in
-            match ret.skind with
-            | Cil_types.Return (Some e,_) ->
-              (match e.enode with
-              | Lval (Var vi,NoOffset) ->
-                set_returninfo fname vi (* Add the vi of return stmt *)
-              | _ -> () (* function without returned value *))
-            | _ -> () (* function without returned value *)
-          with Kernel_function.No_Statement ->
-            Aorai_option.fatal
-              "Don't know what to do with a function declaration"
-        end)
+       let fname = Kernel_function.get_name kf in
+       List.iter
+         (fun vi -> set_paraminfo fname vi.vname vi)
+         (Kernel_function.get_formals kf);
+       if not (Data_for_aorai.isIgnoredFunction fname) then
+         begin
+           try
+             let ret  = Kernel_function.find_return kf in
+             match ret.skind with
+             | Cil_types.Return (Some e,_) ->
+               (match e.enode with
+                | Lval (Var vi,NoOffset) ->
+                  set_returninfo fname vi (* Add the vi of return stmt *)
+                | _ -> () (* function without returned value *))
+             | _ -> () (* function without returned value *)
+           with Kernel_function.No_Statement ->
+             Aorai_option.fatal
+               "Don't know what to do with a function declaration"
+         end)
 
 (** List of globals awaiting for adding into C file globals *)
 let globals_queue = ref []
@@ -543,17 +543,17 @@ let flush_globals () =
   let before, after =
     List.fold_left
       (fun (b,a) elem ->
-        match elem with
-        | GFun(f,loc) as func ->
-          (* [VP] if address of function is taken, it might be
-             used in a global initializer: keep a declaration at this point
-             to ensure ending up with a compilable C file in the end... *)
-          let b =
-            if f.svar.vaddrof then GFunDecl(Cil.empty_funspec(),f.svar,loc) :: b
-            else b
-          in
-          b, func :: a
-        | other -> other :: b, a)
+         match elem with
+         | GFun(f,loc) as func ->
+           (* [VP] if address of function is taken, it might be
+              used in a global initializer: keep a declaration at this point
+              to ensure ending up with a compilable C file in the end... *)
+           let b =
+             if f.svar.vaddrof then GFunDecl(Cil.empty_funspec(),f.svar,loc) :: b
+             else b
+           in
+           b, func :: a
+         | other -> other :: b, a)
       ([], [])
       !file.globals
   in
@@ -566,10 +566,10 @@ let mk_global glob = globals_queue := glob :: !globals_queue
 (* Utilities for global variables *)
 let mk_global_c_initialized_vars name ty ini=
   let vi = (Cil.makeGlobalVar name ty) in
-    vi.vghost<-true;
-    mk_global (GVar(vi,ini,vi.vdecl));
-    Globals.Vars.add vi ini;
-    set_varinfo name vi
+  vi.vghost<-true;
+  mk_global (GVar(vi,ini,vi.vdecl));
+  Globals.Vars.add vi ini;
+  set_varinfo name vi
 
 let mk_global_var_init vi ini =
   vi.vghost<-true;
@@ -596,11 +596,11 @@ let mk_int_const value =
   new_exp
     ~loc:(CurrentLoc.get())
     (Const(
-       CInt64(
-         Integer.of_int (value),
-         IInt,
-         Some(string_of_int(value))
-       )))
+        CInt64(
+          Integer.of_int (value),
+          IInt,
+          Some(string_of_int(value))
+        )))
 
 (* Utilities for global enumerations *)
 let mk_global_c_enum_type_tagged name elements_l =
@@ -615,11 +615,11 @@ let mk_global_c_enum_type_tagged name elements_l =
   let l =
     List.map
       (fun (e,i) ->
-        { eiorig_name = e;
-          einame = e;
-          eival = mk_int_const i;
-          eiloc = Location.unknown;
-          eihost = einfo})
+         { eiorig_name = e;
+           einame = e;
+           eival = mk_int_const i;
+           eiloc = Location.unknown;
+           eihost = einfo})
       elements_l
   in
   einfo.eitems <- l;
@@ -709,23 +709,24 @@ let is_state_pred state =
   if Aorai_option.Deterministic.get () then
     Logic_const.prel (Req,state_term(),int2enumstate state.nums)
   else
-    Logic_const.prel 
-      (Req,one_term(), 
+    Logic_const.prel
+      (Req,one_term(),
        Logic_const.tvar (Data_for_aorai.get_state_logic_var state))
 
-let is_state_stmt (state,copy) loc = 
-   if Aorai_option.Deterministic.get () 
-   then
-     mkStmtOneInstr (Set (Cil.var copy, int2enumstate_exp loc state.nums, loc))
-   else mkStmtOneInstr (Set (Cil.var copy, Cil.one loc, loc))
+let is_state_stmt (state,copy) loc =
+  if Aorai_option.Deterministic.get ()
+  then
+    mkStmtOneInstr
+      ~ghost:true (Set (Cil.var copy, int2enumstate_exp loc state.nums, loc))
+  else mkStmtOneInstr ~ghost:true (Set (Cil.var copy, Cil.one loc, loc))
 
 let is_state_exp state loc =
-  if Aorai_option.Deterministic.get () 
+  if Aorai_option.Deterministic.get ()
   then
     Cil.mkBinOp
       loc Eq
       (int2enumstate_exp loc state.nums)
-      (Cil.evar ~loc (Data_for_aorai.get_varinfo curState)) 
+      (Cil.evar ~loc (Data_for_aorai.get_varinfo curState))
   else
     Cil.mkBinOp
       loc Eq (Cil.evar (Data_for_aorai.get_state_var state)) (Cil.one loc)
@@ -734,24 +735,24 @@ let is_out_of_state_pred state =
   if Aorai_option.Deterministic.get () then
     Logic_const.prel (Rneq,state_term(),int2enumstate state.nums)
   else
-    Logic_const.prel 
-      (Req,zero_term(), 
+    Logic_const.prel
+      (Req,zero_term(),
        Logic_const.tvar (Data_for_aorai.get_state_logic_var state))
 
 (* In the deterministic case, we only assign the unique state variable
    to a specific enumerated constant. Non-deterministic automata on the other
    hand, need to have the corresponding state variable explicitly set to 0. *)
-let is_out_of_state_stmt (_,copy) loc = 
+let is_out_of_state_stmt (_,copy) loc =
   if Aorai_option.Deterministic.get ()
   then
     Aorai_option.fatal
       "Deterministic automaton sync functions can't have out-of-state stmt. \
        Maybe this should use `is_out_of_state_exp' instead."
-  else mkStmtOneInstr (Set(Cil.var copy , mk_int_exp 0 , loc ))
+  else mkStmtOneInstr ~ghost:true (Set(Cil.var copy , mk_int_exp 0 , loc ))
 
-let is_out_of_state_exp state loc = 
-  
-  if Aorai_option.Deterministic.get () 
+let is_out_of_state_exp state loc =
+
+  if Aorai_option.Deterministic.get ()
   then
     Cil.mkBinOp
       loc Ne
@@ -780,42 +781,44 @@ let mk_global_states_init root =
   in
   List.iter
     (fun state ->
-        let init =
-          if is_possible_init state then mk_int_exp 1 else mk_int_exp 0
-        in
-        let init = SingleInit init in
-        let var = Data_for_aorai.get_state_var state in
-        mk_global_var_init var { Cil_types.init = Some init})
+       let init =
+         if is_possible_init state then mk_int_exp 1 else mk_int_exp 0
+       in
+       let init = SingleInit init in
+       let var = Data_for_aorai.get_state_var state in
+       mk_global_var_init var { Cil_types.init = Some init})
     states
 
 let func_to_init name =
   {Cil_types.init=
-      Some(SingleInit(
-        new_exp ~loc:(CurrentLoc.get()) (Const(func_to_cenum (name)))))}
+     Some(SingleInit(
+         new_exp ~loc:(CurrentLoc.get()) (Const(func_to_cenum (name)))))}
 
 let funcStatus_to_init st =
   {Cil_types.init=Some(SingleInit(new_exp ~loc:(CurrentLoc.get())
                                     (Const(op_status_to_cenum (st)))))}
 
 class visit_decl_loops_init () =
-object(self)
-  inherit Visitor.frama_c_inplace
+  object(self)
+    inherit Visitor.frama_c_inplace
 
-  method! vstmt_aux stmt =
-    begin
-      match stmt.skind with
+    method! vstmt_aux stmt =
+      begin
+        match stmt.skind with
         | Loop _ ->
           let scope = Kernel_function.find_enclosing_block stmt in
           let f = Extlib.the self#current_func in
           let name = Data_for_aorai.loopInit ^ "_" ^ (string_of_int stmt.sid) in
-          let var =
-            Cil.makeLocalVar f ~scope name Cil.intType
+          let typ =
+            Cil.typeAddAttributes
+              [Attr (Cil.frama_c_ghost_formal,[])] Cil.intType
           in
+          let var = Cil.makeLocalVar ~ghost:true f ~scope name typ in
           Data_for_aorai.set_varinfo name var
         | _ -> ()
-    end;
-    Cil.DoChildren
-end
+      end;
+      Cil.DoChildren
+  end
 
 let mk_decl_loops_init () =
   let visitor = new visit_decl_loops_init ()  in
@@ -829,59 +832,59 @@ let change_vars subst subst_res kf label pred =
 
       method! vterm t =
         match t.term_node with
-            TLval (TVar { lv_origin = Some v},_) when v.vglob -> add_label t
-          | TLval (TMem _,_) -> add_label t
-          | _ -> DoChildren
+          TLval (TVar { lv_origin = Some v},_) when v.vglob -> add_label t
+        | TLval (TMem _,_) -> add_label t
+        | _ -> DoChildren
 
       method! vterm_lhost = function
         | TResult ty ->
           (match kf with
-              None -> Aorai_option.fatal
-                "found \\result without being at a Return event"
-            | Some kf ->
-              (try
-                 ChangeTo (TVar (Kernel_function.Hashtbl.find subst_res kf))
-               with Not_found ->
-                 let new_lv =
-                   Cil_const.make_logic_var_quant
-                     ("__retres_" ^ (Kernel_function.get_name kf)) (Ctype ty)
-                 in
-                 Kernel_function.Hashtbl.add subst_res kf new_lv;
-                 ChangeTo (TVar new_lv)))
+             None -> Aorai_option.fatal
+                       "found \\result without being at a Return event"
+           | Some kf ->
+             (try
+                ChangeTo (TVar (Kernel_function.Hashtbl.find subst_res kf))
+              with Not_found ->
+                let new_lv =
+                  Cil_const.make_logic_var_quant
+                    ("__retres_" ^ (Kernel_function.get_name kf)) (Ctype ty)
+                in
+                Kernel_function.Hashtbl.add subst_res kf new_lv;
+                ChangeTo (TVar new_lv)))
         | TMem _ | TVar _ -> DoChildren
 
       method! vlogic_var_use lv =
         match lv.lv_origin with
-          | Some v when not v.vglob ->
-            (try
-               ChangeTo (Cil_datatype.Logic_var.Hashtbl.find subst lv)
-             with Not_found ->
-               let new_lv =
-                 Cil_const.make_logic_var_quant lv.lv_name lv.lv_type
-               in
-               Cil_datatype.Logic_var.Hashtbl.add subst lv new_lv;
-               ChangeTo new_lv)
-          | Some _ | None -> DoChildren
+        | Some v when not v.vglob ->
+          (try
+             ChangeTo (Cil_datatype.Logic_var.Hashtbl.find subst lv)
+           with Not_found ->
+             let new_lv =
+               Cil_const.make_logic_var_quant lv.lv_name lv.lv_type
+             in
+             Cil_datatype.Logic_var.Hashtbl.add subst lv new_lv;
+             ChangeTo new_lv)
+        | Some _ | None -> DoChildren
     end
   in Visitor.visitFramacPredicateNode visitor pred
 
 let pred_of_condition subst subst_res label cond =
   let mk_func_event f =
     let op = tat (mk_term_from_vi (get_varinfo curOp),label) in
-      (* [VP] TODO: change int to appropriate enum type. Also true
-         elsewhere.
-       *)
-    let f = 
-      term 
+    (* [VP] TODO: change int to appropriate enum type. Also true
+       elsewhere.
+    *)
+    let f =
+      term
         (TConst (constant_to_lconstant (func_to_cenum f)))
-        (Ctype (func_enum_type ())) 
+        (Ctype (func_enum_type ()))
     in
     prel (Req,op,f)
   in
   let mk_func_status f status =
     let curr = tat (mk_term_from_vi (get_varinfo curOpStatus),label) in
     let call =
-      term 
+      term
         (TConst (constant_to_lconstant (op_status_to_cenum status)))
         (Ctype (status_enum_type()))
     in
@@ -891,28 +894,28 @@ let pred_of_condition subst subst_res label cond =
   let mk_func_return f = mk_func_status f Promelaast.Return in
   let rec aux kf is_or = function
     | TOr(c1,c2) ->
-        let kf, c1 = aux kf true c1 in
-        let kf, c2 = aux kf true c2 in
-        kf, Logic_const.por (c1, c2)
+      let kf, c1 = aux kf true c1 in
+      let kf, c2 = aux kf true c2 in
+      kf, Logic_const.por (c1, c2)
     | TAnd(c1,c2) ->
       let kf, c1 = aux kf false c1 in
       let kf, c2 = aux kf false c2 in
       kf, Logic_const.pand (c1, c2)
     | TNot c ->
-        let kf, c = aux kf (not is_or) c in kf, Logic_const.pnot c
+      let kf, c = aux kf (not is_or) c in kf, Logic_const.pnot c
     | TCall (s,b) ->
       let pred = mk_func_start (Kernel_function.get_name s) in
       let pred =
         match b with
-          | None -> pred
-          | Some b ->
-            Logic_const.pands
-              (pred :: (List.map Logic_const.pred_of_id_pred b.b_assumes))
+        | None -> pred
+        | Some b ->
+          Logic_const.pands
+            (pred :: (List.map Logic_const.pred_of_id_pred b.b_assumes))
       in
       kf, pred
     | TReturn s ->
-        let kf = if is_or then kf else Some s in
-        kf, mk_func_return (Kernel_function.get_name s)
+      let kf = if is_or then kf else Some s in
+      kf, mk_func_return (Kernel_function.get_name s)
     | TTrue -> kf, ptrue
     | TFalse -> kf, pfalse
     | TRel(rel,t1,t2) ->
@@ -943,7 +946,7 @@ let mk_deterministic_lemma () =
             (fun _ lv acc -> lv :: acc) subst []
         in
         let quants = Kernel_function.Hashtbl.fold
-          (fun _ lv acc -> lv :: acc) subst_res quants
+            (fun _ lv acc -> lv :: acc) subst_res quants
         in
         (* [VP] far from perfect, but should give oracles for
            regression tests that stay relatively stable across vid
@@ -969,25 +972,25 @@ let make_enum_states () =
     List.map (fun x -> (x.Promelaast.name, x.Promelaast.nums)) state_list
   in
   let state_list =
-      if not (Aorai_option.Deterministic.get ()) then state_list
-      else
-        (*[VP] Strictly speaking this is not needed, but Jessie tends
-          to consider that a value of enum type can only be one of the
-          tags, so that we must add this dummy state that is always a
-          possible value, even when a contract concludes that curState
-          is none of the others. Note that ISO C does not impose this
-          limitation to values of enum types.
-         *)
-        (get_fresh "aorai_reject_state", -2)::state_list
+    if not (Aorai_option.Deterministic.get ()) then state_list
+    else
+      (*[VP] Strictly speaking this is not needed, but Jessie tends
+        to consider that a value of enum type can only be one of the
+        tags, so that we must add this dummy state that is always a
+        possible value, even when a contract concludes that curState
+        is none of the others. Note that ISO C does not impose this
+        limitation to values of enum types.
+      *)
+      (get_fresh "aorai_reject_state", -2)::state_list
   in
   let enum = mk_global_c_enum_type_tagged states state_list in
   let mapping =
     List.map
       (fun (name,id) ->
-        let item =
-          List.find (fun y -> y.einame = name) enum.eitems
-        in
-        (id, item))
+         let item =
+           List.find (fun y -> y.einame = name) enum.eitems
+         in
+         (id, item))
       state_list
   in
   set_enum mapping
@@ -1045,17 +1048,17 @@ let initGlobals root complete =
   end;
 
   (match Data_for_aorai.abstract_logic_info () with
-    | [] -> ()
-    | l ->
-      let annot =
-        Daxiomatic
-          ("Aorai_pebble_axiomatic",
-           List.map
-             (fun li -> Dfun_or_pred(li,Cil_datatype.Location.unknown)) l,
-           [],
-           Cil_datatype.Location.unknown)
-      in
-      Annotations.add_global Aorai_option.emitter annot);
+   | [] -> ()
+   | l ->
+     let annot =
+       Daxiomatic
+         ("Aorai_pebble_axiomatic",
+          List.map
+            (fun li -> Dfun_or_pred(li,Cil_datatype.Location.unknown)) l,
+          [],
+          Cil_datatype.Location.unknown)
+     in
+     Annotations.add_global Aorai_option.emitter annot);
   mk_global_comment "//* ";
   mk_global_comment "//* END Primitives generated for LTL verification";
   mk_global_comment "//****************";
@@ -1072,20 +1075,20 @@ let automaton_locations loc =
     else
       List.map
         (fun state ->
-          Logic_const.new_identified_term 
-            (Logic_const.tvar 
-               (Data_for_aorai.get_state_logic_var state)), FromAny)
+           Logic_const.new_identified_term
+             (Logic_const.tvar
+                (Data_for_aorai.get_state_logic_var state)), FromAny)
         (fst (Data_for_aorai.getAutomata()))
   in
   (Logic_const.new_identified_term
      (Logic_const.tvar ~loc
         (Data_for_aorai.get_logic_var Data_for_aorai.curOpStatus)),
    FromAny) ::
-    (Logic_const.new_identified_term
-       (Logic_const.tvar ~loc
-          (Data_for_aorai.get_logic_var Data_for_aorai.curOp)),
-     FromAny) ::
-    auto_state
+  (Logic_const.new_identified_term
+     (Logic_const.tvar ~loc
+        (Data_for_aorai.get_logic_var Data_for_aorai.curOp)),
+   FromAny) ::
+  auto_state
 
 let automaton_assigns loc = Writes (automaton_locations loc)
 
@@ -1100,7 +1103,7 @@ let aorai_assigns state loc =
       (fun _ (_,_,b) acc -> Data_for_aorai.merge_bindings b acc)
       merged_states Cil_datatype.Term.Map.empty
   in
-  let elements = 
+  let elements =
     Cil_datatype.Term.Map.fold
       (fun t _ acc -> (Logic_const.new_identified_term t,FromAny)::acc)
       bindings []
@@ -1116,85 +1119,85 @@ let action_assigns trans =
   in
   let treat_one_action acc =
     function
-      | Counter_init (host,off) | Counter_incr (host,off)
-      | Copy_value ((host,off),_) ->
-        let my_var =
-          match host with
-            | TVar ({ lv_origin = Some v}) -> v
-            | _ -> Aorai_option.fatal "Auxiliary variable is not a C global"
-        in
-        let my_off =
-          match off with
-            | TNoOffset -> TNoOffset
-            | TIndex _ -> TIndex(Logic_const.trange (None,None), TNoOffset)
-            | TField _ | TModel _ ->
-              Aorai_option.fatal "Unexpected offset in auxiliary variable"
-        in
-        add_if_needed my_var
-          (Logic_const.term (TLval(host,my_off))
-             (Cil.typeOfTermLval (host,my_off)))
-          acc
-      | Pebble_init(_,v,c) ->
-        let cc = Extlib.the c.lv_origin in
-        let cv = Extlib.the v.lv_origin in
-        add_if_needed cv (Logic_const.tvar v)
-          (add_if_needed cc (Logic_const.tvar c) acc)
-      | Pebble_move(_,v1,_,v2) ->
-        let cv1 = Extlib.the v1.lv_origin in
-        let cv2 = Extlib.the v2.lv_origin in
-        add_if_needed cv1 (Logic_const.tvar v1)
-          (add_if_needed cv2 (Logic_const.tvar v2) acc)
+    | Counter_init (host,off) | Counter_incr (host,off)
+    | Copy_value ((host,off),_) ->
+      let my_var =
+        match host with
+        | TVar ({ lv_origin = Some v}) -> v
+        | _ -> Aorai_option.fatal "Auxiliary variable is not a C global"
+      in
+      let my_off =
+        match off with
+        | TNoOffset -> TNoOffset
+        | TIndex _ -> TIndex(Logic_const.trange (None,None), TNoOffset)
+        | TField _ | TModel _ ->
+          Aorai_option.fatal "Unexpected offset in auxiliary variable"
+      in
+      add_if_needed my_var
+        (Logic_const.term (TLval(host,my_off))
+           (Cil.typeOfTermLval (host,my_off)))
+        acc
+    | Pebble_init(_,v,c) ->
+      let cc = Extlib.the c.lv_origin in
+      let cv = Extlib.the v.lv_origin in
+      add_if_needed cv (Logic_const.tvar v)
+        (add_if_needed cc (Logic_const.tvar c) acc)
+    | Pebble_move(_,v1,_,v2) ->
+      let cv1 = Extlib.the v1.lv_origin in
+      let cv2 = Extlib.the v2.lv_origin in
+      add_if_needed cv1 (Logic_const.tvar v1)
+        (add_if_needed cv2 (Logic_const.tvar v2) acc)
   in
   let empty = (Cil_datatype.Varinfo.Set.empty,[]) in
   let empty_pebble =
     match trans.start.multi_state, trans.stop.multi_state with
-      | Some(_,aux), None ->
-        let caux = Extlib.the aux.lv_origin in
-        add_if_needed caux (Logic_const.tvar aux) empty
-      | _ -> empty
+    | Some(_,aux), None ->
+      let caux = Extlib.the aux.lv_origin in
+      add_if_needed caux (Logic_const.tvar aux) empty
+    | _ -> empty
   in
   let _,res = List.fold_left treat_one_action empty_pebble (snd trans.cross) in
   Writes res
 
 let get_reachable_trans state st auto current_state =
   match st with
-    | Promelaast.Call ->
-      (try
-         let reach = Data_for_aorai.Aorai_state.Map.find state current_state in
-         let treat_one_state end_state _ l =
-           Path_analysis.get_edges state end_state auto @ l
-         in
-         Data_for_aorai.Aorai_state.Map.fold treat_one_state reach []
-       with Not_found -> [])
-    | Promelaast.Return ->
-      let treat_one_state end_state (_,last,_) l =
-        if Data_for_aorai.Aorai_state.Set.mem state last then
-            Path_analysis.get_edges state end_state auto @ l
-        else l
-      in
-      let treat_one_start _ map l =
-        Data_for_aorai.Aorai_state.Map.fold treat_one_state map l
-      in
-      Data_for_aorai.Aorai_state.Map.fold treat_one_start current_state []
-        
+  | Promelaast.Call ->
+    (try
+       let reach = Data_for_aorai.Aorai_state.Map.find state current_state in
+       let treat_one_state end_state _ l =
+         Path_analysis.get_edges state end_state auto @ l
+       in
+       Data_for_aorai.Aorai_state.Map.fold treat_one_state reach []
+     with Not_found -> [])
+  | Promelaast.Return ->
+    let treat_one_state end_state (_,last,_) l =
+      if Data_for_aorai.Aorai_state.Set.mem state last then
+        Path_analysis.get_edges state end_state auto @ l
+      else l
+    in
+    let treat_one_start _ map l =
+      Data_for_aorai.Aorai_state.Map.fold treat_one_state map l
+    in
+    Data_for_aorai.Aorai_state.Map.fold treat_one_start current_state []
+
 let get_reachable_trans_to state st auto current_state =
   match st with
-    | Promelaast.Call ->
-      let treat_one_start start map acc =
-        if Data_for_aorai.Aorai_state.Map.mem state map then
-          Path_analysis.get_edges start state auto @ acc
-        else acc
-      in
-      Data_for_aorai.Aorai_state.Map.fold treat_one_start current_state []
-    | Promelaast.Return ->
-      let treat_one_state _ map acc =
-        try
-          let (_,last,_) = Data_for_aorai.Aorai_state.Map.find state map in
-          Data_for_aorai.Aorai_state.Set.fold
-            (fun start acc -> Path_analysis.get_edges start state auto @ acc)
-            last acc
-        with Not_found -> acc
-      in Data_for_aorai.Aorai_state.Map.fold treat_one_state current_state []
+  | Promelaast.Call ->
+    let treat_one_start start map acc =
+      if Data_for_aorai.Aorai_state.Map.mem state map then
+        Path_analysis.get_edges start state auto @ acc
+      else acc
+    in
+    Data_for_aorai.Aorai_state.Map.fold treat_one_start current_state []
+  | Promelaast.Return ->
+    let treat_one_state _ map acc =
+      try
+        let (_,last,_) = Data_for_aorai.Aorai_state.Map.find state map in
+        Data_for_aorai.Aorai_state.Set.fold
+          (fun start acc -> Path_analysis.get_edges start state auto @ acc)
+          last acc
+      with Not_found -> acc
+    in Data_for_aorai.Aorai_state.Map.fold treat_one_state current_state []
 
 (* force that we have a crossable transition for each state in which the
    automaton might be at current event. *)
@@ -1202,29 +1205,29 @@ let force_transition loc f st current_state =
   let (states, _ as auto) = Data_for_aorai.getAutomata () in
   (* We iterate aux on all the states, to get
      - the predicate indicating in which states the automaton cannot possibly
-     be before the transition (because we can't fire a transition from there).
+       be before the transition (because we can't fire a transition from there).
      - the predicate indicating in which states the automaton might be, outside
-     of the reject state
+       of the reject state
      - a list of predicate indicating for each possible state which condition
-     must hold to have at least one possible transition.
-   *)
+       must hold to have at least one possible transition.
+  *)
   let aux (impossible_states,possible_states,has_crossable_trans) state =
     let reachable_trans = get_reachable_trans state st auto current_state in
     (* we inspect each transition originating from state, and maintain the
        following information:
        - a typed condition indicating under which condition a transition
-       can be crossed from the current state
+         can be crossed from the current state
        - a flag indicating whether a transition that
-       does not lead to a reject state can be crossed.
-     *)
+         does not lead to a reject state can be crossed.
+    *)
     let add_one_trans (has_crossable_trans, crossable_non_reject) trans =
       let has_crossable_trans =
         Logic_simplification.tor has_crossable_trans (fst trans.cross)
       in
-      let crossable_non_reject = 
+      let crossable_non_reject =
         crossable_non_reject ||
-          (isCrossable trans f st 
-           && not (Data_for_aorai.is_reject_state trans.stop))
+        (isCrossable trans f st
+         && not (Data_for_aorai.is_reject_state trans.stop))
       in has_crossable_trans, crossable_non_reject
     in
     let cond, crossable_non_reject =
@@ -1251,13 +1254,13 @@ let force_transition loc f st current_state =
       let possible_states =
         (* reject_state must not be the only possible state *)
         match st with
-          | Promelaast.Return ->
-            if Data_for_aorai.is_reject_state state then possible_states
-            else  Logic_const.por ~loc (possible_states,start)
-          | Promelaast.Call ->
-            if crossable_non_reject then
-              Logic_const.por ~loc (possible_states, start)
-            else possible_states
+        | Promelaast.Return ->
+          if Data_for_aorai.is_reject_state state then possible_states
+          else  Logic_const.por ~loc (possible_states,start)
+        | Promelaast.Call ->
+          if crossable_non_reject then
+            Logic_const.por ~loc (possible_states, start)
+          else possible_states
       in
       impossible_states, possible_states, has_crossable_trans
     end
@@ -1269,7 +1272,7 @@ let force_transition loc f st current_state =
     if Aorai_option.Deterministic.get() then
       possible_states (* We're always in exactly one state, among the possible
                          ones, no need to list the impossible ones.
-                       *)
+                      *)
     else (* requires that the cells for impossible states be '0' *)
       Logic_const.pand ~loc (possible_states, impossible_states)
   in
@@ -1277,7 +1280,7 @@ let force_transition loc f st current_state =
 
 let partition_action trans =
   let add_state t st map =
-    let old = 
+    let old =
       try Cil_datatype.Term_lval.Map.find t map
       with Not_found -> Data_for_aorai.Aorai_state.Set.empty
     in
@@ -1286,11 +1289,11 @@ let partition_action trans =
   in
   let treat_one_action st acc =
     function
-      | Counter_init t | Counter_incr t | Copy_value (t,_) -> add_state t st acc
-      | Pebble_init _ | Pebble_move _ -> acc (* moving pebbles can occur at
-                                                the same time (but not for
-                                                same pebbles)
-                                              *)
+    | Counter_init t | Counter_incr t | Copy_value (t,_) -> add_state t st acc
+    | Pebble_init _ | Pebble_move _ -> acc (* moving pebbles can occur at
+                                              the same time (but not for
+                                              same pebbles)
+                                           *)
   in
   let treat_one_trans acc tr =
     List.fold_left (treat_one_action tr.start) acc (snd tr.cross)
@@ -1303,21 +1306,21 @@ let disjoint_states loc _ states precond =
   let states = Data_for_aorai.Aorai_state.Set.elements states in
   let rec product acc l =
     match l with
-      | [] -> acc
-      | hd::tl ->
-        let pairs = List.map (fun x -> (hd,x)) tl in
-        product (pairs @ acc) tl
+    | [] -> acc
+    | hd::tl ->
+      let pairs = List.map (fun x -> (hd,x)) tl in
+      product (pairs @ acc) tl
   in
   let disjoint = product [] states in
   List.fold_left
     (fun acc (st1, st2) ->
-      Logic_const.new_predicate
-        (Logic_const.por ~loc 
-           (is_out_of_state_pred st1,is_out_of_state_pred st2)) :: acc)
+       Logic_const.new_predicate
+         (Logic_const.por ~loc
+            (is_out_of_state_pred st1,is_out_of_state_pred st2)) :: acc)
     precond
     disjoint
 
-(* 
+(*
 forces that parent states of a state with action are mutually exclusive,
 at least at pebble level.
 *)
@@ -1331,8 +1334,8 @@ let incompatible_states loc st current_state =
   List.fold_left aux [] states
 
 let auto_func_preconditions loc f st current_state =
-  force_transition loc f st current_state @ 
-    incompatible_states loc st current_state
+  force_transition loc f st current_state @
+  incompatible_states loc st current_state
 
 
 let find_pebble_origin lab actions =
@@ -1381,79 +1384,79 @@ let pebble_post ~loc pebble_set aux_var guard =
 *)
 let add_behavior_pebble_actions ~loc f st behaviors state trans =
   match state.multi_state with
-    | None -> behaviors
-    | Some (set,aux) ->
-      let name = Printf.sprintf "pebble_%s" state.name in
-      let assumes =
-        List.fold_left
-          (fun acc b ->
-            let assumes = List.map pred_of_id_pred b.b_assumes in
-            Logic_const.por ~loc (acc, Logic_const.pands assumes))
-          pfalse behaviors
-      in
-      let assumes = [ Logic_const.new_predicate assumes ] in
-      let set = Data_for_aorai.pebble_set_at set Logic_const.here_label in
-      let treat_action guard res action =
-        match action with
-          | Copy_value _ | Counter_incr _ | Counter_init _ -> res
-          | Pebble_init (_,_,v) ->
-            let a = Cil_const.make_logic_var_quant aux.lv_name aux.lv_type in
-            let guard = rename_pred aux a guard in
-            let guard =
-              Logic_const.pand ~loc
-                (Logic_const.prel
-                   ~loc (Req,Logic_const.tvar a,Logic_const.tvar v),
-                 guard)
-            in
-            Logic_const.term ~loc
-              (Tcomprehension (Logic_const.tvar a,[a], Some guard))
-              set.term_type
-            :: res
-          | Pebble_move(_,_,s1,_) ->
-            let a = Cil_const.make_logic_var_quant aux.lv_name aux.lv_type in
-            let guard = rename_pred aux a guard in
-            let in_s =
-              mk_sub ~loc
-                (Data_for_aorai.pebble_set_at s1 Logic_const.pre_label) a
-            in
-            let guard = Logic_const.pand ~loc (in_s,guard) in
-            Logic_const.term ~loc
-              (Tcomprehension (Logic_const.tvar a,[a], Some guard))
-              set.term_type
-            :: res
-      in
-      let treat_one_trans acc tr =
-        let guard = crosscond_to_pred (fst tr.cross) f st in
-        let guard = Logic_const.pold guard in
-        List.fold_left (treat_action guard) acc (snd tr.cross)
-      in
-      let res = List.fold_left treat_one_trans [] trans in
-      let res = Logic_const.term (Tunion res) set.term_type in
-      let post_cond =
-        [ Normal, Logic_const.new_predicate (Logic_const.prel (Req,set,res))]
-      in
-      Cil.mk_behavior ~name ~assumes ~post_cond () :: behaviors
+  | None -> behaviors
+  | Some (set,aux) ->
+    let name = Printf.sprintf "pebble_%s" state.name in
+    let assumes =
+      List.fold_left
+        (fun acc b ->
+           let assumes = List.map pred_of_id_pred b.b_assumes in
+           Logic_const.por ~loc (acc, Logic_const.pands assumes))
+        pfalse behaviors
+    in
+    let assumes = [ Logic_const.new_predicate assumes ] in
+    let set = Data_for_aorai.pebble_set_at set Logic_const.here_label in
+    let treat_action guard res action =
+      match action with
+      | Copy_value _ | Counter_incr _ | Counter_init _ -> res
+      | Pebble_init (_,_,v) ->
+        let a = Cil_const.make_logic_var_quant aux.lv_name aux.lv_type in
+        let guard = rename_pred aux a guard in
+        let guard =
+          Logic_const.pand ~loc
+            (Logic_const.prel
+               ~loc (Req,Logic_const.tvar a,Logic_const.tvar v),
+             guard)
+        in
+        Logic_const.term ~loc
+          (Tcomprehension (Logic_const.tvar a,[a], Some guard))
+          set.term_type
+        :: res
+      | Pebble_move(_,_,s1,_) ->
+        let a = Cil_const.make_logic_var_quant aux.lv_name aux.lv_type in
+        let guard = rename_pred aux a guard in
+        let in_s =
+          mk_sub ~loc
+            (Data_for_aorai.pebble_set_at s1 Logic_const.pre_label) a
+        in
+        let guard = Logic_const.pand ~loc (in_s,guard) in
+        Logic_const.term ~loc
+          (Tcomprehension (Logic_const.tvar a,[a], Some guard))
+          set.term_type
+        :: res
+    in
+    let treat_one_trans acc tr =
+      let guard = crosscond_to_pred (fst tr.cross) f st in
+      let guard = Logic_const.pold guard in
+      List.fold_left (treat_action guard) acc (snd tr.cross)
+    in
+    let res = List.fold_left treat_one_trans [] trans in
+    let res = Logic_const.term (Tunion res) set.term_type in
+    let post_cond =
+      [ Normal, Logic_const.new_predicate (Logic_const.prel (Req,set,res))]
+    in
+    Cil.mk_behavior ~name ~assumes ~post_cond () :: behaviors
 
 let mk_action ~loc a =
   let term_lval lv =
     Logic_const.term ~loc (TLval lv) (Cil.typeOfTermLval lv)
   in
   match a with
-    | Counter_init lv ->
-      [Logic_const.prel ~loc
-          (Req, term_lval lv, Logic_const.tinteger ~loc 1)]
-    | Counter_incr lv ->
-      [Logic_const.prel ~loc
-          (Req, term_lval lv,
-           Logic_const.term ~loc
-             (TBinOp (PlusA,
-                      Logic_const.told ~loc (term_lval lv),
-                      Logic_const.tinteger ~loc 1))
-             (Cil.typeOfTermLval lv))]
-    | Pebble_init _ | Pebble_move _ -> [] (* Treated elsewhere *)
-    | Copy_value (lv,t) ->
-      [Logic_const.prel ~loc
-          (Req, term_lval lv, Logic_const.told t)]
+  | Counter_init lv ->
+    [Logic_const.prel ~loc
+       (Req, term_lval lv, Logic_const.tinteger ~loc 1)]
+  | Counter_incr lv ->
+    [Logic_const.prel ~loc
+       (Req, term_lval lv,
+        Logic_const.term ~loc
+          (TBinOp (PlusA,
+                   Logic_const.told ~loc (term_lval lv),
+                   Logic_const.tinteger ~loc 1))
+          (Cil.typeOfTermLval lv))]
+  | Pebble_init _ | Pebble_move _ -> [] (* Treated elsewhere *)
+  | Copy_value (lv,t) ->
+    [Logic_const.prel ~loc
+       (Req, term_lval lv, Logic_const.told t)]
 
 let is_reachable state status =
   let treat_one_state _ map = Data_for_aorai.Aorai_state.Map.mem state map in
@@ -1461,21 +1464,21 @@ let is_reachable state status =
 
 let concat_assigns a1 a2 =
   match a1,a2 with
-    | WritesAny, _ -> a2
-    | _, WritesAny -> a1
-    | Writes l1, Writes l2 ->
-      Writes
-        (List.fold_left
-           (fun acc (loc,_ as elt) ->
-             if List.exists
-               (fun (x,_) ->
-                 Cil_datatype.Term.equal x.it_content loc.it_content)
-               l2
-             then
-               acc
-             else
-               elt :: acc)
-           l2 l1)
+  | WritesAny, _ -> a2
+  | _, WritesAny -> a1
+  | Writes l1, Writes l2 ->
+    Writes
+      (List.fold_left
+         (fun acc (loc,_ as elt) ->
+            if List.exists
+                (fun (x,_) ->
+                   Cil_datatype.Term.equal x.it_content loc.it_content)
+                l2
+            then
+              acc
+            else
+              elt :: acc)
+         l2 l1)
 
 let get_accessible_transitions auto state status =
   let treat_one_state curr_state (_,last,_) acc =
@@ -1487,7 +1490,7 @@ let get_accessible_transitions auto state status =
     Data_for_aorai.Aorai_state.Map.fold treat_one_state map acc
   in
   let previous_set =
-    Data_for_aorai.Aorai_state.Map.fold 
+    Data_for_aorai.Aorai_state.Map.fold
       treat_start_state status Data_for_aorai.Aorai_state.Set.empty
   in
   Data_for_aorai.Aorai_state.Set.fold
@@ -1495,7 +1498,7 @@ let get_accessible_transitions auto state status =
 
 (* Assumes that we don't have a multi-state here.
    pebbles are handled elsewhere
- *)
+*)
 let mk_unchanged_aux_vars trans =
   let my_aux_vars = Cil_datatype.Term_lval.Set.empty in
   let add_one_action acc = function
@@ -1503,7 +1506,7 @@ let mk_unchanged_aux_vars trans =
       Cil_datatype.Term_lval.Set.add lv acc
     | Pebble_init _ | Pebble_move _ -> acc
   in
-  let add_one_trans acc tr = 
+  let add_one_trans acc tr =
     let (_,actions) = tr.cross in
     List.fold_left add_one_action acc actions
   in
@@ -1522,103 +1525,103 @@ let mk_behavior ~loc auto kf e status state =
   if is_reachable state status then begin
     Aorai_option.debug "state %s is reachable" state.Promelaast.name;
     let my_trans = get_accessible_transitions auto state status in
-    let rec treat_trans 
+    let rec treat_trans
         ((in_assumes, out_assumes, assigns, action_bhvs) as acc) l =
       match l with
-        | [] -> acc
-        | trans :: tl ->
-            let consider, others =
-              List.partition (fun x -> x.start.nums = trans.start.nums) tl 
+      | [] -> acc
+      | trans :: tl ->
+        let consider, others =
+          List.partition (fun x -> x.start.nums = trans.start.nums) tl
 
-            in
-            let start = is_state_pred trans.start in
-            let not_start = is_out_of_state_pred trans.start in
-            let in_guard, out_guard, assigns, my_action_bhvs =
-              List.fold_left
-                (fun (in_guard, out_guard, all_assigns, action_bhvs) trans ->
-                  Aorai_option.debug "examining transition %d" trans.numt;
-                  let (cond,actions) = trans.cross in
-                  Aorai_option.debug "transition %d is active" trans.numt;
-                  let guard = crosscond_to_pred cond kf e in
-                  let my_in_guard,my_out_guard =
-                    match state.multi_state with
-                      | None -> guard, Logic_const.pnot ~loc guard
-                      | Some (_,aux) ->
-                        let set =
-                          find_pebble_origin Logic_const.here_label actions
-                        in
-                        pebble_guard ~loc set aux guard,
-                        pebble_guard_neg ~loc set aux guard
-                  in
-                  let out_guard =
-                    Logic_const.pand ~loc (out_guard, my_out_guard)
-                  in
-                  let in_guard, all_assigns, action_bhvs =
-                    match actions with
-                      | [] ->
-                        (Logic_const.por ~loc (in_guard,my_in_guard),
-                         all_assigns,
-                         action_bhvs)
-                      | _ ->
-                        let name =
-                          Printf.sprintf "buch_state_%s_in_%d"
-                            state.name (List.length action_bhvs)
-                        in
-                        Aorai_option.debug "Name is %s" name;
-                        let assumes = [
-                          Logic_const.new_predicate
-                            (Logic_const.pand ~loc (start,my_in_guard))
-                        ]
-                        in
-                        let post_cond =
-                          Normal,
-                          Logic_const.new_predicate (is_state_pred state)
-                        in
-                        let treat_one_action acc a =
-                          let posts = mk_action ~loc a in
-                          match state.multi_state  with
-                            | None ->
-                              acc @
-                                List.map
-                                (fun x ->
-                                  (Normal, Logic_const.new_predicate x))
-                                posts
-                            | Some (_,aux) ->
-                              let set =
-                                find_pebble_origin
-                                  Logic_const.pre_label actions
-                              in
-                              acc @
-                                List.map
-                                (fun x ->
-                                  (Normal,
-                                   Logic_const.new_predicate
-                                     (pebble_post ~loc set aux x)))
-                                posts
-                        in
-                        let post_cond =
-                          List.fold_left treat_one_action [post_cond] actions
-                        in
-                        let assigns = action_assigns trans in
-                        let all_assigns = concat_assigns assigns all_assigns in
-                        let bhv =
-                          Cil.mk_behavior ~name ~assumes ~post_cond ()
-                        in
-                        in_guard, all_assigns, bhv :: action_bhvs
-                  in
-                  in_guard, out_guard, all_assigns, action_bhvs)
-                (pfalse,ptrue,assigns, action_bhvs) (trans::consider)
-            in
-            treat_trans
-              (Logic_const.por ~loc
-                 (in_assumes, (Logic_const.pand ~loc (start, in_guard))),
-               Logic_const.pand ~loc
-                 (out_assumes,
-                  (Logic_const.por ~loc (not_start, out_guard))),
-               assigns,
-               my_action_bhvs
-              )
-              others
+        in
+        let start = is_state_pred trans.start in
+        let not_start = is_out_of_state_pred trans.start in
+        let in_guard, out_guard, assigns, my_action_bhvs =
+          List.fold_left
+            (fun (in_guard, out_guard, all_assigns, action_bhvs) trans ->
+               Aorai_option.debug "examining transition %d" trans.numt;
+               let (cond,actions) = trans.cross in
+               Aorai_option.debug "transition %d is active" trans.numt;
+               let guard = crosscond_to_pred cond kf e in
+               let my_in_guard,my_out_guard =
+                 match state.multi_state with
+                 | None -> guard, Logic_const.pnot ~loc guard
+                 | Some (_,aux) ->
+                   let set =
+                     find_pebble_origin Logic_const.here_label actions
+                   in
+                   pebble_guard ~loc set aux guard,
+                   pebble_guard_neg ~loc set aux guard
+               in
+               let out_guard =
+                 Logic_const.pand ~loc (out_guard, my_out_guard)
+               in
+               let in_guard, all_assigns, action_bhvs =
+                 match actions with
+                 | [] ->
+                   (Logic_const.por ~loc (in_guard,my_in_guard),
+                    all_assigns,
+                    action_bhvs)
+                 | _ ->
+                   let name =
+                     Printf.sprintf "buch_state_%s_in_%d"
+                       state.name (List.length action_bhvs)
+                   in
+                   Aorai_option.debug "Name is %s" name;
+                   let assumes = [
+                     Logic_const.new_predicate
+                       (Logic_const.pand ~loc (start,my_in_guard))
+                   ]
+                   in
+                   let post_cond =
+                     Normal,
+                     Logic_const.new_predicate (is_state_pred state)
+                   in
+                   let treat_one_action acc a =
+                     let posts = mk_action ~loc a in
+                     match state.multi_state  with
+                     | None ->
+                       acc @
+                       List.map
+                         (fun x ->
+                            (Normal, Logic_const.new_predicate x))
+                         posts
+                     | Some (_,aux) ->
+                       let set =
+                         find_pebble_origin
+                           Logic_const.pre_label actions
+                       in
+                       acc @
+                       List.map
+                         (fun x ->
+                            (Normal,
+                             Logic_const.new_predicate
+                               (pebble_post ~loc set aux x)))
+                         posts
+                   in
+                   let post_cond =
+                     List.fold_left treat_one_action [post_cond] actions
+                   in
+                   let assigns = action_assigns trans in
+                   let all_assigns = concat_assigns assigns all_assigns in
+                   let bhv =
+                     Cil.mk_behavior ~name ~assumes ~post_cond ()
+                   in
+                   in_guard, all_assigns, bhv :: action_bhvs
+               in
+               in_guard, out_guard, all_assigns, action_bhvs)
+            (pfalse,ptrue,assigns, action_bhvs) (trans::consider)
+        in
+        treat_trans
+          (Logic_const.por ~loc
+             (in_assumes, (Logic_const.pand ~loc (start, in_guard))),
+           Logic_const.pand ~loc
+             (out_assumes,
+              (Logic_const.por ~loc (not_start, out_guard))),
+           assigns,
+           my_action_bhvs
+          )
+          others
     in
     let my_trans = List.filter (fun x -> isCrossable x kf e) my_trans in
     let in_assumes, out_assumes, assigns, action_behaviors =
@@ -1632,7 +1635,7 @@ let mk_behavior ~loc auto kf e status state =
             ~name:(Printf.sprintf "buch_state_%s_in" state.Promelaast.name)
             ~assumes:[Logic_const.new_predicate in_assumes]
             ~post_cond:
-            [Normal, Logic_const.new_predicate (is_state_pred state)]
+              [Normal, Logic_const.new_predicate (is_state_pred state)]
             ()
         in behavior_in :: action_behaviors
       end
@@ -1645,16 +1648,16 @@ let mk_behavior ~loc auto kf e status state =
       else begin
         let post_cond =
           match state.multi_state with
-            | None -> mk_unchanged_aux_vars my_trans
-            | Some (set,_) ->
-              let set =
-                Data_for_aorai.pebble_set_at set Logic_const.here_label
-              in
-              [Normal,
-               Logic_const.new_predicate
-                 (Logic_const.prel ~loc
-                    (Req,set,
-                     Logic_const.term ~loc Tempty_set set.term_type))]
+          | None -> mk_unchanged_aux_vars my_trans
+          | Some (set,_) ->
+            let set =
+              Data_for_aorai.pebble_set_at set Logic_const.here_label
+            in
+            [Normal,
+             Logic_const.new_predicate
+               (Logic_const.prel ~loc
+                  (Req,set,
+                   Logic_const.term ~loc Tempty_set set.term_type))]
         in
         let post_cond =
           (Normal, (Logic_const.new_predicate (is_out_of_state_pred state)))
@@ -1675,15 +1678,15 @@ let mk_behavior ~loc auto kf e status state =
     let name = Printf.sprintf "buch_state_%s_out" state.Promelaast.name in
     let post_cond =
       match state.multi_state with
-        | None -> []
-        | Some (set,_) ->
-          let set =
-            Data_for_aorai.pebble_set_at set Logic_const.here_label
-          in [Normal,
-              Logic_const.new_predicate
-                (Logic_const.prel ~loc
-                   (Req,set,
-                    Logic_const.term ~loc Tempty_set set.term_type))]
+      | None -> []
+      | Some (set,_) ->
+        let set =
+          Data_for_aorai.pebble_set_at set Logic_const.here_label
+        in [Normal,
+            Logic_const.new_predicate
+              (Logic_const.prel ~loc
+                 (Req,set,
+                  Logic_const.term ~loc Tempty_set set.term_type))]
     in
     let post_cond =
       (Normal, Logic_const.new_predicate (is_out_of_state_pred state))
@@ -1695,16 +1698,16 @@ let mk_behavior ~loc auto kf e status state =
 let auto_func_behaviors loc f st state =
   let call_or_ret =
     match st with
-      | Promelaast.Call -> "call"
-      | Promelaast.Return -> "return"
+    | Promelaast.Call -> "call"
+    | Promelaast.Return -> "return"
   in
   Aorai_option.debug
     "func behavior for %a (%s)" Kernel_function.pretty f call_or_ret;
   let (states, _) as auto = Data_for_aorai.getAutomata() in
-    (* requires is not needed for pre_func, as it is enforced by the
-       requires of the original C function itself (and the call to pre_func
-       by definition the first instruction of the function).
-     *)
+  (* requires is not needed for pre_func, as it is enforced by the
+     requires of the original C function itself (and the call to pre_func
+     by definition the first instruction of the function).
+  *)
   let post_cond =
     let called_pre =
       Logic_const.new_predicate
@@ -1725,11 +1728,11 @@ let auto_func_behaviors loc f st state =
               (Data_for_aorai.get_logic_var Data_for_aorai.curOp),
             (Logic_const.term
                (TConst((constant_to_lconstant
-                          (Data_for_aorai.func_to_cenum 
+                          (Data_for_aorai.func_to_cenum
                              (Kernel_function.get_name f)))))
-                  (Ctype Cil.intType))))
+               (Ctype Cil.intType))))
     in
-      (* let old_pred = Aorai_utils.mk_old_state_pred loc in *)
+    (* let old_pred = Aorai_utils.mk_old_state_pred loc in *)
     [(Normal, called_pre); (Normal, called_pre_2)]
   in
   let requires =
@@ -1750,30 +1753,31 @@ let auto_func_behaviors loc f st state =
   global_behavior :: (List.rev behaviors)
 
 
-let act_convert loc (_,act) res = 
-  let treat_one_act = 
-  function
-  | Counter_init t_lval -> 
-    Cil.mkStmtOneInstr (Set (tlval_to_lval t_lval res, Cil.one loc, loc))
-  | Counter_incr t_lval -> 
-    let my_lval = tlval_to_lval t_lval res in
-    Cil.mkStmtOneInstr
-      (Set 
-         (my_lval,
-          (Cil.mkBinOp
-             loc
-             PlusA
-             (Cil.new_exp loc (Lval my_lval))
-             (Cil.one loc)), 
-          loc))
-  | Copy_value (t_lval, t) -> 
-    Cil.mkStmtOneInstr
-      (Set (tlval_to_lval t_lval res, term_to_exp t res, loc))
-  | _ ->
-    Aorai_option.fatal "Peebles not treated yet." (* TODO : Treat peebles. *)
+let act_convert loc (_,act) res =
+  let treat_one_act =
+    function
+    | Counter_init t_lval ->
+      Cil.mkStmtOneInstr
+        ~ghost:true (Set (tlval_to_lval t_lval res, Cil.one loc, loc))
+    | Counter_incr t_lval ->
+      let my_lval = tlval_to_lval t_lval res in
+      Cil.mkStmtOneInstr ~ghost:true
+        (Set
+           (my_lval,
+            (Cil.mkBinOp
+               loc
+               PlusA
+               (Cil.new_exp loc (Lval my_lval))
+               (Cil.one loc)),
+            loc))
+    | Copy_value (t_lval, t) ->
+      Cil.mkStmtOneInstr ~ghost:true
+        (Set (tlval_to_lval t_lval res, term_to_exp t res, loc))
+    | _ ->
+      Aorai_option.fatal "Peebles not treated yet." (* TODO : Treat peebles. *)
   in
   List.map treat_one_act act
- 
+
 let copy_stmt s =
   let vis = new Visitor.frama_c_refresh (Project.current()) in
   Visitor.visitFramacStmt vis s
@@ -1784,32 +1788,32 @@ let copy_stmt s =
    If state is reachable, generates a "If then else" statement, else it is
    just an assignment.
    Used in auto_func_block. *)
-let mk_stmt loc (states, tr) f fst status ((st,_) as state) res = 
+let mk_stmt loc (states, tr) f fst status ((st,_) as state) res =
   if is_reachable st status then begin
     let useful_trans =  get_accessible_transitions (states,tr) st status in
-    let exp_from_trans,stmt_from_action = 
+    let exp_from_trans,stmt_from_action =
       List.split
         (List.map
-           (function trans ->  
-             (Cil.mkBinOp 
-                loc 
-                LAnd 
-                (is_state_exp trans.start loc) 
-                (crosscond_to_exp f fst loc trans.cross res)),
-             (act_convert loc trans.cross res)
-           )     
+           (function trans ->
+              (Cil.mkBinOp
+                 loc
+                 LAnd
+                 (is_state_exp trans.start loc)
+                 (crosscond_to_exp f fst loc trans.cross res)),
+              (act_convert loc trans.cross res)
+           )
            useful_trans
         )
     in
     let mkIfStmt exp1 block1 block2 =
-      Cil.mkStmt (If (exp1, block1, block2, loc))
+      Cil.mkStmt ~ghost:true (If (exp1, block1, block2, loc))
     in
     let if_cond =
-      List.fold_left 
-        (fun acc exp -> Cil.mkBinOp loc LOr exp acc) 
+      List.fold_left
+        (fun acc exp -> Cil.mkBinOp loc LOr exp acc)
         (List.hd exp_from_trans)
         (List.tl exp_from_trans)
-    in  
+    in
     let then_stmt = is_state_stmt state loc in
     let else_stmt =
       if Aorai_option.Deterministic.get () then []
@@ -1818,7 +1822,7 @@ let mk_stmt loc (states, tr) f fst status ((st,_) as state) res =
     if Aorai_option.Deterministic.get () then
       List.fold_left2
         (fun acc cond stmt_act ->
-           [mkIfStmt cond 
+           [mkIfStmt cond
               (mkBlock (copy_stmt then_stmt :: stmt_act)) (mkBlock acc)])
         else_stmt
         (List.rev exp_from_trans)
@@ -1846,9 +1850,9 @@ let auto_func_block loc f st status res =
   Aorai_option.debug
     ~dkey "func code for %a (%s)" Kernel_function.pretty f call_or_ret;
   let (states, _) as auto = Data_for_aorai.getAutomata() in
-  
+
   (* For the following tests, we need a copy of every state. *)
-  
+
   let copies, local_var =
     if Aorai_option.Deterministic.get () then begin
       let orig = Data_for_aorai.get_varinfo curState in
@@ -1865,17 +1869,16 @@ let auto_func_block loc f st status res =
     end
   in
   let equalsStmt lval exp = (* assignment *)
-    Cil.mkStmtOneInstr ( Set ( lval , exp , loc) )
-
+    Cil.mkStmtOneInstr ~ghost:true (Set (lval, exp, loc))
   in
-  let stmt_begin_list = 
+  let stmt_begin_list =
 
-    [ 
-      (* First statement : what is the current status : called or return ? *) 
-      equalsStmt 
+    [
+      (* First statement : what is the current status : called or return ? *)
+      equalsStmt
         (Cil.var (Data_for_aorai.get_varinfo Data_for_aorai.curOpStatus)) (* current status... *)
         (Cil.new_exp loc (Const (Data_for_aorai.op_status_to_cenum st))); (* ... equals to what it is *)
-      
+
       (* Second statement : what is the current operation, i.e. which function ?  *)
       equalsStmt
         (Cil.var (Data_for_aorai.get_varinfo Data_for_aorai.curOp)) (* current operation ... *)
@@ -1883,7 +1886,7 @@ let auto_func_block loc f st status res =
     ]
 
   in
-  
+
   (* As we work on copies, they need to be set to their actual values *)
 
   let copies_update =
@@ -1898,12 +1901,12 @@ let auto_func_block loc f st status res =
         copies
   in
   (* For each state, we have to generate the statement that will update its copy. *)
-  let main_stmt = 
+  let main_stmt =
 
-      List.fold_left 
-        (fun acc state -> (mk_stmt loc auto f st status state res)@acc )
-        []
-        copies
+    List.fold_left
+      (fun acc state -> (mk_stmt loc auto f st status state res)@acc )
+      []
+      copies
 
   in
 
@@ -1920,7 +1923,7 @@ let auto_func_block loc f st status res =
              (Cil.evar ~loc copy))
         copies
   in
-  let ret = [ Cil.mkStmt (Cil_types.Return(None,loc)) ] in
+  let ret = [ Cil.mkStmt ~ghost:true (Cil_types.Return(None,loc)) ] in
   let res_block =
     (Cil.mkBlock
        ( stmt_begin_list @ copies_update @ main_stmt @ stvar_update @ ret))
@@ -1929,12 +1932,12 @@ let auto_func_block loc f st status res =
   Aorai_option.debug ~dkey "Generated body is:@\n%a"
     Printer.pp_block res_block;
   res_block,local_var
-  
+
 let get_preds_wrt_params_reachable_states state f status =
   let auto = Data_for_aorai.getAutomata () in
   let treat_one_trans acc tr = Logic_simplification.tor acc (fst tr.cross) in
-  let find_trans state prev tr = 
-    Path_analysis.get_edges prev state auto @ tr 
+  let find_trans state prev tr =
+    Path_analysis.get_edges prev state auto @ tr
   in
   let treat_one_state state (_,last,_) acc =
     let my_trans =
@@ -1951,7 +1954,7 @@ let get_preds_wrt_params_reachable_states state f status =
 let get_preds_wrt_params_reachable_states state f status =
   let merge_reachable_state _  = Data_for_aorai.merge_end_state in
   let reachable_states =
-    Data_for_aorai.Aorai_state.Map.fold 
+    Data_for_aorai.Aorai_state.Map.fold
       merge_reachable_state state Data_for_aorai.Aorai_state.Map.empty
   in
   get_preds_wrt_params_reachable_states reachable_states f status
@@ -1968,22 +1971,22 @@ let treat_val loc base range pred =
   let add term =
     if Cil.isLogicZero base then term
     else Logic_const.term
-      (TBinOp (PlusA, Logic_const.tat (base,Logic_const.pre_label), term))
-      Linteger
+        (TBinOp (PlusA, Logic_const.tat (base,Logic_const.pre_label), term))
+        Linteger
   in
   let add_cst i = add (Logic_const.tinteger i) in
   let res =
     match range with
-      | Fixed i -> Logic_const.prel (Req,loc, add_cst i)
-      | Interval(min,max) ->
-        let min = Logic_const.prel (Rle, add_cst min, loc) in
-        let max = Logic_const.prel (Rle, loc, add_cst max) in
-        Logic_const.pand (min,max)
-      | Bounded (min,max) ->
-        let min = Logic_const.prel (Rle, add_cst min, loc) in
-        let max = Logic_const.prel (Rle, loc, add max) in
-        Logic_const.pand (min,max)
-      | Unbounded min -> Logic_const.prel (Rle, add_cst min, loc)
+    | Fixed i -> Logic_const.prel (Req,loc, add_cst i)
+    | Interval(min,max) ->
+      let min = Logic_const.prel (Rle, add_cst min, loc) in
+      let max = Logic_const.prel (Rle, loc, add_cst max) in
+      Logic_const.pand (min,max)
+    | Bounded (min,max) ->
+      let min = Logic_const.prel (Rle, add_cst min, loc) in
+      let max = Logic_const.prel (Rle, loc, add max) in
+      Logic_const.pand (min,max)
+    | Unbounded min -> Logic_const.prel (Rle, add_cst min, loc)
   in
   Aorai_option.debug ~dkey:action_dkey "Action predicate: %a"
     Printer.pp_predicate res;
@@ -2012,13 +2015,13 @@ let update_to_pred ~start ~pre_state ~post_state location bindings =
   in
   let pred =
     match post_state.multi_state with
-      | None -> intv
-      | Some(set,aux) ->
-        (* [VP 2011-09-05] In fact, not all the pebble come from the considered
-           pre-state. Will this lead to too strong post-conditions?
-         *)
-        let set = Data_for_aorai.pebble_set_at set Logic_const.here_label in
-        pebble_post ~loc set aux intv
+    | None -> intv
+    | Some(set,aux) ->
+      (* [VP 2011-09-05] In fact, not all the pebble come from the considered
+         pre-state. Will this lead to too strong post-conditions?
+      *)
+      let set = Data_for_aorai.pebble_set_at set Logic_const.here_label in
+      pebble_post ~loc set aux intv
   in
   let guard =
     Logic_const.pand ~loc

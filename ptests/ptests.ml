@@ -291,8 +291,8 @@ let rec argspec =
   " Start the tests in Frama-C's gui.";
   "-update", Arg.Unit (fun () -> behavior := Update) ,
   " Take the current logs as oracles.";
-  "-show", Arg.Unit (fun () -> behavior := Show; use_byte := true) ,
-  " Show the results of the tests. Sets -byte.";
+  "-show", Arg.Unit (fun () -> behavior := Show) ,
+  " Show the results of the tests.";
   "-run", Arg.Unit (fun () -> behavior := Run) ,
   " (default) Delete logs, run tests, then examine logs different from \
   oracles.";
@@ -493,8 +493,6 @@ end = struct
 
 end
 
-let macro_regex = Str.regexp "\\([^@]*\\)@\\([^@]*\\)@\\(.*\\)"
-
 type execnow =
     {
       ex_cmd: string;      (** command to launch *)
@@ -510,7 +508,77 @@ type execnow =
                                are duplicated using OCaml 'with' syntax. *)
     }
 
-module StringMap = Map.Make(String)
+
+module Macros =
+struct
+  module StringMap = Map.Make (String)
+  open StringMap
+
+  type t = string StringMap.t
+
+  let empty = StringMap.empty
+
+  let macro_regex = Str.regexp "\\([^@]*\\)@\\([^@]*\\)@\\(.*\\)"
+
+  let does_expand macros s =
+    if !verbosity >=2 then begin
+      lock_printf "looking for macros in string %s\n%!" s;
+      lock_printf "Existing macros:\n%!";
+      iter (fun s1 s2 -> lock_printf "%s => %s\n%!" s1 s2) macros;
+      lock_printf "End macros\n%!";
+    end;
+    let rec aux n (ptest_file_matched,s as acc) =
+      if Str.string_match macro_regex s n then begin
+        let macro = Str.matched_group 2 s in
+        let ptest_file_matched = ptest_file_matched || macro = "PTEST_FILE" in
+        let start = Str.matched_group 1 s in
+        let rest = Str.matched_group 3 s in
+        let new_n = Str.group_end 1 in
+        let n, new_s =
+          if macro = "" then begin
+            new_n + 1, String.sub s 0 new_n ^ "@" ^ rest
+          end else begin
+            try
+              if !verbosity >= 2 then lock_printf "macro is %s\n%!" macro;
+              let replacement =  find macro macros in
+              if !verbosity >= 1 then
+                lock_printf "replacement for %s is %s\n%!" macro replacement;
+              new_n,
+              String.sub s 0 n ^ start ^ replacement ^ rest
+            with
+            | Not_found -> Str.group_end 2 + 1, s
+          end
+        in
+        if !verbosity >= 2 then lock_printf "new string is %s\n%!" new_s;
+        let new_acc = ptest_file_matched, new_s in
+        if n <= String.length new_s then aux n new_acc else new_acc
+      end else acc
+    in
+    Mutex.lock str_mutex;
+    try
+      let res = aux 0 (false,s) in
+      Mutex.unlock str_mutex; res
+    with e ->
+      lock_eprintf "Uncaught exception %s\n%!" (Printexc.to_string e);
+      Mutex.unlock str_mutex;
+      raise e
+
+  let expand macros s =
+    snd (does_expand macros s)
+
+  let get ?(default="") name macros =
+    try find name macros with Not_found -> default
+
+  let add_list l map =
+    List.fold_left (fun acc (k,v) -> add k v acc) map l
+
+  let add_expand name def macros =
+    add name (expand macros def) macros
+
+  let append_expand name def macros =
+    add name (get name macros ^ expand macros def) macros
+end
+
 
 (** configuration of a directory/test. *)
 type config =
@@ -519,12 +587,12 @@ type config =
       dc_execnow    : execnow list; (** command to be launched before
                                          the toplevel(s)
                                      *)
-      dc_macros: string StringMap.t; (** existing macros. *)
+      dc_macros: Macros.t; (** existing macros. *)
       dc_default_toplevel   : string;
       (** full path of the default toplevel. *)
       dc_filter     : string option; (** optional filter to apply to
                               standard output *)
-      dc_toplevels    : (string * string * string list) list;
+      dc_toplevels    : (string * string * string list * Macros.t) list;
       (** toplevel full path, options to launch the toplevel on, and list
        of output files to monitor beyond stdout and stderr. *)
       dc_dont_run   : bool;
@@ -532,7 +600,11 @@ type config =
     }
 
 let default_macros () =
-  StringMap.add "frama-c" !toplevel_path StringMap.empty
+  let l = [
+    "frama-c", !toplevel_path;
+    "PTEST_MAKE_MODULE", "make -s"
+  ] in
+  Macros.add_list l Macros.empty
 
 let default_config () =
   { dc_test_regexp = test_file_regexp ;
@@ -540,7 +612,7 @@ let default_config () =
     dc_execnow = [];
     dc_filter = None ;
     dc_default_toplevel = !toplevel_path;
-    dc_toplevels = [ !toplevel_path, default_options, [] ];
+    dc_toplevels = [ !toplevel_path, default_options, [], Macros.empty ];
     dc_dont_run = false;
     dc_default_log = []
   }
@@ -570,48 +642,6 @@ let launch command_string =
         s command_string;
       exit 1
 
-let replace_macros macros s =
-  if !verbosity >=2 then begin
-    lock_printf "looking for macros in string %s\n%!" s;
-    lock_printf "Existing macros:\n%!";
-    StringMap.iter (fun s1 s2 -> lock_printf "%s => %s\n%!" s1 s2) macros;
-    lock_printf "End macros\n%!";
-  end;
-  let rec aux n (ptest_file_matched,s as acc) =
-    if Str.string_match macro_regex s n then begin
-      let macro = Str.matched_group 2 s in
-      let ptest_file_matched = ptest_file_matched || macro = "PTEST_FILE" in
-      let start = Str.matched_group 1 s in
-      let rest = Str.matched_group 3 s in
-      let new_n = Str.group_end 1 in
-      let n, new_s =
-        if macro = "" then begin
-          new_n + 1, String.sub s 0 new_n ^ "@" ^ rest
-        end else begin
-          try
-            if !verbosity >= 2 then lock_printf "macro is %s\n%!" macro;
-            let replacement =  StringMap.find macro macros in
-            if !verbosity >= 1 then
-              lock_printf "replacement for %s is %s\n%!" macro replacement;
-            new_n,
-            String.sub s 0 n ^ start ^ replacement ^ rest
-          with
-          | Not_found -> Str.group_end 2 + 1, s
-        end
-      in
-       if !verbosity >= 2 then lock_printf "new string is %s\n%!" new_s;
-      let new_acc = ptest_file_matched, new_s in
-      if n <= String.length new_s then aux n new_acc else new_acc
-    end else acc
-  in
-  Mutex.lock str_mutex;
-  try
-    let res = aux 0 (false,s) in
-    Mutex.unlock str_mutex; res
-  with e ->
-    lock_eprintf "Uncaught exception %s\n%!" (Printexc.to_string e);
-    Mutex.unlock str_mutex;
-    raise e
 
 let scan_execnow ~once dir (s:string) =
   let rec aux (s:execnow) =
@@ -644,7 +674,7 @@ let scan_execnow ~once dir (s:string) =
 (* the default toplevel for the current level of options. *)
 let current_default_toplevel = ref !toplevel_path
 let current_default_log = ref []
-let current_default_cmds = ref [!toplevel_path,default_options,[] ]
+let current_default_cmds = ref [!toplevel_path,default_options,[], Macros.empty]
 
 let make_custom_opts =
   let space = Str.regexp " " in
@@ -675,7 +705,12 @@ let make_custom_opts =
     (* preserve options ordering *)
     List.fold_right (fun x s -> s ^ " " ^ x) opts ""
 
-let add_macro s macros =
+
+(* how to process options *)
+let config_exec ~once dir s current =
+  { current with dc_execnow = scan_execnow ~once dir s :: current.dc_execnow }
+
+let config_macro _dir s current =
   let regex = Str.regexp "[ \t]*\\([^ \t@]+\\)\\([ \t]+\\(.*\\)\\|$\\)" in
   Mutex.lock str_mutex;
   if Str.string_match regex s 0 then begin
@@ -686,14 +721,20 @@ let add_macro s macros =
     Mutex.unlock str_mutex;
     if !verbosity >= 1 then
       lock_printf "new macro %s with definition %s\n%!" name def;
-    StringMap.add name (snd (replace_macros macros def)) macros
+    { current with dc_macros = Macros.add_expand name def current.dc_macros }
   end else begin
     Mutex.unlock str_mutex;
     lock_eprintf "cannot understand MACRO definition: %s\n%!" s;
-    macros
+    current
   end
 
-(* how to process options *)
+let config_module dir s current =
+  let make_cmd = "@PTEST_MAKE_MODULE@ " ^ s in
+  let make_cmd = Macros.expand current.dc_macros make_cmd in
+  let current = config_exec ~once:true dir make_cmd current in
+  let k = "PTEST_LOAD_MODULES" and v = " -load-module " ^ s in
+  { current with dc_macros = Macros.append_expand k v current.dc_macros }
+
 let config_options =
   [ "CMD",
     (fun _ s current -> 
@@ -701,7 +742,7 @@ let config_options =
 
     "OPT",
     (fun _ s current ->
-       let t = current.dc_default_toplevel, s, current.dc_default_log in
+       let t = current.dc_default_toplevel, s, current.dc_default_log, current.dc_macros in
        { current with
 (*           dc_default_toplevel = !current_default_toplevel;*)
            dc_default_log = !current_default_log;
@@ -711,7 +752,7 @@ let config_options =
     (fun _ s current ->
        let new_top =
          List.map
-           (fun (cmd,opts, log) -> cmd, make_custom_opts opts s, log)
+           (fun (cmd,opts, log, macros) -> cmd, make_custom_opts opts s, log, current.dc_macros)
            !current_default_cmds
        in
        { current with dc_toplevels = new_top @ current.dc_toplevels;
@@ -733,21 +774,14 @@ let config_options =
     "DONTRUN",
     (fun _ s current -> { current with dc_dont_run = true });
 
-    "EXECNOW",
-    (fun dir s current ->
-      let execnow = scan_execnow ~once:true dir s in
-      { current with dc_execnow = execnow::current.dc_execnow  });
-
-    "EXEC",
-    (fun dir s current ->
-      let execnow = scan_execnow ~once:false dir s in
-      { current with dc_execnow = execnow::current.dc_execnow  });
-
-    "MACRO", (fun _ s current ->
-      { current with dc_macros = add_macro s current.dc_macros });
+    "EXECNOW", config_exec ~once:true;
+    "EXEC", config_exec ~once:false;
+    "MACRO", config_macro;
+    "MODULE", config_module;
     "LOG",
     (fun _ s current ->
      { current with dc_default_log = s :: current.dc_default_log })
+
   ]
 
 let scan_options dir scan_buffer default =
@@ -825,7 +859,7 @@ let scan_test_file default dir f =
       { default with dc_dont_run = true }
 
 type toplevel_command =
-    { macros: string StringMap.t;
+    { macros: Macros.t;
       mutable log_files: string list;
       file : string ;
       nb_files : int ;
@@ -934,9 +968,7 @@ let get_macros cmd =
       "PTEST_NUMBER", string_of_int cmd.n;
     ]
   in
-  List.fold_left
-    (fun acc (macro,replace) -> StringMap.add macro replace acc)
-    cmd.macros macros
+  Macros.add_list macros cmd.macros
 
 let basic_command_string =
   let contains_toplevel_or_frama_c = 
@@ -944,22 +976,19 @@ let basic_command_string =
   in
   fun command ->
     let macros = get_macros command in
-    let logfiles =
-      List.fold_left
-        (fun acc s -> snd (replace_macros macros s) :: acc)
-        []
-        command.log_files
-    in
+    let logfiles = List.map (Macros.expand macros) command.log_files in
     command.log_files <- logfiles;
-    let has_ptest_file_t, toplevel = replace_macros macros command.toplevel in
-    let has_ptest_file_o, options = replace_macros macros command.options in
+    let has_ptest_file_t, toplevel = Macros.does_expand macros command.toplevel in
+    let has_ptest_file_o, options = Macros.does_expand macros command.options in
     let toplevel = if !use_byte then opt_to_byte toplevel else toplevel in
     let options =
       if str_string_match contains_toplevel_or_frama_c command.toplevel 0
       then begin
-        let opt_pre = snd (replace_macros macros !additional_options_pre) in
-        let opt_post = snd (replace_macros macros !additional_options) in
-        "-check " ^ opt_pre ^ " " ^ options ^ " " ^ opt_post
+        let opt_modules = Macros.expand macros
+            (Macros.get "PTEST_LOAD_MODULES" macros) in
+        let opt_pre = Macros.expand macros !additional_options_pre in
+        let opt_post = Macros.expand macros !additional_options in
+        "-check " ^ opt_modules ^ " " ^ opt_pre ^ " " ^ options ^ " " ^ opt_post
       end else options
     in
     let options = if !use_byte then opt_to_byte_options options else options in
@@ -1083,11 +1112,7 @@ let update_toplevel_command command =
     Unix.Unix_error _ -> ()
   end;
   let macros = get_macros command in
-  let log_files =
-    List.fold_left
-      (fun acc s -> snd (replace_macros macros s) :: acc)
-      []
-      command.log_files
+  let log_files = List.map (Macros.expand macros) command.log_files
   in
   List.iter (update_log_files command.directory) log_files
 
@@ -1585,17 +1610,17 @@ let dispatcher () =
       let i = ref 0 in
       let e = ref 0 in
       let nb_files = List.length config.dc_toplevels in
-      let make_toplevel_cmd (toplevel, options, log_files) =
+      let make_toplevel_cmd (toplevel, options, log_files, macros) =
         let n = !i in
         {file; options; toplevel; nb_files; directory; n; log_files;
-         filter = config.dc_filter; macros = config.dc_macros;
+         filter = config.dc_filter; macros;
          execnow=false;
         }
       in
-      let process_macros_cmd s =
-        basic_command_string
-          { file = file;
-	    nb_files = nb_files;
+      let mk_cmd s =
+          {
+            file = file;
+            nb_files = nb_files;
             log_files = [];
             options = "";
             toplevel = s;
@@ -1603,9 +1628,12 @@ let dispatcher () =
             directory = directory;
             filter = config.dc_filter;
             macros = config.dc_macros;
-            execnow = true; }
+            execnow = true;
+          }
       in
-      let process_macros s = snd (replace_macros config.dc_macros s) in
+      let process_macros_cmd s = basic_command_string (mk_cmd s) in
+      let macros = get_macros (mk_cmd "/bin/true") in
+      let process_macros s = Macros.expand macros s in
       let make_execnow_cmd execnow =
         let res =
           {

@@ -32,10 +32,13 @@ open Wpo
 let dispatch ?(config=VCS.default) mode prover wpo =
   begin
     match prover with
-    | AltErgo -> ProverErgo.prove ~config ~mode wpo
-    | Coq -> ProverCoq.prove mode wpo
-    | Why3 prover -> ProverWhy3.prove ?timeout:config.timeout ~prover wpo
     | Qed | Tactical -> Task.return VCS.no_result
+    | NativeAltErgo -> ProverErgo.prove ~config ~mode wpo
+    | NativeCoq -> ProverCoq.prove mode wpo
+    | Why3 prover -> ProverWhy3.prove
+                       ~timeout:(VCS.get_timeout config)
+                       ~steplimit:(VCS.get_stepout config)
+                       ~prover wpo
   end
 
 let started ?start wpo =

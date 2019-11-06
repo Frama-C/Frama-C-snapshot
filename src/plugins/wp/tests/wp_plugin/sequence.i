@@ -3,9 +3,9 @@
  */
 
 /* run.config_qualif
-   OPT: -wp -wp-model Caveat -wp-prover alt-ergo -wp-depth 16 -wp-prop="-ko"
-   OPT: -wp -wp-model Caveat -wp-prover why3:alt-ergo -wp-depth 16 -wp-prop="-ko,-bug_why3"
-   OPT: -wp -wp-model Caveat -wp-prover alt-ergo -wp-depth 16 -wp-prop="ko" -wp-steps 50
+   OPT: -wp -wp-model Caveat -wp-prover alt-ergo -wp-prop="-ko"
+   OPT: -wp -wp-model Caveat -wp-prover why3:alt-ergo -wp-prop="-ko,-bug_why3"
+   OPT: -wp -wp-model Caveat -wp-prover alt-ergo -wp-prop="ko" -wp-steps 50
 */
 
 //@ ghost int call_seq;

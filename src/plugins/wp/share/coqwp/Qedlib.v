@@ -213,7 +213,7 @@ Hypothesis extensionality: forall (A B : Type) (f g : A -> B),
 
 
 Definition select {A B : Type}
-  (m : farray A B) (k : A) : B := (access m k).
+  (m : farray A B) (k : A) : B := (access m) k.
 
 Lemma farray_eq : forall A B (m1 m2 : farray A B),
    whytype1 m1 = whytype1 m2 -> whytype2 m1 = whytype2 m2 ->
@@ -223,7 +223,7 @@ Proof.
   destruct m1. destruct m2. simpl.
   intros H1 H2; rewrite H1; rewrite H2 ; clear H1 H2.
   intro K.
-  rewrite (extensionality access0 access1 K).
+  rewrite (extensionality _ _ K).
   reflexivity.
 Qed.
 
@@ -239,7 +239,7 @@ Lemma access_update :
   m.[k <- v].[k] = v.
 Proof.
   intros.
-  apply Map.set_def.
+  apply (proj1 (Map.set_def (access m) k v k)).
   reflexivity.
 Qed.
 
@@ -248,7 +248,7 @@ Lemma access_update_neq :
   i <> j -> m.[ i <- v ].[j] = m.[j].
 Proof.
   intros.
-  apply Map.set_def.
+  apply (proj2 (Map.set_def (access m) i v j)).
   auto.
 Qed.
 
@@ -345,18 +345,3 @@ Proof.
   replace (d*x) with (x*d) by ring.
   omega.
 Qed.
-
-(* -------------------------------------------------------------------------- *)
-(* --- Missing Definitions                                                --- *)
-(* -------------------------------------------------------------------------- *)
-
-Variable truncate : R -> Z.
-Variable ceil : R -> Z.
-Variable floor : R -> Z.
-Variable sinh : R -> R.
-Variable cosh : R -> R.
-Variable tanh : R -> R.
-Variable atan2 : R -> R -> R.
-Variable hypot : R -> R -> R.
-
-(* -------------------------------------------------------------------------- *)

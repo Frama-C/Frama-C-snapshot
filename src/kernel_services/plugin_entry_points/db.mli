@@ -265,14 +265,15 @@ module Value : sig
   val get_initial_state : kernel_function -> state
   val get_initial_state_callstack :
     kernel_function -> state Value_types.Callstack.Hashtbl.t option
-  val get_state : kinstr -> state
-
+  val get_state : ?after:bool -> kinstr -> state
+  (** [after] is false by default. *)
 
   val get_stmt_state_callstack:
     after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t option
 
-  val get_stmt_state : stmt -> state
-  (** @plugin development guide *)
+  val get_stmt_state : ?after:bool -> stmt -> state
+  (** [after] is false by default.
+      @plugin development guide *)
 
   val fold_stmt_state_callstack :
     (state -> 'a -> 'a) -> 'a -> after:bool -> stmt -> 'a
@@ -519,9 +520,9 @@ module Value : sig
   (**/**)
   (** {3 Internal use only} *)
 
-  val noassert_get_state : kinstr -> state
+  val noassert_get_state : ?after:bool -> kinstr -> state
     (** To be used during the value analysis itself (instead of
-        {!get_state}). *)
+        {!get_state}). [after] is false by default. *)
 
   val recursive_call_occurred: kernel_function -> unit
 
@@ -1239,24 +1240,6 @@ module Pdg : sig
 
 end
 
-
-(** Interface for the unused code detection.
-    @see <../sparecode/index.html> internal documentation. *)
-module Sparecode : sig
-  val get: (select_annot:bool -> select_slice_pragma:bool -> Project.t) ref
-     (** Remove in each function what isn't used to compute its outputs,
-      *   or its annotations when [select_annot] is true,
-      *   or its slicing pragmas when [select_slice_pragmas] is true.
-      *  @return a new project where the sparecode has been removed.
-      *)
-  val rm_unused_globals : (?new_proj_name:string -> ?project:Project.t -> unit -> Project.t) ref
-    (** Remove  unused global types and variables from the given project
-      * (the current one if no project given).
-      * The source project is not modified.
-      * The result is in the returned new project.
-      * @modify Carbon-20110201 optional argument [new_proj_name] added
-      * *)
-end
 
 (** Signature common to some Inout plugin options. The results of
     the computations are available on a per function basis. *)

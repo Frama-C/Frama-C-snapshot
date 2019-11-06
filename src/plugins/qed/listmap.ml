@@ -43,6 +43,7 @@ struct
   let equal eq = Hcons.equal_list (fun (i,x) (j,y) -> K.equal i j && eq x y)
 
   let empty = []
+  let is_empty = function [] -> true | _ -> false
 
   (* used for better sharing between a list and a modified list *)
   let rev_append_until i l1 l2 =

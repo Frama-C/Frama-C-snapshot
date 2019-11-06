@@ -74,6 +74,8 @@
 
 /* POSIX */
 #define __SSIZE_T int
+/* stdio.h */
+#define __FC_L_tmpnam 1024
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_INT_MIN
 #define __FC_PTRDIFF_MAX __FC_INT_MAX

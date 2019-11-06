@@ -1,7 +1,7 @@
-/* run.config
+/* run.config_ci
    COMMENT: test option -e-acsl-instrument; cannot run Eva on this example
    LOG: gen_@PTEST_NAME@.c
-   OPT: -variadic-no-translation -machdep gcc_x86_64 -e-acsl-instrument="@@all,-uninstrument1,-uninstrument2" -e-acsl -then-last -load-script tests/print.cmxs -print -ocode tests/special/result/gen_@PTEST_NAME@.c -kernel-verbose 0
+   STDOPT:#"-e-acsl-instrument='@@all,-uninstrument1,-uninstrument2'"
 */
 
 #include <stdarg.h>

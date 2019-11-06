@@ -79,7 +79,7 @@ axiom nth_concat1 :
 axiom nth_repeat :
   (forall n:int. forall k:int. forall w:'a list [nth(repeat(w, n), k)].
   (((0 <= k) and (k <  (n * length(w)))) -> ((0 <  length(w)) ->
-  (nth(repeat(w, n), k) = nth(w, comp_mod(k,length(w)))))))
+  (nth(repeat(w, n), k) = nth(w, mod(k, length(w)))))))
 
 predicate vlist_eq(u: 'a list, v: 'a list) = ((length(u) = length(v)) and
   (forall i:int. (((0 <= i) and (i <  length(u))) -> (nth(u, i) = nth(v,

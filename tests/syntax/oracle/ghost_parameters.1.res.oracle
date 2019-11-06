@@ -1,0 +1,22 @@
+[kernel] Parsing tests/syntax/ghost_parameters.c (with preprocessing)
+[kernel] tests/syntax/ghost_parameters.c:54: User Error: 
+  Too few ghost arguments in call to function.
+[kernel] tests/syntax/ghost_parameters.c:55: User Error: 
+  Too few ghost arguments in call to function.
+[kernel] tests/syntax/ghost_parameters.c:56: User Error: 
+  Too many arguments in call to function
+[kernel] tests/syntax/ghost_parameters.c:57: User Error: 
+  Too few ghost arguments in call to function.
+[kernel] tests/syntax/ghost_parameters.c:57: User Error: 
+  Too many arguments in call to function
+[kernel] tests/syntax/ghost_parameters.c:58: User Error: 
+  Too many ghost arguments in call to function
+[kernel] tests/syntax/ghost_parameters.c:60: User Error: 
+  Too few arguments in call to function.
+[kernel] tests/syntax/ghost_parameters.c:61: User Error: 
+  Too few arguments in call to function.
+[kernel] tests/syntax/ghost_parameters.c:62: User Error: 
+  Too many arguments in call to function
+[kernel] User Error: stopping on file "tests/syntax/ghost_parameters.c" that has errors. Add
+  '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

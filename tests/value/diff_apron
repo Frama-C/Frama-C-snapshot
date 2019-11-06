@@ -670,6 +670,17 @@ diff tests/value/oracle/modulo.res.oracle tests/value/oracle_apron/modulo.res.or
 60a109,110
 > [eva] tests/value/modulo.i:64: Frama_C_show_each_3: [-10..10], [-9..9], [-8..8]
 > [eva] tests/value/modulo.i:64: Frama_C_show_each_3: [-9..9], [-8..8], [-7..7]
+diff tests/value/oracle/octagons.res.oracle tests/value/oracle_apron/octagons.res.oracle
+270,273c270,273
+<   a ∈ [-1024..2147483647]
+<   b ∈ [-1023..2147483647]
+<   c ∈ [-1023..2147483647]
+<   d ∈ [-1032..2147483647]
+---
+>   a ∈ [-603..2147483646]
+>   b ∈ [-602..2147483647]
+>   c ∈ [-602..1446]
+>   d ∈ [-611..2147483647]
 diff tests/value/oracle/offsetmap.0.res.oracle tests/value/oracle_apron/offsetmap.0.res.oracle
 62,63c62
 <   a[bits 0 to 7] ∈ {1; 6}

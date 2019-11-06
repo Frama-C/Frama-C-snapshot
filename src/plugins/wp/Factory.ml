@@ -24,7 +24,7 @@
 (* --- Model Factory                                                      --- *)
 (* -------------------------------------------------------------------------- *)
 
-type mheap = Hoare | ZeroAlias | Typed of MemTyped.pointer
+type mheap = Hoare | ZeroAlias | Region | Typed of MemTyped.pointer
 type mvar = Raw | Var | Ref | Caveat
 
 type setup = {
@@ -45,7 +45,7 @@ type driver = LogicBuiltins.driver
 let main (i,t) name =
   begin
     Buffer.add_string i name ;
-    Buffer.add_string t (Transitioning.String.capitalize_ascii name) ;
+    Buffer.add_string t (String.capitalize_ascii name) ;
   end
 
 let add (i,t) part =
@@ -54,7 +54,7 @@ let add (i,t) part =
     Buffer.add_string i part ;
     Buffer.add_char t ' ' ;
     Buffer.add_char t '(' ;
-    Buffer.add_string t (Transitioning.String.capitalize_ascii part) ;
+    Buffer.add_string t (String.capitalize_ascii part) ;
     Buffer.add_char t ')' ;
   end
 
@@ -64,6 +64,7 @@ let descr_mtyped d = function
   | MemTyped.Fits -> ()
 
 let descr_mheap d = function
+  | Region -> main d "region"
   | ZeroAlias -> main d "zeroalias"
   | Hoare -> main d "hoare"
   | Typed p -> main d "typed" ; descr_mtyped d p
@@ -128,15 +129,13 @@ struct
     if S.mem x.vname (get_vars ()) then ByValue else
       V.param x
 
-  (** A memory model context has to be set. *)
   let hypotheses () =
-    let kf = Model.get_scope () in
-    let init = match kf with
-      | None -> false
-      | Some f -> WpStrategy.is_main_init f in
-    let p = ref MemoryContext.empty in
-    V.iter ?kf ~init (fun vi -> p := MemoryContext.set vi (param vi) !p) ;
-    MemoryContext.requires !p
+    let kf,init = match WpContext.get_scope () with
+      | WpContext.Global -> None,false
+      | WpContext.Kf f -> Some f, WpStrategy.is_main_init f in
+    let w = ref MemoryContext.empty in
+    V.iter ?kf ~init (fun vi -> w := MemoryContext.set vi (param vi) !w) ;
+    MemoryContext.requires !w
 
 end
 
@@ -159,31 +158,47 @@ struct
     end
 end
 
+module Static : Proxy =
+struct
+  let datatype = "Static"
+  let param x =
+    let open Cil_types in
+    if x.vaddrof || Cil.isArrayType x.vtype || Cil.isPointerType x.vtype
+    then MemoryContext.ByAddr else MemoryContext.ByValue
+  let iter = Raw.iter
+end
+
 (* -------------------------------------------------------------------------- *)
 (* --- RefUsage-based Proxies                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-let is_formal_ptr x =
-  let open Cil_types in
-  x.vformal && Cil.isPointerType x.vtype
+let is_ptr x = Cil.isPointerType x.Cil_types.vtype
+let is_fun_ptr x = Cil.isFunctionType x.Cil_types.vtype
+let is_formal_ptr x = x.Cil_types.vformal && is_ptr x
+let is_init kf x =
+  WpStrategy.is_main_init kf ||
+  Wp_parameters.AliasInit.get () ||
+  ( WpStrategy.isInitConst () && WpStrategy.isGlobalInitConst x )
 
 let refusage_param ~byref ~context x =
-  let kf = Model.get_scope () in
-  let init = match kf with
-    | None -> false
-    | Some f ->
-        WpStrategy.is_main_init f ||
-        Wp_parameters.InitAlias.get () ||
-        ( WpStrategy.isInitConst () &&
-          WpStrategy.isGlobalInitConst x ) in
+  let kf,init = match WpContext.get_scope () with
+    | WpContext.Global -> None , false
+    | WpContext.Kf kf -> Some kf , is_init kf x in
   match RefUsage.get ?kf ~init x with
   | RefUsage.NoAccess -> MemoryContext.NotUsed
   | RefUsage.ByAddr -> MemoryContext.ByAddr
-  | RefUsage.ByRef when byref -> MemoryContext.ByRef
-  | RefUsage.ByArray when context && is_formal_ptr x -> MemoryContext.InArray
-  | RefUsage.ByValue when context && is_formal_ptr x -> MemoryContext.InContext
-  | RefUsage.ByRef | RefUsage.ByValue -> MemoryContext.ByValue
-  | RefUsage.ByArray -> MemoryContext.ByShift
+  | RefUsage.ByValue ->
+      if context && is_formal_ptr x then MemoryContext.InContext
+      else if is_ptr x && not (is_fun_ptr x) then MemoryContext.ByShift
+      else MemoryContext.ByValue
+  | RefUsage.ByRef ->
+      if byref
+      then MemoryContext.ByRef
+      else MemoryContext.ByValue
+  | RefUsage.ByArray ->
+      if context && is_formal_ptr x
+      then MemoryContext.InArray
+      else MemoryContext.ByShift
 
 let refusage_iter ?kf ~init f = RefUsage.iter ?kf ~init (fun x _usage -> f x)
 
@@ -230,6 +245,7 @@ module MakeCompiler(M:Sigs.Model) = struct
   module A = LogicAssigns.Make(M)(C)(L)
 end
 
+module Comp_Region = MakeCompiler(Register(Static)(MemRegion))
 module Comp_MemZeroAlias = MakeCompiler(MemZeroAlias)
 module Comp_Hoare_Raw = MakeCompiler(Model_Hoare_Raw)
 module Comp_Hoare_Ref = MakeCompiler(Model_Hoare_Ref)
@@ -242,6 +258,7 @@ module Comp_Caveat = MakeCompiler(Model_Caveat)
 let compiler mheap mvar : (module Sigs.Compiler) =
   match mheap , mvar with
   | ZeroAlias , _     -> (module Comp_MemZeroAlias)
+  | Region , _        -> (module Comp_Region)
   | _    ,   Caveat   -> (module Comp_Caveat)
   | Hoare , (Raw|Var) -> (module Comp_Hoare_Raw)
   | Hoare ,   Ref     -> (module Comp_Hoare_Ref)
@@ -256,6 +273,7 @@ let compiler mheap mvar : (module Sigs.Compiler) =
 let configure_mheap = function
   | Hoare -> MemEmpty.configure ()
   | ZeroAlias -> MemZeroAlias.configure ()
+  | Region -> MemRegion.configure ()
   | Typed p -> MemTyped.configure () ; Context.set MemTyped.pointer p
 
 let configure (s:setup) (d:driver) () =
@@ -278,7 +296,7 @@ module COMPILERS = FCMap.Make
         if cmp <> 0 then cmp else LogicBuiltins.compare d d'
     end)
 
-let instances = ref (COMPILERS.empty : Model.t COMPILERS.t)
+let instances = ref (COMPILERS.empty : WpContext.model COMPILERS.t)
 
 let instance (s:setup) (d:driver) =
   try COMPILERS.find (s,d) !instances
@@ -286,14 +304,14 @@ let instance (s:setup) (d:driver) =
     let id,descr = describe s in
     let module CC = (val compiler s.mheap s.mvar) in
     let tuning = [configure s d] in
-    let hypotheses kf = Model.on_scope (Some kf) CC.M.hypotheses () in
+    let hypotheses = CC.M.hypotheses in
     let id,descr =
       if LogicBuiltins.is_default d then id,descr
       else
         ( id ^ "_" ^ LogicBuiltins.id d ,
           descr ^ " (Driver " ^ LogicBuiltins.descr d ^ ")" )
     in
-    let model = Model.register ~id ~descr ~tuning ~hypotheses () in
+    let model = WpContext.register ~id ~descr ~tuning ~hypotheses () in
     instances := COMPILERS.add (s,d) model !instances ; model
 
 let ident s = fst (describe s)
@@ -317,11 +335,12 @@ let split ~warning (m:string) : string list =
        | _ -> warning (Printf.sprintf
                          "In model spec %S : unexpected character '%c'" m c)
     )
-    (Transitioning.String.uppercase_ascii m) ;
+    (String.uppercase_ascii m) ;
   flush () ; !tk
 
 let update_config ~warning m s = function
   | "ZEROALIAS" -> { s with mheap = ZeroAlias }
+  | "REGION" -> { s with mheap = Region }
   | "HOARE" -> { s with mheap = Hoare }
   | "TYPED" -> { s with mheap = Typed MemTyped.Fits }
   | "CAST" -> { s with mheap = Typed MemTyped.Unsafe }

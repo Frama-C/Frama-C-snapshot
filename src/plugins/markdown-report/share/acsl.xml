@@ -1,0 +1,84 @@
+<!---------------------------------------------------------------------------->
+<!--                                                                        -->
+<!--  This file is part of Frama-C.                                         -->
+<!--                                                                        -->
+<!--  Copyright (C) 2007-2019                                               -->
+<!--    CEA (Commissariat à l'énergie atomique et aux énergies              -->
+<!--         alternatives)                                                  -->
+<!--                                                                        -->
+<!--  you can redistribute it and/or modify it under the terms of the GNU   -->
+<!--  Lesser General Public License as published by the Free Software       -->
+<!--  Foundation, version 2.1.                                              -->
+<!--                                                                        -->
+<!--  It is distributed in the hope that it will be useful,                 -->
+<!--  but WITHOUT ANY WARRANTY; without even the implied warranty of        -->
+<!--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         -->
+<!--  GNU Lesser General Public License for more details.                   -->
+<!--                                                                        -->
+<!--  See the GNU Lesser General Public License version 2.1                 -->
+<!--  for more details (enclosed in the file licenses/LGPLv2.1).            -->
+<!--                                                                        -->
+<!---------------------------------------------------------------------------->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<language name="ACSL" version="1" extensions="*.acsl"
+          section="Sources" kateversion="2.4">
+<highlighting>
+<list name="keywords">
+<item>allocates</item>
+<item>assert</item>
+<item>assigns</item>
+<item>assumes</item>
+<item>axiom</item>
+<item>axiomatic</item>
+<item>behavior</item>
+<item>behaviors</item>
+<item>boolean</item>
+<item>breaks</item>
+<item>complete</item>
+<item>continues</item>
+<item>data</item>
+<item>decreases</item>
+<item>disjoint</item>
+<item>ensures</item>
+<item>exit_behavior</item>
+<item>frees</item>
+<item>ghost</item>
+<item>global</item>
+<item>inductive</item>
+<item>integer</item>
+<item>invariant</item>
+<item>lemma</item>
+<item>logic</item>
+<item>loop</item>
+<item>model</item>
+<item>predicate</item>
+<item>reads</item>
+<item>real</item>
+<item>requires</item>
+<item>returns</item>
+<item>sizeof</item>
+<item>strong</item>
+<item>struct</item>
+<item>terminates</item>
+<item>type</item>
+<item>union</item>
+<item>variant</item>
+</list>
+<contexts>
+  <context attribute="Normal Text" lineEndContext="#pop" name="Normal Text">
+    <keyword attribute="Keyword" context="#stay" String="keywords"/>
+    <DetectChar attribute="Keyword" context="bskeyword" char="\"/>
+  </context>
+  <context name="bskeyword" attribute="Keyword" lineEndContext="#pop">
+    <DetectIdentifier attribute="Keyword" context="#pop" />
+  </context>
+</contexts>
+<itemDatas>
+  <itemData name="Normal Text" defStyleNum="dsNormal"/>
+  <itemData name="Keyword" defStyleNum="dsKeyword"/>
+</itemDatas>
+<general>
+</general>
+</highlighting>
+</language>

@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/repeat.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -7,9 +7,9 @@
   Missing assigns clause (assigns 'everything' instead)
 [wp] 47 goals scheduled
 [wp] [Qed] Goal typed_induction_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_induction_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_induction_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_induction_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_induction_loop_invariant_2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_induction_loop_invariant_2_preserved : Valid
 [wp] [Qed] Goal typed_induction_loop_invariant_2_established : Valid
 [wp] [Qed] Goal typed_induction_loop_assigns : Valid
 [wp] [Qed] Goal typed_induction_assigns_exit_part1 : Valid
@@ -18,10 +18,10 @@
 [wp] [Qed] Goal typed_master_ensures : Valid
 [wp] [Qed] Goal typed_master_assigns_exit : Valid
 [wp] [Qed] Goal typed_master_assigns_normal : Valid
-[wp] [Alt-Ergo] Goal typed_shifted_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_shifted_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_shifted_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_shifted_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_shifted_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_shifted_loop_invariant_2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_shifted_loop_invariant_2_preserved : Valid
 [wp] [Qed] Goal typed_shifted_loop_invariant_2_established : Valid
 [wp] [Qed] Goal typed_shifted_loop_assigns : Valid
 [wp] [Qed] Goal typed_shifted_assigns_exit_part1 : Valid
@@ -54,14 +54,14 @@
 [wp] [Qed] Goal typed_unroll_assigns_normal_part10 : Valid
 [wp] [Qed] Goal typed_unroll_assigns_normal_part11 : Valid
 [wp] Proved goals:   47 / 47
-  Qed:            42 
-  Alt-Ergo:        5
+  Qed:              42 
+  Alt-Ergo 2.0.0:    5
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/repeat.0.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/repeat.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 master               3     -                 3       100%
 unroll              25     -                25       100%
-induction            7      2 (44..56)       9       100%
-shifted              7      3 (44..56)      10       100%
+induction            7      2 (512..608)     9       100%
+shifted              7      3 (512..608)    10       100%
 -------------------------------------------------------------

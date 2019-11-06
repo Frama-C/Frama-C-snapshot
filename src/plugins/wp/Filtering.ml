@@ -29,8 +29,8 @@ open Lang
 open Lang.F
 
 (* Inductive Properties:
-    - filter ~polarity:true p ==> p
-    - p ==> filter ~polarity:false p
+   - filter ~polarity:true p ==> p
+   - p ==> filter ~polarity:false p
 *)
 let rec filter ~polarity f p =
   match F.p_expr p with

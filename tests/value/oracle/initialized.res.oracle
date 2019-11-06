@@ -13,7 +13,7 @@
   v1 ∈ {0}
   i6 ∈ [--..--]
 [eva] computing for function g1 <- main.
-  Called from tests/value/initialized.c:158.
+  Called from tests/value/initialized.c:193.
 [eva] tests/value/initialized.c:19: starting to merge loop iterations
 [eva:alarm] tests/value/initialized.c:21: Warning: assertion got status unknown.
 [eva:alarm] tests/value/initialized.c:22: Warning: assertion got status unknown.
@@ -65,7 +65,7 @@
 [eva] Recording results for g1
 [eva] Done for function g1
 [eva] computing for function g2 <- main.
-  Called from tests/value/initialized.c:159.
+  Called from tests/value/initialized.c:194.
 [eva:alarm] tests/value/initialized.c:50: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(&b4) + (int)(&b4);
 [eva:alarm] tests/value/initialized.c:50: Warning: 
@@ -149,7 +149,7 @@
 [eva] Recording results for g2
 [eva] Done for function g2
 [eva] computing for function g3 <- main.
-  Called from tests/value/initialized.c:160.
+  Called from tests/value/initialized.c:195.
 [eva:alarm] tests/value/initialized.c:89: Warning: assertion got status unknown.
 [eva:alarm] tests/value/initialized.c:93: Warning: 
   accessing uninitialized left-value. assert \initialized(&r2);
@@ -171,13 +171,13 @@
 [eva] Recording results for g3
 [eva] Done for function g3
 [eva] computing for function g4 <- main.
-  Called from tests/value/initialized.c:161.
+  Called from tests/value/initialized.c:196.
 [eva:alarm] tests/value/initialized.c:104: Warning: 
   accessing uninitialized left-value. assert \initialized(&y);
 [eva] Recording results for g4
 [eva] Done for function g4
 [eva] computing for function g5 <- main.
-  Called from tests/value/initialized.c:162.
+  Called from tests/value/initialized.c:197.
 [eva] computing for function wrong_assigns <- g5 <- main.
   Called from tests/value/initialized.c:127.
 [eva] using specification for function wrong_assigns
@@ -193,7 +193,7 @@
 [eva] Recording results for g5
 [eva] Done for function g5
 [eva] computing for function g6 <- main.
-  Called from tests/value/initialized.c:163.
+  Called from tests/value/initialized.c:198.
 [eva:alarm] tests/value/initialized.c:143: Warning: 
   assertion got status unknown.
 [eva:alarm] tests/value/initialized.c:144: Warning: 
@@ -207,7 +207,7 @@
 [eva] Recording results for g6
 [eva] Done for function g6
 [eva] computing for function g7 <- main.
-  Called from tests/value/initialized.c:164.
+  Called from tests/value/initialized.c:199.
 [eva] computing for function Frama_C_make_unknown <- g7 <- main.
   Called from tests/value/initialized.c:153.
 [eva] using specification for function Frama_C_make_unknown
@@ -217,6 +217,35 @@
 [eva] tests/value/initialized.c:154: assertion got status valid.
 [eva] Recording results for g7
 [eva] Done for function g7
+[eva] computing for function reduce_by_negation <- main.
+  Called from tests/value/initialized.c:200.
+[eva:alarm] tests/value/initialized.c:164: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/value/initialized.c:165: Warning: 
+  check 'invalid' got status invalid.
+[eva:alarm] tests/value/initialized.c:168: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/value/initialized.c:169: Warning: 
+  check 'unknown' got status unknown.
+[eva:alarm] tests/value/initialized.c:172: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/value/initialized.c:173: Warning: 
+  check 'unknown' got status unknown.
+[eva:alarm] tests/value/initialized.c:177: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/value/initialized.c:178: Warning: 
+  check 'unknown' got status unknown.
+[eva:alarm] tests/value/initialized.c:182: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/value/initialized.c:183: Warning: 
+  check 'invalid' got status unknown.
+[eva] tests/value/initialized.c:186: starting to merge loop iterations
+[eva:alarm] tests/value/initialized.c:188: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/value/initialized.c:189: Warning: 
+  check 'unknown' got status unknown.
+[eva] Recording results for reduce_by_negation
+[eva] Done for function reduce_by_negation
 [eva] Recording results for main
 [eva] done for function main
 [eva] tests/value/initialized.c:93: 
@@ -293,6 +322,11 @@
   Frama_C_entropy_source ∈ [--..--]
   key[0..63] ∈ [--..--]
      [64..127] ∈ UNINITIALIZED
+[eva:final-states] Values at end of function reduce_by_negation:
+  x ∈ {0} or UNINITIALIZED
+  y ∈ {0} or UNINITIALIZED
+  p ∈ {{ &x ; &y }}
+  t[0..9] ∈ [0..9] or UNINITIALIZED
 [eva:final-states] Values at end of function g5:
   v ∈ UNINITIALIZED
   p ∈ {{ &v1 ; &v2 }}
@@ -319,6 +353,8 @@
 [from] Computing for function Frama_C_make_unknown <-g7
 [from] Done for function Frama_C_make_unknown
 [from] Done for function g7
+[from] Computing for function reduce_by_negation
+[from] Done for function reduce_by_negation
 [from] Computing for function g5
 [from] Computing for function wrong_assigns <-g5
 [from] Done for function wrong_assigns
@@ -348,6 +384,8 @@
   i6 FROM rand (and SELF)
 [from] Function g7:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function reduce_by_negation:
+  NO EFFECTS
 [from] Function wrong_assigns:
   v{.a; .b} FROM \nothing
 [from] Function g5:
@@ -386,6 +424,10 @@
     Frama_C_entropy_source; key[0..63]
 [inout] Inputs for function g7:
     Frama_C_entropy_source
+[inout] Out (internal) for function reduce_by_negation:
+    x; y; p; tmp; t[0..9]; i
+[inout] Inputs for function reduce_by_negation:
+    rand
 [inout] Out (internal) for function g5:
     v{.a; .b}; p; tmp
 [inout] Inputs for function g5:

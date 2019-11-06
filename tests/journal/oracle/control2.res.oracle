@@ -17,7 +17,7 @@
   i ∈ {4}
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  1 function analyzed (out of 4): 25% coverage.
+  1 function analyzed (out of 1): 100% coverage.
   In this function, 9 statements reached (out of 12): 75% coverage.
   ----------------------------------------------------------------------------
   No errors or warnings raised during the analysis.

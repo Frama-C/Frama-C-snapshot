@@ -1,0 +1,16 @@
+# frama-c -wp -wp-model 'Typed (Real)' [...]
+[kernel] Parsing tests/wp_acsl/classify_float.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] 3 goals scheduled
+[wp] [Qed] Goal typed_real_lemma_InfN_not_finite : Valid
+[wp] [Qed] Goal typed_real_lemma_InfP_not_finite : Valid
+[wp] [Qed] Goal typed_real_lemma_NaN_not_finite : Valid
+[wp] Proved goals:    3 / 3
+  Qed:             3
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/classify_float.3.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/classify_float.3.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Lemma                3     -                 3       100%
+-------------------------------------------------------------

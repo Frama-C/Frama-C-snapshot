@@ -172,9 +172,7 @@ Assume {
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       ((m[i_1].F1_T_a) = 0))).
   (* Call Effects *)
-  Have: (forall i_1 : Z. ((i_1 != 1) -> (smatrix_1[i_1] = smatrix_0[i_1]))) /\
-      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (((i_1 < 0) \/ (5 <= i_1)) -> (smatrix_1[1][i_1] = m[i_1]))))).
+  Have: forall i_1 : Z. ((i_1 != 1) -> (smatrix_1[i_1] = smatrix_0[i_1])).
 }
 Prove: (m[i].F1_T_a) = 0.
 

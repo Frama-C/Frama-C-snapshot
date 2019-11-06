@@ -34,9 +34,6 @@ ifneq ("$(FRAMAC_INTERNAL)","yes")
 include $(FRAMAC_SHARE)/Makefile.config
 endif
 
-# Why3 API Available
-WHY3API=@WHY3API@
-
 # Coq Resources Installation
 include $(PLUGIN_DIR)/share/Makefile.resources
 
@@ -57,18 +54,23 @@ PLUGIN_GUI_CMO:= \
 	GuiNavigator
 #endif
 
+PLUGIN_REQUIRES:= why3
+
 PLUGIN_ENABLE:=@ENABLE_WP@
 PLUGIN_NAME:=Wp
 PLUGIN_CMO:= \
 	rformat wprop \
 	wp_parameters wp_error \
 	dyncall ctypes clabels \
-	MemoryContext \
+	Why3Provers \
+	Context Warning MemoryContext wpContext \
 	LogicUsage RefUsage \
+	Layout Region \
+	RegionAnnot RegionAccess RegionDump RegionAnalysis \
 	cil2cfg normAtLabels wpPropId mcfg \
-	Context Warning Model Lang Repr Matrix Passive Splitter \
+	Lang Repr Matrix Passive Splitter \
 	LogicBuiltins Definitions \
-	Cmath Cint Cfloat Vset Vlist Region Cstring Cvalues \
+	Cmath Cint Cfloat Vset Vlist Cstring Cvalues \
 	Letify Cleaning \
 	Sigs Mstate Conditions \
 	Filtering \
@@ -76,7 +78,9 @@ PLUGIN_CMO:= \
 	CodeSemantics \
 	LogicCompiler \
 	LogicSemantics LogicAssigns  \
-	Sigma MemEmpty MemZeroAlias MemVar MemTyped \
+	Sigma MemLoader \
+	MemEmpty MemZeroAlias MemVar \
+	MemMemory MemTyped MemRegion \
 	wpStrategy wpRTE wpAnnot \
 	CfgCompiler StmtSemantics \
 	VCS script proof wpo wpReport \
@@ -88,9 +92,8 @@ PLUGIN_CMO:= \
 	TacRewrite TacBitwised TacBitrange TacShift \
 	TacCongruence TacOverflow Auto \
 	ProofSession ProofScript ProofEngine \
-	why3_xml \
 	ProverTask ProverErgo ProverCoq \
-	ProverDetect ProverWhy3 ProverWhy3ide \
+	filter_axioms ProverWhy3 \
 	driver prover ProverSearch ProverScript \
 	Generator Factory \
 	calculus cfgDump cfgWP \
@@ -102,13 +105,7 @@ PLUGIN_GENERATED:= \
    $(PLUGIN_DIR)/script.ml \
    $(PLUGIN_DIR)/rformat.ml \
    $(PLUGIN_DIR)/driver.ml \
-   $(PLUGIN_DIR)/why3_xml.ml \
-   $(PLUGIN_DIR)/ProverDetect.ml \
    $(PLUGIN_DIR)/Wp.mli
-
-ifeq ($(WHY3API),yes)
-PLUGIN_REQUIRES:= why3
-endif
 
 PLUGIN_DEPENDENCIES:= rtegen qed
 PLUGIN_UNDOC+=
@@ -117,8 +114,6 @@ PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
 PLUGIN_DISTRIB_EXTERNAL:= \
 	Changelog \
 	Makefile.in \
-	ProverDetect.Why3.ml \
-	ProverDetect.None.ml \
         MakeAPI \
 	configure.ac \
 	configure \
@@ -126,7 +121,7 @@ PLUGIN_DISTRIB_EXTERNAL:= \
 	                    $(ALL_UNMODIFIED_WHY3_RESOURCES) \
 	                    $(ALL_MODIFIED_WHY3_RESOURCES))
 
-CEA_WP_GENEREATED=why3_xml.ml script.ml rformat.ml driver.ml
+CEA_WP_GENEREATED= script.ml rformat.ml driver.ml
 
 # --------------------------------------------------------------------------
 # --- Tests                                                              ---
@@ -135,7 +130,8 @@ CEA_WP_GENEREATED=why3_xml.ml script.ml rformat.ml driver.ml
 PLUGIN_TESTS_DIRS:= \
   wp wp_plugin wp_acsl wp_bts \
   wp_store wp_hoare wp_typed wp_usage \
-  wp_gallery wp_manual wp_tip
+  wp_gallery wp_manual wp_tip \
+  wp_region
 
 ifeq ($(FRAMAC_INTERNAL),yes)
 Wp_DEFAULT_TESTS: create_share_link
@@ -155,7 +151,13 @@ else
 CONFIG_STATUS_DIR=.
 endif
 
-$(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(Wp_DIR)/share/Makefile.resources $(CONFIG_STATUS_DIR)/config.status
+WP_CONFIGURE_MAKEFILE= \
+	$(Wp_DIR)/Makefile.in \
+	$(Wp_DIR)/share/Makefile.coqwp \
+	$(Wp_DIR)/share/Makefile.resources \
+	$(CONFIG_STATUS_DIR)/config.status
+
+$(Wp_DIR)/Makefile: $(WP_CONFIGURE_MAKEFILE)
 	@cd $(CONFIG_STATUS_DIR) && ./config.status --file $@
 
 # --------------------------------------------------------------------------
@@ -169,7 +171,7 @@ WP_API_BASE= \
 	LogicUsage.mli RefUsage.mli \
 	normAtLabels.mli \
 	wpPropId.mli mcfg.ml \
-	Context.mli Warning.mli Model.mli \
+	Context.mli Warning.mli wpContext.mli \
 	Lang.mli Repr.mli Passive.mli Splitter.mli \
 	LogicBuiltins.mli Definitions.mli \
 	Cint.mli Cfloat.mli Vset.mli Cstring.mli \
@@ -232,18 +234,13 @@ clean::
 
 ## All relative to share/
 
-WP_COQ_SOURCES= $(addprefix coqwp/, $(COQ_LIBS_CEA) $(COQ_LIBS_INRIA))
-WHY3_COQ_SOURCES= $(addprefix why3/, $(COQ_LIBS_CEA))
-
-ALL_COQ_SOURCES= $(WP_COQ_SOURCES) $(WHY3_COQ_SOURCES)
+ALL_COQ_SOURCES= $(addprefix coqwp/, $(COQ_LIBS_CEA) $(COQ_LIBS_INRIA))
 ALL_COQ_BINARIES= $(addsuffix o, $(ALL_COQ_SOURCES))
 ALL_ERGO_SOURCES= $(addprefix ergo/, $(ERGO_LIBS_CEA) $(ERGO_LIBS_INRIA))
-ALL_WHY3_SOURCES= $(addprefix why3/, $(WHY3_LIBS_CEA))
+ALL_WHY3_SOURCES= $(addprefix why3/frama_c_wp/, $(WHY3_LIBS_CEA))
 
 ALL_RESOURCES= \
 	wp.driver \
-	why3/coq.drv \
-	why3/why3.conf \
 	$(ALL_COQ_SOURCES) \
 	$(ALL_ERGO_SOURCES) \
 	$(ALL_WHY3_SOURCES)
@@ -264,73 +261,17 @@ $(Wp_DIR)/share/instwp: $(Wp_DIR)/share/install.ml
 # --- Pre-Compiled Coq Libraries                                         ---
 # --------------------------------------------------------------------------
 
-.PHONY: wp-coq wp-why3 wp-coq-all wp-coq-clean wp-coq-install wp-coq-uninstall
-
-wp-coq-all: wp-coq wp-why3
-
-wp-coq: coqwpcompile
-	@echo "Run 'make wp-coq-install' to install all precompiled libraries"
-
-wp-why3:  why3compile
-	@echo "Run 'make wp-coq-install' to install all precompiled libraries"
-
 WP_COQC_ENABLED=@COQC@
-WP_WHY3COQC_ENABLED=@WHY3COQC@
 
-include $(Wp_DIR)/share/Makefile
+ifeq ($(WP_COQC_ENABLED),yes)
 
-wp-coq-install:
-	$(PRINT_INSTALL) "Coq Libraries"
-	$(INSTALL_SHARE) -f -p -s \
-		-i $(Wp_DIR)/share \
-		-d $(FRAMAC_DATADIR)/wp \
-		$(ALL_COQ_BINARIES)
+include $(Wp_DIR)/share/Makefile.coqwp
 
-wp-coq-uninstall:
-	$(PRINT_RM) "Coq Libraries"
-	@rm -f $(FRAMAC_DATADIR)/wp/why3/*.vo
-	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*.vo
-	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*/*.vo
+byte:: coqwpcompile
+opt:: coqwpcompile
+clean:: wp-coq-clean
 
-# --------------------------------------------------------------------------
-# --- Provers Detection
-# --------------------------------------------------------------------------
-
-$(Wp_DIR)/ProverDetect.ml: config.status $(Wp_DIR)/Makefile.in
-
-ifeq ($(WHY3API),yes)
-$(Wp_DIR)/ProverDetect.ml: $(Wp_DIR)/ProverDetect.Why3.ml
-	$(PRINT_MAKING) "$@ (why3)"
-	@cp -f $< $@
-	$(CHMOD_RO) $@
-else
-$(Wp_DIR)/ProverDetect.ml: $(Wp_DIR)/ProverDetect.None.ml
-	$(PRINT_MAKING) "$@ (none)"
-	@cp -f $< $@
-	$(CHMOD_RO) $@
-endif
-
-# --------------------------------------------------------------------------
-# --- Why3 configuration
-# --------------------------------------------------------------------------
-
-byte:: $(Wp_DIR)/share/why3/why3.conf
-opt:: $(Wp_DIR)/share/why3/why3.conf
-
-$(Wp_DIR)/share/why3/why3.conf: config.status $(Wp_DIR)/Makefile.in
-	$(PRINT_MAKING) "extra-config for why3"
-	$(RM) $@
-	@printf "[prover_modifiers]\n" >> $@
-	@printf "name=\"Coq\"\n" >> $@
-	@printf "option=\"-Q $(FRAMAC_DATADIR)/wp/why3 ''\"\n" >> $@
-	@printf "driver=\"$(FRAMAC_DATADIR)/wp/why3/coq.drv\"\n" >> $@
-	@printf "\n"  >> $@
-	@printf "[editor_modifiers coqide]\n" >> $@
-	@printf "option=\"-I $(FRAMAC_DATADIR)/wp/why3\"\n" >> $@
-	@printf "\n"  >> $@
-	@printf "[editor_modifiers proofgeneral-coq]\n" >> $@
-	@printf "option=\"--eval \\\\\"(setq coq-load-path (cons '(\\\\\\\\\\\\\"$(FRAMAC_DATADIR)/wp/why3\\\\\\\\\\\\\" \\\\\\\\\\\\\"\\\\\\\\\\\\\") coq-load-path))\\\\\"\"\n"  >> $@
-	$(CHMOD_RO) $@
+endif #($(WP_COQC_ENABLED),yes)
 
 # --------------------------------------------------------------------------
 # --- Installation                                                       ---

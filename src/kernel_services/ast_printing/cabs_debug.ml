@@ -117,9 +117,9 @@ and pp_decl_type fmt = function
   |     ARRAY (decl_type, attrs, exp)
     -> fprintf fmt "@[<hov 2>ARRAY[%a, %a, %a]@]" pp_decl_type decl_type pp_attrs attrs pp_exp exp
   |     PTR (attrs, decl_type) -> fprintf fmt "@[<hov 2>PTR(%a, %a)@]" pp_attrs attrs pp_decl_type decl_type
-  |     PROTO (decl_type, single_names, b)
+  |     PROTO (decl_type, single_names, single_ghost_names, b)
     -> fprintf fmt "@[<hov 2>PROTO decl_type(%a), single_names(" pp_decl_type decl_type;
-    List.iter (fun sn -> fprintf fmt ",@ %a" pp_single_name sn) single_names;
+    List.iter (fun sn -> fprintf fmt ",@ %a" pp_single_name sn) (single_names @ single_ghost_names) ;
     fprintf fmt "),@ %b@]" b
 
 and pp_name_group fmt (spec, names) =
@@ -329,11 +329,11 @@ and pp_exp_node fmt = function
     fprintf fmt "@[<hov 2>QUESTION(%a, %a, %a)@]" pp_exp exp1 pp_exp exp2 pp_exp exp3
   |   CAST ((spec, decl_type), init_exp) ->
     fprintf fmt "@[<hov 2>CAST (%a, %a) %a@]" pp_spec spec pp_decl_type decl_type pp_init_exp init_exp
-  |   CALL (exp1, exps) ->
+  |   CALL (exp1, exps, ghosts) ->
     fprintf fmt "@[<hov 2>CALL %a {" pp_exp exp1;
     List.iter
       (fun e -> fprintf fmt ",@ %a" pp_exp e)
-      exps;
+      (exps @ ghosts);
     fprintf fmt "}@]"
   |   COMMA exps ->
     fprintf fmt "@[<hov 2>COMMA {";

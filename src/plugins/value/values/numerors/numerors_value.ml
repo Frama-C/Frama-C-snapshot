@@ -116,8 +116,7 @@ end
 include Datatype.Make(T)
 let pretty_debug = pretty
 let pretty_typ _ = pretty
-let error_key = Structure.Key_Value.create_key "numerors_values"
-let structure = Structure.Key_Value.Leaf error_key
+let key = Structure.Key_Value.create_key "numerors_values"
 
 
 (*-----------------------------------------------------------------------------

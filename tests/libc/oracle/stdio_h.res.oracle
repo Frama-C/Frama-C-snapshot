@@ -78,6 +78,22 @@
 [eva] tests/libc/stdio_h.c:31: 
   function fclose: precondition 'valid_stream' got status valid.
 [eva] Done for function fclose
+[eva] computing for function fgets <- main.
+  Called from tests/libc/stdio_h.c:34.
+[eva] using specification for function fgets
+[eva] tests/libc/stdio_h.c:34: 
+  function fgets: precondition 'valid_stream' got status valid.
+[eva] tests/libc/stdio_h.c:34: 
+  function fgets: precondition 'room_s' got status valid.
+[eva] Done for function fgets
+[eva:alarm] tests/libc/stdio_h.c:36: Warning: check got status unknown.
+[eva] computing for function fgets <- main.
+  Called from tests/libc/stdio_h.c:38.
+[eva] tests/libc/stdio_h.c:38: 
+  function fgets: precondition 'valid_stream' got status valid.
+[eva:alarm] tests/libc/stdio_h.c:38: Warning: 
+  function fgets: precondition 'room_s' got status invalid.
+[eva] Done for function fgets
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
@@ -89,5 +105,7 @@
   r ∈ [--..--]
   tmp_2 ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
   redirected ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
+  fgets_buf0[0] ∈ [--..--] or UNINITIALIZED
+  fgets_res ∈ {{ NULL ; &fgets_buf0[0] }}
   __retres ∈ {0; 1; 2; 3}
   S___fc_stdout[0..1] ∈ [--..--]

@@ -11,8 +11,6 @@
 [eva] Done for function f
 [eva] computing for function g <- main.
   Called from tests/spec/assigns_result.i:16.
-[inout] tests/spec/assigns_result.i:16: Warning: 
-  failed to interpret assigns clause '\exit_status'
 [eva] using specification for function g
 [eva] tests/spec/assigns_result.i:16: Warning: 
   cannot interpret assigns clause \exit_status

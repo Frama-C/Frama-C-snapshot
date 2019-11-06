@@ -188,9 +188,6 @@ module Make_Internal (Info: sig val name: string end) (Value: Value) = struct
   type value = Value.t
   type location = Precise_locs.precise_location
 
-  let key = Structure.Key_Domain.create_key (Info.name ^ " domain")
-  let structure : t Abstract_domain.structure = Abstract_domain.Leaf key
-
   let log_category = Value_parameters.register_category ("d-" ^ Info.name)
 
   let widen _kf _stmt = widen

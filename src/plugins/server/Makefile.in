@@ -1,0 +1,117 @@
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+# Do not use ?= to initialize both below variables
+# (fixed efficiency issue, see GNU Make manual, Section 8.11)
+ifndef FRAMAC_SHARE
+FRAMAC_SHARE  :=$(shell frama-c-config -print-share-path)
+endif
+ifndef FRAMAC_LIBDIR
+FRAMAC_LIBDIR :=$(shell frama-c-config -print-libpath)
+endif
+
+###################
+# Plug-in Setting #
+###################
+
+PLUGIN_DIR ?=.
+PLUGIN_ENABLE:=@ENABLE_SERVER@
+PLUGIN_NAME:=Server
+PLUGIN_CMO:= \
+	server_parameters \
+	jbuffer \
+	doc syntax data main request \
+	server_batch \
+	kernel_main \
+	kernel_project \
+	kernel_ast
+PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
+PLUGIN_DISTRIB_EXTERNAL:= Makefile.in configure.ac configure
+PLUGIN_TESTS_DIRS := batch
+
+PLUGIN_REQUIRES:= yojson
+
+PLUGIN_UNDOC:= server_batch.ml server_zmq.ml
+
+PLUGIN_GENERATED:= $(PLUGIN_DIR)/Server.mli
+
+##################
+# ZeroMQ Support #
+##################
+
+ifeq (@SERVER_ZMQ@,yes)
+PLUGIN_REQUIRES+= zmq
+PLUGIN_CMO+= server_zmq
+else
+PLUGIN_DISTRIB_EXTERNAL+= server_zmq.ml
+endif
+
+################
+# Generic part #
+################
+
+include $(FRAMAC_SHARE)/Makefile.dynamic
+
+##############
+# Server API #
+##############
+
+SERVER_API= \
+	doc.mli syntax.mli data.mli request.mli
+
+define Capitalize
+$(shell printf "%s%s" \
+    $$($(ECHO) $(1) | cut -c 1 | tr '[:lower:]' '[:upper:]')
+    $$($(ECHO) $(1) | cut -c 2-))
+endef
+
+define ExportModule
+$(ECHO) "module $(call Capitalize, $(basename $(notdir $(1)))) : sig" >> $(2);
+$(ECHO) '# 1 "$(1)"' >> $(2);
+$(CAT) $(1) >> $(2);
+$(ECHO) "end" >> $(2);
+endef
+
+SERVER_MLI=$(addprefix $(Server_DIR)/, $(SERVER_API))
+
+$(Server_DIR)/Server.mli: $(Server_DIR)/Makefile $(SERVER_MLI)
+	$(PRINT_MAKING) $@ "from" $(SERVER_MLI)
+	$(RM) $@ $@.tmp
+	$(ECHO) "(* This file is generated. Do not edit. *)" >> $@.tmp
+	$(ECHO) "(** {b Server Public API} *)" >> $@.tmp
+	$(foreach file,$(SERVER_MLI),$(call ExportModule,$(file),$@.tmp))
+	$(CHMOD_RO) $@.tmp
+	$(MV) $@.tmp $@
+
+#####################################
+# Regenerating the Makefile on need #
+#####################################
+
+ifeq ("$(FRAMAC_INTERNAL)","yes")
+CONFIG_STATUS_DIR=$(FRAMAC_SRC)
+else
+CONFIG_STATUS_DIR=.
+endif
+
+$(Server_DIR)/Makefile: $(Server_DIR)/Makefile.in \
+	$(CONFIG_STATUS_DIR)/config.status
+	cd $(CONFIG_STATUS_DIR) && ./config.status --file $@

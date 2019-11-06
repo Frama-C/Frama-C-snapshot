@@ -127,7 +127,7 @@ let make_break_stmt loc env next =
 let rec cfgFun (fd : fundec) =
   nodeList := [];
   cfgBlock (init_env fd.sbody) fd.sbody None None None;
-  fd.smaxstmtid <- Some(Cil.Sid.next ());
+  fd.smaxstmtid <- Some(Cil_const.Sid.next ());
   fd.sallstmts <- List.rev !nodeList;
   nodeList := []
 
@@ -161,7 +161,7 @@ and cfgBlock env (blk: block) next break cont =
 (* Fill in the CFG info for a stmt
    Meaning of next, break, cont should be clear from earlier comment *)
 and cfgStmt env (s: stmt) next break cont =
-  if s.sid = -1 then s.sid <- Cil.Sid.next ();
+  if s.sid = -1 then s.sid <- Cil_const.Sid.next ();
   nodeList := s :: !nodeList;
   if s.succs <> [] then
     Kernel.fatal 

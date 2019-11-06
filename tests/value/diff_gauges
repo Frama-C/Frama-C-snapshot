@@ -889,6 +889,34 @@ diff tests/value/oracle/noreturn.res.oracle tests/value/oracle_gauges/noreturn.r
 > [eva] tests/value/noreturn.i:7: starting to merge loop iterations
 36a40
 > [eva] tests/value/noreturn.i:13: starting to merge loop iterations
+diff tests/value/oracle/octagons.res.oracle tests/value/oracle_gauges/octagons.res.oracle
+121,128d120
+< [eva:alarm] tests/value/octagons.c:107: Warning: 
+<   signed overflow. assert a + 2 ≤ 2147483647;
+< [eva:alarm] tests/value/octagons.c:108: Warning: 
+<   signed overflow. assert b + 2 ≤ 2147483647;
+< [eva:alarm] tests/value/octagons.c:110: Warning: 
+<   signed overflow. assert a + k ≤ 2147483647;
+< [eva:alarm] tests/value/octagons.c:113: Warning: 
+<   signed overflow. assert -2147483648 ≤ c - a;
+130c122
+< [eva] tests/value/octagons.c:116: Frama_C_show_each_imprecise: [-2147483648..1]
+---
+> [eva] tests/value/octagons.c:116: Frama_C_show_each_imprecise: [-2468..1]
+270,273c262,265
+<   a ∈ [-1024..2147483647]
+<   b ∈ [-1023..2147483647]
+<   c ∈ [-1023..2147483647]
+<   d ∈ [-1032..2147483647]
+---
+>   a ∈ [-182..1866]
+>   b ∈ [-181..1867]
+>   c ∈ [-602..1446]
+>   d ∈ [-190..1874]
+275c267
+<   d2 ∈ [-2147483648..1]
+---
+>   d2 ∈ [-2468..1]
 diff tests/value/oracle/reduce_formals.res.oracle tests/value/oracle_gauges/reduce_formals.res.oracle
 10a11
 > [eva] tests/value/reduce_formals.i:5: starting to merge loop iterations

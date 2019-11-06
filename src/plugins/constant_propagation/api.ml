@@ -74,7 +74,7 @@ class propagate project fnames ~cast_intro = object(self)
     known_globals <- Varinfo.Set.add vi known_globals;
     if Cil.isFunctionType vi.vtype then begin
       let kf = Globals.Functions.get vi in
-      let new_kf = Cil.memo_kernel_function self#behavior kf in
+      let new_kf = Visitor_behavior.Memo.kernel_function self#behavior kf in
       Queue.add (fun () -> Globals.Functions.register new_kf)
         self#get_filling_actions;
     end

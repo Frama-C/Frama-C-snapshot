@@ -48,3 +48,5 @@ val pretty : #engine -> Format.formatter -> F.term list -> unit
 val elements : #engine -> Format.formatter -> F.term list -> unit
 val pprepeat : #engine -> Format.formatter -> F.term list -> unit
 val shareable : F.term -> bool
+
+val specialize_eq_list: Lang.For_export.specific_equality

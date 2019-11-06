@@ -4,6 +4,199 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 ------------------------------------------------------------
+  Function check_acsl
+------------------------------------------------------------
+
+Goal Check 'ko,A1,absorb_is_cint' (file tests/wp_acsl/simpl_is_type.i, line 62):
+Prove: exists i : Z. forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 63) ->
+    P_P(i_1, i, 1.0))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,A2,absorb_is_cint' (file tests/wp_acsl/simpl_is_type.i, line 63):
+Prove: exists i : Z. forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 63) ->
+    (P_P(i, i_1, 1.0) -> P_P(i_1, i, 1.0)))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,A3,absorb_is_cint' (file tests/wp_acsl/simpl_is_type.i, line 64):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((0 <= i_1) -> ((i_1 <= 63) -> P_P(i_1, i, r))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,A4,absorb_is_cint' (file tests/wp_acsl/simpl_is_type.i, line 65):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((0 <= i_1) -> ((i_1 <= 63) -> (P_P(i, i_1, r) ->
+     P_P(i_1, i, r)))))).
+
+------------------------------------------------------------
+
+Goal Check 'ok,C1,absurd_is_cint' (file tests/wp_acsl/simpl_is_type.i, line 67):
+Prove: exists i : Z. forall i_1 : Z. ((i_1 < 0) -> (((-900000) <= i_1) ->
+    (is_uint8(i_1) -> (P_P(i, i_1, 1.0) -> P_P(i_1, i, 1.0))))).
+
+------------------------------------------------------------
+
+Goal Check 'ok,C2,absurd_is_cint' (file tests/wp_acsl/simpl_is_type.i, line 68):
+Prove: exists i : Z. forall i_1 : Z. ((i_1 < 0) -> (((-900000) <= i_1) ->
+    (is_uint8(i_1) -> (P_P(i, i_1, 1.0) -> P_P(i_1, i, 1.0))))).
+
+------------------------------------------------------------
+
+Goal Check 'lack,C3,absurd_is_cint' (file tests/wp_acsl/simpl_is_type.i, line 69):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((i_1 < 0) -> (((-900000) <= i_1) -> (P_P(i, i_1, r) ->
+     P_P(i_1, i, r)))))).
+
+------------------------------------------------------------
+
+Goal Check 'lack,C4,absurd_is_cint' (file tests/wp_acsl/simpl_is_type.i, line 70):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((i_1 < 0) -> (((-900000) <= i_1) -> (P_P(i, i_1, r) ->
+     P_P(i_1, i, r)))))).
+
+------------------------------------------------------------
+
+Goal Check 'ok,C5,absurd_cmp' (file tests/wp_acsl/simpl_is_type.i, line 71):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'ko,B5,no_absurd_cmp' (file tests/wp_acsl/simpl_is_type.i, line 72):
+Assume { (* Goal *) When: (.0 < r) /\ (r < 1.0). }
+Prove: P_P(3, 5, 1.0).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Min1,reduces_min' (file tests/wp_acsl/simpl_is_type.i, line 74):
+Prove: exists i : Z. forall i_1 : Z. ((0 <= i_1) -> (((-5) <= i_1) ->
+    ((i_1 <= 99) -> P_P(i_1, i, 1.0)))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Min2,reduces_min' (file tests/wp_acsl/simpl_is_type.i, line 75):
+Prove: exists i : Z. forall i_1 : Z. ((10 <= i_1) -> ((11 <= i_1) ->
+    ((i_1 <= 99) -> (P_P(10, i, 1.0) -> P_P(i_1, i, 1.0))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Min3,reduces_min' (file tests/wp_acsl/simpl_is_type.i, line 76):
+Prove: exists i : Z. forall i_1 : Z. ((10 <= i_1) -> ((12 <= i_1) ->
+    ((i_1 <= 99) -> (P_P(10, i, 1.0) -> (P_P(11, i, 1.0) ->
+    (P_P(13, i, 1.0) -> P_P(i_1, i, 1.0))))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Min4,reduces_min' (file tests/wp_acsl/simpl_is_type.i, line 77):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. (((-5) <= i_1) -> ((i_1 <= 99) -> P_P(i_1, i, r))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Min5,reduces_min' (file tests/wp_acsl/simpl_is_type.i, line 78):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((10 <= i_1) -> ((i_1 <= 99) -> (P_P(10, i, r) ->
+     P_P(i_1, i, r)))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Min6,reduces_min' (file tests/wp_acsl/simpl_is_type.i, line 79):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((10 <= i_1) -> ((i_1 <= 99) -> (P_P(10, i, r) ->
+     (P_P(11, i, r) -> (P_P(13, i, r) -> P_P(i_1, i, r)))))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Max1,reduces_max' (file tests/wp_acsl/simpl_is_type.i, line 81):
+Prove: exists i : Z. forall i_1 : Z. ((10 <= i_1) -> ((i_1 <= 255) ->
+    ((i_1 <= 599) -> P_P(i_1, i, 1.0)))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Max2,reduces_max' (file tests/wp_acsl/simpl_is_type.i, line 82):
+Prove: exists i : Z. forall i_1 : Z. ((10 <= i_1) -> ((i_1 <= 97) ->
+    ((i_1 <= 99) -> (P_P(98, i, 1.0) -> (P_P(99, i, 1.0) ->
+    P_P(i_1, i, 1.0)))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Max3,reduces_max' (file tests/wp_acsl/simpl_is_type.i, line 83):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((10 <= i_1) -> ((i_1 <= 599) -> P_P(i_1, i, r))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Max4,reduces_max' (file tests/wp_acsl/simpl_is_type.i, line 84):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((10 <= i_1) -> ((i_1 <= 99) -> (P_P(98, i, r) ->
+     (P_P(99, i, r) -> P_P(i_1, i, r))))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,MinMax1,reduce_minmax' (file tests/wp_acsl/simpl_is_type.i, line 86):
+Prove: exists i : Z. forall i_1 : Z. ((0 <= i_1) -> (((-5) <= i_1) ->
+    ((i_1 <= 97) -> ((i_1 <= 99) -> (P_P(98, i, 1.0) -> (P_P(99, i, 1.0) ->
+    P_P(i_1, i, 1.0))))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,MinMax2,reduce_minmax' (file tests/wp_acsl/simpl_is_type.i, line 87):
+Prove: exists i : Z. forall i_1 : Z. ((10 <= i_1) -> ((12 <= i_1) ->
+    ((i_1 <= 97) -> ((i_1 <= 99) -> (P_P(10, i, 1.0) -> (P_P(11, i, 1.0) ->
+    (P_P(13, i, 1.0) -> (P_P(98, i, 1.0) -> (P_P(99, i, 1.0) ->
+    P_P(i_1, i, 1.0)))))))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,MinMax3,reduce_minmax' (file tests/wp_acsl/simpl_is_type.i, line 88):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. (((-5) <= i_1) -> ((i_1 <= 99) -> (P_P(98, i, r) ->
+     (P_P(99, i, r) -> P_P(i_1, i, r))))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,MinMax4,reduce_minmax' (file tests/wp_acsl/simpl_is_type.i, line 89):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((10 <= i_1) -> ((i_1 <= 99) -> (P_P(10, i, r) ->
+     (P_P(11, i, r) -> (P_P(13, i, r) -> (P_P(98, i, r) -> (P_P(99, i, r) ->
+     P_P(i_1, i, r)))))))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Let1,intro_let' (file tests/wp_acsl/simpl_is_type.i, line 92):
+Prove: exists i : Z. P_P(10, i, 1.0).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Let2,intro_let' (file tests/wp_acsl/simpl_is_type.i, line 93):
+Prove: exists i : Z. P_P(0, i, 1.0).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Let3,intro_let' (file tests/wp_acsl/simpl_is_type.i, line 94):
+Prove: exists i : Z. P_P(255, i, 1.0).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Let4,intro_let' (file tests/wp_acsl/simpl_is_type.i, line 95):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((10 <= i_1) -> ((i_1 <= 10) -> P_P(i_1, i, r))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Let5,intro_let' (file tests/wp_acsl/simpl_is_type.i, line 96):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((i_1 <= 0) -> (((-5) <= i_1) -> P_P(i_1, i, r))))).
+
+------------------------------------------------------------
+
+Goal Check 'ko,Let6,intro_let' (file tests/wp_acsl/simpl_is_type.i, line 97):
+Prove: exists i : Z. forall i_1 : Z. (is_uint8(i_1) ->
+    (exists r : R. ((255 <= i_1) -> ((i_1 <= 599) -> P_P(i_1, i, r))))).
+
+------------------------------------------------------------
+------------------------------------------------------------
   Function f
 ------------------------------------------------------------
 

@@ -28,6 +28,10 @@ open Cil_types
 open Lang
 open Lang.F
 
+(** Predicates *)
+val forall_intro: Lang.F.pred -> Lang.F.pred list * Lang.F.pred
+val exist_intro: Lang.F.pred -> Lang.F.pred
+
 (** Sequent *)
 
 type step = private {

@@ -1,5 +1,5 @@
 open Cil_types
-open Cil
+open Visitor_behavior
 
 let category = Kernel.register_category "refresh-test"
 
@@ -31,7 +31,7 @@ let main () =
   File.init_project_from_visitor p vis;
   Cil_datatype.(
     let orig_id, copy_id, shared_id =
-      CheckVarinfo.check "varinfo" fold_visitor_varinfo vis#behavior
+      CheckVarinfo.check "varinfo" Fold.varinfo vis#behavior
     in
     if Kernel.is_debug_key_enabled category then begin
       Varinfo.Set.iter
@@ -47,13 +47,13 @@ let main () =
         shared_id;
       end;
     let _ =
-      CheckCompinfo.check "compinfo" fold_visitor_compinfo vis#behavior
+      CheckCompinfo.check "compinfo" Fold.compinfo vis#behavior
     in
     let _ =
-      CheckStmt.check "stmt" fold_visitor_stmt vis#behavior;
+      CheckStmt.check "stmt" Fold.stmt vis#behavior;
     in
     let orig_id, copy_id, shared_id = 
-      CheckLogic_var.check "logic var" fold_visitor_logic_var vis#behavior
+      CheckLogic_var.check "logic var" Fold.logic_var vis#behavior
     in
     if Kernel.is_debug_key_enabled category then begin
       Logic_var.Set.iter

@@ -1,9 +1,9 @@
 /* run.config
-   OPT: -ulevel=1 -wp -wp-prop=@ensures -wp-prover script -session tests/wp_plugin/unroll -wp-msg-key no-time-info,no-step-info
+   OPT: -ulevel=1 -wp-prop=@ensures
 */
 
 /* run.config_qualif
-   DONTRUN:
+   OPT: -ulevel=1 -wp-prop=@ensures -wp-prover script
 */
 
 enum {Max = 16};

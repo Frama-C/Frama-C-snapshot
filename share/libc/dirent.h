@@ -99,7 +99,7 @@ extern long           telldir(DIR *);
 
 
 /* File types for `d_type'.  */
-enum
+enum __fc_readdir_dtype
   {
     DT_UNKNOWN = 0,
 # define DT_UNKNOWN	DT_UNKNOWN

@@ -13,6 +13,8 @@
 [eva] computing for function perror <- main.
   Called from tests/libc/poll.c:12.
 [eva] using specification for function perror
+[eva] tests/libc/poll.c:12: 
+  function perror: precondition 'valid_string_s' got status valid.
 [eva] Done for function perror
 [eva] Recording results for main
 [eva] done for function main

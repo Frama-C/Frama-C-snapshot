@@ -9,4 +9,10 @@ int x[10];
  */
 /*@ lemma prio_unary_star{L}: (0 * x[2]) * x[2] ≡ 0;
  */
+/*@ lemma prio_ternary_let: \let i = 0; i ≡ 0? i ≢ 0: i - 1 ≢ 0;
+ */
+/*@
+lemma prio_ternary_let_2:
+  \let i = 0; (\let i = 0; i ≡ 3)? i ≢ 0: i ≡ 0;
+ */
 

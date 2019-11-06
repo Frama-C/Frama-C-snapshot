@@ -131,20 +131,20 @@ struct lconv
                                   | LC_IDENTIFICATION_MASK      \
                                   )
 
-extern struct lconv* __frama_c_locale;
-extern char*__frama_c_locale_names[512];
+extern struct lconv* __fc_locale;
+extern char*__fc_locale_names[512];
 
 /*@ 
   requires locale_null_or_valid_string: locale == \null || valid_read_string(locale);
-  assigns __frama_c_locale \from category, locale[..];
-  assigns \result \from __frama_c_locale,category, locale[..];
+  assigns __fc_locale \from category, locale[..];
+  assigns \result \from __fc_locale,category, locale[..];
   ensures result_null_or_locale_name: \result==\null || (\valid(\result) 
-      && \exists ℤ i ; \result == __frama_c_locale_names[i]) ;
+      && \exists ℤ i ; \result == __fc_locale_names[i]) ;
 */
 extern char *setlocale(int category, const char *locale);
 
 /*@ assigns \nothing;
-  ensures result_current_locale: \result == __frama_c_locale;
+  ensures result_current_locale: \result == __fc_locale;
  */
 extern struct lconv *localeconv(void);
 

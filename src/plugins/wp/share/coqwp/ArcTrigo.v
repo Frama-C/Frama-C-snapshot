@@ -36,20 +36,22 @@ Require real.Square.
 Require real.Trigonometry.
 
 (* Why3 goal *)
-Definition asin: R -> R.
+Definition asin : R -> R.
 Admitted.
 
 (* Why3 goal *)
-Definition acos: R -> R.
+Definition acos : R -> R.
 Admitted.
 
 (* Why3 goal *)
-Lemma Sin_asin : forall (x:R), (((-1%R)%R <= x)%R /\ (x <= 1%R)%R) ->
+Lemma Sin_asin :
+  forall (x:R), (((-1%R)%R <= x)%R /\ (x <= 1%R)%R) ->
   ((Reals.Rtrigo_def.sin (asin x)) = x).
 Admitted.
 
 (* Why3 goal *)
-Lemma Cos_acos : forall (x:R), (((-1%R)%R <= x)%R /\ (x <= 1%R)%R) ->
+Lemma Cos_acos :
+  forall (x:R), (((-1%R)%R <= x)%R /\ (x <= 1%R)%R) ->
   ((Reals.Rtrigo_def.cos (acos x)) = x).
 Admitted.
 

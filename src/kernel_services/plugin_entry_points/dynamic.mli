@@ -118,6 +118,9 @@ module Parameter : sig
   (** String parameters. *)
   module String : Common with type t = string
 
+  (** Filepath parameters. *)
+  module Filepath : Common with type t = Datatype.Filepath.t
+
   (** Set of string parameters. *)
   module StringSet : sig
     include Common with type t = Datatype.String.Set.t

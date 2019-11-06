@@ -42,8 +42,8 @@ type focus =
   | `Call of GuiSource.call
   | `Property of Property.t ]
 
-let index_of_lemma (l,_,_,_,_) =
-  match LogicUsage.section_of_lemma l with
+let index_of_lemma l =
+  match LogicUsage.section_of_lemma l.il_name with
   | LogicUsage.Toplevel _ -> Wpo.Axiomatic None
   | LogicUsage.Axiomatic a -> Wpo.Axiomatic (Some a.LogicUsage.ax_name)
 
@@ -54,7 +54,7 @@ let focus_of_selection selection scope =
   | S_call c , `Module -> `Index (Wpo.Function(c.s_caller,None))
   | S_fun kf , (`Select | `Module) -> `Index(Wpo.Function(kf,None))
   | S_prop (IPLemma ilem) , `Module -> `Index(index_of_lemma ilem)
-  | S_prop (IPAxiomatic(name,_)) , _ -> `Index(Wpo.Axiomatic (Some name))
+  | S_prop (IPAxiomatic {iax_name=name}) , _ -> `Index(Wpo.Axiomatic (Some name))
   | S_prop ip , `Select -> `Property ip
   | S_prop ip , `Module ->
       begin
@@ -91,6 +91,7 @@ class behavior
     ~(clear : Widget.button)
     ~(card : card Widget.selector)
     ~(list : GuiList.pane)
+    ~(provers : GuiConfig.provers)
     ~(goal : GuiGoal.pane)
     ~(source : GuiSource.highlighter)
     ~(popup : GuiSource.popup)
@@ -238,29 +239,28 @@ class behavior
           let server = ProverTask.server () in
           Task.spawn server thread ;
           Task.launch server in
-        match prover with
-        (*
-        | VCS.Why3ide ->
-            let iter f = Wpo.iter ~on_goal:f () in
-            schedule (ProverWhy3ide.prove ~callback:result ~iter)
-        *)
-        | VCS.Tactical ->
-            begin
-              match mode , ProverScript.get w with
-              | (None | Some VCS.BatchMode) , `Script ->
-                  schedule (ProverScript.prove ~success w)
-              | _ ->
-                  card#set `Goal ;
-                  clear#set_enabled false ;
-                  self#navigator true (Some w) ;
-            end
-        | _ ->
-            let mode = match mode , prover with
-              | Some m , _ -> m
-              | None , VCS.Coq -> VCS.EditMode
-              | None , VCS.AltErgo -> VCS.FixMode
-              | _ -> VCS.BatchMode in
-            schedule (Prover.prove w ~mode ~result prover)
+        if not (VCS.is_valid (Wpo.get_result w VCS.Qed)) &&
+           not (VCS.is_computing (Wpo.get_result w prover))
+        then
+          match prover with
+          | VCS.Tactical ->
+              begin
+                match mode , ProverScript.get w with
+                | (None | Some VCS.BatchMode) , `Script ->
+                    schedule (ProverScript.prove ~success w)
+                | _ ->
+                    card#set `Goal ;
+                    clear#set_enabled false ;
+                    self#navigator true (Some w) ;
+              end
+          | _ ->
+              let mode = match mode , prover with
+                | Some m , _ -> m
+                | None , VCS.NativeCoq -> VCS.EditMode
+                | None , VCS.NativeAltErgo -> VCS.FixMode
+                | _ -> VCS.BatchMode in
+              schedule (Prover.prove w ~mode ~result prover) ;
+              refresh w
       end
 
     method private clear () =
@@ -303,12 +303,7 @@ class behavior
       match popup_target with
       | Some(w,Some p) -> (popup_target <- None ; self#prove ~mode w p)
       | _ -> popup_target <- None
-(*
-    method private popup_why3ide () =
-      match popup_target with
-      | Some(w,_) -> (popup_target <- None ; self#prove w VCS.Why3ide)
-      | _ -> popup_target <- None
-*)
+
     method private add_popup_delete popup =
       begin
         popup#add_separator ;
@@ -333,13 +328,6 @@ class behavior
           [ "Run",BatchMode ; "Open Altgr-Ergo on Fail",EditMode ; "Open Altgr-Ergo",EditMode ] ;
         self#add_popup_proofmodes popup_coq
           [ "Check Proof",BatchMode ; "Edit on Fail",EditMode ; "Edit Proof",EditMode ] ;
-        (*
-        List.iter
-          (fun menu ->
-             menu#add_item ~label:"Open Why3ide" ~callback:self#popup_why3ide ;
-             self#add_popup_delete menu ;
-          ) [ popup_qed ; popup_why3 ; popup_ergo ; popup_coq ] ;
-        *)
       end
 
     method private popup w p =
@@ -349,8 +337,8 @@ class behavior
         match p with
         | None | Some Tactical -> popup_tip#run ()
         | Some Qed -> popup_qed#run ()
-        | Some Coq -> popup_coq#run ()
-        | Some AltErgo -> popup_ergo#run ()
+        | Some NativeCoq -> popup_coq#run ()
+        | Some NativeAltErgo -> popup_ergo#run ()
         | Some (Why3 _) -> popup_why3#run ()
       end
 
@@ -393,11 +381,41 @@ class behavior
         card#connect (fun _ -> self#details) ;
         scope#connect self#set_scope ;
         popup#on_click self#set_selection ;
-        popup#on_prove (GuiPanel.run_and_prove main) ;
+        popup#on_prove (GuiPanel.run_and_prove main provers) ;
         clear#connect self#clear ;
       end
 
   end
+
+(* -------------------------------------------------------------------------- *)
+(* --- Model Info for Variables                                           --- *)
+(* -------------------------------------------------------------------------- *)
+
+let model_varinfo :
+  GMenu.menu GMenu.factory ->
+  Design.main_window_extension_points ->
+  button:int -> Pretty_source.localizable -> unit =
+  fun _menu main ~button item ->
+  let open Pretty_source in
+  let open Cil_types in
+  match item with
+  | PLval(Some kf, _ , (Var x,NoOffset))
+  | PTermLval(Some kf, _, _, (TVar {lv_origin=Some x},TNoOffset))
+    when button=1 ->
+      let init = WpStrategy.is_main_init kf in
+      let acc = RefUsage.get ~kf ~init x in
+      let model = match acc with
+        | RefUsage.NoAccess -> "any"
+        | RefUsage.ByValue -> "'var'"
+        | RefUsage.ByRef -> "'ref'"
+        | RefUsage.ByArray when x.vformal && Cil.isPointerType x.vtype
+          -> "'caveat'"
+        | _ -> "'typed'"
+      in
+      main#pretty_information
+        "Is is accessed as %t and fits in %s wp-model@."
+        (RefUsage.print x acc) model ;
+  | _ -> ()
 
 (* -------------------------------------------------------------------------- *)
 (* --- Make Panel and Extend Frama-C GUI                                  --- *)
@@ -410,10 +428,9 @@ let make (main : main_window_extension_points) =
     (* --- Provers                                                            --- *)
     (* -------------------------------------------------------------------------- *)
 
-    let available = new GuiConfig.available () in
-    let enabled = new GuiConfig.enabled "wp.enabled" in
+    let provers = new GuiConfig.provers "wp.provers" in
 
-    let dp_chooser = new GuiConfig.dp_chooser ~main ~available ~enabled in
+    let dp_chooser = new GuiConfig.dp_chooser ~main ~provers in
 
     (* -------------------------------------------------------------------------- *)
     (* --- Focus Bar                                                          --- *)
@@ -437,7 +454,7 @@ let make (main : main_window_extension_points) =
         (index :> widget) ;
         (next :> widget) ;
       ] in
-    let provers = new Widget.button ~label:"Provers..." () in
+    let pvrs = new Widget.button ~label:"Provers..." () in
     let clear = new Widget.button ~label:"Clear" ~icon:`DELETE () in
     let focusbar = GPack.hbox ~spacing:0 () in
     begin
@@ -445,8 +462,8 @@ let make (main : main_window_extension_points) =
       focusbar#pack ~padding:20 ~expand:false scope#coerce ;
       focusbar#pack ~padding:20 ~expand:false filter#coerce ;
       focusbar#pack ~from:`END ~expand:false clear#coerce ;
-      focusbar#pack ~from:`END ~expand:false provers#coerce ;
-      provers#connect dp_chooser#run ;
+      focusbar#pack ~from:`END ~expand:false pvrs#coerce ;
+      pvrs#connect dp_chooser#run ;
     end ;
 
     (* -------------------------------------------------------------------------- *)
@@ -466,8 +483,8 @@ let make (main : main_window_extension_points) =
     (* -------------------------------------------------------------------------- *)
 
     let book = new Wpane.notebook ~default:`List () in
-    let list = new GuiList.pane enabled in
-    let goal = new GuiGoal.pane enabled in
+    let list = new GuiList.pane provers in
+    let goal = new GuiGoal.pane provers in
     begin
       book#add `List list#coerce ;
       book#add `Goal goal#coerce ;
@@ -489,7 +506,7 @@ let make (main : main_window_extension_points) =
     let filter = (filter :> _ Widget.selector) in
     let behavior = new behavior ~main
       ~next ~prev ~index ~scope ~filter ~clear
-      ~list ~card ~goal ~source ~popup in
+      ~list ~provers ~card ~goal ~source ~popup in
     GuiPanel.on_reload behavior#reload ;
     GuiPanel.on_update behavior#update ;
 
@@ -505,8 +522,9 @@ let make (main : main_window_extension_points) =
     ignore (main#lower_notebook#append_page ~tab_label panel#coerce) ;
     main#register_source_highlighter source#highlight ;
     main#register_source_selector popup#register ;
+    main#register_source_selector model_varinfo ;
+
     GuiPanel.register ~main
-      ~available_provers:available
       ~configure_provers:dp_chooser#run ;
   end
 

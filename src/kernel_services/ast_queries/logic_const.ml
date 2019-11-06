@@ -55,8 +55,8 @@ let refresh_predicate p = { p with ip_id = PredicateId.next () }
 let new_identified_term t =
   { it_id = TermId.next (); it_content = t }
 
-let new_acsl_extension name l s k : acsl_extension =
-  ExtendedId.next (), name, l, s , k
+let new_acsl_extension ext_name ext_loc ext_has_status ext_kind =
+  {ext_id = ExtendedId.next (); ext_name; ext_loc; ext_has_status; ext_kind}
 
 let fresh_term_id = TermId.next
 
@@ -72,14 +72,14 @@ let refresh_deps = function
 let refresh_from (a,d) = (new_identified_term a.it_content, refresh_deps d)
 
 let refresh_allocation = function
-    | FreeAllocAny -> FreeAllocAny
-    | FreeAlloc(f,a) -> 
-	FreeAlloc((refresh_identified_term_list f),refresh_identified_term_list a)
+  | FreeAllocAny -> FreeAllocAny
+  | FreeAlloc(f,a) ->
+    FreeAlloc((refresh_identified_term_list f),refresh_identified_term_list a)
 
 let refresh_assigns = function
-    | WritesAny -> WritesAny
-    | Writes l ->
-      Writes(List.map refresh_from l)
+  | WritesAny -> WritesAny
+  | Writes l ->
+    Writes(List.map refresh_from l)
 
 let refresh_behavior b =
   { b with
@@ -103,11 +103,11 @@ let refresh_spec s =
 let refresh_code_annotation annot =
   let content =
     match annot.annot_content with
-      | AAssert _ | AInvariant _ | AAllocation _ | AVariant _ | APragma _
-      | AExtended _ as c -> c
-      | AStmtSpec(l,spec) -> AStmtSpec(l, refresh_spec spec)
-      | AAssigns(l,a) -> AAssigns(l, refresh_assigns a)
-      
+    | AAssert _ | AInvariant _ | AAllocation _ | AVariant _ | APragma _
+    | AExtended _ as c -> c
+    | AStmtSpec(l,spec) -> AStmtSpec(l, refresh_spec spec)
+    | AAssigns(l,a) -> AAssigns(l, refresh_assigns a)
+
   in
   new_code_annotation content
 
@@ -135,11 +135,11 @@ let loop_entry_label = BuiltinLabel LoopEntry
 let rec instantiate subst = function
   | Ltype(ty,prms) -> Ltype(ty, List.map (instantiate subst) prms)
   | Larrow(args,rt) ->
-      Larrow(List.map (instantiate subst) args, instantiate subst rt)
+    Larrow(List.map (instantiate subst) args, instantiate subst rt)
   | Lvar v as ty ->
-      (* This is an application of type parameters:
-         no need to recursively substitute in the resulting type. *)
-      (try List.assoc v subst with Not_found -> ty)
+    (* This is an application of type parameters:
+       no need to recursively substitute in the resulting type. *)
+    (try List.assoc v subst with Not_found -> ty)
   | Ctype _ | Linteger | Lreal as ty -> ty
 
 let is_unrollable_ltdef = function
@@ -234,10 +234,10 @@ let boolean_type = Ltype ({ lt_name = Utf8_logic.boolean ; lt_params = [] ; lt_d
 (** {2 Offsets} *)
 
 let rec lastTermOffset (off: term_offset) : term_offset =
-   match off with
-   | TNoOffset | TField(_,TNoOffset) | TIndex(_,TNoOffset) 
-   | TModel(_,TNoOffset)-> off
-   | TField(_,off) | TIndex(_,off) | TModel(_,off) -> lastTermOffset off
+  match off with
+  | TNoOffset | TField(_,TNoOffset) | TIndex(_,TNoOffset)
+  | TModel(_,TNoOffset)-> off
+  | TField(_,off) | TIndex(_,off) | TModel(_,off) -> lastTermOffset off
 
 let rec addTermOffset (toadd: term_offset) (off: term_offset) : term_offset =
   match off with
@@ -262,8 +262,8 @@ let term ?(loc=Cil_datatype.Location.unknown) term typ =
 
 let taddrof ?(loc=Cil_datatype.Location.unknown) lv typ =
   match lv with
-    | TMem h, TNoOffset -> h
-    | _ -> term ~loc (TAddrOf lv) typ
+  | TMem h, TNoOffset -> h
+  | _ -> term ~loc (TAddrOf lv) typ
 
 (** range of integers *)
 let trange ?(loc=Cil_datatype.Location.unknown) (low,high) =
@@ -287,11 +287,11 @@ let treal ?(loc=Cil_datatype.Location.unknown) f =
   let s = Pretty_utils.to_string Floating_point.pretty f in
   let r = {
     r_literal = s ;
-    r_upper = f ; r_lower = f ; r_nearest = f ; 
+    r_upper = f ; r_lower = f ; r_nearest = f ;
   } in
   term ~loc (TConst (LReal r)) Lreal
 
-let treal_zero ?(loc=Cil_datatype.Location.unknown) ?(ltyp=Lreal) () = 
+let treal_zero ?(loc=Cil_datatype.Location.unknown) ?(ltyp=Lreal) () =
   let zero = { r_nearest = 0.0 ; r_upper = 0.0 ; r_lower = 0.0 ; r_literal = "0." } in
   term ~loc (TConst (LReal zero)) ltyp
 
@@ -429,23 +429,21 @@ let pvalid_index ?(loc=Cil_datatype.Location.unknown) (l,t1,t2) =
   let ty1 = t1.term_type in
   let ty2 = t2.term_type in
   let t, ty =(match t1.term_node with
-		| TStartOf lv -> 
-		    TAddrOf (addTermOffsetLval (TIndex(t2,TNoOffset)) lv)
-		| _ -> TBinOp (PlusPI, t1, t2)),
-    set_conversion ty1 ty2 in
+      | TStartOf lv ->
+        TAddrOf (addTermOffsetLval (TIndex(t2,TNoOffset)) lv)
+      | _ -> TBinOp (PlusPI, t1, t2)),
+             set_conversion ty1 ty2 in
   let t = term ~loc t ty in
-    pvalid ~loc (l,t)
+  pvalid ~loc (l,t)
 (* the range should be a range of integers *)
 let pvalid_range ?(loc=Cil_datatype.Location.unknown) (l,t1,b1,b2) =
   let t2 = trange ((Some b1), (Some b2)) in
-    pvalid_index ~loc (l,t1,t2)
+  pvalid_index ~loc (l,t1,t2)
 let pat ?(loc=Cil_datatype.Location.unknown) (p,q) = unamed ~loc (Pat (p,q))
 let pinitialized ?(loc=Cil_datatype.Location.unknown) (l,p) =
   unamed ~loc (Pinitialized (l,p))
 let pdangling ?(loc=Cil_datatype.Location.unknown) (l,p) =
   unamed ~loc (Pdangling (l,p))
-let psubtype ?(loc=Cil_datatype.Location.unknown) (p,q) =
-  unamed ~loc (Psubtype (p,q))
 
 let pseparated  ?(loc=Cil_datatype.Location.unknown) seps =
   unamed ~loc (Pseparated seps)

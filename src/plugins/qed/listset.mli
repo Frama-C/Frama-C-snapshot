@@ -41,6 +41,7 @@ sig
   val compare : t -> t -> int
 
   val empty : t
+  val is_empty : t -> bool
 
   (* good sharing *)
   val add : elt -> t -> t

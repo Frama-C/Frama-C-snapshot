@@ -124,7 +124,6 @@ let getParenthLevel e =
   | PLbinop (_,(Badd|Bsub|Blshift|Brshift),_) -> 60
   | PLbinop (_,(Bmul|Bdiv|Bmod),_) -> 40
   | PLunop ((Uamp|Uminus|Ubw_not),_) | PLcast _ | PLnot _ -> 30
-  | PLcoercion _ | PLcoercionE _ -> 25
   | PLunop (Ustar,_) | PLdot _ | PLarrow _ | PLarrget _
   | PLsizeof _ | PLsizeofE _ -> 20
   | PLapp _ | PLold _ | PLat _
@@ -133,7 +132,7 @@ let getParenthLevel e =
   | PLvalid _ | PLvalid_read _ | PLvalid_function _
   | PLinitialized _ | PLdangling _
   | PLallocable _ | PLfreeable _ | PLfresh _
-  | PLseparated _ | PLsubtype _ | PLunion _ | PLinter _ -> 10
+  | PLseparated _ | PLunion _ | PLinter _ -> 10
   | PLvar _ | PLconstant _ | PLresult | PLnull | PLtypeof _ | PLtype _
   | PLfalse | PLtrue | PLcomprehension _ | PLempty | PLset _ | PLlist _ -> 0
 
@@ -217,10 +216,6 @@ and print_lexpr_level n fmt e =
         (pp_opt print_lexpr) e1 (pp_opt print_lexpr) e2
     | PLsizeof t -> fprintf fmt "sizeof(@;@[%a@]@;)" (print_logic_type None) t
     | PLsizeofE e -> fprintf fmt "sizeof(@;@[%a@]@;)" print_lexpr_plain e
-    | PLcoercion(e,t) ->
-      fprintf fmt "%a@ :>@ %a" print_lexpr e (print_logic_type None) t
-    | PLcoercionE(e1,e2) ->
-      fprintf fmt "%a@ :>@ %a" print_lexpr e1 print_lexpr e2
     | PLupdate(e1,path,e2) ->
       fprintf fmt "{@ @[%a@ \\with@ %a@]}"
         print_lexpr_plain e1 print_path_val (path, e2)
@@ -273,8 +268,6 @@ and print_lexpr_level n fmt e =
     | PLfresh (l2,e1,e2) ->
       fprintf fmt "\\fresh%a(@;@[%a@],@[%a@]@;)" print_label_2 l2 print_lexpr_plain e1 print_lexpr_plain e2
     | PLnamed(s,e) -> fprintf fmt "%s:@ %a" s print_lexpr e
-    | PLsubtype (e1,e2) ->
-      fprintf fmt "%a@ <:@ %a" print_lexpr e1 print_lexpr e2
     | PLcomprehension(e,q,p) ->
       fprintf fmt "{@ @[%a;@ %a%a@]@ }"
         print_lexpr e print_quantifiers q

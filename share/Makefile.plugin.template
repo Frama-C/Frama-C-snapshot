@@ -456,8 +456,8 @@ $(NAME_DOCFLAGS):= $(DOC_FLAGS) $(PLUGIN_DOCFLAGS) \
 			$(addprefix -package ,$(PLUGIN_REQUIRES) $(LIBRARY_NAMES))
 
 ifeq ($(HAS_GUI),yes)
-$(NAME_GUI_BFLAGS):=$($(NAME_BFLAGS)) $(addprefix -package ,$(LIBRARY_NAMES_GUI))
-$(NAME_GUI_OFLAGS):=$($(NAME_OFLAGS)) $(addprefix -package ,$(LIBRARY_NAMES_GUI))
+$(NAME_GUI_BFLAGS):=$($(NAME_BFLAGS)) $(THREAD) $(addprefix -package ,$(LIBRARY_NAMES_GUI))
+$(NAME_GUI_OFLAGS):=$($(NAME_OFLAGS)) $(THREAD) $(addprefix -package ,$(LIBRARY_NAMES_GUI))
 $(TARGET_GUI_BFLAGS):= $(PLUGIN_LINK_GUI_BFLAGS)
 $(TARGET_GUI_OFLAGS):= $(PLUGIN_LINK_GUI_OFLAGS)
 $(NAME_DOCFLAGS) := $($(NAME_DOCFLAGS)) $(addprefix -package ,$(LIBRARY_NAMES_GUI))
@@ -553,12 +553,7 @@ endif # PLUGIN_HAS_META
 @PLUGIN_NAME@_PLUGIN_MLI:= $(PLUGIN_DIR)/@PLUGIN_NAME@.mli
 @PLUGIN_NAME@_CHECK_PLUGIN_MLI:=$(PLUGIN_DIR)/@PLUGIN_NAME@.check_mli_exists
 
-# Prevents warning 58 in OCaml 4.03 for our plugins.
-ifeq ($(HAS_OCAML403),yes)
-  $(TARGET_CMI): BFLAGS:=$($(NAME_BFLAGS)) -opaque
-else
-  $(TARGET_CMI): BFLAGS:=$($(NAME_BFLAGS))
-endif
+$(TARGET_CMI): BFLAGS:=$($(NAME_BFLAGS)) -opaque
 
 $(TARGET_CMI): $(PLUGIN_CMO)
 
@@ -1018,6 +1013,7 @@ else
 $(PLUGIN_DIR)/@PLUGIN_NAME@_DEP_REDO:
 $(PLUGIN_DIR)/@PLUGIN_NAME@_DEP:
 $(PLUGIN_DIR)/@PLUGIN_NAME@_CLEAN:
+$(PLUGIN_DIR)/@PLUGIN_NAME@_CLEAN_DOC:
 endif
 
 # Reset each "local" plugin variable

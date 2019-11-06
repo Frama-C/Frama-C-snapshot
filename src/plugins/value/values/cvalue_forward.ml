@@ -206,8 +206,8 @@ let assume_not_nan ~assume_finite fkind v =
   let kind = Fval.kind fkind in
   let evaluate, backward_propagate =
     if assume_finite
-    then Fval.is_finite, Fval.backward_is_finite
-    else Fval.is_not_nan, fun _fkind -> Fval.backward_is_not_nan
+    then Fval.is_finite, Fval.backward_is_finite ~positive:true
+    else Fval.is_not_nan, fun _fkind -> Fval.backward_is_nan ~positive:false
   in
   match Cvalue.V.project_float v with
   | exception Cvalue.V.Not_based_on_null ->
@@ -470,28 +470,31 @@ let make_volatile ?typ v =
   else v
 
 let eval_float_constant f fkind fstring =
-  let fl, fu = match fstring with
-    | Some string when fkind = Cil_types.FLongDouble ||
-                       Value_parameters.AllRoundingModesConstants.get () ->
-      let open Floating_point in
-      let {f_lower; f_upper} = snd (parse string) in
-      (* Computations are done in double. For long double constants, if we
-         reach infinity, we must use the interval [max_double..infty] to be
-         sound. Here we even use [-infty..infty]. *)
-      if Fc_float.is_infinite f_lower && Fc_float.is_infinite f_upper
-      then
-        begin
-          Value_util.warning_once_current
-            "cannot parse floating-point constant, returning imprecise result";
-          neg_infinity, infinity
-        end
-      else f_lower, f_upper
-    | None | Some _ -> f, f
-  in
-  let fl = Fval.F.of_float fl
-  and fu = Fval.F.of_float fu in
-  let af = Fval.inject (Fval.kind fkind) fl fu in
-  V.inject_float af
+  if Fc_float.is_nan f
+  then V.inject_float Fval.nan
+  else
+    let fl, fu = match fstring with
+      | Some string when fkind = Cil_types.FLongDouble ||
+                         Value_parameters.AllRoundingModesConstants.get () ->
+        let open Floating_point in
+        let {f_lower; f_upper} = snd (parse string) in
+        (* Computations are done in double. For long double constants, if we
+           reach infinity, we must use the interval [max_double..infty] to be
+           sound. Here we even use [-infty..infty]. *)
+        if Fc_float.is_infinite f_lower && Fc_float.is_infinite f_upper
+        then
+          begin
+            Value_util.warning_once_current
+              "cannot parse floating-point constant, returning imprecise result";
+            neg_infinity, infinity
+          end
+        else f_lower, f_upper
+      | None | Some _ -> f, f
+    in
+    let fl = Fval.F.of_float fl
+    and fu = Fval.F.of_float fu in
+    let af = Fval.inject (Fval.kind fkind) fl fu in
+    V.inject_float af
 
 
 (*

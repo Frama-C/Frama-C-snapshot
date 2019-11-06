@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_bts/bts_1462.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -8,18 +8,18 @@
 [wp] [Qed] Goal typed_local_loop_invariant_established : Valid
 [wp] [Qed] Goal typed_local_loop_assigns_part1 : Valid
 [wp] [Qed] Goal typed_local_loop_assigns_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_wrong_assert_for_value : Valid
-[wp] [Alt-Ergo] Goal typed_wrong_loop_invariant_A_KO_preserved : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_wrong_assert_for_value : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_wrong_loop_invariant_A_KO_preserved : Unsuccess
 [wp] [Qed] Goal typed_wrong_loop_invariant_A_KO_established : Valid
 [wp] [Qed] Goal typed_wrong_loop_invariant_B_preserved : Valid
 [wp] [Qed] Goal typed_wrong_loop_invariant_B_established : Valid
 [wp] [Qed] Goal typed_wrong_loop_invariant_C_preserved : Valid
 [wp] [Qed] Goal typed_wrong_loop_invariant_C_established : Valid
-[wp] [Alt-Ergo] Goal typed_wrong_assert_consequence_of_false_invariant : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_wrong_assert_consequence_of_false_invariant : Valid
 [wp] [Qed] Goal typed_wrong_loop_assigns : Valid
 [wp] Proved goals:   12 / 13
-  Qed:            10 
-  Alt-Ergo:        2  (unsuccess: 1)
+  Qed:              10 
+  Alt-Ergo 2.0.0:    2  (unsuccess: 1)
 [wp] Report in:  'tests/wp_bts/oracle_qualif/bts_1462.0.report.json'
 [wp] Report out: 'tests/wp_bts/result_qualif/bts_1462.0.report.json'
 -------------------------------------------------------------

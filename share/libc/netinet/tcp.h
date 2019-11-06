@@ -115,9 +115,9 @@ typedef	u_int32_t tcp_seq;
  */
 struct tcphdr
   {
-    __extension__ union
+    __extension__ union __fc_tcphdr
     {
-      struct
+      struct __fc_tcp_header_1
       {
 	u_int16_t th_sport;		/* source port */
 	u_int16_t th_dport;		/* destination port */
@@ -142,7 +142,7 @@ struct tcphdr
 	u_int16_t th_sum;		/* checksum */
 	u_int16_t th_urp;		/* urgent pointer */
       };
-      struct
+      struct __fc_tcp_header_2
       {
 	u_int16_t source;
 	u_int16_t dest;
@@ -178,7 +178,7 @@ struct tcphdr
     };
 };
 
-enum
+enum __fc_tcp_state
 {
   TCP_ESTABLISHED = 1,
   TCP_SYN_SENT,
@@ -305,7 +305,7 @@ struct tcp_repair_opt
 };
 
 /* Queue to repair, for TCP_REPAIR_QUEUE.  */
-enum
+enum __fc_tcp_queue
 {
   TCP_NO_QUEUE,
   TCP_RECV_QUEUE,

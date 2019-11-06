@@ -51,8 +51,8 @@ val goto : tree -> position -> unit
 val main : tree -> Wpo.t
 val head : tree -> Wpo.t
 val goal : node -> Wpo.t
-val tree_model : tree -> Model.t
-val node_model : node -> Model.t
+val tree_context : tree -> WpContext.t
+val node_context : node -> WpContext.t
 val opened : node -> bool (** not proved *)
 val proved : node -> bool (** not opened *)
 

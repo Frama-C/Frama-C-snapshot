@@ -42,7 +42,7 @@ let l_list = Lang.infoprover "list"
 let l_concat = Lang.infoprover (E.F_right "concat")
 let l_elt = Lang.(E.({
     altergo = F_subst "cons(%1,nil)" ;
-    why3 = F_subst "(cons %1 nil)" ;
+    why3 = F_call "elt" ;
     coq = F_subst "(cons %1 nil)" ;
   }))
 let l_repeat = Lang.(E.({
@@ -55,7 +55,14 @@ let l_repeat = Lang.(E.({
 
 let a_list = Lang.get_builtin_type ~library ~name:t_list ~link:l_list
 
-let ty_nil = function _ -> L.Data(a_list,[L.Tvar 0])
+let _list_of t = L.Data(a_list,[t])
+
+let vlist_get_tau = function
+  | None -> invalid_arg "a list operator without result type"
+  | Some t -> t
+
+
+let ty_nil = function _ -> invalid_arg "All nil must be typed"
 
 let ty_listelt = function
   | L.Data(_,[t]) -> (t : tau)
@@ -118,9 +125,13 @@ let () =
 
 (*--- Smart Constructors ---*)
 
-let v_nil = F.constant (F.e_fun f_nil [])
+let is_nil e =
+  match F.repr e with
+  | Qed.Logic.Fun (f,_) -> Fun.equal f f_nil
+  | _ -> false
+let v_nil t = F.e_fun ~result:t f_nil []
 let v_elt e = F.e_fun f_elt [e]
-let v_concat es = F.e_fun f_concat es
+let v_concat es tau = F.e_fun f_concat es ~result:tau
 let v_length l = F.e_fun f_length [l]
 let v_repeat s n = F.e_fun f_repeat [s;n]
 
@@ -128,7 +139,7 @@ let v_repeat s n = F.e_fun f_repeat [s;n]
 (* --- Rewriters                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-let rewrite_cons a w = v_concat [v_elt a ; w]
+let rewrite_cons a w tau = v_concat [v_elt a ; w] (vlist_get_tau tau)
 
 let rewrite_length e =
   match F.repr e with
@@ -165,9 +176,9 @@ let rewrite_nth s k =
   | _ -> raise Not_found
 
 let rewrite_repeat s n =
-  if F.equal n e_zero then v_nil else
+  if F.equal n e_zero then v_nil (F.typeof s)  else
   if F.equal n e_one then s else
-  if F.equal s v_nil then v_nil else
+  if is_nil s then s else
     match F.repr s with
     | L.Fun( repeat , [s0 ; n0] )
       when (repeat == f_repeat) &&
@@ -199,7 +210,7 @@ let leftmost_eq a b =
   let b , v = leftmost b [] in
   if u <> [] || v <> [] then
     match F.is_equal a b with
-    | L.Yes -> F.p_equal (v_concat u) (v_concat v)
+    | L.Yes -> F.p_equal (v_concat u (F.typeof a)) (v_concat v (F.typeof a))
     | L.No -> F.p_false
     | L.Maybe -> raise Not_found
   else
@@ -210,13 +221,13 @@ let rightmost_eq a b =
   let v , b = rightmost [] b in
   if u <> [] || v <> [] then
     match F.is_equal a b with
-    | L.Yes -> F.p_equal (v_concat u) (v_concat v)
+    | L.Yes -> F.p_equal (v_concat u (F.typeof a)) (v_concat v (F.typeof a))
     | L.No -> F.p_false
     | L.Maybe -> raise Not_found
   else
     raise Not_found
 
-let p_is_nil a = F.p_equal a v_nil
+let p_is_nil a = F.p_equal a (v_nil (F.typeof a))
 let rewrite_is_nil a =
   match F.repr a with
   | L.Fun(concat,es) when concat == f_concat -> F.p_all p_is_nil es
@@ -263,7 +274,7 @@ let () =
   Context.register
     begin fun () ->
       F.set_builtin_2 f_nth rewrite_nth ;
-      F.set_builtin_2 f_cons rewrite_cons ;
+      F.set_builtin_2' f_cons rewrite_cons ;
       F.set_builtin_2 f_repeat rewrite_repeat ;
       F.set_builtin_1 f_length rewrite_length ;
       F.set_builtin_eqp f_repeat rewrite_eq ;
@@ -285,6 +296,13 @@ let check_term e =
     | L.Fun( f , _ ) -> List.memq f f_list || check_tau (Lang.F.typeof e)
     | _ -> false
   with Not_found -> false
+
+
+let f_vlist_eq = Lang.extern_f ~library ~sort:L.Sprop "vlist_eq"
+
+let specialize_eq_list =
+  {For_export.for_tau = check_tau;
+   mk_new_eq = (fun a b -> Lang.F.e_fun ~result:Qed.Logic.Prop f_vlist_eq [a;b])}
 
 (* -------------------------------------------------------------------------- *)
 (* --- Export                                                             --- *)
@@ -319,6 +337,20 @@ and apply (engine : #engine) fmt f x es =
   | E.CallApply ->
       Format.fprintf fmt "@[<hov 2>(%s@ %a@ %a)@]"
         f engine#pp_atom x (export engine) es
+
+
+let export_rewriter_concat es tau =
+  match es with
+  | [] -> v_nil (vlist_get_tau tau)
+  | e::es ->
+      begin match F.repr e with
+        | L.Fun( elt , [x] ) when Lang.Fun.equal elt f_elt ->
+            e_fun ?result:tau f_cons [x;e_fun ?result:tau f_concat es]
+        | _ -> raise Not_found
+      end
+
+let () =
+  Lang.For_export.set_builtin' f_concat export_rewriter_concat
 
 (* -------------------------------------------------------------------------- *)
 

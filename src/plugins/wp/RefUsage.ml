@@ -32,12 +32,13 @@ open Cil_datatype
 (* --- Varinfo Accesses                                               --- *)
 (* ---------------------------------------------------------------------- *)
 
+(** By lattice order of usage *)
 type access =
-  | NoAccess
-  | ByRef   (* The expr ["*x"],   equals to [load(load(&x))] *)
-  | ByArray (* The expr ["x[_]"], equals to [load(shift(load(&x),_))] *)
-  | ByValue (* The expr ["x"],    equals to [load(&x)] *)
-  | ByAddr  (* The expr ["&x"] *)
+  | NoAccess (** Never used *)
+  | ByRef   (** Only used as ["*x"],   equals to [load(shift(load(&x),0))] *)
+  | ByArray (** Only used as ["x[_]"], equals to [load(shift(load(&x),_))] *)
+  | ByValue (** Only used as ["x"],    equals to [load(&x)] *)
+  | ByAddr  (** Widely used, potentially up to ["&x"] *)
 
 module Access :
 sig
@@ -59,8 +60,8 @@ struct
   let rank = function
     | NoAccess -> 0
     | ByRef -> 1
-    | ByValue -> 2
-    | ByArray -> 3
+    | ByArray -> 2
+    | ByValue -> 3
     | ByAddr -> 4
 
   let cup a b = if rank a < rank b then b else a
@@ -144,6 +145,16 @@ type model =
   | Val_comp of varinfo * value (* x.f[_].g... *)
   | Val_shift of varinfo * value (* (x + E) *)
 
+[@@@ warning "-32" ]
+let pp_model fmt = function
+  | E v -> E.pretty fmt v
+  | Loc_var x -> Format.fprintf fmt "&%a" Varinfo.pretty x
+  | Loc_shift(x,v) -> Format.fprintf fmt "&%a.(%a)" Varinfo.pretty x E.pretty v
+  | Val_var x -> Varinfo.pretty fmt x
+  | Val_comp(x,v) -> Format.fprintf fmt "%a.(%a)" Varinfo.pretty x E.pretty v
+  | Val_shift(x,v) -> Format.fprintf fmt "%a+(%a)" Varinfo.pretty x E.pretty v
+[@@@ warning "+32" ]
+
 let nothing = E E.bot
 let v_model v = if E.is_bot v then nothing else E v
 
@@ -202,8 +213,12 @@ let field = function
   | m -> shift m E.bot
 
 let load = function
-  | Loc_var x -> Val_var x
-  | Loc_shift(x,e) -> E (E.access x ByValue e)
+  | Loc_var x -> Val_var x (* E.access x ByValue E.bot *)
+  | Loc_shift(x,e) ->
+      if Cil.isArithmeticOrPointerType x.vtype then
+        E (E.access x ByAddr e)
+      else
+        E (E.access x ByValue e)
   | Val_var x -> E (E.access x ByRef E.bot)
   | Val_comp(x,e) -> E (E.access x ByRef e)
   | Val_shift(x,e) -> E (E.access x ByArray e)
@@ -357,7 +372,8 @@ and expr (e:Cil_types.exp) : model = match e.enode with
   | CastE(ty_tgt,e) -> cast (cast_ctyp ty_tgt (Cil.typeOf e)) (expr e)
 
   (* Address *)
-  | AddrOf lval | StartOf lval -> lvalue lval
+  | AddrOf lval -> lvalue lval
+  | StartOf lval -> startof (lvalue lval) (Cil.typeOfLval lval)
 
   (* Load *)
   | Lval lval -> load (lvalue lval)
@@ -371,6 +387,9 @@ and offset (m:model) = function
   | NoOffset -> m
   | Field(_,ofs) -> offset (field m) ofs
   | Index(e,ofs) -> offset (shift m (vexpr e)) ofs
+
+and startof (m:model) typ =
+  if Cil.isArrayType typ then shift m E.bot else m
 
 (* ---------------------------------------------------------------------- *)
 (* --- Compilation of ACSL-Terms                                      --- *)
@@ -405,10 +424,6 @@ and term (env:ctx) (t:term) : model = match t.term_node with
   (* Casts *)
   | TCastE(ty_tgt,t) -> cast (cast_ltyp ty_tgt t.term_type) (term env t)
   | TLogic_coerce (_lt,t) -> term env t
-
-  (* Jessie *)
-  | TCoerce _ -> Wp_parameters.fatal "Coercions: TCoerc _"
-  | TCoerceE _ -> Wp_parameters.fatal "Coercions: TCoerceE _"
 
 
   (* Term L-Values *)
@@ -453,7 +468,7 @@ and term (env:ctx) (t:term) : model = match t.term_node with
 
 (* --- Lvalues --- *)
 and term_lval env (h,ofs) = match h with
-  | TResult _ -> nothing
+  | TResult _ | TVar{lv_name="\\exit_status"} -> nothing
   | TVar( {lv_origin=None ; lv_kind=LVLocal} as lvar) ->
       (* var bound by a \\let *)
       load (term_offset env (get_tlet env.local lvar) ofs)
@@ -474,6 +489,8 @@ and term_offset env (l:model) = function
 
 and addr_lval env (h,ofs) = match h with
   | TResult _ -> Wp_parameters.abort ~current:true "Address of \\result"
+  | TVar{lv_name="\\exit_status"} ->
+      Wp_parameters.abort ~current:true "Address of \\exit_status"
   | TMem t -> term_offset env (term env t) ofs
   | TVar( {lv_origin=Some x} ) -> term_offset env (Loc_var x) ofs
   | TVar( {lv_origin=None} as x ) ->
@@ -482,7 +499,7 @@ and addr_lval env (h,ofs) = match h with
 
 (* --- Predicates --- *)
 and pred (env:ctx) p : value = match p.pred_content with
-  | Psubtype (_, _) | Pfalse | Ptrue ->  E.bot
+  | Pfalse | Ptrue ->  E.bot
 
   (* Unary *)
   | Pat(p,_)
@@ -690,17 +707,17 @@ let param a m = match a with
   | ByArray -> e_value (load (shift m E.bot))
 
 let update_call_env (env:global_ctx) v =
-  let r,differ = E.cup_differ env.code v
-  in env.code <- r ;
-  differ
+  let r,differ = E.cup_differ env.code v in
+  env.code <- r ; differ
 
 let call_kf (env:global_ctx) (formals:access list) (models:model list) (reached:bool) =
   let unmodified = ref reached in
   let rec call xs ms = match xs, ms with
-    | [] , _ | _ , [] -> ()
     | x::xs , m::ms ->
-        if update_call_env env (param x m) then unmodified := false;
+        let actual = param x m in
+        if update_call_env env actual then unmodified := false;
         call xs ms
+    | _ -> ()
   in call formals models;
   !unmodified
 
@@ -745,10 +762,11 @@ let compute_usage () =
       in
       (* update from accesses of formals of the called spec for each calls*)
       let specs_formals = called.spec_formals in
-      let formals = Kernel_function.get_formals called_kf in
-      let formals = List.map (fun vi -> E.get vi specs_formals) formals in
+      let params = Kernel_function.get_formals called_kf in
+      let formals = List.map (fun vi -> E.get vi specs_formals) params in
       let kf_call reached call = call_kf env formals call reached in
-      List.fold_left kf_call reached calls in
+      List.fold_left kf_call reached calls
+    in
     state_fp.todo <- KFmap.remove kf state_fp.todo ;
     let cphi = env.cphi in
     let reached = KFmap.fold kf_calls cphi true in
@@ -825,6 +843,8 @@ let get ?kf ?(init=false) vi =
   if init then Access.cup kf_access (E.get vi u_init) else kf_access
 
 let compute () = ignore (usage ())
+
+let print x m fmt = Access.pretty x fmt m
 
 let dump () =
   Log.print_on_output

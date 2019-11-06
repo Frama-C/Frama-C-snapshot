@@ -350,7 +350,8 @@ let generate_exn_union e exns =
   in
   let union_name = "__fc_exn_union" in
   let exn_kind_union =
-    Cil.mkCompInfo false union_name ~norig:union_name create_union_fields []
+    Cil_const.mkCompInfo
+      false union_name ~norig:union_name create_union_fields []
   in
   let create_struct_fields _ =
     let uncaught = (exn_uncaught_name, Cil.intType, None, [], loc) in
@@ -363,7 +364,8 @@ let generate_exn_union e exns =
   in
   let struct_name = "__fc_exn_struct" in
   let exn_struct =
-    Cil.mkCompInfo true struct_name ~norig:struct_name create_struct_fields []
+    Cil_const.mkCompInfo
+      true struct_name ~norig:struct_name create_struct_fields []
   in
   exn_kind_union, exn_struct
 
@@ -417,6 +419,8 @@ object(self)
   val mutable exn_var = None
 
   val mutable can_throw = false
+
+  val mutable fct_can_throw = false
 
   val mutable catched_var = None
 
@@ -511,6 +515,7 @@ object(self)
   method private jumps_to_default_handler loc =
     if Stack.is_empty catch_all_label then begin
       (* no catch-all clause in the function: just go up in the stack. *)
+      fct_can_throw <- true;
       let kf = Extlib.the self#current_kf in
       let ret = Kernel_function.find_return kf in
       let rtyp = Kernel_function.get_return_type kf in
@@ -617,7 +622,16 @@ object(self)
     ignore (Visitor.visitFramacBlock (self :> Visitor.frama_c_visitor) b);
     add_unreachable_block b
 
-  method! vfunc _ = label_counter <- 0; DoChildren
+  method! vfunc _ =
+    label_counter <- 0;
+    fct_can_throw <- false;
+    let update_body f =
+      if fct_can_throw then begin
+        Oneret.encapsulate_local_vars f
+      end;
+      f
+    in
+    DoChildrenPost update_body
 
   method private modify_current () =
     modified_funcs <-
@@ -678,8 +692,10 @@ object(self)
 
   method private clean_catch_clause (bind,b as handler) acc =
     let remove_local v =
-      let f = Cil.get_fundec self#behavior (Extlib.the self#current_func) in
-      let v = Cil.get_varinfo self#behavior v in
+      let f =
+        Visitor_behavior.Get.fundec self#behavior (Extlib.the self#current_func)
+      in
+      let v = Visitor_behavior.Get.varinfo self#behavior v in
       f.slocals <- List.filter (fun v' -> v!=v') f.slocals;
     in
     match bind with

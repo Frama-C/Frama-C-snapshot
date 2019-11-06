@@ -1,0 +1,11 @@
+MACRO: DEST @PTEST_RESULT@/gen_@PTEST_NAME@
+MACRO: GLOBAL -machdep gcc_x86_64 -variadic-no-translation -verbose 0
+MACRO: EACSL -e-acsl -e-acsl-share ./share/e-acsl -e-acsl-verbose 1
+MACRO: EVA -eva -eva-no-alloc-returns-null -eva-no-results -eva-no-print -eva-warn-key libc:unsupported-spec=inactive
+MACRO: EVENTUALLY -print -ocode @DEST@.c -load-script ./tests/print.cmxs
+LOG: gen_@PTEST_NAME@.c
+OPT: @GLOBAL@ @EACSL@ -then-last @EVA@ @EVENTUALLY@
+FILTER:@SEDCMD@ -e "s|[a-zA-Z/\\]\+frama_c_project_e-acsl_[a-z0-9]*|PROJECT_FILE|" -e "s|$FRAMAC_SHARE|FRAMAC_SHARE|g" -e "s|../../share|FRAMAC_SHARE|g" -e "s|./share/e-acsl|FRAMAC_SHARE/e-acsl|g" -e "s|share/e-acsl|FRAMAC_SHARE/e-acsl|g"
+COMMENT: This regex works around the tendency of Frama-C to transform
+COMMENT: absolute path into relative ones whenever the file is not too far
+COMMENT: away from cwd.

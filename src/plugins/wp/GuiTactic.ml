@@ -408,10 +408,10 @@ class tactic
       ?range:bool -> ?vmin:int -> ?vmax:int ->
       ?filter:(Lang.F.term -> bool) -> 'a field -> unit =
       fun ?enabled ?title ?tooltip ?range ?vmin ?vmax ?filter field ->
-        let id = Tactical.ident field in
-        List.iter (fun (fd : wfield) ->
-            fd#update ?enabled ?title ?tooltip ?range ?vmin ?vmax ?filter id
-          ) wfields
+      let id = Tactical.ident field in
+      List.iter (fun (fd : wfield) ->
+          fd#update ?enabled ?title ?tooltip ?range ?vmin ?vmax ?filter id
+        ) wfields
 
     (* -------------------------------------------------------------------------- *)
     (* --- Widget Behavior                                                    --- *)
@@ -457,7 +457,7 @@ class tactic
 
     method private status target =
       List.iter (fun fd -> fd#select target) wfields ;
-      try tac#select (self :> feedback) target
+      try Lang.local ~pool:self#pool (tac#select (self :> feedback)) target
       with Not_found | Exit -> Not_applicable
 
     method select ~process ~browser ~composer ~tree

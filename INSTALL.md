@@ -7,21 +7,21 @@
         - [Installing Frama-C from opam repository](#installing-frama-c-from-opam-repository)
         - [Installing Custom Versions of Frama-C](#installing-custom-versions-of-frama-c)
         - [Installing Frama-C on Windows via WSL](#installing-frama-c-on-windows-via-wsl)
-        - [Installing Frama-C on macOS](#installing-frama-c-on-macos)
+        - [Installing Frama-C on macOS](#installing-frama-c-on-mac-os)
     - [Installing Frama-C via your Linux distribution (Debian/Ubuntu/Fedora)](#installing-frama-c-via-your-linux-distribution-debianubuntufedora)
     - [Compiling from source](#compiling-from-source)
         - [Quick Start](#quick-start)
         - [Full Compilation Guide](#full-compilation-guide)
 - [Testing the Installation](#testing-the-installation)
-- [Available resources](#available-resources)
-    - [Executables: (in `/INSTALL_DIR/bin`)](#executables-in-install_dirbin)
-    - [Shared files: (in `/INSTALL_DIR/share/frama-c` and subdirectories)](#shared-files-in-install_dirshareframa-c-and-subdirectories)
-    - [Documentation files: (in `/INSTALL_DIR/share/frama-c/doc`)](#documentation-files-in-install_dirshareframa-cdoc)
-    - [Object files: (in `/INSTALL_DIR/lib/frama-c`)](#object-files-in-install_dirlibframa-c)
-    - [Plugin files: (in `/INSTALL_DIR/lib/frama-c/plugins`)](#plugin-files-in-install_dirlibframa-cplugins)
-    - [Man files: (in `/INSTALL_DIR/man/man1`)](#man-files-in-install_dirmanman1)
+    - [Available resources](#available-resources)
+        - [Executables: (in `/INSTALL_DIR/bin`)](#executables-in-install_dirbin)
+        - [Shared files: (in `/INSTALL_DIR/share/frama-c` and subdirectories)](#shared-files-in-install_dirshareframa-c-and-subdirectories)
+        - [Documentation files: (in `/INSTALL_DIR/share/frama-c/doc`)](#documentation-files-in-install_dirshareframa-cdoc)
+        - [Object files: (in `/INSTALL_DIR/lib/frama-c`)](#object-files-in-install_dirlibframa-c)
+        - [Plugin files: (in `/INSTALL_DIR/lib/frama-c/plugins`)](#plugin-files-in-install_dirlibframa-cplugins)
+        - [Man files: (in `/INSTALL_DIR/man/man1`)](#man-files-in-install_dirmanman1)
 - [Installing Additional Frama-C Plugins](#installing-additional-frama-c-plugins)
-- [HAVE FUN WITH FRAMA-C!](#have-fun-with-frama-c)
+    - [HAVE FUN WITH FRAMA-C!](#have-fun-with-frama-c)
 
 ## Installing Frama-C via opam
 
@@ -40,7 +40,7 @@ macOS has opam through Homebrew.
 
 Windows users can install opam via WSL (Windows Subsystem for Linux).
 
-If your system does not have an opam package >= 1.2.2 you can compile it from source,
+If your system does not have an opam package >= 2.0.0 you can compile it from source,
 or use the provided opam binaries available at:
 
 http://opam.ocaml.org/doc/Install.html
@@ -70,22 +70,38 @@ so that we can add it to the Frama-C `depext` package.
     # install Frama-C
     opam install frama-c
 
+### Configuring provers for Frama-C/WP
+
+Frama-C/WP uses the [Why3](http://why3.lri.fr/) platform to run external provers for proving ACSL annotations.
+The Why3 platform and the Alt-Ergo prover are automatically installed _via_ opam
+when installing Frama-C.
+
+Other recommended, efficient provers are CVC4 and Z3.
+They can be used as replacement or combined with Alt-Ergo.
+Actually, you can use any prover supported by Why3 in combination with Frama-C/WP.
+
+Most provers are available on all platforms. After their installation,
+Why3 must be configured to make them available for Frama-C/WP:
+
+    ```shell
+    why3 config --detect
+    ```
+
 ### Known working configuration
 
 The following set of packages is known to be a working configuration for
-Frama-C 19 (Potassium):
+Frama-C 20 (Calcium):
 
 - OCaml 4.05.0
-- alt-ergo-free.2.0.0 (optional)
+- ocamlfind.1.8.0
 - apron.20160125 (optional)
-- coq.8.9.0 (optional)
-- lablgtk.2.18.5 | lablgtk3.3.0.beta5 + lablgtk3-sourceview3.3.0.beta5
-- mlgmpidl.1.2.9 (optional)
+- lablgtk.2.18.8 | lablgtk3.3.0.beta6 + lablgtk3-sourceview3.3.0.beta6
+- mlgmpidl.1.2.11 (optional)
 - ocamlgraph.1.8.8
-- why3.1.2.0 (optional)
-- why3-coq.1.2.0 (optional)
-- yojson.1.4.1
-- zarith.1.7
+- why3.1.2.0
+- alt-ergo.2.0.0 (for wp, optional)
+- yojson.1.7.0
+- zarith.1.9.1
 
 ### Installing Custom Versions of Frama-C
 
@@ -197,7 +213,7 @@ frama-c-gui
 
 [opam](https://opam.ocaml.org) works perfectly on macOS via
 [Homebrew](https://brew.sh).
-We recommend to rely on it for the installation of Frama-C.
+We highly recommend to rely on it for the installation of Frama-C.
 
 1. Install *required* general macOS tools for OCaml:
 
@@ -206,25 +222,33 @@ We recommend to rely on it for the installation of Frama-C.
     ```
 
    Do not forget to `opam init` and ``eval `opam config env` `` for a proper
-   opam installation (if not already done before on your machine).
+   opam installation (if not already done before).
 
-2. Install *required* dependencies for Frama-C:
+2. Set up a compatible OCaml version (replace `<version>` with the version
+   indicated in the 'recommended working configuration' section):
+
+    ```shell
+    opam switch create <version>
+    ```
+
+3. Install *required* dependencies for Frama-C:
 
     ```shell
     brew install gmp gtk+ gtksourceview libgnomecanvas
     ```
 
-3. Install *recommended* dependencies for Frama-C:
+    The graphical libraries require additional manual configuration of your
+    bash profile. Consult this [issue](https://github.com/ocaml/opam-repository/issues/13709) on opam
+    for details. A known working configuration is:
+
+    ```shell
+    export PKG_CONFIG_PATH=/usr/local/opt/libffi/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:/usr/local/lib/pkgconfig
+    ```
+
+4. Install *recommended* dependencies for Frama-C:
 
     ```shell
     brew install graphviz
-    opam install why3
-    ```
-
-4. Install *optional* dependencies for Frama-C/WP:
-
-    ```shell
-    opam install coq coqide why3-coq
     ```
 
 5. Install Frama-C:
@@ -266,7 +290,7 @@ Arch Linux: `pikaur -S frama-c`
 ### Quick Start
 
 1. Install OCaml, OCamlfind, OCamlGraph and Zarith if not already installed.
-   Note that OCaml >= 4.02.3 is needed in order to compile Frama-C.
+   Note that OCaml >= 4.05.0 is needed in order to compile Frama-C.
 
 2. (Optional) For the GUI, also install Gtk, GtkSourceView, GnomeCanvas and
    Lablgtk2 or Lablgtk3 + Lablgtksourceview3 if not already installed.
@@ -291,7 +315,7 @@ Arch Linux: `pikaur -S frama-c`
 #### Frama-C Requirements
 
 - GNU make version >= 3.81
-- OCaml >= 4.02.3
+- OCaml >= 4.05.0
 - a C compiler with standard C and POSIX headers and libraries
 - [OCamlGraph][OCamlGraph] >= 1.8.8
 - [findlib][findlib] >= 1.6.1

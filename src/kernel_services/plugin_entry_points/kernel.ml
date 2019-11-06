@@ -716,10 +716,11 @@ let () = Parameter_customize.set_cmdline_stage Cmdline.Loading
    reset *) 
 (*let () = Parameter_customize.do_not_projectify ()*)
 module LoadState =
-  P.Empty_string
+  P.Filepath
     (struct
        let option_name = "-load"
        let arg_name = "filename"
+       let existence = Parameter_sig.Must_exist
        let help = "load a previously-saved session from file <filename>"
      end)
 
@@ -995,8 +996,8 @@ module WarnDecimalFloat =
   String(struct
     let option_name = "-warn-decimal-float"
     let arg_name = "freq"
-    let help = "[DEPRECATED: Use -kernel-warn-key decimal-float \
-                (and similar options) instead] \
+    let help = "[DEPRECATED: Use -kernel-warn-key \
+                parser:decimal-float=active (or inactive) instead] \
                 Warn when floating-point constants cannot be exactly \
                 represented; freq must be one of none, once or all"
     let default = "once"
@@ -1130,6 +1131,15 @@ module Keep_unused_specified_functions =
           let module_name = "Keep_unused_specified_functions"
           let help = "keep specified-but-unused functions"
         end)
+
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.set_negative_option_name "-remove-unused-types"
+module Keep_unused_types =
+  False(struct
+    let option_name = "-keep-unused-types"
+    let module_name = "Keep_unused_types"
+    let help = "keep unused types (false by default)"
+  end)
 
 let () = Parameter_customize.set_group normalisation
 module SimplifyTrivialLoops =
@@ -1513,7 +1523,14 @@ let _ =
 
 let () =
   Cmdline.run_after_configuring_stage
-    (fun () -> Remove_projects.iter (fun project -> Project.remove ~project ()))
+    (fun () ->
+       (* clear "-remove-projects" before itering over (a copy of) its contents
+          in order to prevent warnings about dangling pointer deletion (since it
+          is itself projectified and so contains a pointer to the project being
+          removed). *)
+       let s = Remove_projects.get () in
+       Remove_projects.clear ();
+       Project.Datatype.Set.iter (fun project -> Project.remove ~project ()) s)
 
 (* ************************************************************************* *)
 (** {2 Others options} *)

@@ -26,6 +26,7 @@ let show main_ui =
     "Thibaud Antignac";
     "Gergö Barany";
     "Patrick Baudin";
+    "Allan Blanchard";
     "Lionel Blatter";
     "François Bobot";
     "Richard Bonichon";
@@ -43,10 +44,12 @@ let show main_ui =
     "Tristan Le Gall";
     "Jean-Christophe Léchenet";
     "Matthieu Lemerre";
+    "Dara Ly";
     "David Maison";
     "Claude Marché";
     "André Maroneze";
     "Thibault Martin";
+    "Fonenantsoa Maurica";
     "Melody Méaulle";
     "Benjamin Monate";
     "Yannick Moy";

@@ -13,68 +13,74 @@ enum aorai_OpStatusList {
 /*@ ghost enum aorai_OpStatusList aorai_CurOpStatus = aorai_Called; */
 /*@ ghost int S0 = 1; */
 /*@ ghost int Sf = 0; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_f;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf;
-    
-    behavior buch_state_S0_out:
-      ensures 0 ≡ S0;
-    
-    behavior buch_state_Sf_in:
-      assumes 1 ≡ S0 ∧ x ≥ 4;
-      ensures 1 ≡ Sf;
-    
-    behavior buch_state_Sf_out:
-      assumes 0 ≡ S0 ∨ ¬(x ≥ 4);
-      ensures 0 ≡ Sf;
- */
-void f_pre_func(int x)
-{
-  /*@ ghost int S0_tmp; */
-  /*@ ghost int Sf_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_f;
-  S0_tmp = S0;
-  Sf_tmp = Sf;
-  if (S0 == 1) 
-    if (x >= 4) Sf_tmp = 1; else Sf_tmp = 0;
-  else Sf_tmp = 0;
-  S0_tmp = 0;
-  S0 = S0_tmp;
-  Sf = Sf_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_f;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf;
+     
+     behavior buch_state_S0_out:
+       ensures 0 ≡ S0;
+     
+     behavior buch_state_Sf_in:
+       assumes 1 ≡ S0 ∧ x ≥ 4;
+       ensures 1 ≡ Sf;
+     
+     behavior buch_state_Sf_out:
+       assumes 0 ≡ S0 ∨ ¬(x ≥ 4);
+       ensures 0 ≡ Sf;
+   @/
+  void f_pre_func(int x)
+  {
+    int S0_tmp;
+    int Sf_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_f;
+    S0_tmp = S0;
+    Sf_tmp = Sf;
+    if (S0 == 1) 
+      if (x >= 4) Sf_tmp = 1; else Sf_tmp = 0;
+    else Sf_tmp = 0;
+    S0_tmp = 0;
+    S0 = S0_tmp;
+    Sf = Sf_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ Sf ∧ 0 ≡ S0;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_f;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf;
-    
-    behavior buch_state_S0_out:
-      ensures 0 ≡ S0;
-    
-    behavior buch_state_Sf_in:
-      assumes 1 ≡ Sf;
-      ensures 1 ≡ Sf;
-    
-    behavior buch_state_Sf_out:
-      assumes 0 ≡ Sf;
-      ensures 0 ≡ Sf;
- */
-void f_post_func(int res)
-{
-  /*@ ghost int S0_tmp; */
-  /*@ ghost int Sf_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_f;
-  S0_tmp = S0;
-  Sf_tmp = Sf;
-  if (Sf == 1) Sf_tmp = 1; else Sf_tmp = 0;
-  S0_tmp = 0;
-  S0 = S0_tmp;
-  Sf = Sf_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ Sf ∧ 0 ≡ S0;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_f;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf;
+     
+     behavior buch_state_S0_out:
+       ensures 0 ≡ S0;
+     
+     behavior buch_state_Sf_in:
+       assumes 1 ≡ Sf;
+       ensures 1 ≡ Sf;
+     
+     behavior buch_state_Sf_out:
+       assumes 0 ≡ Sf;
+       ensures 0 ≡ Sf;
+   @/
+  void f_post_func(int res)
+  {
+    int S0_tmp;
+    int Sf_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_f;
+    S0_tmp = S0;
+    Sf_tmp = Sf;
+    if (Sf == 1) Sf_tmp = 1; else Sf_tmp = 0;
+    S0_tmp = 0;
+    S0 = S0_tmp;
+    Sf = Sf_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires 1 ≡ S0 ∧ 0 ≡ Sf;
     requires 1 ≡ S0 ⇒ x ≥ 4;
@@ -88,8 +94,8 @@ void f_post_func(int res)
  */
 int f(int x)
 {
-  f_pre_func(x);
-  f_post_func(x);
+  /*@ ghost f_pre_func(x); */
+  /*@ ghost f_post_func(x); */
   return x;
 }
 

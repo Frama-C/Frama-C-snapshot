@@ -571,7 +571,8 @@ class check_annot_visitor = object(self)
   method! vcode_annot annot =
     let kf = Extlib.the self#current_kf in
     let stmt =
-      Cil.get_original_stmt self#behavior (Extlib.the self#current_stmt)
+      Visitor_behavior.Get_orig.stmt
+        self#behavior (Extlib.the self#current_stmt)
     in
     begin match annot.annot_content with
       | AAssert _ ->

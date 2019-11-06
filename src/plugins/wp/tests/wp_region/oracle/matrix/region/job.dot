@@ -1,0 +1,93 @@
+digraph "job" {
+  rankdir="LR" ;
+  node [ fontname="monospace" ];
+  edge [ fontname="monospace" ];
+  V000 [ label="cols", shape="cds", style="filled", fillcolor="yellow" ];
+  V000:e -> A000 ;
+  V001 [ label="rows", shape="cds", style="filled", fillcolor="yellow" ];
+  V001:e -> A001 ;
+  V002 [ label="m", shape="cds", style="filled", fillcolor="yellow" ];
+  V002:e -> A002 ;
+  V003 [ label="v", shape="cds", style="filled", fillcolor="yellow" ];
+  V003:e -> A003 ;
+  V004 [ label="r", shape="cds", style="filled", fillcolor="yellow" ];
+  V004:e -> A004 ;
+  V005 [ label="i", shape="cds", style="filled", fillcolor="yellow" ];
+  V005:e -> A005 ;
+  V006 [ label="j", shape="cds", style="filled", fillcolor="yellow" ];
+  V006:e -> A006 ;
+  A000 [ label="R", shape="oval", fillcolor="green", style="filled" ];
+  _007 [ label="roots:&cols", style="filled", color="lightblue", shape="box"
+  ];
+  { rank=same; A000; _007; }
+  _007 -> A000 [ arrowhead="tee" ];
+  _008 [ shape="record", label="Var sint32" ];
+  A000 -> _008:w [ arrowhead="tee" ];
+  A001 [ label="R", shape="oval", fillcolor="green", style="filled" ];
+  _009 [ label="roots:&rows", style="filled", color="lightblue", shape="box"
+  ];
+  { rank=same; A001; _009; }
+  _009 -> A001 [ arrowhead="tee" ];
+  _010 [ shape="record", label="Var sint32" ];
+  A001 -> _010:w [ arrowhead="tee" ];
+  A002 [ label="D", shape="oval" ];
+  _011 [ label="roots:&m", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A002; _011; }
+  _011 -> A002 [ arrowhead="tee" ];
+  _012 [ shape="record", label="<_p1> Ref" ];
+  _012:_p1 -> A007:w [ taillabel="[..]", labeldistance="1.7",
+    labelangle="+40", color="red"
+  ];
+  A002 -> _012:w [ arrowhead="tee" ];
+  A003 [ label="D", shape="oval" ];
+  _013 [ label="roots:&v", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A003; _013; }
+  _013 -> A003 [ arrowhead="tee" ];
+  _014 [ shape="record", label="<_p1> Ref" ];
+  _014:_p1 -> A008:w [ taillabel="[..]", labeldistance="1.7",
+    labelangle="+40", color="red"
+  ];
+  A003 -> _014:w [ arrowhead="tee" ];
+  A004 [ label="D", shape="oval" ];
+  _015 [ label="roots:&r", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A004; _015; }
+  _015 -> A004 [ arrowhead="tee" ];
+  _016 [ shape="record", label="<_p1> Ref" ];
+  _016:_p1 -> A009:w [ taillabel="[..]", labeldistance="1.7",
+    labelangle="+40", color="red"
+  ];
+  A004 -> _016:w [ arrowhead="tee" ];
+  A005 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _017 [ shape="record", label="Var sint32" ];
+  A005 -> _017:w [ arrowhead="tee" ];
+  A006 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _018 [ shape="record", label="Var sint32" ];
+  A006 -> _018:w [ arrowhead="tee" ];
+  A007 [ label="D[]", shape="oval" ];
+  _019 [ label="roots:*", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A007; _019; }
+  _019 -> A007 [ arrowhead="tee" ];
+  _020 [ shape="record", label="<_p1> Ref" ];
+  _020:_p1 -> A010:w [ taillabel="[..]", labeldistance="1.7",
+    labelangle="+40", color="red"
+  ];
+  A007 -> _020:w [ arrowhead="tee" ];
+  A008 [ label="R[]", shape="oval", fillcolor="green", style="filled" ];
+  _021 [ label="roots:*", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A008; _021; }
+  _021 -> A008 [ arrowhead="tee" ];
+  _022 [ shape="record", label="Mem sint32" ];
+  A008 -> _022:w [ arrowhead="tee" ];
+  A009 [ label="RW[]", shape="oval", fillcolor="green", style="filled" ];
+  _023 [ label="roots:*", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A009; _023; }
+  _023 -> A009 [ arrowhead="tee" ];
+  _024 [ shape="record", label="Mem sint32" ];
+  A009 -> _024:w [ arrowhead="tee" ];
+  A010 [ label="R[]", shape="oval", fillcolor="green", style="filled" ];
+  _025 [ label="roots:*", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A010; _025; }
+  _025 -> A010 [ arrowhead="tee" ];
+  _026 [ shape="record", label="Mem sint32" ];
+  A010 -> _026:w [ arrowhead="tee" ];
+}

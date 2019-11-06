@@ -1,27 +1,27 @@
-{ "wp:global": { "alt-ergo": { "total": 5, "valid": 5, "rank": 6 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 5, "valid": 5, "rank": 6 },
                  "qed": { "total": 2, "valid": 2 },
                  "wp:main": { "total": 7, "valid": 7, "rank": 6 } },
-  "wp:functions": { "job": { "job_ensures": { "alt-ergo": { "total": 1,
-                                                            "valid": 1,
-                                                            "rank": 4 },
+  "wp:functions": { "job": { "job_ensures": { "why3:Alt-Ergo,2.0.0": 
+                                                { "total": 1, "valid": 1,
+                                                  "rank": 4 },
                                               "wp:main": { "total": 1,
                                                            "valid": 1,
                                                            "rank": 4 } },
-                             "wp:section": { "alt-ergo": { "total": 1,
-                                                           "valid": 1,
-                                                           "rank": 4 },
+                             "wp:section": { "why3:Alt-Ergo,2.0.0": { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 4 },
                                              "wp:main": { "total": 1,
                                                           "valid": 1,
                                                           "rank": 4 } } },
-                    "bor_bool": { "bor_bool_false_ensures": { "alt-ergo": 
+                    "bor_bool": { "bor_bool_false_ensures": { "why3:Alt-Ergo,2.0.0": 
                                                                 { "total": 1,
                                                                   "valid": 1,
-                                                                  "rank": 4 },
+                                                                  "rank": 3 },
                                                               "wp:main": 
                                                                 { "total": 1,
                                                                   "valid": 1,
                                                                   "rank": 4 } },
-                                  "bor_bool_true_ensures": { "alt-ergo": 
+                                  "bor_bool_true_ensures": { "why3:Alt-Ergo,2.0.0": 
                                                                { "total": 1,
                                                                  "valid": 1,
                                                                  "rank": 2 },
@@ -29,13 +29,13 @@
                                                                { "total": 1,
                                                                  "valid": 1,
                                                                  "rank": 2 } },
-                                  "wp:section": { "alt-ergo": { "total": 2,
-                                                                "valid": 2,
-                                                                "rank": 4 },
+                                  "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                    { "total": 2, "valid": 2,
+                                                      "rank": 3 },
                                                   "wp:main": { "total": 2,
                                                                "valid": 2,
                                                                "rank": 4 } } },
-                    "band_bool": { "band_bool_false_ensures": { "alt-ergo": 
+                    "band_bool": { "band_bool_false_ensures": { "why3:Alt-Ergo,2.0.0": 
                                                                   { "total": 1,
                                                                     "valid": 1,
                                                                     "rank": 6 },
@@ -49,15 +49,16 @@
                                                                "wp:main": 
                                                                  { "total": 1,
                                                                    "valid": 1 } },
-                                   "wp:section": { "alt-ergo": { "total": 1,
-                                                                 "valid": 1,
-                                                                 "rank": 6 },
+                                   "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                     { "total": 1,
+                                                       "valid": 1,
+                                                       "rank": 6 },
                                                    "qed": { "total": 1,
                                                             "valid": 1 },
                                                    "wp:main": { "total": 2,
                                                                 "valid": 2,
                                                                 "rank": 6 } } },
-                    "bxor_bool": { "bxor_bool_false_ensures": { "alt-ergo": 
+                    "bxor_bool": { "bxor_bool_false_ensures": { "why3:Alt-Ergo,2.0.0": 
                                                                   { "total": 1,
                                                                     "valid": 1,
                                                                     "rank": 3 },
@@ -71,9 +72,10 @@
                                                                "wp:main": 
                                                                  { "total": 1,
                                                                    "valid": 1 } },
-                                   "wp:section": { "alt-ergo": { "total": 1,
-                                                                 "valid": 1,
-                                                                 "rank": 3 },
+                                   "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                     { "total": 1,
+                                                       "valid": 1,
+                                                       "rank": 3 },
                                                    "qed": { "total": 1,
                                                             "valid": 1 },
                                                    "wp:main": { "total": 2,

@@ -16,4 +16,21 @@ void f(void)
   return;
 }
 
+void h(int i)
+{
+  int tmp_0;
+  int t[(unsigned int)100 / sizeof(tmp_0)];
+  int u[(unsigned int)100 / sizeof(i)];
+  int x = 1;
+  return;
+}
+
+int c;
+int g(void)
+{
+  int __retres;
+  __retres = 1;
+  return __retres;
+}
+
 

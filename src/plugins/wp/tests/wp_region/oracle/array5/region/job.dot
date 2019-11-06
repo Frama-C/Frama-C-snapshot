@@ -1,0 +1,49 @@
+digraph "job" {
+  rankdir="LR" ;
+  node [ fontname="monospace" ];
+  edge [ fontname="monospace" ];
+  V000 [ label="p", shape="cds", style="filled", fillcolor="yellow" ];
+  V000:e -> A000 ;
+  V001 [ label="q", shape="cds", style="filled", fillcolor="yellow" ];
+  V001:e -> A001 ;
+  V002 [ label="s", shape="cds", style="filled", fillcolor="yellow" ];
+  V002:e -> A002 ;
+  V003 [ label="tmp", shape="cds", style="filled", fillcolor="yellow" ];
+  V003:e -> A003 ;
+  A000 [ label="D", shape="oval" ];
+  _004 [ label="roots:&p", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A000; _004; }
+  _004 -> A000 [ arrowhead="tee" ];
+  _005 [ shape="record", label="<_p1> Ref" ];
+  _005:_p1 -> A004:w [ taillabel="[..]", labeldistance="1.7",
+    labelangle="+40", color="red"
+  ];
+  A000 -> _005:w [ arrowhead="tee" ];
+  A001 [ label="DW", shape="oval", fillcolor="green", style="filled" ];
+  _006 [ label="roots:&q", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A001; _006; }
+  _006 -> A001 [ arrowhead="tee" ];
+  _007 [ shape="record", label="<_p1> Var ptr" ];
+  _007:_p1 -> A004:w [ taillabel="[..]", labeldistance="1.7",
+    labelangle="+40", color="red"
+  ];
+  A001 -> _007:w [ arrowhead="tee" ];
+  A002 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _008 [ shape="record", label="Var sint32" ];
+  A002 -> _008:w [ arrowhead="tee" ];
+  A003 [ label="W", shape="oval", fillcolor="green", style="filled" ];
+  _009 [ shape="record", label="Var sint32" ];
+  A003 -> _009:w [ arrowhead="tee" ];
+  A004 [ label="R[]&", shape="oval", fillcolor="orange", style="filled" ];
+  _010 [ label="roots:*", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A004; _010; }
+  _010 -> A004 [ arrowhead="tee" ];
+  _011 [ shape="record", label="Mem sint32" ];
+  A004 -> _011:w [ arrowhead="tee" ];
+  R012 [ label="\\result", shape="tab", style="filled", fillcolor="yellow" ];
+  { rank=same; R012; A005; }
+  R012 -> A005 ;
+  A005 [ label="W", shape="oval", fillcolor="green", style="filled" ];
+  _013 [ shape="record", label="Var sint32" ];
+  A005 -> _013:w [ arrowhead="tee" ];
+}

@@ -148,18 +148,13 @@ module Make (Abstract: Abstractions.Eva) = struct
 
   let initial_state = Init.initial_state
 
-  let get_cvalue =
-    match Abstract.Dom.get Cvalue_domain.key with
-    | None -> fun _ -> Cvalue.Model.top
-    | Some get -> fun state -> get state
-
   let get_cval =
-    match Abstract.Val.get Main_values.cvalue_key with
+    match Abstract.Val.get Main_values.CVal.key with
     | None -> fun _ -> assert false
     | Some get -> fun value -> get value
 
   let get_ploc =
-    match Abstract.Loc.get Main_locations.ploc_key with
+    match Abstract.Loc.get Main_locations.PLoc.key with
     | None -> fun _ -> assert false
     | Some get -> fun location -> get location
 
@@ -191,7 +186,7 @@ module Make (Abstract: Abstractions.Eva) = struct
           then `Spec (Annotations.funspec kf)
           else `Def def
     in
-    let cvalue_state = get_cvalue state in
+    let cvalue_state = Abstract.Dom.get_cvalue_or_top state in
     let resulting_states, cacheable = match use_spec with
       | `Spec spec ->
         Db.Value.Call_Type_Value_Callbacks.apply
@@ -237,9 +232,9 @@ module Make (Abstract: Abstractions.Eva) = struct
         in
         call_result
       | Some (states, i) ->
-        let stack_with_call = Value_util.call_stack () in
-        Db.Value.Call_Type_Value_Callbacks.apply
-          (`Memexec, get_cvalue init_state, stack_with_call);
+        let stack = Value_util.call_stack () in
+        let cvalue = Abstract.Dom.get_cvalue_or_top init_state in
+        Db.Value.Call_Type_Value_Callbacks.apply (`Memexec, cvalue, stack);
         (* Evaluate the preconditions of kf, to update the statuses
            at this call. *)
         let spec = Annotations.funspec call.kf in
@@ -300,7 +295,7 @@ module Make (Abstract: Abstractions.Eva) = struct
       in
       Locations.Location_Bytes.do_track_garbled_mix true;
       let final_state = states >>- join_states in
-      let cvalue_state = get_cvalue state in
+      let cvalue_state = Abstract.Dom.get_cvalue_or_top state in
       match final_state with
       | `Bottom ->
         let cs = Value_util.call_stack () in
@@ -312,17 +307,16 @@ module Make (Abstract: Abstractions.Eva) = struct
         let cvalue_states, cacheable =
           Builtins.apply_builtin builtin cvalue_call cvalue_state
         in
-        let insert (cvalue_state, clobbered_set) =
-          Abstract.Dom.set Locals_scoping.key clobbered_set
-            (Abstract.Dom.set Cvalue_domain.key cvalue_state final_state)
+        let insert cvalue_state =
+          Abstract.Dom.set Cvalue_domain.State.key cvalue_state final_state
         in
         let states = Bottom.bot_of_list (List.map insert cvalue_states) in
         Transfer.{states; cacheable; builtin=true}
 
   let compute_call =
-    if Abstract.Dom.mem Cvalue_domain.key
-    && Abstract.Val.mem Main_values.cvalue_key
-    && Abstract.Loc.mem Main_locations.ploc_key
+    if Abstract.Dom.mem Cvalue_domain.State.key
+    && Abstract.Val.mem Main_values.CVal.key
+    && Abstract.Loc.mem Main_locations.PLoc.key
     then compute_call_or_builtin
     else compute_and_cache_call
 
@@ -330,7 +324,7 @@ module Make (Abstract: Abstractions.Eva) = struct
 
   let store_initial_state kf init_state =
     Abstract.Dom.Store.register_initial_state (Value_util.call_stack ()) init_state;
-    let cvalue_state = get_cvalue init_state in
+    let cvalue_state = Abstract.Dom.get_cvalue_or_top init_state in
     Db.Value.Call_Value_Callbacks.apply (cvalue_state, [kf, Kglobal])
 
   let compute kf init_state =

@@ -41,6 +41,11 @@ __PUSH_FC_STDLIB
 #define MAP_PRIVATE 0x02
 #define MAP_SHARED  0x01
 
+// Non-POSIX, but used in some Linux code, so required for parsing
+#define MAP_ANONYMOUS 0x20
+#define MAP_ANON MAP_ANONYMOUS
+#define MAP_SHARED_VALIDATE 0x03
+
 #define MAP_FAILED ((void*) -1)
 
 #define MS_ASYNC      1

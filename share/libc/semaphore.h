@@ -30,7 +30,7 @@ __PUSH_FC_STDLIB
 
 __BEGIN_DECLS
 
-typedef union {
+typedef union __fc_sem_t {
   char __size[16];
 } sem_t;
 

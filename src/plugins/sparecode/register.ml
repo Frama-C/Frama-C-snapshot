@@ -57,7 +57,7 @@ let unjournalized_rm_unused_globals new_proj_name project =
 
 let journalized_rm_unused_globals  =
   Journal.register
-    "!Db.Sparecode.rm_unused_globals"
+    "Sparecode.Register.rm_unused_globals"
     (Datatype.func2
        ~label1:("new_proj_name", None) Datatype.string
        ~label2:("project", Some Project.current) Project.ty
@@ -95,7 +95,7 @@ let run select_annot select_slice_pragma =
 
 let journalized_get =
   Journal.register
-    "!Db.Sparecode.get"
+    "Sparecode.Register.get"
     (Datatype.func2
        ~label1:("select_annot", None) Datatype.bool
        ~label2:("select_slice_pragma", None) Datatype.bool
@@ -109,19 +109,11 @@ let journalized_get =
 let get ~select_annot ~select_slice_pragma =
   journalized_get select_annot select_slice_pragma
 
-(** {2 Initialization of the sparecode plugin } *)
-
-let () =
-  (* journalization already done. *)
-  Db.register Db.Journalization_not_required Db.Sparecode.get get;
-  Db.register Db.Journalization_not_required
-    Db.Sparecode.rm_unused_globals rm_unused_globals
-
 let main () =
   if Sparecode_params.Analysis.get () then begin
     let select_annot = Sparecode_params.Annot.get () in
     let select_slice_pragma = true in
-    let new_proj = !Db.Sparecode.get select_annot select_slice_pragma in
+    let new_proj = get select_annot select_slice_pragma in
     File.pretty_ast ~prj:new_proj ()
   end
   else if Sparecode_params.GlobDecl.get () then begin

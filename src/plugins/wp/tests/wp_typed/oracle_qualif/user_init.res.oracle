@@ -1,0 +1,22 @@
+# frama-c -wp -wp-timeout 45 -wp-steps 1500 [...]
+[kernel] Parsing tests/wp_typed/user_init.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 8 goals scheduled
+[wp] [Alt-Ergo 2.0.0] Goal typed_init_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_init_loop_invariant_Partial_preserved : Valid
+[wp] [Qed] Goal typed_init_loop_invariant_Partial_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_init_loop_invariant_Range_preserved : Valid
+[wp] [Qed] Goal typed_init_loop_invariant_Range_established : Valid
+[wp] [Qed] Goal typed_init_loop_assigns_part1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_init_loop_assigns_part2 : Valid
+[wp] [Qed] Goal typed_init_assigns : Valid
+[wp] Proved goals:    8 / 8
+  Qed:               4 
+  Alt-Ergo 2.0.0:    4
+[wp] Report 'tests/wp_typed/user_init.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+init                 4      4 (48..60)       8       100%
+-------------------------------------------------------------

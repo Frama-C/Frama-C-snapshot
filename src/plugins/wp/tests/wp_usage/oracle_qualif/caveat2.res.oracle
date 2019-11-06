@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Caveat)' -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-model 'Typed (Caveat)' [...]
 [kernel] Parsing tests/wp_usage/caveat2.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -6,17 +6,17 @@
 [wp] tests/wp_usage/caveat2.i:22: Warning: Undefined array-size (sint32[])
 [wp] 9 goals scheduled
 [wp] [Qed] Goal typed_caveat_job_ensures_N : Valid
-[wp] [Alt-Ergo] Goal typed_caveat_job_ensures_A : Valid
-[wp] [Alt-Ergo] Goal typed_caveat_job_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_job_ensures_A : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_job_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_caveat_job_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_caveat_job_loop_invariant_2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_job_loop_invariant_2_preserved : Valid
 [wp] [Qed] Goal typed_caveat_job_loop_invariant_2_established : Valid
 [wp] [Qed] Goal typed_caveat_job_loop_assigns : Valid
 [wp] [Qed] Goal typed_caveat_job_assigns_part1 : Valid
 [wp] [Qed] Goal typed_caveat_job_assigns_part2 : Valid
 [wp] Proved goals:    9 / 9
-  Qed:             6 
-  Alt-Ergo:        3
+  Qed:               6 
+  Alt-Ergo 2.0.0:    3
 [wp] Report in:  'tests/wp_usage/oracle_qualif/caveat2.0.report.json'
 [wp] Report out: 'tests/wp_usage/result_qualif/caveat2.0.report.json'
 -------------------------------------------------------------

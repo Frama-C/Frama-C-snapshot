@@ -29,12 +29,12 @@ let run () =
   in
 
   let spawn goal =
-    let callback wpo prv res =
-      Format.printf "[%a] %a: %a@.\n"
-        VCS.pp_prover prv Wpo.pp_goal wpo VCS.pp_result res
+    let result _ prv res =
+      Format.printf "[%a] %a@.@\n"
+        VCS.pp_prover prv VCS.pp_result res
     in
     let server = ProverTask.server () in
-    Prover.spawn goal ~callback provers;
+    Prover.spawn goal ~delayed:true ~result provers;
     Task.launch server
   in
 
@@ -57,9 +57,10 @@ let run () =
         pred_content = Cil_types.Ptrue;
       }
     in
-    let annot = Logic_const.new_code_annotation (AAssert ([],pred)) in
-    let po =Wpo.{
+    let annot = Logic_const.new_code_annotation (AAssert ([],Assert,pred)) in
+    let po = Wpo.{
         po_gid = "";
+        po_leg = "";
         po_sid = "";
         po_name = "";
         po_idx = Function(kf, None);
@@ -74,6 +75,7 @@ let run () =
         | h :: _ ->
             inter_po := Wpo.{
                 po_gid = "";
+                po_leg = "";
                 po_sid = "";
                 po_name = "";
                 po_idx = Function(kf, None);
@@ -97,18 +99,21 @@ let run () =
 
   let run_test kf =
     let fct = Kernel_function.get_definition kf in
-    Model.on_scope (Some kf) (fun () ->
-        let block = (Kernel_function.get_definition kf).Cil_types.sbody in
+    WpContext.on_context (model,WpContext.Kf kf)
+      begin fun () ->
+        let block = Interpreted_automata.Compute.get_automaton ~annotations:true kf in
         let formal = List.hd (fct.sformals) in
 
         (*First call*)
         let seq1 = {Sigs.pre = Cfg.node (); post = Cfg.node ()} in
         let env1 = Compiler.empty_env kf  in
         let env1 = Compiler.(env1 @* [Clabels.here,seq1.pre;Clabels.next,seq1.post]) in
-        let path1 = Compiler.Deprecated.block env1 block in
-        let cfg1 = path1.Compiler.path_cfg in
+        let path1 = Compiler.automaton env1 block in
+        let cfg1 = path1.Compiler.paths_cfg in
         let node1 = Cfg.T.init' seq1.pre (reads_formal formal) in
-        let (_,sigma1,sequence1) = Compiler.compile env1 seq1 (Cfg.T.reads node1) cfg1 in
+        let (_,sigma1,sequence1) =
+          Compiler.Cfg.compile seq1.pre
+            (Cfg.Node.Set.singleton seq1.post) (Cfg.T.reads node1) cfg1 in
         let node1 = Cfg.T.relocate sigma1 node1 in
         let term_1 = Cfg.T.get node1 in
 
@@ -116,10 +121,13 @@ let run () =
         let seq2 = {Sigs.pre = Cfg.node (); post = Cfg.node ()} in
         let env2 = Compiler.empty_env kf  in
         let env2 = Compiler.(env2 @* [Clabels.here,seq2.pre;Clabels.next,seq2.post]) in
-        let path2 = Compiler.Deprecated.block env2 block in
-        let cfg2 = path2.Compiler.path_cfg in
+        let path2 = Compiler.automaton env2 block in
+        let cfg2 = path2.Compiler.paths_cfg in
         let node2 = Cfg.T.init' seq2.pre (reads_formal formal) in
-        let (_,sigma2,sequence2) = Compiler.compile env2 seq2 (Cfg.T.reads node2) cfg2 in
+        let (_,sigma2,sequence2) =
+          Compiler.Cfg.compile
+            seq2.pre (Cfg.Node.Set.singleton seq2.post)
+            (Cfg.T.reads node2) cfg2 in
         let node2 = Cfg.T.relocate sigma2 node2 in
         let term_2 = Cfg.T.get node2 in
 
@@ -142,7 +150,7 @@ let run () =
         Format.printf "Sequent: @[%a@]" !Conditions.pretty sequent;
         Format.printf "#######################################################################@.";
         prove kf sequent;
-      ) ()
+      end ()
   in
 
   let ordered_kf =
@@ -154,7 +162,7 @@ let run () =
 
   List.iter (fun kf ->
       if Kernel_function.is_definition kf then
-        (Model.with_model model (Lang.local run_test) kf))
+        Lang.local run_test kf)
     ordered_kf
 
 

@@ -23,9 +23,9 @@
 (** Cartesian product of two value abstractions. *)
 
 module Make
-    (Left: Abstract_value.Internal)
-    (Right: Abstract_value.Internal)
-  : Abstract_value.Internal with type t = Left.t * Right.t
+    (Left: Abstract_value.S)
+    (Right: Abstract_value.S)
+  : Abstract_value.S with type t = Left.t * Right.t
 
 
 (*

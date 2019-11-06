@@ -1,3 +1,5 @@
+(* Disable warning about partial function applications. *)
+[@@@warning "-5"]
 
 (* register functions using abstract types "t" and "u" *)
 module A : sig end = struct

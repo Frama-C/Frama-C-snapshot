@@ -91,9 +91,9 @@ struct
   let get stmt =
     let filter_add _emitter annot acc =
       match annot.annot_content with
-      | Cil_types.AExtended (_, is_loop_annot', (_,name',_,_,data))
+      | Cil_types.AExtended (_, is_loop_annot', {ext_name=name'; ext_kind})
         when name' = name && is_loop_annot' = is_loop_annot ->
-        import data :: acc
+        import ext_kind :: acc
       | _ -> acc
     in
     List.rev (Annotations.fold_code_annot filter_add stmt [])

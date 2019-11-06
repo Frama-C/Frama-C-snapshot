@@ -67,14 +67,14 @@
     {!Cil.iterGlobals} and {!Cil.foldGlobals}. You can also use the
     {!Cil.dummyFile} when you need a {!Cil_types.file} as a placeholder. For
     each global item CIL stores the source location where it appears (using the
-    type {!Cil_types.location}) 
+    type {!Cil_types.location})
     @plugin development guide *)
-type file = { 
+type file = {
   mutable fileName: Filepath.Normalized.t;   (** The complete file name *)
-  
-  mutable globals: global list; 
+
+  mutable globals: global list;
   (** List of globals as they will appear in the printed file *)
-  
+
   mutable globinit: fundec option;
   (** An optional global initializer function. This is a function where you
       can put stuff that must be executed before the program is
@@ -83,10 +83,10 @@ type file = {
       create/get one. *)
 
   mutable globinitcalled: bool;
-(** Whether the global initialization function is called in main. This
-    should always be false if there is no global initializer. When you
-    create a global initialization CIL will try to insert code in main to
-    call it. *)
+  (** Whether the global initialization function is called in main. This
+      should always be false if there is no global initializer. When you
+      create a global initialization CIL will try to insert code in main to
+      call it. *)
 }
 
 (** The main type for representing global declarations and definitions. A list
@@ -147,7 +147,7 @@ and global =
 
   | GAsm of string * location
   (** Global asm statement. These ones can contain only a template *)
-      
+
   | GPragma of attribute * location
   (** Pragmas at top level. Use the same syntax as attributes *)
 
@@ -156,12 +156,12 @@ and global =
       comments in the output.  *)
 
   | GAnnot of global_annotation * location
-(** a global annotation. Can be
-    - an axiom or a lemma
-    - a predicate declaration or definition
-    - a global type invariant
-    - a global invariant
-    - a logic function declaration or definition. *)
+  (** a global annotation. Can be
+      - an axiom or a lemma
+      - a predicate declaration or definition
+      - a global type invariant
+      - a global invariant
+      - a logic function declaration or definition. *)
 
 (* ************************************************************************* *)
 (** {2 Types} *)
@@ -241,7 +241,7 @@ and typ =
       enumeration itself, which are stored inside the enuminfo *)
 
   | TBuiltin_va_list of attributes
-(** This is the same as the gcc's type with the same name *)
+  (** This is the same as the gcc's type with the same name *)
 
 (** Various kinds of integers *)
 and ikind =
@@ -306,10 +306,10 @@ and attrparam =
       - __fc_assign takes two arguments and emulate [a1=a2] syntax
       - __fc_float takes one string argument and indicates a floating point
         constant, that will be printed as such.
-      See https://clang.llvm.org/docs/AttributeReference.html#availability
-      for more information. Proper attributes node might be added if really
-      needed, i.e. if some plug-in wants to interpret the availability
-      attribute.
+        See https://clang.llvm.org/docs/AttributeReference.html#availability
+        for more information. Proper attributes node might be added if really
+        needed, i.e. if some plug-in wants to interpret the availability
+        attribute.
   *)
 
   | ASizeOf of typ                       (** A way to talk about types *)
@@ -346,7 +346,7 @@ and attrparam =
 
 (** The definition of a structure or union type. Use {!Cil.mkCompInfo} to make
     one and use {!Cil.copyCompInfo} to copy one (this ensures that a new key is
-    assigned and that the fields have the right pointers to parents.).  
+    assigned and that the fields have the right pointers to parents.).
     @plugin development guide *)
 and compinfo = {
   mutable cstruct: bool;
@@ -381,7 +381,7 @@ and compinfo = {
       no fields (such things are allowed in gcc). *)
 
   mutable creferenced: bool;
-(** [true] if used. Initially set to [false]. *)
+  (** [true] if used. Initially set to [false]. *)
 }
 
 (* ************************************************************************* *)
@@ -442,8 +442,8 @@ and fieldinfo = {
       but use {!Cil.bitsOffset} instead. *)
 
   mutable fpadding_in_bits: int option;
-(** (Deprecated.) Store the size of the padding that follows the field, if any.
-    @deprecated only Jessie uses this *)
+  (** (Deprecated.) Store the size of the padding that follows the field, if any.
+      @deprecated only Jessie uses this *)
 }
 
 (* ************************************************************************* *)
@@ -473,12 +473,12 @@ and enuminfo = {
                            for gcc. See ISO C 6.7.2.2 *)
 }
 
-and enumitem = { 
+and enumitem = {
   eiorig_name: string; (** original name as found in C file. *)
   mutable einame: string; (** the name, always non-empty. *)
   mutable eival: exp; (** value of the item. Must be a compile-time constant *)
   mutable eihost: enuminfo; (** the host enumeration in which the item is
-				declared. *) 
+                                declared. *)
   eiloc: location;
 }
 
@@ -518,11 +518,11 @@ and typeinfo = {
     of the following functions:
     - {!Cil.makeGlobalVar} : to make a global variable
     - {!Cil.makeTempVar} : to make a temporary local variable whose name
-    will be generated so that to avoid conflict with other locals.
+      will be generated so that to avoid conflict with other locals.
     - {!Cil.makeLocalVar} : like {!Cil.makeTempVar} but you can specify the
-    exact name to be used.
+      exact name to be used.
     - {!Cil.copyVarinfo}: make a shallow copy of a varinfo assigning a new name
-    and a new unique identifier
+      and a new unique identifier
 
     A [varinfo] is also used in a function type to denote the list of
     formals. *)
@@ -592,13 +592,13 @@ and varinfo = {
       (e.g. for temporaries used for function call results, this string is a
       representation of the function call.) *)
 
-  mutable vdescrpure: bool;           
+  mutable vdescrpure: bool;
   (** Indicates whether the vdescr above is a pure expression or call.  True
       for all CIL expressions and Lvals, but false for e.g. function calls.
       Printing a non-pure vdescr more than once may yield incorrect
       results. *)
 
-  mutable vghost: bool; 
+  mutable vghost: bool;
   (** Indicates if the variable is declared in ghost code *)
 
   vsource: bool;
@@ -631,7 +631,7 @@ and storage =
     This way the integer 15 can be printed as 0xF if that is how it occurred in
     the source.
 
-    CIL uses arbitrary precision integers 
+    CIL uses arbitrary precision integers
     to represent the integer constants and also stores the
     width of the integer type. Care must be taken to ensure that the constant is
     representable with the given width. Use the functions {!Cil.kinteger},
@@ -657,7 +657,7 @@ and storage =
     {!Cil.constFold}. *)
 
 (** Expressions (Side-effect free)*)
-and exp = { 
+and exp = {
   eid: int; (** unique identifier *)
   enode: exp_node; (** the expression itself *)
   eloc: location; (** location of the expression. *)
@@ -705,7 +705,7 @@ and exp_node =
       printed. We have it in CIL because it makes the typing rules simpler. *)
 
   | Info       of exp * exp_info
-(** Additional information on the underlying expression *)
+  (** Additional information on the underlying expression *)
 
 (** Additional information on an expression *)
 and exp_info = {
@@ -752,8 +752,8 @@ and constant =
       textual representation, if available. *)
 
   | CEnum of enumitem
-(** An enumeration constant. Use [Cillower.lowerEnumVisitor] to replace these
-    with integer constants. *)
+  (** An enumeration constant. Use [Cillower.lowerEnumVisitor] to replace these
+      with integer constants. *)
 
 (** Unary operators *)
 and unop =
@@ -775,10 +775,10 @@ and binop =
   | MinusPI  (** pointer - integer *)
   | MinusPP  (** pointer - pointer *)
   | Mult     (** * *)
-  | Div      (** /      
-		 @plugin development guide *)
-  | Mod      (** % 
-		 @plugin development guide *)
+  | Div      (** /
+                 @plugin development guide *)
+  | Mod      (** %
+                 @plugin development guide *)
   | Shiftlt  (** shift left *)
   | Shiftrt  (** shift right *)
 
@@ -833,15 +833,15 @@ and binop =
 
     The following are a few useful function for operating on lvalues:
     - {!Cil.mkMem} - makes an lvalue of [Mem] kind. Use this to ensure
-    that certain equivalent forms of lvalues are canonized.
-    For example, [*&x = x].
+      that certain equivalent forms of lvalues are canonized.
+      For example, [*&x = x].
     - {!Cil.typeOfLval} - the type of an lvalue
     - {!Cil.typeOffset} - the type of an offset, given the type of the
-    host.
+      host.
     - {!Cil.addOffset} and {!Cil.addOffsetLval} - extend sequences
-    of offsets.
+      of offsets.
     - {!Cil.removeOffset} and {!Cil.removeOffsetLval} - shrink sequences
-    of offsets.
+      of offsets.
 
     The following equivalences hold {v
     Mem(AddrOf(Mem a, aoff)), off   = Mem a, aoff + off
@@ -857,14 +857,14 @@ and lhost =
   (** The host is a variable. *)
 
   | Mem        of exp
-(** The host is an object of type [T] when the expression has pointer
-    [TPtr(T)]. *)
+  (** The host is an object of type [T] when the expression has pointer
+      [TPtr(T)]. *)
 
 
 (** The offset part of an {!Cil_types.lval}. Each offset can be applied to
     certain kinds of lvalues and its effect is that it advances the starting
     address of the lvalue and changes the denoted type, essentially focussing
-    to some smaller lvalue that is contained in the original one.  
+    to some smaller lvalue that is contained in the original one.
     @plugin development guide *)
 and offset =
   | NoOffset
@@ -879,10 +879,10 @@ and offset =
       the mentioned field. *)
 
   | Index    of exp * offset
-(** An array index offset. Can be applied only to an lvalue that denotes an
-    array. This advances the starting address of the lval to the beginning of
-    the mentioned array element and changes the denoted type to be the type of
-    the array element *)
+  (** An array index offset. Can be applied only to an lvalue that denotes an
+      array. This advances the starting address of the lval to the beginning of
+      the mentioned array element and changes the denoted type to be the type of
+      the array element *)
 
 (* ************************************************************************* *)
 (** {2 Initializers} *)
@@ -899,16 +899,16 @@ and offset =
 and init =
   | SingleInit   of exp   (** A single initializer *)
   | CompoundInit   of typ * (offset * init) list
-(** Used only for initializers of structures, unions and arrays.  The offsets
-    are all of the form [Field(f, NoOffset)] or [Index(i, NoOffset)] and
-    specify the field or the index being initialized. For structures all fields
-    must have an initializer (except the unnamed bitfields), in the proper
-    order. This is necessary since the offsets are not printed. For arrays the
-    list must contain a prefix of the initializers; the rest are 0-initialized.
-    For unions there must be exactly one initializer. If the initializer is not
-    for the first field then a field designator is printed, so you better be on
-    GCC since MSVC does not understand this. You can scan an initializer list
-    with {!Cil.foldLeftCompound}. *)
+  (** Used only for initializers of structures, unions and arrays.  The offsets
+      are all of the form [Field(f, NoOffset)] or [Index(i, NoOffset)] and
+      specify the field or the index being initialized. For structures all fields
+      must have an initializer (except the unnamed bitfields), in the proper
+      order. This is necessary since the offsets are not printed. For arrays the
+      list must contain a prefix of the initializers; the rest are 0-initialized.
+      For unions there must be exactly one initializer. If the initializer is not
+      for the first field then a field designator is printed, so you better be on
+      GCC since MSVC does not understand this. You can scan an initializer list
+      with {!Cil.foldLeftCompound}. *)
 
 (** We want to be able to update an initializer in a global variable, so we
     define it as a mutable field *)
@@ -919,11 +919,11 @@ and initinfo = { mutable init : init option }
     @since Phosphorus-20170501-beta1. *)
 
 and constructor_kind =
-    | Plain_func (** plain function call, whose result is used for initializing
-                     the variable. *)
-    | Constructor (** C++-like constructor: the function takes as first argument
-                      the address of the variable to be initialized, and
-                      returns [void]. *)
+  | Plain_func (** plain function call, whose result is used for initializing
+                   the variable. *)
+  | Constructor (** C++-like constructor: the function takes as first argument
+                    the address of the variable to be initialized, and
+                    returns [void]. *)
 
 (** Initializers for local variables.
     @since Phosphorus-20170501-beta1
@@ -931,9 +931,9 @@ and constructor_kind =
 and local_init =
   | AssignInit of init (** normal initialization *)
   | ConsInit of varinfo * exp list * constructor_kind
-     (** [ConsInit(f,args,kind)] indicates that the corresponding
-         local is initialized via a call to [f], of kind [kind]
-         with the given [args]. *)
+  (** [ConsInit(f,args,kind)] indicates that the corresponding
+      local is initialized via a call to [f], of kind [kind]
+      with the given [args]. *)
 (* ************************************************************************* *)
 (** {2 Function definitions} *)
 (* ************************************************************************* *)
@@ -961,11 +961,11 @@ and fundec = {
       call or in a prototype must point to the same [varinfo]. *)
 
   mutable sformals: varinfo list;
-      (** Formals. These must be in the same order and with the same information
-          as the formal information in the type of the function.  Use
-          {!Cil.setFormals} or {!Cil.setFunctionType} to set these formals and
-          ensure that they are reflected in the function type. Do not make
-          copies of these because the body refers to them. *)
+  (** Formals. These must be in the same order and with the same information
+      as the formal information in the type of the function.  Use
+      {!Cil.setFormals} or {!Cil.setFunctionType} to set these formals and
+      ensure that they are reflected in the function type. Do not make
+      copies of these because the body refers to them. *)
 
   mutable slocals: varinfo list;
   (** Locals. Does NOT include the sformals. Do not make copies of these
@@ -1110,7 +1110,7 @@ and stmtkind =
       @plugin development guide *)
 
   | If of exp * block * block * location
-  (** A conditional. Two successors, the "then" and the "else" branches (in 
+  (** A conditional. Two successors, the "then" and the "else" branches (in
       this order).
       Both branches fall-through to the successor of the If statement.
       @plugin development guide *)
@@ -1125,7 +1125,7 @@ and stmtkind =
       cases.
       @plugin development guide *)
 
-  | Loop of 
+  | Loop of
       code_annotation list * block * location * (stmt option) * (stmt option)
   (** A [while(1)] loop. The termination test is implemented in the body of a
       loop using a [Break] statement. If {!Cfg.prepareCFG} has been called, the
@@ -1146,21 +1146,21 @@ and stmtkind =
       during evaluation of expressions. Each statement comes
       together with three list of lval, in this order.
       - lvals that are written during the sequence and whose future
-      value depends upon the statement (it is legal to read from them, but
-      not to write to them)
+        value depends upon the statement (it is legal to read from them, but
+        not to write to them)
       - lvals that are written during the evaluation of the statement itself
       - lval that are read.
       - Function calls in the corresponding statement
-      Note that this include only a subset of the affectations
-      of the statement.  Namely, the
-      temporary variables generated by cil are excluded (i.e.  it
-      is assumed that the "compilation" is correct). In addition,
-      side effects caused by function applications are not taken
-      into account in the list. For a single statement, the written lvals
-      are supposed to be ordered (or their order of evaluation doesn't
-      matter), so that an alarm should be emitted only if the lvals read by
-      a statement overlap with the lvals written (or read) by another
-      statement of the sequence.
+        Note that this include only a subset of the affectations
+        of the statement.  Namely, the
+        temporary variables generated by cil are excluded (i.e.  it
+        is assumed that the "compilation" is correct). In addition,
+        side effects caused by function applications are not taken
+        into account in the list. For a single statement, the written lvals
+        are supposed to be ordered (or their order of evaluation doesn't
+        matter), so that an alarm should be emitted only if the lvals read by
+        a statement overlap with the lvals written (or read) by another
+        statement of the sequence.
 
       At this time this feature is
       experimental and may miss some unspecified sequences.
@@ -1170,13 +1170,13 @@ and stmtkind =
       @plugin development guide *)
 
   | Throw of (exp * typ) option * location
-      (** Throws an exception, C++ style.
-          We keep the type of the expression, to match
-          it against the appropriate catch clause. A Throw node has
-          no successor, even if it is in try-catch block that will catch
-          the exception: we keep normal and exceptional control-flow
-          completely separate, as in Jo and Chang, ICSSA 2004.
-       *)
+  (** Throws an exception, C++ style.
+      We keep the type of the expression, to match
+      it against the appropriate catch clause. A Throw node has
+      no successor, even if it is in try-catch block that will catch
+      the exception: we keep normal and exceptional control-flow
+      completely separate, as in Jo and Chang, ICSSA 2004.
+  *)
 
   | TryCatch of block * (catch_binder * block) list * location
 
@@ -1187,45 +1187,45 @@ and stmtkind =
       @plugin development guide *)
 
   | TryExcept of block * (instr list * exp) * block * location
-(** On MSVC we support structured exception handling. The try/except
-     statement is a bit tricky:
-    {v         __try \{ blk \}
+  (** On MSVC we support structured exception handling. The try/except
+       statement is a bit tricky:
+      {v         __try \{ blk \}
     __except (e) \{
     handler
     \}
     v}
 
-    The argument to __except  must be an expression. However, we keep a
-    list of instructions AND an expression in case you need to make
-    function calls. We'll print those as a comma expression. The control
-    can get to the __except expression only if an exception is thrown.
-    After that, depending on the value of the expression the control
-    goes to the handler, propagates the exception, or retries the
-    exception. The location corresponds to the try keyword.
-    @plugin development guide *)
+      The argument to __except  must be an expression. However, we keep a
+      list of instructions AND an expression in case you need to make
+      function calls. We'll print those as a comma expression. The control
+      can get to the __except expression only if an exception is thrown.
+      After that, depending on the value of the expression the control
+      goes to the handler, propagates the exception, or retries the
+      exception. The location corresponds to the try keyword.
+      @plugin development guide *)
 
 (** Kind of exceptions that are caught by a given clause. *)
 and catch_binder =
   | Catch_exn of varinfo * (varinfo * block) list
-      (** catch exception of given type(s). 
-          If the list is empty, only exceptions with the same type as the
-          varinfo can be caught. If the list is non-empty, only exceptions
-          matching one of the type of a varinfo in the list are caught.
-          The associated block contains the operations necessary to transform
-          the matched varinfo into the principal one. 
-          Semantics is by value (i.e. the varinfo is bound to a copy of the
-          caught object).
+  (** catch exception of given type(s).
+      If the list is empty, only exceptions with the same type as the
+      varinfo can be caught. If the list is non-empty, only exceptions
+      matching one of the type of a varinfo in the list are caught.
+      The associated block contains the operations necessary to transform
+      the matched varinfo into the principal one.
+      Semantics is by value (i.e. the varinfo is bound to a copy of the
+      caught object).
 
-          This clause is a declaration point for the varinfo(s)
-          mentioned in it. More precisely, for
-          [Catch_exn(v_0,[(v_1, b_1),..., (v_n, b_n)])],
-          the [v_i] must be referenced in the [slocals] of the
-          enclosing [fundec], and _must not_ appear in any [blocals]
-          of some block. The scope of v_0 is all the [b_i] and
-          the corresponding block in the [catch_binder * block list] of the 
-          [TryCatch] node the binder belongs to. The scope of the other [v_i]
-          is the corresponding [b_i].
-       *)
+      This clause is a declaration point for the varinfo(s)
+      mentioned in it. More precisely, for
+      [Catch_exn(v_0,[(v_1, b_1),..., (v_n, b_n)])],
+      the [v_i] must be referenced in the [slocals] of the
+      enclosing [fundec], and _must not_ appear in any [blocals]
+      of some block. The scope of v_0 is all the [b_i] and
+      the corresponding block in the [catch_binder * block list] of the
+      [TryCatch] node the binder belongs to. The scope of the other [v_i]
+      is the corresponding [b_i].
+  *)
   | Catch_all (** default catch clause: all exceptions are caught. *)
 
 (** Instructions. They may cause effects directly but may not have control
@@ -1241,29 +1241,29 @@ and instr =
       Actual arguments must have a type equivalent (i.e. {!Cil.need_cast} must
       return [false]) to the one of the formals of the function.
       If the type of the result variable is not the same as the declared type of
-      the function result then an implicit cast exists. 
+      the function result then an implicit cast exists.
   *)
   | Local_init of varinfo * local_init * location
-    (** initialization of a local variable. The corresponding varinfo must
-        belong to the [blocals] list of the innermost enclosing block that does
-        not have attribute {!Cil.block_no_scope_attr}. Such blocks are purely
-        here for grouping statements and do not play a role for scoping
-        variables. See {!Cil_types.block} definition for more information
-        @since Phosphorus-20170501-beta1
-      *)
+  (** initialization of a local variable. The corresponding varinfo must
+      belong to the [blocals] list of the innermost enclosing block that does
+      not have attribute {!Cil.block_no_scope_attr}. Such blocks are purely
+      here for grouping statements and do not play a role for scoping
+      variables. See {!Cil_types.block} definition for more information
+      @since Phosphorus-20170501-beta1
+  *)
 
   (* See the GCC specification for the meaning of ASM.
-    If the source is MS VC then only the templates
-    are used.
+     If the source is MS VC then only the templates
+     are used.
 
      [sm] I've added a notes.txt file which contains more
      information on interpreting Asm instructions *)
   | Asm of
-      attributes (* Really only const and volatile can appear here *) 
-    * string list (* templates (CR-separated) *)
-    * extended_asm option
-    * location
-  (** An inline assembly instruction. The arguments are 
+      attributes (* Really only const and volatile can appear here *)
+      * string list (* templates (CR-separated) *)
+      * extended_asm option
+      * location
+  (** An inline assembly instruction. The arguments are
       (1) a list of attributes (only const and volatile can appear here and only
       for GCC)
       (2) templates (CR-separated)
@@ -1281,17 +1281,17 @@ and instr =
     - clobbered registers
     - Possible destinations statements *)
 and extended_asm =
-  { 
+  {
     asm_outputs: (string option * string * lval) list
-    (** outputs must be lvals with optional names and constraints.  I would
-        like these to be actually variables, but I run into some trouble with
-        ASMs in the Linux sources *);
+  (** outputs must be lvals with optional names and constraints.  I would
+      like these to be actually variables, but I run into some trouble with
+      ASMs in the Linux sources *);
     asm_inputs: (string option * string * exp) list
-    (** inputs with optional names and constraints *);
+  (** inputs with optional names and constraints *);
     asm_clobbers: string list (** register clobbers *);
     asm_gotos: (stmt ref) list
-    (** list of statements this asm section may jump to. Destination
-        must have a label. *); 
+  (** list of statements this asm section may jump to. Destination
+      must have a label. *);
   }
 
 (** Describes a location in a source file *)
@@ -1300,7 +1300,7 @@ and location = Filepath.position * Filepath.position
 (** {1 Abstract syntax trees for annotations} *)
 
 and logic_constant =
-  | Integer of Integer.t * string option 
+  | Integer of Integer.t * string option
   (** Integer constant with a textual representation.  *)
   | LStr of string (** String constant. *)
   | LWStr of int64 list (** Wide character string constant. *)
@@ -1320,7 +1320,7 @@ and logic_real = {
 and logic_type =
   | Ctype of typ (** a C type *)
   | Ltype of logic_type_info * logic_type list
-      (** an user-defined logic type with its parameters *)
+  (** an user-defined logic type with its parameters *)
   | Lvar of string (** a type variable. *)
   | Linteger (** mathematical integers, {i i.e.} Z *)
   | Lreal    (** mathematical reals, {i i.e.} R *)
@@ -1361,11 +1361,11 @@ and term = {
   term_loc : Filepath.position * Filepath.position;
   (** position in the source file. *)
   term_type : logic_type; (** type of the term. *)
-  term_name: string list; 
-   (** names of the term if any. A name can be an arbitrary string, where
-     '"' and '\'' are escaped by a \, and which does not end with a \. 
-     Hence, "name" and 'name' should be recognized as a unique label by most
-     tools. *)
+  term_name: string list;
+  (** names of the term if any. A name can be an arbitrary string, where
+      '"' and '\'' are escaped by a \, and which does not end with a \.
+      Hence, "name" and 'name' should be recognized as a unique label by most
+      tools. *)
 }
 
 (** the various kind of terms. *)
@@ -1386,27 +1386,25 @@ and term_node =
 
   (* additional constructs *)
   | Tapp of logic_info * logic_label list * term list
-      (** application of a logic function. *)
+  (** application of a logic function. *)
   | Tlambda of quantifiers * term (** lambda abstraction. *)
   | TDataCons of logic_ctor_info * term list
-      (** constructor of logic sum-type. *)
+  (** constructor of logic sum-type. *)
   | Tif of term * term * term
-      (** conditional operator*)
+  (** conditional operator*)
   | Tat of term * logic_label
-      (** term refers to a particular program point. *)
+  (** term refers to a particular program point. *)
   | Tbase_addr of logic_label * term (** base address of a pointer. *)
   | Toffset of logic_label * term (** offset from the base address of a pointer. *)
   | Tblock_length of logic_label * term (** length of the block pointed to by the term. *)
   | Tnull (** the null pointer. *)
   | TLogic_coerce of logic_type * term
-  (** implicit conversion from a C type to a logic type. 
+  (** implicit conversion from a C type to a logic type.
       The logic type must not be a Ctype. In particular, used to denote
       lifting to Linteger and Lreal.
   *)
-  | TCoerce of term * typ (** coercion to a given C type. *)
-  | TCoerceE of term * term (** coercion to the type of a given term. *)
   | TUpdate of term * term_offset * term
-      (** functional update of a field. *)
+  (** functional update of a field. *)
   | Ttypeof of term (** type tag for a term. *)
   | Ttype of typ (** type tag for a C type. *)
   | Tempty_set (** the empty set. *)
@@ -1420,14 +1418,14 @@ and term_node =
 
 (** lvalue: base address and offset. *)
 and term_lval =
-    term_lhost * term_offset
+  term_lhost * term_offset
 
 (** base address of an lvalue. *)
 and term_lhost =
   | TVar of logic_var (** a variable. *)
   | TResult of typ (** value returned by a C function.
                        Only used in post-conditions or assigns
-                    *)
+                   *)
   | TMem of term (** memory access. *)
 
 (** model field. *)
@@ -1445,13 +1443,13 @@ and model_info = {
 and term_offset =
   | TNoOffset (** no further offset. *)
   | TField of fieldinfo * term_offset
-      (** access to the field of a compound type. *)
+  (** access to the field of a compound type. *)
   | TModel of model_info * term_offset (** access to a model field. *)
   | TIndex of term * term_offset
-      (** index. Note that a range is denoted by [TIndex(Trange(i1,i2),ofs)] *)
+  (** index. Note that a range is denoted by [TIndex(Trange(i1,i2),ofs)] *)
 
 (** description of a logic function or predicate.
-@plugin development guide *)
+    @plugin development guide *)
 and logic_info = {
 (*
   mutable l_name : string; (** name of the function. *)
@@ -1466,7 +1464,7 @@ and logic_info = {
   mutable l_body : logic_body; (** body of the function. *)
 }
 
-and builtin_logic_info = { 
+and builtin_logic_info = {
   mutable bl_name: string;
   mutable bl_labels: logic_label list;
   mutable bl_params: string list;
@@ -1482,7 +1480,7 @@ and logic_body =
   | LBpred of predicate (** direct definition of a predicate. *)
   | LBinductive of
       (string * logic_label list * string list * predicate) list
-	(** inductive definition *)
+  (** inductive definition *)
 
 (** Description of a logic type.
     @plugin development guide *)
@@ -1490,10 +1488,10 @@ and logic_type_info = {
   mutable lt_name: string;
   lt_params : string list; (** type parameters*)
   mutable lt_def: logic_type_def option;
-    (** definition of the type. None for abstract types. *)
+  (** definition of the type. None for abstract types. *)
   mutable lt_attr: attributes;
-    (** attributes associated to the logic type.
-        @since Phosphorus-20170501-beta1 *)
+  (** attributes associated to the logic type.
+      @since Phosphorus-20170501-beta1 *)
 }
 (* will be expanded when dealing with concrete types *)
 
@@ -1502,7 +1500,7 @@ and logic_type_def =
   | LTsyn of logic_type (** Synonym of another type. *)
 
 (** origin of a logic variable. *)
-and logic_var_kind = 
+and logic_var_kind =
   | LVGlobal (** global logic function or predicate. *)
   | LVC (** Logic counterpart of a C variable. *)
   | LVFormal (** formal parameter of a logic function / predicate
@@ -1511,28 +1509,28 @@ and logic_var_kind =
   | LVLocal (** local \let *)
 
 (** description of a logic variable
-@plugin development guide *)
+    @plugin development guide *)
 and logic_var = {
   mutable lv_name : string; (** name of the variable. *)
   mutable lv_id : int; (** unique identifier *)
   mutable lv_type : logic_type; (** type of the variable. *)
   mutable lv_kind: logic_var_kind; (** kind of the variable *)
   mutable lv_origin : varinfo option;
-      (** when the logic variable stems from a C variable, set to the original C
-          variable.  *)
+  (** when the logic variable stems from a C variable, set to the original C
+      variable.  *)
   mutable lv_attr: attributes
-      (** attributes tied to the logic variable
-          @since Phosphorus-20170501-beta1 *)
+  (** attributes tied to the logic variable
+      @since Phosphorus-20170501-beta1 *)
 }
 
 (** Description of a constructor of a logic sum-type.
     @plugin development guide *)
 and logic_ctor_info =
- { mutable ctor_name: string; (** name of the constructor. *)
-   ctor_type: logic_type_info; (** type to which the constructor belongs. *)
-   ctor_params: logic_type list 
- (** types of the parameters of the constructor. *)
- }
+  { mutable ctor_name: string; (** name of the constructor. *)
+    ctor_type: logic_type_info; (** type to which the constructor belongs. *)
+    ctor_params: logic_type list
+    (** types of the parameters of the constructor. *)
+  }
 
 (* ************************************************************************* *)
 (** {2 Predicates} *)
@@ -1542,12 +1540,12 @@ and logic_ctor_info =
 and quantifiers = logic_var list
 
 (** comparison relations*)
-and relation = 
+and relation =
   | Rlt
   | Rgt
   | Rle
   | Rge
-  | Req 
+  | Req
   | Rneq (** @plugin development guide *)
 
 
@@ -1556,7 +1554,7 @@ and predicate_node =
   | Pfalse (** always-false predicate. *)
   | Ptrue (** always-true predicate. *)
   | Papp of logic_info * logic_label list * term list
-      (** application of a predicate. *)
+  (** application of a predicate. *)
   | Pseparated of term list
   | Prel of relation * term * term (** comparison of two terms. *)
   | Pand of predicate * predicate (** conjunction *)
@@ -1574,17 +1572,15 @@ and predicate_node =
   | Pvalid_read of logic_label * term   (** the given locations are valid for reading. *)
   | Pvalid of logic_label * term   (** the given locations are valid. *)
   | Pvalid_function of term
-    (** the pointed function has a type compatible with the one of pointer. *)
+  (** the pointed function has a type compatible with the one of pointer. *)
   | Pinitialized of logic_label * term   (** the given locations are initialized. *)
   | Pdangling of logic_label * term (** the given locations contain dangling
                                         addresses. *)
   | Pallocable of logic_label * term   (** the given locations can be allocated. *)
   | Pfreeable of logic_label * term   (** the given locations can be free. *)
   | Pfresh of logic_label * logic_label * term * term
-      (** \fresh(pointer, n)
-	  A memory block of n bytes is newly allocated to the pointer.*)
-  | Psubtype of term * term
-      (** First term is a type tag that is a subtype of the second. *)
+  (** \fresh(pointer, n)
+      A memory block of n bytes is newly allocated to the pointer.*)
 
 (** predicate with an unique identifier.  Use {!Logic_const.new_predicate} to
     create fresh predicates *)
@@ -1603,12 +1599,12 @@ and predicate = {
 (** variant of a loop or a recursive function. *)
 and variant = term * string option
 
-(** allocates and frees. 
+(** allocates and frees.
     @since Oxygen-20120901  *)
 and allocation =
   | FreeAlloc of identified_term list * identified_term list (** tsets. Empty list means \nothing. *)
-  | FreeAllocAny (** Nothing specified. Semantics depends on where it 
-		     is written. *)
+  | FreeAllocAny (** Nothing specified. Semantics depends on where it
+                     is written. *)
 
 (** dependencies of an assigned location. *)
 and deps =
@@ -1621,7 +1617,7 @@ and from = identified_term * deps
 and assigns =
   | WritesAny (** Nothing specified. Anything can be written. *)
   | Writes of from list
-    (** list of locations that can be written. Empty list means \nothing. *)
+  (** list of locations that can be written. Empty list means \nothing. *)
 
 (** Function or statement contract. This type shares the name of its
     constructors with {!Logic_ptree.spec}. *)
@@ -1641,7 +1637,7 @@ and spec = {
 
   mutable spec_disjoint_behaviors: string list list;
   (** list of disjoint behaviors.
-     It is possible to have more than one set of disjoint behaviors *)
+      It is possible to have more than one set of disjoint behaviors *)
 }
 
 
@@ -1661,22 +1657,28 @@ and spec = {
     - [Cil_printer.register_xxx_extension] for pretty-printing an
       extended clause
     - [Cil.register_xxx_extension] for visiting an extended clause
-    where xxx can be either [global], [behavior], [code_annot] or
-    [loop annot] depending on the level at which the extension should be seen.
+      where xxx can be either [global], [behavior], [code_annot] or
+      [loop annot] depending on the level at which the extension should be seen.
 
     It is _not_ possible to register the same keyword for annotations at two
     different levels (e.g. [global] and [behavior]), as this would make the
     grammar ambiguous.
 
     @plugin development guide *)
-and acsl_extension = int * string * location * bool * acsl_extension_kind
+and acsl_extension = {
+  ext_id : int;
+  ext_name : string;
+  ext_loc : location;
+  ext_has_status : bool;
+  ext_kind : acsl_extension_kind
+}
 
 (** @plugin development guide *)
 and acsl_extension_kind =
   | Ext_id of int (** id used internally by the extension itself. *)
   | Ext_terms of term list
   | Ext_preds of predicate list
-    (** a list of predicates, the most common case of for extensions *)
+  (** a list of predicates, the most common case of for extensions *)
 
 (** Where are we expected to find corresponding extension keyword.
     @plugin development guide
@@ -1699,18 +1701,18 @@ and ext_code_annot_context =
     @since Carbon-20101201 [b_requires] has been added.
     @modify Boron-20100401 [b_ensures] is replaced by [b_post_cond].
     Old [b_ensures] represent the [Normal] case of [b_post_cond].
- *)
+*)
 and behavior = {
   mutable b_name : string; (** name of the behavior. *)
   mutable b_requires : identified_predicate list; (** require clauses. *)
   mutable b_assumes : identified_predicate list; (** assume clauses. *)
   mutable b_post_cond : (termination_kind * identified_predicate) list
-      (** post-condition. *);
+(** post-condition. *);
   mutable b_assigns : assigns; (** assignments. *)
   mutable b_allocation : allocation; (** frees, allocates. *)
   mutable b_extended : acsl_extension list
-    (** extensions
-        @plugin development guide *)
+  (** extensions
+      @plugin development guide *)
 }
 
 (** kind of termination a post-condition applies to. See ACSL manual. *)
@@ -1761,7 +1763,7 @@ and code_annotation_node =
   (** loop/code invariant. The list of strings is the list of behaviors to which
       this invariant applies.  The boolean flag is true for normal loop
       invariants and false for invariant-as-assertions. *)
-                                         
+
   | AVariant of variant
   (** loop variant. Note that there can be at most one variant associated to a
       given statement *)
@@ -1778,9 +1780,9 @@ and code_annotation_node =
 
   | APragma of pragma (** pragma. *)
   | AExtended of string list * bool * acsl_extension
-    (** extension in a code or loop annotation.
-        Boolean flag is true for loop extensions and false for code extensions
-        @since Silicon-20161101 *)
+  (** extension in a code or loop annotation.
+      Boolean flag is true for loop extensions and false for code extensions
+      @since Silicon-20161101 *)
 
 (** function contract. *)
 
@@ -1789,8 +1791,8 @@ and funspec = spec
 (** code annotation with an unique identifier.
     Use {!Logic_const.new_code_annotation} to create new code annotations with
     a fresh id. *)
-and code_annotation = { 
-  annot_id: int; (** identifier. *) 
+and code_annotation = {
+  annot_id: int; (** identifier. *)
   annot_content : code_annotation_node; (** content of the annotation. *)
 }
 
@@ -1808,7 +1810,7 @@ and global_annotation =
   | Dtype of logic_type_info * location (** declaration of a logic type. *)
   | Dlemma of
       string * bool * logic_label list * string list *
-        predicate * attributes * location
+      predicate * attributes * location
   (** definition of a lemma. The boolean flag is [true] if the property should
       be taken as an axiom and [false] if it must be proved.  *)
   | Dinvariant of logic_info * location
@@ -1819,9 +1821,9 @@ and global_annotation =
   (** Model field for a type t, seen as a logic function with one
       argument of type t *)
   | Dextended of acsl_extension * attributes * location
-      (** Extended global clause. *)
+  (** Extended global clause. *)
   | Dcustom_annot of custom_tree * string * attributes * location
-      (*Custom declaration*)
+  (*Custom declaration*)
 
 and custom_tree = CustomDummy
 (*
@@ -1838,11 +1840,11 @@ type kinstr =
 type cil_function =
   | Definition of (fundec * location) (** defined function *)
   | Declaration of (funspec * varinfo * varinfo list option * location)
-      (** Declaration(spec,f,args,loc) represents a leaf function [f] with
-          specification [spec] and arguments [args], at location [loc]. As
-          with the [TFun] constructor of {!Cil_types.typ}, the arg list is
-          optional, to distinguish [void f()] ([None]) from
-          [void f(void)] ([Some []]). *)
+  (** Declaration(spec,f,args,loc) represents a leaf function [f] with
+      specification [spec] and arguments [args], at location [loc]. As
+      with the [TFun] constructor of {!Cil_types.typ}, the arg list is
+      optional, to distinguish [void f()] ([None]) from
+      [void f(void)] ([Some []]). *)
 
 (** Only field [fundec] can be used directly. Use {!Annotations.funspec},
     [Annotations.add_*] and [Annotations.remove_*] to query or modify field
@@ -1869,10 +1871,10 @@ type localisation =
 type syntactic_scope =
   | Program (** Only non-static global symbols. *)
   | Translation_unit of Filepath.Normalized.t
-    (** Any global visible within the given C source file. *)
+  (** Any global visible within the given C source file. *)
   | Block_scope of stmt
-      (** same as above + all locals of the blocks to which the given statement
-          belongs. *)
+  (** same as above + all locals of the blocks to which the given statement
+      belongs. *)
 
 (** Definition of a machine model (architecture + compiler).
     @plugin development guide *)

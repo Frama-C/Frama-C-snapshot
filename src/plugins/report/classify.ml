@@ -21,12 +21,11 @@
 (**************************************************************************)
 
 module R = Report_parameters
-module T = Transitioning
 
 type action = SKIP | INFO | ERROR | REVIEW
 
 let action s =
-  match T.String.uppercase_ascii s with
+  match String.uppercase_ascii s with
   | "INFO" -> INFO
   | "ERROR" -> ERROR
   | "REVIEW" -> REVIEW
@@ -358,7 +357,7 @@ let monitor_log_event (evt : Log.event) =
         Printf.sprintf "%s.unclassified.%s" evt.evt_plugin env.rs_name in
       let e_title =
         Printf.sprintf "Unclassified %s (Plugin '%s')"
-          (T.String.capitalize_ascii env.rs_name) evt.evt_plugin in
+          (String.capitalize_ascii env.rs_name) evt.evt_plugin in
       let e_action = action (env.rs_action ()) in
       { unclassified with e_id ; e_title ; e_action } in
     monitor ~lookup ~category ~msg ~source unclassified
@@ -413,32 +412,32 @@ let rec monitored_property ip =
   let open Property in
   match ip with
   | IPBehavior _ -> false
-  | IPPredicate (PKAssumes _,_,_,_) -> false
-  | IPPredicate (PKRequires _,_,_,_) -> true
-  | IPPredicate (PKEnsures _,_,_,_) -> true
-  | IPPredicate (PKTerminates,_,_,_) -> true
-  | IPAllocation(_,_,_,_) -> true
-  | IPAssigns(_,_,_,_) -> true
-  | IPFrom(_,_,_,_) -> true
-  | IPDecrease (_,_,_,_) -> true
-  | IPCodeAnnot (_,_, { annot_content = AStmtSpec _ } ) -> false
-  | IPCodeAnnot (_,_, { annot_content = APragma _ } ) -> false
-  | IPCodeAnnot (_,_, { annot_content = AExtended _ } ) -> true
-  | IPCodeAnnot (_,_, { annot_content = AAssert _ } ) -> true
-  | IPCodeAnnot (_,_, { annot_content = AInvariant _ } ) -> true
-  | IPCodeAnnot (_,_, { annot_content = AVariant _ } ) -> true
-  | IPCodeAnnot (_,_, { annot_content = AAssigns _ } ) -> true
-  | IPCodeAnnot (_,_, { annot_content = AAllocation _ } ) -> true
-  | IPComplete (_,_,_,_) -> true
-  | IPDisjoint(_,_,_,_) -> true
-  | IPReachable (None,_,_) -> false
-  | IPReachable (Some _,_,_) -> true
+  | IPPredicate {ip_kind = PKAssumes _} -> false
+  | IPPredicate {ip_kind = PKRequires _} -> true
+  | IPPredicate {ip_kind = PKEnsures _} -> true
+  | IPPredicate {ip_kind = PKTerminates} -> true
+  | IPAllocation _ -> true
+  | IPAssigns _ -> true
+  | IPFrom _-> true
+  | IPDecrease _ -> true
+  | IPCodeAnnot {ica_ca = { annot_content = AStmtSpec _ }} -> false
+  | IPCodeAnnot {ica_ca = { annot_content = APragma _ }} -> false
+  | IPCodeAnnot {ica_ca = { annot_content = AExtended _ }} -> true
+  | IPCodeAnnot {ica_ca = { annot_content = AAssert _ }} -> true
+  | IPCodeAnnot {ica_ca = { annot_content = AInvariant _ }} -> true
+  | IPCodeAnnot {ica_ca = { annot_content = AVariant _ }} -> true
+  | IPCodeAnnot {ica_ca = { annot_content = AAssigns _ }} -> true
+  | IPCodeAnnot {ica_ca = { annot_content = AAllocation _ }} -> true
+  | IPComplete _ -> true
+  | IPDisjoint _ -> true
+  | IPReachable {ir_kf=None} -> false
+  | IPReachable {ir_kf=Some _} -> true
   | IPAxiomatic _ | IPAxiom _ -> false
-  | IPLemma(_,_,_,_,_) -> true
-  | IPTypeInvariant(_,_,_,_) | IPGlobalInvariant(_,_,_) -> true
-  | IPOther(_,_) -> true
+  | IPLemma _ -> true
+  | IPTypeInvariant _ | IPGlobalInvariant _ -> true
+  | IPOther _ -> true
   | IPExtended _ -> true
-  | IPPropertyInstance (_, _, _, ip) -> monitored_property ip
+  | IPPropertyInstance {ii_ip} -> monitored_property ii_ip
 
 let monitor_status properties ip =
   if monitored_property ip then
@@ -449,7 +448,7 @@ let monitor_status properties ip =
       let e_id = "unclassified." ^ properties.ps_name in
       let e_title = name in
       let e_action = properties.ps_action () |> action in
-      let e_descr = T.String.capitalize_ascii properties.ps_name ^ " status" in
+      let e_descr = String.capitalize_ascii properties.ps_name ^ " status" in
       { unclassified with e_id ; e_action ; e_title ; e_descr }
     in monitor ~lookup ~category:[] ~msg:name ~source unclassified
 

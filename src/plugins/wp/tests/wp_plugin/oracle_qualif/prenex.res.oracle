@@ -1,27 +1,27 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/prenex.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 12 goals scheduled
-[wp] [Alt-Ergo] Goal typed_diag_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_diag_loop_invariant_I_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_diag_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_diag_loop_invariant_I_preserved : Valid
 [wp] [Qed] Goal typed_diag_loop_invariant_I_established : Valid
-[wp] [Alt-Ergo] Goal typed_diag_loop_invariant_PI_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_diag_loop_invariant_PI_preserved : Valid
 [wp] [Qed] Goal typed_diag_loop_invariant_PI_established : Valid
-[wp] [Alt-Ergo] Goal typed_diag_loop_invariant_J_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_diag_loop_invariant_J_preserved : Valid
 [wp] [Qed] Goal typed_diag_loop_invariant_J_established : Valid
-[wp] [Alt-Ergo] Goal typed_diag_loop_invariant_PJ_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_diag_loop_invariant_PJ_preserved : Valid
 [wp] [Qed] Goal typed_diag_loop_invariant_PJ_established : Valid
 [wp] [Qed] Goal typed_diag_loop_assigns_part1 : Valid
 [wp] [Qed] Goal typed_diag_loop_assigns_part2 : Valid
 [wp] [Qed] Goal typed_diag_loop_assigns_2 : Valid
 [wp] Proved goals:   12 / 12
-  Qed:             7 
-  Alt-Ergo:        5
+  Qed:               7 
+  Alt-Ergo 2.0.0:    5
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/prenex.0.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/prenex.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-diag                 7      5 (64..88)      12       100%
+diag                 7      5 (192..240)    12       100%
 -------------------------------------------------------------

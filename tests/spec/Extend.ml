@@ -50,7 +50,7 @@ let visit_bar vis ext =
   | Ext_id idx ->
     let l = Bar_table.find idx in
     let l' = Cil.mapNoCopy (Cil.visitCilPredicate vis) l in
-    if Cil.is_copy_behavior vis#behavior then begin
+    if Visitor_behavior.is_copy vis#behavior then begin
       let idx' = Count.next () in
       Queue.add (fun () -> Bar_table.add idx' l') vis#get_filling_actions;
       Cil.ChangeTo(Ext_id idx')

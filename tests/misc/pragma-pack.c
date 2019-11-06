@@ -332,6 +332,14 @@ void tests2() {
   TEST(test8);
 }
 
+// Test resilience to crash due to align() attribute in flexible array member
+#pragma pack(push, 1)
+typedef struct {
+  int len;
+  unsigned char data[];
+} barcode_bmp_t;
+#pragma pack(pop)
+
 #ifndef __GNUC__
 // For MSVC testing on Visual C++
 int _tmain(int argc, _TCHAR* argv[]) {

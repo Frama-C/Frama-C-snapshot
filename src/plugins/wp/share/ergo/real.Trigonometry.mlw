@@ -39,7 +39,7 @@ axiom Pi_double_precision_bounds : (0x1.921fb54442d18p1 <  pi)
 
 axiom Pi_double_precision_bounds1 : (pi <  0x1.921fb54442d19p1)
 
-axiom Cos_pi : (cos(pi) = (-1.0))
+axiom Cos_pi : (cos(pi) = (- 1.0))
 
 axiom Sin_pi : (sin(pi) = 0.0)
 

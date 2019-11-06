@@ -96,14 +96,16 @@ let generator =
       status = Db.RteGen.get_bool_value_status } ;
   ]
 
-let generate kf model =
+let generate model kf =
   let update = ref false in
-  let cint = Model.with_model model Cint.current () in
+  let cint = WpContext.on_context (model,WpContext.Kf kf) Cint.current () in
   List.iter (configure ~update ~generate:true kf cint) generator ;
   if !update then !Db.RteGen.annotate_kf kf
 
-let missing_guards kf model =
+let missing_guards model kf =
   let update = ref false in
-  let cint = Model.with_model model Cint.current () in
+  let cint = WpContext.on_context (model,WpContext.Kf kf) Cint.current () in
   List.iter (configure ~update ~generate:false kf cint) generator ;
   !update
+
+(* -------------------------------------------------------------------------- *)

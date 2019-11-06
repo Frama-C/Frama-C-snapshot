@@ -31,7 +31,9 @@ open VCS
 type t (** elementary proof obligation *)
 
 val get_id : t -> string
-val get_model : t -> Model.t
+val get_model : t -> WpContext.model
+val get_scope : t -> WpContext.scope
+val get_context : t -> WpContext.context
 val get_description : t -> string
 val get_property : t -> Property.t
 val get_result : t -> prover -> result
@@ -96,7 +98,9 @@ val server : ?procs:int -> unit -> Task.server
     The returned server is global to Frama-C, but the number of parallel task
     allowed will be updated to fit the [~procs] or command-line options. *)
 
-val command : t Bag.t -> unit
-(** Run the provers with the command-line interface *)
+val command : ?provers:Why3.Whyconf.prover list -> ?tip:bool -> t Bag.t -> unit
+(** Run the provers with the command-line interface.
+    If [~provers] is set, it is used for computing the list of provers to spawn.
+    If [~tip] is set, it is used to compute the script execution mode. *)
 
 (* -------------------------------------------------------------------------- *)

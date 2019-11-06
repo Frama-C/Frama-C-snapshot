@@ -519,7 +519,7 @@ struct
       else
         let str = if str = "" then default_kinds_str else str in
         let has_ch c =
-          CamlString.contains str (Transitioning.Char.lowercase_ascii c)
+          CamlString.contains str (Char.lowercase_ascii c)
         in
         let list_of_bool b e = if b then [e] else [] in
         let kinds =
@@ -534,7 +534,7 @@ struct
 
     let pp_source fmt = function
       | None -> ()
-      | Some src -> Format.fprintf fmt "%a:" Filepath.pp_pos src
+      | Some src -> Format.fprintf fmt "%a:" Fc_Filepath.pp_pos src
   end
 
   (* Output must be synchronized with functions [prefix_*] in module Log. *)
@@ -657,7 +657,7 @@ struct
       else
         L.set_warn_status c s
     in
-    let directives = Transitioning.String.split_on_char ',' s in
+    let directives = CamlString.split_on_char ',' s in
     if List.mem "help" directives then begin
       match directives with
       | [ "help" ] ->
@@ -666,7 +666,7 @@ struct
       | _ -> L.abort "mixing help with warning categories in `%s'" s
     end else begin
       let parse_single s =
-        match Transitioning.String.split_on_char '=' s with
+        match CamlString.split_on_char '=' s with
         | [] -> assert false (* split_on_char should return at least an element
                                 even if it is the empty string *)
         | [ c ] -> set_status c Log.Wactive
@@ -678,7 +678,7 @@ struct
     end
 
   let parse_category s =
-    let categories = Transitioning.String.split_on_char ',' s in
+    let categories = CamlString.split_on_char ',' s in
     if List.mem "help" categories then Print_help
     else begin
       let parse_single s =

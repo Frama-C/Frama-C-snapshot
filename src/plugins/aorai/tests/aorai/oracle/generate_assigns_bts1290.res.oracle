@@ -12,52 +12,58 @@ enum aorai_OpStatusList {
 /*@ ghost enum aorai_ListOper aorai_CurOperation = op_main; */
 /*@ ghost enum aorai_OpStatusList aorai_CurOpStatus = aorai_Called; */
 /*@ ghost int S = 1; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S;
-    
-    behavior buch_state_S_in:
-      assumes 1 ≡ S;
-      ensures 1 ≡ S;
-    
-    behavior buch_state_S_out:
-      assumes 0 ≡ S;
-      ensures 0 ≡ S;
- */
-void main_pre_func(void)
-{
-  /*@ ghost int S_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  S_tmp = S;
-  if (S == 1) S_tmp = 1; else S_tmp = 0;
-  S = S_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S;
+     
+     behavior buch_state_S_in:
+       assumes 1 ≡ S;
+       ensures 1 ≡ S;
+     
+     behavior buch_state_S_out:
+       assumes 0 ≡ S;
+       ensures 0 ≡ S;
+   @/
+  void main_pre_func(void)
+  {
+    int S_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    S_tmp = S;
+    if (S == 1) S_tmp = 1; else S_tmp = 0;
+    S = S_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ S;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S;
-    
-    behavior buch_state_S_in:
-      assumes 1 ≡ S;
-      ensures 1 ≡ S;
-    
-    behavior buch_state_S_out:
-      assumes 0 ≡ S;
-      ensures 0 ≡ S;
- */
-void main_post_func(void)
-{
-  /*@ ghost int S_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  S_tmp = S;
-  if (S == 1) S_tmp = 1; else S_tmp = 0;
-  S = S_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ S;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S;
+     
+     behavior buch_state_S_in:
+       assumes 1 ≡ S;
+       ensures 1 ≡ S;
+     
+     behavior buch_state_S_out:
+       assumes 0 ≡ S;
+       ensures 0 ≡ S;
+   @/
+  void main_post_func(void)
+  {
+    int S_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    S_tmp = S;
+    if (S == 1) S_tmp = 1; else S_tmp = 0;
+    S = S_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires 1 ≡ S;
     
@@ -67,8 +73,8 @@ void main_post_func(void)
  */
 void main(void)
 {
-  int aorai_Loop_Init_2;
-  main_pre_func();
+  /*@ ghost int aorai_Loop_Init_2; */
+  /*@ ghost main_pre_func(); */
   int i = 0;
   /*@ ghost aorai_Loop_Init_2 = 1; */
   aorai_loop_2:
@@ -81,7 +87,7 @@ void main(void)
     /*@ ghost aorai_Loop_Init_2 = 0; */
     i ++;
   }
-  main_post_func();
+  /*@ ghost main_post_func(); */
   return;
 }
 

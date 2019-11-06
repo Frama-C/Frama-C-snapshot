@@ -1,5 +1,5 @@
 /* run.config_qualif
-OPT: -wp-prop="-qed_ko"
+OPT: -wp-prop="-qed_ko" -wp-timeout 1
 OPT: -wp-prop qed_ko -wp-steps 50
 */
 

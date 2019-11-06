@@ -51,13 +51,13 @@ module RemoveInlined =
 let inline_parameter_category = object
   method fold: 'a. (kernel_function -> 'a -> 'a) -> 'a -> 'a =
     fun f acc ->
-      Globals.Functions.fold
-        (fun kf acc ->
-           let vi = Kernel_function.get_vi kf in
-           match kf.fundec with
-           | Definition _ -> if vi.vinline then f kf acc else acc
-           | Declaration _ -> acc)
-        acc
+    Globals.Functions.fold
+      (fun kf acc ->
+         let vi = Kernel_function.get_vi kf in
+         match kf.fundec with
+         | Definition _ -> if vi.vinline then f kf acc else acc
+         | Declaration _ -> acc)
+      acc
   method mem kf =
     Kernel_function.is_definition kf && (Kernel_function.get_vi kf).vinline
 end
@@ -90,7 +90,7 @@ let inline_call loc caller callee return args =
 
     method! vvrbl v =
       if v.vglob then
-        Cil.ChangeTo (Cil.get_original_varinfo self#behavior v)
+        Cil.ChangeTo (Visitor_behavior.Get_orig.varinfo self#behavior v)
       else Cil.DoChildren
 
     method! vterm_lval (host,offset) =
@@ -190,7 +190,7 @@ let inliner functions_to_inline = object (self)
 
   method private recursive_call_limit kf =
     let nb_calls =
-      Transitioning.Stack.fold
+      Stack.fold
         (fun res kf' -> if Cil_datatype.Kf.equal kf kf' then res + 1 else res)
         0 call_stack
     in

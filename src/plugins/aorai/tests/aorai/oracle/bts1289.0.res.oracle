@@ -14,42 +14,48 @@ enum aorai_OpStatusList {
 /*@ ghost enum aorai_ListOper aorai_CurOperation = op_main; */
 /*@ ghost enum aorai_OpStatusList aorai_CurOpStatus = aorai_Called; */
 /*@ ghost int S = 0; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_a;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S;
-    
-    behavior buch_state_S_out:
-      ensures 0 ≡ S;
- */
-void a_pre_func(void)
-{
-  /*@ ghost int S_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_a;
-  S_tmp = S;
-  S_tmp = 0;
-  S = S_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_a;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S;
+     
+     behavior buch_state_S_out:
+       ensures 0 ≡ S;
+   @/
+  void a_pre_func(void)
+  {
+    int S_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_a;
+    S_tmp = S;
+    S_tmp = 0;
+    S = S_tmp;
+    return;
+  }
 
-/*@ requires \false;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_a;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S;
-    
-    behavior buch_state_S_out:
-      ensures 0 ≡ S;
- */
-void a_post_func(void)
-{
-  /*@ ghost int S_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_a;
-  S_tmp = S;
-  S_tmp = 0;
-  S = S_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires \false;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_a;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S;
+     
+     behavior buch_state_S_out:
+       ensures 0 ≡ S;
+   @/
+  void a_post_func(void)
+  {
+    int S_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_a;
+    S_tmp = S;
+    S_tmp = 0;
+    S = S_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires \false;
     
@@ -57,47 +63,53 @@ void a_post_func(void)
       ensures 0 ≡ S; */
 void a(void)
 {
-  a_pre_func();
-  a_post_func();
+  /*@ ghost a_pre_func(); */
+  /*@ ghost a_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S;
-    
-    behavior buch_state_S_out:
-      ensures 0 ≡ S;
- */
-void main_pre_func(void)
-{
-  /*@ ghost int S_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  S_tmp = S;
-  S_tmp = 0;
-  S = S_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S;
+     
+     behavior buch_state_S_out:
+       ensures 0 ≡ S;
+   @/
+  void main_pre_func(void)
+  {
+    int S_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    S_tmp = S;
+    S_tmp = 0;
+    S = S_tmp;
+    return;
+  }
 
-/*@ requires \false;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S;
-    
-    behavior buch_state_S_out:
-      ensures 0 ≡ S;
- */
-void main_post_func(void)
-{
-  /*@ ghost int S_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  S_tmp = S;
-  S_tmp = 0;
-  S = S_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires \false;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S;
+     
+     behavior buch_state_S_out:
+       ensures 0 ≡ S;
+   @/
+  void main_post_func(void)
+  {
+    int S_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    S_tmp = S;
+    S_tmp = 0;
+    S = S_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires \false;
     
@@ -105,8 +117,8 @@ void main_post_func(void)
       ensures 0 ≡ S; */
 void main(void)
 {
-  int aorai_Loop_Init_4;
-  main_pre_func();
+  /*@ ghost int aorai_Loop_Init_4; */
+  /*@ ghost main_pre_func(); */
   int i = 0;
   /*@ ghost aorai_Loop_Init_4 = 1; */
   aorai_loop_4:
@@ -120,7 +132,7 @@ void main(void)
     a();
     i ++;
   }
-  main_post_func();
+  /*@ ghost main_post_func(); */
   return;
 }
 

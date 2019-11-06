@@ -1,9 +1,9 @@
 /* run.config
-   OPT: -wp-prover coq -wp-gen -wp-msg-key print-generated
+   OPT: -wp-prover native:coq -wp-gen -wp-msg-key print-generated
 */
 
 /* run.config_qualif
-   OPT: -wp-prover coq -wp-script tests/wp_plugin/inductive.script -wp-timeout 240
+   OPT: -wp-prover native:coq -wp-coq-script tests/wp_plugin/inductive.script -wp-timeout 240
 */
 
 typedef struct _list { int element; struct _list* next; } list;

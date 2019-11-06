@@ -193,14 +193,17 @@ and childrenDeclType isfundef vis dt =
       let al' = mapNoCopy (childrenAttribute vis) al in
       let dt1' = visitCabsDeclType vis isfundef dt1 in
       if al' != al || dt1' != dt1 then PTR(al', dt1') else dt
-  | PROTO (dt1, snl, b) ->
+  | PROTO (dt1, snl, gsnl, b) ->
       (* Do not propagate isfundef further *)
       let dt1' = visitCabsDeclType vis false dt1 in
       let _ = vis#vEnterScope () in
       let snl' = mapNoCopy (childrenSingleName vis NVar) snl in
+      let gsnl' = mapNoCopy (childrenSingleName vis NVar) gsnl in
       (* Exit the scope only if not in a function definition *)
       let _ = if not isfundef then vis#vExitScope () in
-      if dt1' != dt1 || snl' != snl then PROTO(dt1', snl', b) else dt
+      if dt1' != dt1 || snl' != snl || gsnl' != gsnl then
+        PROTO(dt1', snl', gsnl' , b)
+      else dt
 
 
 and childrenNameGroup vis (kind: nameKind) ((s, nl) as input) =
@@ -430,11 +433,12 @@ and childrenExpression vis e =
       let ie' = visitCabsInitExpression vis ie in
       if s' != s || dt' != dt || ie' != ie then
         { e with expr_node = CAST ((s', dt'), ie')} else e
-  | CALL (f, el) ->
+  | CALL (f, el, gl) ->
       let f' = ve f in
       let el' = mapNoCopy ve el in
+      let gl' = mapNoCopy ve gl in
       if f' != f || el' != el then
-        { e with expr_node = CALL (f', el')} else e
+        { e with expr_node = CALL (f', el',gl')} else e
   | COMMA el ->
       let el' = mapNoCopy ve el in
       if el' != el then { e with expr_node = COMMA (el') } else e

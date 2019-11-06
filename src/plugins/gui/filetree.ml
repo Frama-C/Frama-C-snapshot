@@ -41,7 +41,7 @@ let _pretty_node fmt = function
   | File (s, _) -> Datatype.Filepath.pretty fmt s
   | Global (GFun ({svar = vi},_) | GVar(vi,_,_) |
             GFunDecl (_,vi,_) | GVarDecl(vi,_)) ->
-      Format.fprintf fmt "%s" vi.vname
+    Format.fprintf fmt "%s" vi.vname
   | _ -> ()
 
 (* Fetches the internal (hidden) GtkButton of the column header.
@@ -49,8 +49,8 @@ let _pretty_node fmt = function
    you should:
    - add first the column to the table;
    - explicitely set the widget of the header (and this widget should not be a
-   button itself).
-   Otherwise, this function will return None. *)
+     button itself).
+     Otherwise, this function will return None. *)
 let get_column_header_button (col: GTree.view_column) =
   let rec get_button = function
     | None -> None
@@ -127,21 +127,21 @@ struct
         let indices: int array  = GTree.Path.get_indices path in
         match indices with
         | [||] ->
-            None
+          None
         | _ ->
-            if inbound indices.(0) roots then
-              let result = ref (roots.(indices.(0))) in
-              try
-                for depth=1 to Array.length indices - 1 do
-                  let index = indices.(depth) in
-                  if inbound index !result.sons then
-                    result:=!result.sons.(index)
-                  else raise Not_found
-                done;
-                Some !result
-              with Not_found ->
-                None
-            else None
+          if inbound indices.(0) roots then
+            let result = ref (roots.(indices.(0))) in
+            try
+              for depth=1 to Array.length indices - 1 do
+                let index = indices.(depth) in
+                if inbound index !result.sons then
+                  result:=!result.sons.(index)
+                else raise Not_found
+              done;
+              Some !result
+            with Not_found ->
+              None
+          else None
 
       method custom_get_path (row:custom_tree) : Gtk.tree_path =
         let current_row = ref row in
@@ -160,11 +160,11 @@ struct
         let nidx = succ row.fidx in
         match row.parent with
         | None -> if inbound nidx roots then Some roots.(nidx)
-            else None
+          else None
         | Some parent ->
-            if inbound nidx parent.sons then
-              Some parent.sons.(nidx)
-            else None
+          if inbound nidx parent.sons then
+            Some parent.sons.(nidx)
+          else None
 
       method custom_iter_children (rowopt:custom_tree option) :custom_tree option =
         match rowopt with
@@ -267,11 +267,11 @@ module MYTREE = struct
 
   let sons_info = function
     | MFile (_, l) ->
-        List.map (function
-            | MGlobal { name = n; strikethrough = st } -> (n, st)
-            | MFile _ -> assert false (* should not happen, a file is
-                                         never under a file in the tree *)
-          ) l
+      List.map (function
+          | MGlobal { name = n; strikethrough = st } -> (n, st)
+          | MFile _ -> assert false (* should not happen, a file is
+                                       never under a file in the tree *)
+        ) l
     | MGlobal _ -> []
 
   let get_storage t = match t with
@@ -316,7 +316,7 @@ module MYTREE = struct
 
   let ga_name = function
     | Dfun_or_pred (li, _) ->
-        Some (global_name li.l_var_info.lv_name)
+      Some (global_name li.l_var_info.lv_name)
     | Dvolatile _ -> Some "volatile clause"
     | Daxiomatic (s, _, _,_) -> Some (global_name s)
     | Dtype (lti, _) -> Some (global_name lti.lt_name)
@@ -325,7 +325,7 @@ module MYTREE = struct
     | Dtype_annot (li, _) -> Some (global_name li.l_var_info.lv_name)
     | Dmodel_annot (mf, _) -> Some (global_name mf.mi_name)
     | Dcustom_annot _ -> Some "custom clause"
-    | Dextended ((_,name,_,_,_),_,_) -> Some ("ACSL extension " ^ name)
+    | Dextended ({ext_name},_,_) -> Some ("ACSL extension " ^ ext_name)
 
   let make_list_globals hide sort_order globs =
     (* Association list binding names to globals. *)
@@ -336,17 +336,17 @@ module MYTREE = struct
            match glob with
            | GFun ({svar=vi},_) | GVar(vi,_,_)
            | GVarDecl(vi,_) | GFunDecl (_, vi, _)->
-               (* Only display the last declaration/definition *)
-               if hide glob || (not (Ast.is_def_or_last_decl glob))
-               then acc
-               else ((global_name vi.vname), glob) :: acc
+             (* Only display the last declaration/definition *)
+             if hide glob || (not (Ast.is_def_or_last_decl glob))
+             then acc
+             else ((global_name vi.vname), glob) :: acc
 
            | GAnnot (ga, _) ->
-               if hide glob
-               then acc
-               else (match ga_name ga with
-                   | None -> acc
-                   | Some s -> (s, glob) :: acc)
+             if hide glob
+             then acc
+             else (match ga_name ga with
+                 | None -> acc
+                 | Some s -> (s, glob) :: acc)
            | _ -> acc)
         []
         globs
@@ -421,31 +421,31 @@ module State = struct
 
   let path_from_node cache = function
     | File (s, _) ->
-        (try Some (Datatype.Filepath.Hashtbl.find cache.cache_files s)
-         with Not_found -> None)
+      (try Some (Datatype.Filepath.Hashtbl.find cache.cache_files s)
+       with Not_found -> None)
     | Global (GFun ({svar = vi},_) | GVar(vi,_,_) |
               GVarDecl(vi,_) | GFunDecl (_,vi,_)) ->
-        (try Some (Varinfo.Hashtbl.find cache.cache_vars vi)
-         with Not_found -> None)
+      (try Some (Varinfo.Hashtbl.find cache.cache_vars vi)
+       with Not_found -> None)
     | Global (GAnnot (ga,_)) ->
-        (try Some (Global_annotation.Hashtbl.find cache.cache_global_annot ga)
-         with Not_found -> None)
+      (try Some (Global_annotation.Hashtbl.find cache.cache_global_annot ga)
+       with Not_found -> None)
     | _ -> None
 
   let fill_cache cache (path:int list) row =
     match row.MODEL.finfo with
     | MYTREE.MFile (storage,_) ->
-        Datatype.Filepath.Hashtbl.add
-          cache.cache_files (Datatype.Filepath.of_string storage.MYTREE.name) (path,row)
+      Datatype.Filepath.Hashtbl.add
+        cache.cache_files (Datatype.Filepath.of_string storage.MYTREE.name) (path,row)
     | MYTREE.MGlobal storage ->
-        match storage.MYTREE.globals with
-        (* Only one element in this array by invariant: this is a leaf*)
-        | [| GFun ({svar=vi},_) | GVar(vi,_,_)
-           | GVarDecl(vi,_) | GFunDecl (_,vi,_)|] ->
-            Varinfo.Hashtbl.add cache.cache_vars vi (path,row)
-        | [| GAnnot (ga,_) |] ->
-            Global_annotation.Hashtbl.add cache.cache_global_annot ga (path,row)
-        | _ -> (* no cache for other globals yet *) ()
+      match storage.MYTREE.globals with
+      (* Only one element in this array by invariant: this is a leaf*)
+      | [| GFun ({svar=vi},_) | GVar(vi,_,_)
+         | GVarDecl(vi,_) | GFunDecl (_,vi,_)|] ->
+        Varinfo.Hashtbl.add cache.cache_vars vi (path,row)
+      | [| GAnnot (ga,_) |] ->
+        Global_annotation.Hashtbl.add cache.cache_global_annot ga (path,row)
+      | _ -> (* no cache for other globals yet *) ()
 
   (* Extract Cil globals. We remove builtins that are not used in this project,
      as well as files that do not contain anything afterwards *)
@@ -456,7 +456,7 @@ module State = struct
       let is_unused = function
         | GFun ({svar = vi},_) | GFunDecl (_, vi, _)
         | GVar (vi, _, _) | GVarDecl (vi, _) ->
-            Cil.is_unused_builtin vi
+          Cil.is_unused_builtin vi
         | _ -> false
       in
       f, Extlib.filter_out is_unused all
@@ -471,7 +471,7 @@ module State = struct
     let cache = default_cache () in
     (* Let's fill up the model with all files and functions. *)
     let files = cil_files () in
-    begin 
+    begin
       if flat_mode () then
         let list = List.concat (List.map snd files) in
         let files = MYTREE.make_list_globals hide sort_order list in
@@ -485,9 +485,9 @@ module State = struct
         let files = List.fold_left
             (fun acc v ->
                let name, globals = MYTREE.make_file hide sort_order v in
-               if not ((hide_stdlib ()) 
+               if not ((hide_stdlib ())
                        && (MYTREE.comes_from_share name.MYTREE.name))
-               then 
+               then
                  (MYTREE.MFile (name, globals))::acc
                else acc)
             [] sorted_files
@@ -687,8 +687,8 @@ let make (tree_view:GTree.view) =
              let (path:Gtk.tree_path) = model#get_path row  in
              match model_custom#custom_get_iter path with
              | Some {MODEL.finfo=v} ->
-                 renderer#set_properties
-                   (f (Array.to_list((MYTREE.get_storage v).MYTREE.globals)))
+               renderer#set_properties
+                 (f (Array.to_list((MYTREE.get_storage v).MYTREE.globals)))
              | None -> ());
       ignore (tree_view#append_column column);
       let filter_active, mi = self#filter_from_column visible title f in
@@ -791,20 +791,20 @@ let make (tree_view:GTree.view) =
       let rec aux text t =
         match t.MODEL.finfo with
         | MYTREE.MFile ({MYTREE.name},_) ->
-            (* search children *)
-            (* note: we avoid calling [storage_type] here because
-                     we do not need the child nodes *)
-            let fake_node = File (Datatype.Filepath.of_string name,[]) in
-            if is_current_node fake_node then node_found ();
-            Array.iter (aux text) t.MODEL.sons
+          (* search children *)
+          (* note: we avoid calling [storage_type] here because
+                   we do not need the child nodes *)
+          let fake_node = File (Datatype.Filepath.of_string name,[]) in
+          if is_current_node fake_node then node_found ();
+          Array.iter (aux text) t.MODEL.sons
         | MYTREE.MGlobal {MYTREE.name} as st ->
-            let node = MYTREE.storage_type st in
-            if is_current_node node then
-              node_found ()
-            else (* We never consider the current node as matching. This way, if
-                    'foo' is selected, we can search for 'fo' and find it farther.*)
-            if !found_selection && name_matches name then
-              raise (Found_global (get_global node))
+          let node = MYTREE.storage_type st in
+          if is_current_node node then
+            node_found ()
+          else (* We never consider the current node as matching. This way, if
+                  'foo' is selected, we can search for 'fo' and find it farther.*)
+          if !found_selection && name_matches name then
+            raise (Found_global (get_global node))
       in
       try
         Array.iter (aux text) model#get_roots;
@@ -905,17 +905,17 @@ let make (tree_view:GTree.view) =
       (match current_node with
        | None -> ()
        | Some node ->
-           match State.path_from_node path_cache node with
-           | None -> ()
-           | Some (path, _) -> 
-               self#show_path_in_tree (GTree.Path.create (List.rev path)))
+         match State.path_from_node path_cache node with
+         | None -> ()
+         | Some (path, _) ->
+           self#show_path_in_tree (GTree.Path.create (List.rev path)))
 
     method select_global g =
       match State.path_from_node path_cache (Global g) with
       | None -> (* selection failed *) self#unselect; false
-      | Some (path, _) -> 
-          self#show_path_in_tree (GTree.Path.create (List.rev path));
-          true
+      | Some (path, _) ->
+        self#show_path_in_tree (GTree.Path.create (List.rev path));
+        true
 
     method selected_globals =
       match current_node with
@@ -943,22 +943,22 @@ let make (tree_view:GTree.view) =
         let (path:Gtk.tree_path) = lmodel#get_path iter in
         match self#model#custom_get_iter path with
         | Some p ->
-            let special, text, strike, underline = match p.MODEL.finfo with
-              | MYTREE.MFile ({MYTREE.name=m; strikethrough=strike},_) ->
-                  if m = "" (* Unknown location *) then
-                    true, "Unknown file", strike, false
-                  else
-                    let path = Datatype.Filepath.of_string m in
-                    false, Filepath.Normalized.to_pretty_string path, strike, false
-              | MYTREE.MGlobal ({MYTREE.name=m; strikethrough=strike}) as s ->
-                  false, m, strike, MYTREE.is_function s
-            in
-            renderer#set_properties [
-              `TEXT text;
-              `STRIKETHROUGH strike;
-              `WEIGHT (if special then `LIGHT else `NORMAL);
-              `UNDERLINE (if underline then `LOW else `NONE)
-            ]
+          let special, text, strike, underline = match p.MODEL.finfo with
+            | MYTREE.MFile ({MYTREE.name=m; strikethrough=strike},_) ->
+              if m = "" (* Unknown location *) then
+                true, "Unknown file", strike, false
+              else
+                let path = Datatype.Filepath.of_string m in
+                false, Filepath.Normalized.to_pretty_string path, strike, false
+            | MYTREE.MGlobal ({MYTREE.name=m; strikethrough=strike}) as s ->
+              false, m, strike, MYTREE.is_function s
+          in
+          renderer#set_properties [
+            `TEXT text;
+            `STRIKETHROUGH strike;
+            `WEIGHT (if special then `LIGHT else `NORMAL);
+            `UNDERLINE (if underline then `LOW else `NONE)
+          ]
 
         | None -> ()
       in

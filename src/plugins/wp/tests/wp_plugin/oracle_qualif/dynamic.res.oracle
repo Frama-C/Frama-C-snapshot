@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/dynamic.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -14,16 +14,16 @@
 [wp] [Qed] Goal typed_behavior_bhv1_assigns_normal_part2 : Valid
 [wp] [Qed] Goal typed_behavior_bhv1_assigns_normal_part3 : Valid
 [wp] [Qed] Goal typed_behavior_bhv1_assigns_normal_part4 : Valid
-[wp] [Alt-Ergo] Goal typed_call_call_point_f1_f2_s3 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_call_call_point_f1_f2_s3 : Valid
 [wp] [Qed] Goal typed_call_ensures_part1 : Valid
 [wp] [Qed] Goal typed_call_ensures_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_call_call_f1_requires : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_call_call_f1_requires : Valid
 [wp] [Qed] Goal typed_guarded_call_call_point_g_s9 : Valid
-[wp] [Alt-Ergo] Goal typed_guarded_call_ensures_part1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_guarded_call_ensures_part1 : Valid
 [wp] [Qed] Goal typed_guarded_call_ensures_part2 : Valid
 [wp] [Qed] Goal typed_guarded_call_ensures_2_part1 : Valid
 [wp] [Qed] Goal typed_guarded_call_ensures_2_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_missing_context_call_point_h1_s25 : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_missing_context_call_point_h1_s25 : Unsuccess
 [wp] [Qed] Goal typed_missing_context_ensures : Valid
 [wp] [Qed] Goal typed_missing_context_assigns_exit : Valid
 [wp] [Qed] Goal typed_missing_context_assigns_normal_part1 : Valid
@@ -57,14 +57,14 @@
 [wp] [Qed] Goal typed_some_behaviors_bhv1_assigns_normal_part4 : Valid
 [wp] [Qed] Goal typed_some_behaviors_bhv1_assigns_normal_part5 : Valid
 [wp] Proved goals:   50 / 51
-  Qed:            47 
-  Alt-Ergo:        3  (unsuccess: 1)
+  Qed:              47 
+  Alt-Ergo 2.0.0:    3  (unsuccess: 1)
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/dynamic.0.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/dynamic.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-call                 2      2 (56..80)       4       100%
-guarded_call         4      1 (16..28)       5       100%
+call                 2      2 (40..52)       4       100%
+guarded_call         4      1 (4..16)        5       100%
 behavior             9     -                 9       100%
 some_behaviors      24     -                24       100%
 missing_context      4     -                 5      80.0%
@@ -74,10 +74,10 @@ no_call              4     -                 4       100%
   /*@ behavior typed: requires \separated(&X,p); */
   void guarded_call(struct S *p);
 [wp] Warning: Memory model hypotheses for function 'behavior':
-  /*@ behavior typed: requires \separated(&X1,p); */
+  /*@ behavior typed: requires \separated(&X1,p+(..)); */
   int behavior(int (*p)(void));
 [wp] Warning: Memory model hypotheses for function 'some_behaviors':
-  /*@ behavior typed: requires \separated(&X1,p); */
+  /*@ behavior typed: requires \separated(&X1,p+(..)); */
   int some_behaviors(int (*p)(void));
 [wp] Warning: Memory model hypotheses for function 'missing_context':
   /*@ behavior typed: requires \separated(&X1,p); */

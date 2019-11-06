@@ -169,9 +169,9 @@ class ['a] signal =
     method set_enabled e = enabled <- e
     method lock : (unit -> unit) -> unit =
       fun f ->
-        if not lock then
-          try lock <- true ; f () ; lock <- false
-          with err -> lock <- false ; raise err
+      if not lock then
+        try lock <- true ; f () ; lock <- false
+        with err -> lock <- false ; raise err
   end
 
 class ['a] selector default =

@@ -27,9 +27,9 @@
 (** {2 Prover} *)
 
 type prover =
-  | Why3 of string (* Prover via WHY *)
-  | AltErgo       (* Alt-Ergo *)
-  | Coq           (* Coq and Coqide *)
+  | Why3 of Why3Provers.t (* Prover via WHY *)
+  | NativeAltErgo (* Direct Alt-Ergo *)
+  | NativeCoq     (* Direct Coq and Coqide *)
   | Qed           (* Qed Solver *)
   | Tactical      (* Interactive Prover *)
 
@@ -38,46 +38,20 @@ type mode =
   | EditMode  (* Edit then check scripts *)
   | FixMode   (* Try check script, then edit script on non-success *)
 
-type language =
-  | L_why3
-  | L_coq
-  | L_altergo
-
 module Pset : Set.S with type elt = prover
 module Pmap : Map.S with type key = prover
 
-val language_of_prover : prover -> language
 val name_of_prover : prover -> string
 val title_of_prover : prover -> string
 val filename_for_prover : prover -> string
 val prover_of_name : string -> prover option
-val language_of_prover_name: string -> language option
 val mode_of_prover_name : string -> mode
 val title_of_mode : mode -> string
 
 val pp_prover : Format.formatter -> prover -> unit
-val pp_language : Format.formatter -> language -> unit
 val pp_mode : Format.formatter -> mode -> unit
 
 val cmp_prover : prover -> prover -> int
-
-(* -------------------------------------------------------------------------- *)
-(** {2 Why3 Provers} *)
-(* -------------------------------------------------------------------------- *)
-
-type dp = {
-  dp_name : string ;
-  dp_version : string ;
-  dp_altern : string ;
-  dp_shortcuts : string list ;
-}
-
-val prover_of_dp : dp -> prover
-
-(** Without shortcuts *)
-val pretty : Format.formatter -> dp -> unit
-val pp_shortcut : Format.formatter -> string -> unit
-val pp_shortcuts : Format.formatter -> string list -> unit
 
 (* -------------------------------------------------------------------------- *)
 (** {2 Config}
@@ -89,16 +63,13 @@ type config = {
   valid : bool ;
   timeout : int option ;
   stepout : int option ;
-  depth : int option ;
 }
-
 
 val current : unit -> config (** Current parameters *)
 val default : config (** all None *)
 
 val get_timeout : config -> int (** 0 means no-timeout *)
 val get_stepout : config -> int (** 0 means no-stepout *)
-val get_depth : config -> int (** 0 means prover default *)
 
 (** {2 Results} *)
 
@@ -115,10 +86,10 @@ type verdict =
 
 type result = {
   verdict : verdict ;
+  cached : bool ;
   solver_time : float ;
   prover_time : float ;
   prover_steps : int ;
-  prover_depth : int ;
   prover_errpos : Lexing.position option ;
   prover_errmsg : string ;
 }
@@ -128,16 +99,19 @@ val valid : result
 val checked : result
 val invalid : result
 val unknown : result
-val stepout : result
+val stepout : int -> result
 val timeout : int -> result
 val computing : (unit -> unit) -> result
 val failed : ?pos:Lexing.position -> string -> result
 val kfailed : ?pos:Lexing.position -> ('a,Format.formatter,unit,result) format4 -> 'a
-val result : ?solver:float -> ?time:float -> ?steps:int -> ?depth:int -> verdict -> result
+val cached : result -> result (** only for true verdicts *)
+
+val result : ?cached:bool -> ?solver:float -> ?time:float -> ?steps:int -> verdict -> result
 
 val is_auto : prover -> bool
 val is_verdict : result -> bool
 val is_valid: result -> bool
+val is_computing: result -> bool
 val configure : result -> config
 val autofit : result -> bool (** Result that fits the default configuration *)
 
@@ -152,4 +126,5 @@ val best : result list -> result
 val dkey_no_time_info: Wp_parameters.category
 val dkey_no_step_info: Wp_parameters.category
 val dkey_no_goals_info: Wp_parameters.category
+val dkey_no_cache_info: Wp_parameters.category
 val dkey_success_only: Wp_parameters.category

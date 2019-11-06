@@ -941,6 +941,9 @@ let is_wto_head kf = Compute.is_wto_head (get_wto_index_table kf)
 let is_back_edge kf = Compute.is_back_edge (get_wto_index_table kf)
 
 
+(* ---------------------------------------------------------------------- *)
+(* --- Graph with only one entry per component                        --- *)
+(* ---------------------------------------------------------------------- *)
 
 module UnrollUnnatural  = struct
 
@@ -1090,3 +1093,88 @@ module UnrollUnnatural  = struct
     g'
 
 end
+
+
+(* ---------------------------------------------------------------------- *)
+(* --- Dataflow computation                                           --- *)
+(* ---------------------------------------------------------------------- *)
+
+module type Domain =
+sig
+  type t
+
+  val join : t -> t -> t
+  val widen : t -> t -> t option (* returns None when inclusion *)
+  val transfer : vertex transition ->  t -> t option
+end
+
+
+module Dataflow (D : Domain) =
+struct
+  module Results = Vertex.Hashtbl
+
+  let fixpoint kf initial_value =
+    let automaton = get_automaton kf in
+    let graph = automaton.graph in
+    let wto = get_wto kf in
+    let results = Results.create (G.nb_vertex graph) in
+
+    (* Compute the transfer function for the given edge and add the result to
+       acc *)
+    let process_edge (v1,e,_v2) acc =
+      (* Retrieve origin value *)
+      match Results.find_opt results v1 with
+      | None -> acc (* No previous value *)
+      | Some value ->
+        match D.transfer e.edge_transition value with
+        | None -> acc
+        | Some new_value -> new_value :: acc
+    in
+
+    (* Compute the abstract value for the given control point ; compute all
+       incoming transfer functions *)
+    let process_vertex v =
+      let incomming = G.fold_pred_e process_edge graph v []
+      and initial = if v == automaton.entry_point then [initial_value] else []
+      in
+      match initial @ incomming with
+      | [] -> (* Zero incomming values -> Bottom *)
+        Results.remove results v
+      | v1 :: vl ->
+        (* Join incomming values *)
+        let result = List.fold_left D.join v1 vl in
+        Results.add results v result
+    in
+
+    (* widen returns whether it is necessary to continue to iterate or not *)
+    let widen v previous =
+      let current = Results.find_opt results v in
+      match previous, current with
+      | _, None -> false (* Current is bottom, let's quit *)
+      | None, _ -> true (* Previous was bottom *)
+      | Some v1, Some v2 ->
+        match D.widen v1 v2 with
+        | None -> false (* End of iteration *)
+        | Some value -> (* new value *)
+          Results.add results v value;
+          true
+    in
+
+    let rec iterate_list l =
+      List.iter iterate_element l
+    and iterate_element = function
+      | Wto.Node v ->
+        ignore (process_vertex v)
+      | Wto.Component (v, w) ->
+        while
+          let previous = Results.find_opt results v in
+          process_vertex v;
+          widen v previous
+        do
+          iterate_list w;
+        done;
+    in
+    iterate_list wto;
+    results
+end
+

@@ -1,4 +1,4 @@
-{ "wp:global": { "alt-ergo": { "total": 1, "unknown": 1 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 1, "unknown": 1 },
                  "qed": { "total": 11, "valid": 11 },
                  "wp:main": { "total": 12, "valid": 11, "unknown": 1 } },
   "wp:functions": { "f": { "f_assigns": { "qed": { "total": 1, "valid": 1 },
@@ -10,7 +10,7 @@
                            "wp:section": { "qed": { "total": 2, "valid": 2 },
                                            "wp:main": { "total": 2,
                                                         "valid": 2 } } },
-                    "wrong_without_ref": { "f_requires": { "alt-ergo": 
+                    "wrong_without_ref": { "f_requires": { "why3:Alt-Ergo,2.0.0": 
                                                              { "total": 1,
                                                                "unknown": 1 },
                                                            "wp:main": 
@@ -21,7 +21,7 @@
                                                         "valid": 1 },
                                                "wp:main": { "total": 1,
                                                             "valid": 1 } },
-                                           "wp:section": { "alt-ergo": 
+                                           "wp:section": { "why3:Alt-Ergo,2.0.0": 
                                                              { "total": 1,
                                                                "unknown": 1 },
                                                            "qed": { "total": 1,

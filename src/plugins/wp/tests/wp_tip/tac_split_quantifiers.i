@@ -3,7 +3,7 @@
 */
 
 /* run.config_qualif
-   OPT: -load-module tests/wp_tip/TacNOP.ml -wp -wp-par 1 -wp-prover script -session tests/wp_tip/tac_split_quantifiers
+   OPT: -load-module tests/wp_tip/TacNOP.ml -wp -wp-par 1 -wp-prover script
 */
 
 

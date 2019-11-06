@@ -1,0 +1,17 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/bts_2471.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] Warning: native support for coq is deprecated, use tip instead
+[wp] 1 goal scheduled
+[wp] [Coq] Goal typed_foo_assert_ko : Default tactic
+[wp] [Coq (Native)] Goal typed_foo_assert_ko : Unsuccess
+[wp] Proved goals:    0 / 1
+  Coq:             0  (unsuccess: 1)
+[wp] Report in:  'tests/wp_bts/oracle_qualif/bts_2471.2.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/bts_2471.2.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+foo                 -      -                 1       0.0%
+-------------------------------------------------------------

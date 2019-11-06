@@ -15,7 +15,7 @@
   Called from tests/libc/libgen_h.c:11.
 [eva] tests/libc/libgen_h.c:11: 
   function basename: precondition 'null_or_valid_string_path' got status valid.
-[eva] tests/libc/libgen_h.c:11: Warning: 
+[eva:invalid-assigns] tests/libc/libgen_h.c:11: 
   Completely invalid destination for assigns clause *(path + (0 ..)). Ignoring.
 [eva] Done for function basename
 [eva:alarm] tests/libc/libgen_h.c:12: Warning: assertion got status unknown.
@@ -30,7 +30,7 @@
   Called from tests/libc/libgen_h.c:16.
 [eva] tests/libc/libgen_h.c:16: 
   function dirname: precondition 'null_or_valid_string_path' got status valid.
-[eva] tests/libc/libgen_h.c:16: Warning: 
+[eva:invalid-assigns] tests/libc/libgen_h.c:16: 
   Completely invalid destination for assigns clause *(path + (0 ..)). Ignoring.
 [eva] Done for function dirname
 [eva:alarm] tests/libc/libgen_h.c:17: Warning: assertion got status unknown.

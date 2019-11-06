@@ -36,6 +36,7 @@
       unlike [realpath];
     - non-existing directories in [realpath] may lead to ENOTDIR errors,
       but [normalize] may accept them.
+
     @modify Aluminium-20160501 optional base_name. *)
 val normalize: ?base_name:string -> string -> string
 
@@ -59,8 +60,8 @@ val is_relative: ?base_name:string -> string -> bool
       current working directory; also, symbolic names are resolved,
       i.e. the result may be prefixed by known aliases (e.g. FRAMAC_SHARE).
       See {!add_symbolic_dir} for more details.
-    Therefore, the result of this function may not designate a valid name
-    in the filesystem.
+      Therefore, the result of this function may not designate a valid name
+      in the filesystem.
 
     @since Neon-20140301
     @deprecated since 18.0-Argon
@@ -109,9 +110,9 @@ module Normalized: sig
         current working directory; also, symbolic names are resolved,
         i.e. the result may be prefixed by known aliases (e.g. FRAMAC_SHARE).
         See {!add_symbolic_dir} for more details.
-      Therefore, the result of this function may not designate a valid name
-      in the filesystem and must ONLY be used to pretty-print information;
-      it must NEVER to be converted back to a filepath later.
+        Therefore, the result of this function may not designate a valid name
+        in the filesystem and must ONLY be used to pretty-print information;
+        it must NEVER to be converted back to a filepath later.
   *)
   val pretty: Format.formatter -> t -> unit
 
@@ -120,6 +121,9 @@ module Normalized: sig
 
   (** Unknown filepath, used as 'dummy' for [Datatype.Filepath]. *)
   val unknown: t
+
+  (** @since 20.0-Calcium *)
+  val is_unknown: t -> bool
 end
 
 (** Describes a position in a source file.

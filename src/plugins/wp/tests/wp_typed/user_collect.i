@@ -1,4 +1,9 @@
-
+/* run.config
+   STDOPT: +"-wp-no-extensional"
+*/
+/* run.config_qualif
+   STDOPT: +"-wp-no-extensional"
+*/
 
 int k ;
 int p[10] ;

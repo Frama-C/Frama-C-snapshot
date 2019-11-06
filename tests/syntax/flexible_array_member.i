@@ -1,9 +1,16 @@
 // valid flexible array member declarations
-struct {
+struct s1 {
   int size;
   char data[];
-} s1;
+} ss1;
 
-struct {
+struct s2 {
   char len, data[];
-} s2;
+} ss2;
+
+union u {
+  struct s {
+    char len;
+    char data[];
+  } fam;
+} u1;

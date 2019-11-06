@@ -1,4 +1,10 @@
-
+/* run.config
+   STDOPT: +"-wp-no-extensional"
+*/
+/* run.config_qualif
+   COMMENT:
+   STDOPT: +"-wp-no-extensional"
+*/
 
 int A[20] = {10,11,12} ;
 

@@ -410,20 +410,22 @@ let prenex_intro p =
     let rec walk hs xs p =
       match F.p_expr p with
       | Imply(h,p) -> walk (h::hs) xs p
-      | Bind(Forall,tau,p) -> bind hs xs tau p
+      | Bind(Forall,_,_) -> bind hs xs p
       | _ ->
           if hs = [] then raise Exit ;
           F.p_forall (List.rev xs) (F.p_hyps (List.concat hs) p)
     (* invariant: result <-> forall hs xs (\tau.bind) *)
-    and bind hs xs tau bind =
-      let x = Lang.freshvar tau in
-      let p = F.p_bool (F.QED.lc_open x bind) in
-      walk hs (x::xs) p
+    and bind hs xs p =
+      let pool = Lang.get_pool () in
+      let ctx,t = e_open ~pool ~forall:true
+          ~exists:false ~lambda:false (e_prop p) in
+      let xs = List.fold_left (fun xs (_,x) -> x::xs) xs (List.rev ctx) in
+      walk hs xs (F.p_bool t)
     (* invariant: result <-> p *)
     and crawl p =
       match F.p_expr p with
       | Imply(h,p) -> F.p_hyps h (crawl p)
-      | Bind(Forall,tau,p) -> bind [] [] tau p
+      | Bind(Forall,_,_) -> bind [] [] p
       | _ -> raise Exit
     in crawl p
   with Exit -> p
@@ -436,9 +438,11 @@ let rec exist_intro p =
   let open Qed.Logic in
   match F.p_expr p with
   | And ps -> F.p_all exist_intro ps
-  | Bind(Exists,tau,p) ->
-      let x = Lang.freshvar tau in
-      exist_intro (F.p_bool (F.QED.lc_open x p))
+  | Bind(Exists,_,_) ->
+      let pool = Lang.get_pool () in
+      let _,t = e_open ~pool ~exists:true
+          ~forall:false ~lambda:false (e_prop p) in
+      exist_intro (F.p_bool t)
   | _ ->
       if Wp_parameters.Prenex.get ()
       then prenex_intro p
@@ -450,9 +454,11 @@ let rec exist_intros = function
       let open Qed.Logic in
       match F.p_expr p with
       | And ps -> exist_intros (ps@hs)
-      | Bind(Exists,tau,p) ->
-          let x = Lang.freshvar tau in
-          exist_intros ((F.p_bool (F.QED.lc_open x p))::hs)
+      | Bind(Exists,_,_) ->
+          let pool = Lang.get_pool () in
+          let _,t = F.QED.e_open ~pool ~exists:true
+              ~forall:false ~lambda:false (e_prop p) in
+          exist_intros ((F.p_bool t)::hs)
       | _ -> p::(exist_intros hs)
     end
 
@@ -463,14 +469,22 @@ let rec exist_intros = function
 let rec forall_intro p =
   let open Qed.Logic in
   match F.p_expr p with
-  | Bind(Forall,tau,p) ->
-      let x = Lang.freshvar tau in
-      forall_intro (F.p_bool (F.QED.lc_open x p))
+  | Bind(Forall,_,_) ->
+      let pool = Lang.get_pool () in
+      let _,t = F.QED.e_open ~pool ~forall:true
+          ~exists:false ~lambda:false (e_prop p) in
+      forall_intro (F.p_bool t)
   | Imply(hs,p) ->
       let hs = exist_intros hs in
-      let hs = List.map (fun p -> step (Have p)) hs in
       let hp,p = forall_intro p in
       hs @ hp , p
+  | Or qs -> (* analogy with Imply *)
+      let hps,ps = List.fold_left (fun (hs,ps) q ->
+          let hp,p = forall_intro q in (* q <==> (hp ==> p) *)
+          (hp @ hs), (p::ps)) ([],[]) qs
+      in (* ORs qs  <==> ORs (hps ==> ps)
+                    <==> ((ANDs hps) ==> ORs ps) *)
+      hps, (p_disj ps)
   | _ -> [] , p
 
 (* -------------------------------------------------------------------------- *)
@@ -955,20 +969,22 @@ let seq_branch ?stmt p sa sb =
 (* -------------------------------------------------------------------------- *)
 
 let lemma g =
-  let cc g = let hs,p = forall_intro g in sequence hs , p
+  let cc g =
+    let hs,p = forall_intro g in
+    let hs = List.map (fun p -> step (Have p)) hs in
+    sequence hs , p
   in Lang.local ~vars:(F.varsp g) cc g
 
-let introduction sequent =
-  let cc (hs,g) =
-    let flag = ref false in
-    let intro p = let q = exist_intro p in if q != p then flag := true ; q in
-    let hj = List.map (map_step intro) hs.seq_list in
-    let hi,p = forall_intro g in
-    if not !flag && hi == [] then
-      if p == g then None else Some (hs , p)
-    else
-      Some (sequence (hi @ hj) , p)
-  in Lang.local ~vars:(vars_seq sequent) cc sequent
+let introduction (hs,g) =
+  let flag = ref false in
+  let intro p = let q = exist_intro p in if q != p then flag := true ; q in
+  let hj = List.map (map_step intro) hs.seq_list in
+  let hi,p = forall_intro g in
+  let hi = List.map (fun p -> step (Have p)) hi in
+  if not !flag && hi == [] then
+    if p == g then None else Some (hs , p)
+  else
+    Some (sequence (hi @ hj) , p)
 
 let introduction_eq s = match introduction s with
   | Some s' -> s'
@@ -987,7 +1003,7 @@ struct
     mutable cst : bool Tmap.t ;
     mutable dom : Vars.t ; (* support of defs *)
     mutable def : term Tmap.t ; (* defs *)
-    mutable mem : term Tmap.t ; (* defs+memo *)
+    mutable cache : F.sigma option ; (* memo *)
   }
 
   let rec is_cst s e = match F.repr e with
@@ -1014,26 +1030,30 @@ struct
         s.dom <- Vars.union (F.vars a) s.dom ;
         s.def <- Tmap.add a e s.def ;
         s.def <- Tmap.add p p s.def ;
+        s.cache <- None ;
       end
 
-  let rec assume s p = match F.repr p with
-    | Logic.And ps -> List.iter (assume s) ps
-    | Logic.Eq(a,b) ->
-        if is_cst s a then set_def s p b a ;
-        if is_cst s b then set_def s p a b ;
-    | _ -> ()
+  let collect_set_def s p = Lang.iter_consequence_literals
+      (fun literal -> match Lang.F.repr literal with
+         | Logic.Eq(a,b) ->
+             if is_cst s a then set_def s literal b a ;
+             if is_cst s b then set_def s literal a b ;
+         | _ -> ()) p
 
   let collect s = function
-    | Have p | When p | Core p | Init p -> assume s (F.e_prop p)
+    | Have p | When p | Core p | Init p -> collect_set_def s (F.e_prop p)
     | Type _ | Branch _ | Either _ | State _ -> ()
 
-  let rec e_apply s e =
-    try Tmap.find e s.mem
-    with Not_found ->
-      let e' = F.QED.lc_map (e_apply s) e in
-      s.mem <- Tmap.add e e' s.mem ; e'
+  let subst s =
+    match s.cache with
+    | Some m -> m
+    | None ->
+        let m = Lang.sigma () in
+        F.Subst.add_map m s.def ;
+        s.cache <- Some m ; m
 
-  let p_apply s p = F.p_bool (e_apply s (F.e_prop p))
+  let e_apply s e = F.e_subst (subst s) e
+  let p_apply s p = F.p_subst (subst s) p
 
   let rec c_apply s = function
     | State m -> State (Mstate.apply (e_apply s) m)
@@ -1054,13 +1074,12 @@ struct
   let simplify (hs,p) =
     let s = {
       cst = Tmap.empty ;
-      mem = Tmap.empty ;
       def = Tmap.empty ;
       dom = Vars.empty ;
+      cache = None ;
     } in
     try
       List.iter (fun h -> collect s h.condition) hs ;
-      s.mem <- s.def ;
       let hs = List.map (s_apply s) hs in
       let p = p_apply s p in
       hs , p
@@ -1074,6 +1093,8 @@ end
 (* -------------------------------------------------------------------------- *)
 
 let rec fixpoint limit solvers sigma s0 =
+  if limit > 0 then compute limit solvers sigma s0 else s0
+and compute limit solvers sigma s0 =
   !Db.progress ();
   let s1 =
     if Wp_parameters.Ground.get () then ground s0
@@ -1523,8 +1544,7 @@ struct
   let rec collect_step w s =
     match s.condition with
     | Type _ | State _ -> w
-    | Have p | Core p | Init p | When p ->
-        usage w (F.e_prop p)
+    | Have p | Core p | Init p | When p -> usage w (F.e_prop p)
     | Branch(p,a,b) ->
         let wa = collect_seq w a in
         let wb = collect_seq w b in
@@ -1706,8 +1726,6 @@ let replace ~at step sequent =
 (* --- Replace                                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-let subst f s =
-  let sigma = F.sigma () in
-  map_sequent (F.p_subst ~sigma f) s
+let subst f s = map_sequent (Lang.p_subst f) s
 
 (* -------------------------------------------------------------------------- *)

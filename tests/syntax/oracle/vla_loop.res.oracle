@@ -32,6 +32,45 @@ void awhile(int x)
   return;
 }
 
+int f(int i)
+{
+  int __retres;
+  {
+    unsigned int __lengthof_vla;
+    if (i > 1) {
+      __retres = 1;
+      goto return_label;
+    }
+    /*@ assert alloca_bounds: 0 < sizeof(int) * i ≤ 4294967295; */ ;
+    __lengthof_vla = (unsigned int)i;
+    int *vla = __fc_vla_alloc(sizeof(int) * __lengthof_vla);
+    __retres = 0;
+    __fc_vla_free((void *)vla);
+  }
+  return_label: return __retres;
+}
+
+int g(int c)
+{
+  int __retres;
+  {
+    int ret;
+    unsigned int __lengthof_a;
+    if (c <= 0) {
+      __retres = 4;
+      goto return_label;
+    }
+    /*@ assert alloca_bounds: 0 < sizeof(int) * c ≤ 4294967295; */ ;
+    __lengthof_a = (unsigned int)c;
+    int *a = __fc_vla_alloc(sizeof(int) * __lengthof_a);
+    *(a + (c - 1)) = 3;
+    ret = *(a + (c - 1));
+    __retres = ret;
+    __fc_vla_free((void *)a);
+  }
+  return_label: return __retres;
+}
+
 int main(int argc, char **argv)
 {
   int *p;

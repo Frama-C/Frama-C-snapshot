@@ -23,6 +23,10 @@ int main() {
   //@ assert fd == -1 || fd >= 0;
   if (fd == -1) return 1;
 
+  off_t offset = 42;
+  offset = lseek(fd, offset, SEEK_SET);
+  if (offset == -1) return 1;
+
   int fd2 = dup2(2, fd);
   if (nondet) {
     dup2(2, -2);
@@ -82,5 +86,23 @@ int main() {
   char *tty = ttyname(1);
 
   r = chown("/tmp/a.txt", 01000, 01000);
+
+  r = chdir("/tmp/");
+
+  r = chroot("/tmp");
+
+  if (nondet) {
+    pipe(0); // invalid fildes
+    //@ assert unreachable:\false;
+  }
+  int halfpipe;
+  if (nondet) {
+    pipe(&halfpipe); // invalid fildes
+    //@ assert unreachable:\false;
+  }
+  int pipefd[2];
+  r = pipe(pipefd);
+  //@ check ok: r == 0 || r == -1;
+
   return 0;
 }

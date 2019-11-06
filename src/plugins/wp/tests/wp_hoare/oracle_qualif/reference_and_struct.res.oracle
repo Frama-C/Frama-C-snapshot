@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
 [kernel] Parsing tests/wp_hoare/reference_and_struct.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -9,7 +9,7 @@
 [wp] [Qed] Goal typed_ref_call_array_in_struct_param_assigns_exit : Valid
 [wp] [Qed] Goal typed_ref_call_array_in_struct_param_assigns_normal : Valid
 [wp] [Qed] Goal typed_ref_call_array_in_struct_param_call_load_5_requires : Valid
-[wp] [Alt-Ergo] Goal typed_ref_call_on_array_in_struct_global_ensures_Pload : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_call_on_array_in_struct_global_ensures_Pload : Valid
 [wp] [Qed] Goal typed_ref_call_on_array_in_struct_global_assigns_exit : Valid
 [wp] [Qed] Goal typed_ref_call_on_array_in_struct_global_assigns_normal : Valid
 [wp] [Qed] Goal typed_ref_call_on_array_in_struct_global_call_load_5_requires : Valid
@@ -18,27 +18,27 @@
 [wp] [Qed] Goal typed_ref_call_reset_assigns_normal_part1 : Valid
 [wp] [Qed] Goal typed_ref_call_reset_assigns_normal_part2 : Valid
 [wp] [Qed] Goal typed_ref_call_reset_call_reset_requires : Valid
-[wp] [Alt-Ergo] Goal typed_ref_call_reset_1_5_ensures_Presset_mat : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_call_reset_1_5_ensures_Presset_mat : Valid
 [wp] [Qed] Goal typed_ref_call_reset_1_5_assigns_exit : Valid
 [wp] [Qed] Goal typed_ref_call_reset_1_5_assigns_normal : Valid
 [wp] [Qed] Goal typed_ref_call_reset_1_5_call_reset_1_5_requires : Valid
-[wp] [Alt-Ergo] Goal typed_ref_call_reset_5_ensures_Preset_5 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_call_reset_5_ensures_Preset_5 : Valid
 [wp] [Qed] Goal typed_ref_call_reset_5_assigns_exit : Valid
 [wp] [Qed] Goal typed_ref_call_reset_5_assigns_normal : Valid
 [wp] [Qed] Goal typed_ref_call_reset_5_call_reset_5_requires : Valid
-[wp] [Alt-Ergo] Goal typed_ref_call_reset_5_dim2_ensures_Presset_mat : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_call_reset_5_dim2_ensures_Presset_mat : Valid
 [wp] [Qed] Goal typed_ref_call_reset_5_dim2_assigns_exit : Valid
 [wp] [Qed] Goal typed_ref_call_reset_5_dim2_assigns_normal : Valid
 [wp] [Qed] Goal typed_ref_call_reset_5_dim2_call_reset_5_requires : Valid
-[wp] [Alt-Ergo] Goal typed_ref_call_reset_5_tps_ensures_Preset_5_tps : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_call_reset_5_tps_ensures_Preset_5_tps : Valid
 [wp] [Qed] Goal typed_ref_call_reset_5_tps_assigns_exit : Valid
 [wp] [Qed] Goal typed_ref_call_reset_5_tps_assigns_normal : Valid
 [wp] [Qed] Goal typed_ref_call_reset_5_tps_call_reset_5_requires : Valid
 [wp] [Qed] Goal typed_ref_reset_ensures : Valid
 [wp] [Qed] Goal typed_ref_reset_assigns : Valid
 [wp] Proved goals:   32 / 32
-  Qed:            27 
-  Alt-Ergo:        5
+  Qed:              27 
+  Alt-Ergo 2.0.0:    5
 [wp] Report in:  'tests/wp_hoare/oracle_qualif/reference_and_struct.0.report.json'
 [wp] Report out: 'tests/wp_hoare/result_qualif/reference_and_struct.0.report.json'
 -------------------------------------------------------------
@@ -46,10 +46,10 @@ Functions           WP     Alt-Ergo        Total   Success
 reset                2     -                 2       100%
 call_reset           5     -                 5       100%
 call_reset_5         3      1 (1..12)        4       100%
-call_reset_5_tps     3      1 (16..28)       4       100%
+call_reset_5_tps     3      1 (12..24)       4       100%
 call_reset_1_5       3      1 (1..12)        4       100%
 call_reset_5_dim2    3      1 (1..12)        4       100%
-call_on_array_in_struct_global   3    1 (4..16)   4  100%
+call_on_array_in_struct_global   3    1 (1..12)   4  100%
 call_array_in_struct_param   5   -           5       100%
 -------------------------------------------------------------
 [wp] Warning: Memory model hypotheses for function 'reset':

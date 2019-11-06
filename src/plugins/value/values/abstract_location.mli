@@ -119,21 +119,14 @@ module type S = sig
     typ -> index:value -> remaining:offset -> offset -> (value * offset) or_bottom
 end
 
-(** Key and structure for locations. See {structure.mli},
-    and {domain.mli} where the mechanism is explained in detail.*)
+type 'loc key = 'loc Structure.Key_Location.key
 
-type 'a key = 'a Structure.Key_Location.k
-type 'a structure = 'a Structure.Key_Location.structure
-
-module type Internal = sig
+(** Signature for a leaf module of abstract locations. *)
+module type Leaf = sig
   include S
-  val structure : location structure
-end
 
-module type External = sig
-  include S
-  include Structure.External with type t := location
-                              and type 'a key := 'a key
+  (** The key identifies the module and the type [t] of abstract locations. *)
+  val key: location key
 end
 
 (*

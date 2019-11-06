@@ -78,29 +78,6 @@ struct
   let guards = C.guards
 
   (* -------------------------------------------------------------------------- *)
-  (* --- Debugging                                                          --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  let pp_logic fmt = function
-    | Vexp e -> F.pp_term fmt e
-    | Vloc l -> M.pretty fmt l
-    | Lset _ | Vset _ -> Format.pp_print_string fmt "<set>"
-
-  let pp_bound fmt = function None -> () | Some p -> F.pp_term fmt p
-
-  let pp_sloc fmt = function
-    | Sloc l -> M.pretty fmt l
-    | Sarray(l,_,n) -> Format.fprintf fmt "@[<hov2>%a@,.(..%d)@]"
-                         M.pretty l (n-1)
-    | Srange(l,_,a,b) -> Format.fprintf fmt "@[<hov2>%a@,.(%a@,..%a)@]"
-                           M.pretty l pp_bound a pp_bound b
-    | Sdescr(xs,l,p) -> Format.fprintf fmt "@[<hov2>{ %a | %a }@]"
-                          M.pretty l F.pp_pred (F.p_forall xs p)
-
-  let pp_region fmt sloc =
-    List.iter (fun (_,s) -> Format.fprintf fmt "@ %a" pp_sloc s) sloc
-
-  (* -------------------------------------------------------------------------- *)
   (* --- Translation Environment & Recursion                                --- *)
   (* -------------------------------------------------------------------------- *)
 
@@ -261,7 +238,7 @@ struct
           match logic_var env lv with
           | VAL v ->
               Wp_parameters.abort ~current:true
-                "Address of logic value (%a)@." pp_logic v
+                "Address of logic value (%a)@." (Cvalues.pp_logic M.pretty) v
           | VAR x ->
               logic_offset env x.vtype (Vloc (M.cvar x)) loffset
         end
@@ -663,6 +640,7 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* --- Term Nodes                                                         --- *)
   (* -------------------------------------------------------------------------- *)
+
   let term_node (env:env) t =
     match t.term_node with
     | TConst c -> Vexp (Cvalues.logic_constant c)
@@ -674,15 +652,22 @@ struct
            Cvalues.volatile ~warn:"unsafe volatile access to (term) l-value" ()
         then term_undefined t
         else term_lval env lval
-    | TAddrOf lval | TStartOf lval -> addr_lval env lval
+    | TAddrOf lval -> addr_lval env lval
+    | TStartOf lval ->
+        begin
+          let lt = Cil.typeOfTermLval lval in
+          let base = addr_lval env lval in
+          match Logic_utils.unroll_type lt with
+          | Ctype ct ->
+              L.map_loc (fun l -> Cvalues.startof ~shift:M.shift l ct) base
+          | _ -> base
+        end
 
     | TUnOp(Neg,t) when not (Logic_typing.is_integral_type t.term_type) ->
         L.map F.e_opp (C.logic env t)
     | TUnOp(unop,t) -> term_unop unop (C.logic env t)
     | TBinOp(binop,a,b) -> term_binop env binop a b
 
-    | TCoerceE (t,e) -> term_cast_to_ltype env e.term_type t (** Jessie only, to be deprecated *)
-    | TCoerce (t,ty) -> term_cast_to_ctype env ty t (** Jessie only, to be deprecated *)
     | TCastE(ty,t) -> term_cast_to_ctype env ty t
     | TLogic_coerce(typ,t) -> term_cast_to_ltype env typ t
 
@@ -691,7 +676,7 @@ struct
         let r = match LogicBuiltins.logic f with
           | ACSLDEF -> C.call_fun env f ls vs
           | HACK phi -> phi vs
-          | LFUN f -> e_fun f vs
+          | LFUN f -> e_fun f vs ~result:(Lang.tau_of_ltype t.term_type)
         in Vexp r
 
     | Tlambda _ ->
@@ -705,7 +690,7 @@ struct
         let r = match LogicBuiltins.ctor c with
           | ACSLDEF -> e_fun (CTOR c) es
           | HACK phi -> phi es
-          | LFUN f -> e_fun f es
+          | LFUN f -> e_fun f es ~result:(Lang.tau_of_ltype t.term_type)
         in Vexp r
 
     | Tif( cond , a , b ) ->
@@ -896,8 +881,6 @@ struct
           "Allocation, initialization and danglingness not yet implemented@\n\
            @[<hov 0>(%a)@]" Printer.pp_predicate p
 
-    | Psubtype _ ->
-        Warning.error "Type tags not implemented yet"
 
   (* -------------------------------------------------------------------------- *)
   (* --- Set of locations for a term representing a set of l-values         --- *)
@@ -916,7 +899,7 @@ struct
 
   let assignable_lval env ~unfold lv =
     match fst lv with
-    | TResult _ -> [] (* special case ! *)
+    | TResult _  | TVar{lv_name="\\exit_status"} -> [] (* special case ! *)
     | _ ->
         let offsets =
           let obj = Ctypes.object_of_logic_type (Cil.typeOfTermLval lv) in
@@ -963,8 +946,6 @@ struct
         Warning.error "Complex let-binding not implemented yet (%a)"
           Printer.pp_term t
 
-    | TCoerce (t,_)  (** Jessie only, to be deprecated *)
-    | TCoerceE (t,_) (** Jessie only, to be deprecated *)
     | TCastE (_,t)
     | TLogic_coerce(_,t) -> C.region env ~unfold t
 

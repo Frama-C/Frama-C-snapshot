@@ -69,11 +69,22 @@ class iformat =
       ]
   end
 
+class rformat =
+  object inherit [Plang.rformat] menu
+      ~key:"GuiGoal.rformat"
+      ~default:`Ratio
+      ~data:[
+        `Ratio , "Real" , "REAL" ;
+        `Float , "Float (32 bits)" , "F32" ;
+        `Double , "Float (64 bits)" , "F64" ;
+      ]
+  end
+
 (* -------------------------------------------------------------------------- *)
 (* --- Goal Panel                                                         --- *)
 (* -------------------------------------------------------------------------- *)
 
-class pane (enabled : GuiConfig.enabled) =
+class pane (gprovers : GuiConfig.provers) =
   let icon = new Widget.image GuiProver.no_status in
   let status = new Widget.label () in
   let text = new Wtext.text () in
@@ -101,7 +112,9 @@ class pane (enabled : GuiConfig.enabled) =
     ~icon:`SAVE ~tooltip:"Save Script" () in
   let autofocus = new autofocus in
   let iformat = new iformat in
+  let rformat = new rformat in
   let strategies = new GuiTactic.strategies () in
+  let native = List.mem "native:alt-ergo" (Wp_parameters.Provers.get ()) in
   object(self)
 
     val mutable state : state = Empty
@@ -113,7 +126,7 @@ class pane (enabled : GuiConfig.enabled) =
         let toolbar =
           Wbox.(toolbar
                   [ w prev ; w next ; w cancel ; w forward ;
-                    w autofocus ; w iformat ;
+                    w autofocus ; w iformat ; w rformat ;
                     w play_script ; w save_script ;
                     w ~padding:6 icon ; h ~padding:6 status ]
                   [ w help ; w delete ]) in
@@ -123,11 +136,15 @@ class pane (enabled : GuiConfig.enabled) =
             Config.config_float ~key:"GuiGoal.palette" ~default:0.8 content
           );
         layout#populate (Wbox.panel ~top:toolbar content#widget) ;
-        provers <-
-          VCS.([ new GuiProver.prover ~console:text ~prover:AltErgo ] @
-               List.map
-                 (fun dp -> new GuiProver.prover text (Why3 dp))
-                 enabled#get) ;
+        let native_ergo =
+          if native then [
+            new GuiProver.prover ~console:text ~prover:VCS.NativeAltErgo
+          ] else [] in
+        let why3_provers =
+          List.map
+            (fun dp -> new GuiProver.prover ~console:text ~prover:(VCS.Why3 dp))
+            (Why3.Whyconf.Sprover.elements gprovers#get) in
+        provers <- native_ergo @ why3_provers ;
         List.iter (fun p -> palette#add_tool p#tool) provers ;
         palette#add_tool strategies#tool ;
         Strategy.iter strategies#register ;
@@ -137,11 +154,11 @@ class pane (enabled : GuiConfig.enabled) =
              tactics <- gtac :: tactics ;
              palette#add_tool gtac#tool) ;
         tactics <- List.rev tactics ;
-        self#register_provers enabled#get ;
+        self#register_provers gprovers#get;
         printer#on_selection (fun () -> self#update) ;
         scripter#on_click self#goto ;
         scripter#on_backtrack self#backtrack ;
-        enabled#connect self#register_provers ;
+        gprovers#connect self#register_provers ;
         delete#connect (fun () -> self#interrupt ProofEngine.reset) ;
         cancel#connect (fun () -> self#interrupt ProofEngine.cancel) ;
         forward#connect (fun () -> self#forward) ;
@@ -151,6 +168,7 @@ class pane (enabled : GuiConfig.enabled) =
         play_script#connect (fun () -> self#play_script) ;
         autofocus#connect self#autofocus ;
         iformat#connect self#iformat ;
+        rformat#connect self#rformat ;
         composer#connect (fun () -> self#update) ;
         browser#connect (fun () -> self#update) ;
         help#connect (fun () -> self#open_help) ;
@@ -220,6 +238,7 @@ class pane (enabled : GuiConfig.enabled) =
           | `Main | `Internal _ -> ()
 
     method private iformat f = printer#set_iformat f ; self#update
+    method private rformat f = printer#set_rformat f ; self#update
 
     method private autofocus = function
       | `Autofocus ->
@@ -250,12 +269,17 @@ class pane (enabled : GuiConfig.enabled) =
           in
           autofocus#set mode ; self#update
 
+    method private provers =
+      (if native then [ VCS.NativeAltErgo ] else []) @
+      (List.map (fun dp -> VCS.Why3 dp)
+         (Why3.Whyconf.Sprover.elements gprovers#get))
+
     method private play_script =
       match state with
       | Proof p ->
           ProofEngine.reset p ;
           ProverScript.spawn
-            ~provers:[ VCS.AltErgo ]
+            ~provers:self#provers
             ~result:
               (fun wpo prv res ->
                  text#printf "[%a] %a : %a@."
@@ -292,6 +316,7 @@ class pane (enabled : GuiConfig.enabled) =
     method private register_provers dps =
       begin
         (* register missing provers *)
+        let dps = Why3.Whyconf.Sprover.elements dps in
         let prvs = List.map (fun p -> VCS.Why3 p) dps in
         (* set visible provers *)
         List.iter
@@ -357,7 +382,7 @@ class pane (enabled : GuiConfig.enabled) =
           printer#set_target Tactical.Empty ;
           strategies#connect None ;
           List.iter (fun tactic -> tactic#clear) tactics
-      | Some(model,tree,sequent,sel) ->
+      | Some(tree,sequent,sel) ->
           strategies#connect (Some (self#strategies sequent)) ;
           let select (tactic : GuiTactic.tactic) =
             let process = self#apply in
@@ -365,7 +390,8 @@ class pane (enabled : GuiConfig.enabled) =
             let browser = self#browse in
             tactic#select ~process ~composer ~browser ~tree sel
           in
-          Model.with_model model (List.iter select) tactics ;
+          let ctxt = ProofEngine.tree_context tree in
+          WpContext.on_context ctxt (List.iter select) tactics ;
           let tgt =
             if List.exists (fun tactics -> tactics#targeted) tactics
             then sel else Tactical.Empty in
@@ -469,8 +495,7 @@ class pane (enabled : GuiConfig.enabled) =
               self#update_provers (Some wpo) ;
               let sequent = printer#sequent in
               let select = printer#selection in
-              let model = wpo.Wpo.po_model in
-              self#update_tactics (Some(model,proof,sequent,select)) ;
+              self#update_tactics (Some(proof,sequent,select)) ;
             end
       | Composer _ | Browser _ -> ()
 
@@ -509,9 +534,9 @@ class pane (enabled : GuiConfig.enabled) =
               state <- Proof proof ;
               printer#restore tgt ;
               self#update in
-            let model = ProofEngine.tree_model proof in
+            let ctxt = ProofEngine.tree_context proof in
             let print = composer#print cc ~quit in
-            text#printf "%t@." (Model.with_model model print) ;
+            text#printf "%t@." (WpContext.on_context ctxt print) ;
             text#hrule ;
             text#printf "%t@."
               (printer#goal (ProofEngine.head proof)) ;
@@ -523,9 +548,9 @@ class pane (enabled : GuiConfig.enabled) =
               state <- Proof proof ;
               printer#restore tgt ;
               self#update in
-            let model = ProofEngine.tree_model proof in
+            let ctxt = ProofEngine.tree_context proof in
             let print = browser#print cc ~quit in
-            text#printf "%t@." (Model.with_model model print) ;
+            text#printf "%t@." (WpContext.on_context ctxt print) ;
             text#hrule ;
             text#printf "%t@."
               (printer#goal (ProofEngine.head proof)) ;
@@ -568,12 +593,12 @@ class pane (enabled : GuiConfig.enabled) =
               VCS.pp_prover prv Wpo.pp_title wpo VCS.pp_result res
           end
         ~success:(fun _ _ -> Wutil.later self#commit)
-        ~pool provers
+        ~pool (List.map (fun dp -> VCS.BatchMode , dp) provers)
 
     method private fork proof fork =
       Wutil.later
         begin fun () ->
-          let provers = VCS.[ BatchMode, AltErgo ] in
+          let provers = self#provers in
           let pool = Task.pool () in
           ProofEngine.iter (self#schedule pool provers) fork ;
           let server = ProverTask.server () in
@@ -616,7 +641,7 @@ class pane (enabled : GuiConfig.enabled) =
                 begin
                   ProverScript.search
                     ~depth ~width ~auto
-                    ~provers:[ VCS.AltErgo ]
+                    ~provers:[ VCS.NativeAltErgo ]
                     ~result:
                       (fun wpo prv res ->
                          text#printf "[%a] %a : %a@."

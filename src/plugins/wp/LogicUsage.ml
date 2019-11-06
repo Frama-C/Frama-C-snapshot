@@ -191,9 +191,11 @@ let pp_profile fmt l =
 (* -------------------------------------------------------------------------- *)
 
 let ip_lemma l =
+  let open Property in
   (if l.lem_axiom then Property.ip_axiom else Property.ip_lemma)
-    (l.lem_name,l.lem_labels,l.lem_types,
-     l.lem_property,(l.lem_position,l.lem_position))
+    {il_name = l.lem_name; il_labels = l.lem_labels;
+     il_args = l.lem_types; il_loc = (l.lem_position, l.lem_position);
+     il_pred = l.lem_property}
 
 let lemma_of_global proof = function
   | Dlemma(name,axiom,labels,types,pred,_,loc) -> {

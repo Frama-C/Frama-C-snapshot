@@ -1,48 +1,59 @@
-{ "wp:global": { "why3:alt-ergo": { "total": 12, "valid": 12 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 12, "valid": 12,
+                                          "rank": 25 },
                  "qed": { "total": 22, "valid": 22 },
-                 "wp:main": { "total": 34, "valid": 34 } },
+                 "wp:main": { "total": 34, "valid": 34, "rank": 25 } },
   "wp:functions": { "no_calls": { "no_calls_assigns": { "qed": { "total": 1,
                                                                  "valid": 1 },
                                                         "wp:main": { "total": 1,
                                                                     "valid": 1 } },
-                                  "no_calls_ensures_ok_n3": { "why3:alt-ergo": 
+                                  "no_calls_ensures_ok_n3": { "why3:Alt-Ergo,2.0.0": 
                                                                 { "total": 1,
-                                                                  "valid": 1 },
+                                                                  "valid": 1,
+                                                                  "rank": 1 },
                                                               "wp:main": 
                                                                 { "total": 1,
-                                                                  "valid": 1 } },
-                                  "no_calls_ensures_ok_n2": { "why3:alt-ergo": 
+                                                                  "valid": 1,
+                                                                  "rank": 2 } },
+                                  "no_calls_ensures_ok_n2": { "why3:Alt-Ergo,2.0.0": 
                                                                 { "total": 1,
-                                                                  "valid": 1 },
+                                                                  "valid": 1,
+                                                                  "rank": 1 },
                                                               "wp:main": 
                                                                 { "total": 1,
-                                                                  "valid": 1 } },
-                                  "no_calls_ensures_ok_m2": { "why3:alt-ergo": 
+                                                                  "valid": 1,
+                                                                  "rank": 2 } },
+                                  "no_calls_ensures_ok_m2": { "why3:Alt-Ergo,2.0.0": 
                                                                 { "total": 1,
-                                                                  "valid": 1 },
+                                                                  "valid": 1,
+                                                                  "rank": 1 },
                                                               "wp:main": 
                                                                 { "total": 1,
-                                                                  "valid": 1 } },
+                                                                  "valid": 1,
+                                                                  "rank": 2 } },
                                   "no_calls_ensures_ok_m1": { "qed": 
                                                                 { "total": 1,
                                                                   "valid": 1 },
                                                               "wp:main": 
                                                                 { "total": 1,
                                                                   "valid": 1 } },
-                                  "wp:section": { "why3:alt-ergo": { "total": 3,
-                                                                    "valid": 3 },
+                                  "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                    { "total": 3, "valid": 3,
+                                                      "rank": 1 },
                                                   "qed": { "total": 2,
                                                            "valid": 2 },
                                                   "wp:main": { "total": 5,
-                                                               "valid": 5 } } },
+                                                               "valid": 5,
+                                                               "rank": 1 } } },
                     "sequence": { "sequence_assigns": { "qed": { "total": 2,
                                                                  "valid": 2 },
                                                         "wp:main": { "total": 2,
                                                                     "valid": 2 } },
                                   "sequence_g_not_called_ensures_ok_q3": 
-                                    { "why3:alt-ergo": { "total": 1,
-                                                         "valid": 1 },
-                                      "wp:main": { "total": 1, "valid": 1 } },
+                                    { "why3:Alt-Ergo,2.0.0": { "total": 1,
+                                                               "valid": 1,
+                                                               "rank": 3 },
+                                      "wp:main": { "total": 1, "valid": 1,
+                                                   "rank": 3 } },
                                   "sequence_g_not_called_ensures_ok_q2": 
                                     { "qed": { "total": 1, "valid": 1 },
                                       "wp:main": { "total": 1, "valid": 1 } },
@@ -53,9 +64,11 @@
                                     { "qed": { "total": 1, "valid": 1 },
                                       "wp:main": { "total": 1, "valid": 1 } },
                                   "sequence_g_called_ensures_ok_p3": 
-                                    { "why3:alt-ergo": { "total": 1,
-                                                         "valid": 1 },
-                                      "wp:main": { "total": 1, "valid": 1 } },
+                                    { "why3:Alt-Ergo,2.0.0": { "total": 1,
+                                                               "valid": 1,
+                                                               "rank": 4 },
+                                      "wp:main": { "total": 1, "valid": 1,
+                                                   "rank": 4 } },
                                   "sequence_g_called_ensures_ok_p2": 
                                     { "qed": { "total": 1, "valid": 1 },
                                       "wp:main": { "total": 1, "valid": 1 } },
@@ -65,39 +78,47 @@
                                   "sequence_g_called_ensures_ok_o1": 
                                     { "qed": { "total": 1, "valid": 1 },
                                       "wp:main": { "total": 1, "valid": 1 } },
-                                  "wp:section": { "why3:alt-ergo": { "total": 2,
-                                                                    "valid": 2 },
+                                  "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                    { "total": 2, "valid": 2,
+                                                      "rank": 4 },
                                                   "qed": { "total": 8,
                                                            "valid": 8 },
                                                   "wp:main": { "total": 10,
-                                                               "valid": 10 } } },
-                    "loops": { "loops_loop_invariant_ok_inv": { "why3:alt-ergo": 
+                                                               "valid": 10,
+                                                               "rank": 4 } } },
+                    "loops": { "loops_loop_invariant_ok_inv": { "why3:Alt-Ergo,2.0.0": 
                                                                   { "total": 1,
-                                                                    "valid": 1 },
+                                                                    "valid": 1,
+                                                                    "rank": 25 },
                                                                 "qed": 
                                                                   { "total": 1,
                                                                     "valid": 1 },
                                                                 "wp:main": 
                                                                   { "total": 2,
-                                                                    "valid": 2 } },
-                               "loops_loop_invariant_ok_id_max": { "why3:alt-ergo": 
+                                                                    "valid": 2,
+                                                                    "rank": 25 } },
+                               "loops_loop_invariant_ok_id_max": { "why3:Alt-Ergo,2.0.0": 
                                                                     { "total": 1,
-                                                                    "valid": 1 },
+                                                                    "valid": 1,
+                                                                    "rank": 4 },
                                                                    "qed": 
                                                                     { "total": 1,
                                                                     "valid": 1 },
                                                                    "wp:main": 
                                                                     { "total": 2,
-                                                                    "valid": 2 } },
-                               "loops_loop_invariant_ok_id_min": { "why3:alt-ergo": 
+                                                                    "valid": 2,
+                                                                    "rank": 4 } },
+                               "loops_loop_invariant_ok_id_min": { "why3:Alt-Ergo,2.0.0": 
                                                                     { "total": 1,
-                                                                    "valid": 1 },
+                                                                    "valid": 1,
+                                                                    "rank": 4 },
                                                                    "qed": 
                                                                     { "total": 1,
                                                                     "valid": 1 },
                                                                    "wp:main": 
                                                                     { "total": 2,
-                                                                    "valid": 2 } },
+                                                                    "valid": 2,
+                                                                    "rank": 4 } },
                                "loops_assigns": { "qed": { "total": 6,
                                                            "valid": 6 },
                                                   "wp:main": { "total": 6,
@@ -106,44 +127,54 @@
                                                                 "valid": 1 },
                                                        "wp:main": { "total": 1,
                                                                     "valid": 1 } },
-                               "loops_g_not_called_ensures_ok_v2": { "why3:alt-ergo": 
+                               "loops_g_not_called_ensures_ok_v2": { "why3:Alt-Ergo,2.0.0": 
                                                                     { "total": 1,
-                                                                    "valid": 1 },
+                                                                    "valid": 1,
+                                                                    "rank": 4 },
                                                                     "wp:main": 
                                                                     { "total": 1,
-                                                                    "valid": 1 } },
-                               "loops_g_not_called_ensures_ok_v1": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 4 } },
+                               "loops_g_not_called_ensures_ok_v1": { "why3:Alt-Ergo,2.0.0": 
                                                                     { "total": 1,
-                                                                    "valid": 1 },
+                                                                    "valid": 1,
+                                                                    "rank": 5 },
                                                                     "wp:main": 
                                                                     { "total": 1,
-                                                                    "valid": 1 } },
+                                                                    "valid": 1,
+                                                                    "rank": 5 } },
                                "loops_g_called_ensures_ok_u2": { "qed": 
                                                                    { "total": 1,
                                                                     "valid": 1 },
                                                                  "wp:main": 
                                                                    { "total": 1,
                                                                     "valid": 1 } },
-                               "loops_g_called_ensures_ok_u1": { "why3:alt-ergo": 
+                               "loops_g_called_ensures_ok_u1": { "why3:Alt-Ergo,2.0.0": 
                                                                    { "total": 1,
-                                                                    "valid": 1 },
+                                                                    "valid": 1,
+                                                                    "rank": 5 },
                                                                  "wp:main": 
                                                                    { "total": 1,
-                                                                    "valid": 1 } },
-                               "loops_ensures_ok_last": { "why3:alt-ergo": 
+                                                                    "valid": 1,
+                                                                    "rank": 5 } },
+                               "loops_ensures_ok_last": { "why3:Alt-Ergo,2.0.0": 
                                                             { "total": 1,
-                                                              "valid": 1 },
+                                                              "valid": 1,
+                                                              "rank": 17 },
                                                           "wp:main": 
                                                             { "total": 1,
-                                                              "valid": 1 } },
+                                                              "valid": 1,
+                                                              "rank": 17 } },
                                "loops_ensures_ok_first": { "qed": { "total": 1,
                                                                     "valid": 1 },
                                                            "wp:main": 
                                                              { "total": 1,
                                                                "valid": 1 } },
-                               "wp:section": { "why3:alt-ergo": { "total": 7,
-                                                                  "valid": 7 },
+                               "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                 { "total": 7, "valid": 7,
+                                                   "rank": 25 },
                                                "qed": { "total": 12,
                                                         "valid": 12 },
                                                "wp:main": { "total": 19,
-                                                            "valid": 19 } } } } }
+                                                            "valid": 19,
+                                                            "rank": 25 } } } } }

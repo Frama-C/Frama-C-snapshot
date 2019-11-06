@@ -11,11 +11,11 @@ object(self)
         let f1 = Visitor.visitFramacFunction (self:>Visitor.frama_c_visitor) f
         in
         let v2 = Cil.copyVarinfo f.svar (f.svar.vname ^ "1") in
-        let orig = Cil.get_original_varinfo self#behavior f.svar in
-        Cil.set_varinfo self#behavior orig v2;
-        Cil.set_orig_varinfo self#behavior v2 orig;
-        Cil.reset_behavior_fundec self#behavior;
-        Cil.reset_behavior_stmt self#behavior;
+        let orig = Visitor_behavior.Get_orig.varinfo self#behavior f.svar in
+        Visitor_behavior.Set.varinfo self#behavior orig v2;
+        Visitor_behavior.Set_orig.varinfo self#behavior v2 orig;
+        Visitor_behavior.Reset.fundec self#behavior;
+        Visitor_behavior.Reset.stmt self#behavior;
         let f2 = Visitor.visitFramacFunction (self:>Visitor.frama_c_visitor) f
         in
         f2.svar <- v2;

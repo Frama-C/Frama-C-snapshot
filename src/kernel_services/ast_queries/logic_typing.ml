@@ -339,7 +339,7 @@ module Lenv = struct
       | BuiltinLabel LoopEntry -> Some "LoopEntry"
       | StmtLabel s ->
         (match
-           Transitioning.List.find_opt
+           List.find_opt
              (function Label (_,_,b) -> b | _ -> false) !s.labels
          with
          | None -> None
@@ -1015,8 +1015,6 @@ struct
       | TStartOf (_,o) -> needs_at_offset o
       | Tapp(_,_,l) | TDataCons(_,l) -> List.exists needs_at l
       | Tlambda(_,t) -> needs_at t
-      | TCoerce(t,_) -> needs_at t
-      | TCoerceE(t,_) -> needs_at t
       | TUpdate(t1,o,t2) -> needs_at t1 || needs_at_offset o || needs_at t2
       | Tunion l | Tinter l -> List.exists needs_at l
       | Tcomprehension(t,_,None) -> needs_at t
@@ -1044,7 +1042,6 @@ struct
       | Pinitialized (_,t) | Pdangling (_, t)
       | Pallocable(_,t) | Pfreeable(_,t)-> needs_at t
       | Pfresh (_,_,t,n) -> (needs_at t) && (needs_at n)
-      | Psubtype _ -> false
     in
     if needs_at idx then tat ~loc:idx.term_loc (idx,here_label) else idx
 
@@ -2048,7 +2045,7 @@ struct
       | TSizeOfStr _ | TAlignOf _ | TAlignOfE _
       | TUnOp _ | TBinOp _ | TCastE _ | TAddrOf _ | TStartOf _
       | Tapp _  | TDataCons _ | Tbase_addr _ | Toffset _
-      | Tblock_length _ | Tnull | TCoerce _ | TCoerceE _
+      | Tblock_length _ | Tnull
       | TUpdate _ | Ttypeof _ | Ttype _ | Tempty_set
       (* [VP] I suppose that an union of functions
          is theoretically possible but I'm not sure that we want to
@@ -2333,8 +2330,8 @@ struct
       | Trange _ | TConst _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _
       | TAlignOfE _ | TUnOp (_,_) | TBinOp (_,_,_) | TCastE (_,_)
       | TStartOf _ | Tlambda (_,_) | TDataCons (_,_) | Tbase_addr (_,_)
-      | Toffset (_,_) | Tblock_length (_,_) | Tnull | Tapp _ | TCoerce (_,_)
-      | TCoerceE (_,_) | TUpdate (_,_,_) | Ttypeof _ | Ttype _ ->
+      | Toffset (_,_) | Tblock_length (_,_) | Tnull | Tapp _
+      | TUpdate (_,_,_) | Ttypeof _ | Ttype _ ->
         false
     in
     aux t
@@ -2870,17 +2867,6 @@ struct
       let ct = Logic_const.unroll_ltdef (logic_type ctxt loc env ty) in
       let { term_node; term_type } = mk_cast ~explicit:true t ct in
       (term_node, term_type)
-    | PLcoercion (t,ty) ->
-      let t = term env t in
-      (match Logic_const.unroll_ltdef (logic_type ctxt loc env ty) with
-       | Ctype ty as cty
-         -> TCoerce (t, ty), cty
-       | Linteger | Lreal | Ltype _ | Lvar _ | Larrow _ ->
-         ctxt.error loc "cannot cast to logic type")
-    | PLcoercionE (t,tc) ->
-      let t = term env t in
-      let tc = term env tc in
-      TCoerceE (t, tc), tc.term_type
     | PLrel (t1, (Eq | Neq | Lt | Le | Gt | Ge as op), t2) ->
       let f _ op t1 t2 =
         (TBinOp(binop_of_rel op, t1, t2),
@@ -3000,86 +2986,86 @@ struct
     | PLfresh _ | PLallocable _ | PLfreeable _
     | PLinitialized _ | PLdangling _ | PLexists _ | PLforall _
     | PLimplies _ | PLiff _
-    | PLxor _ | PLsubtype _ | PLseparated _ ->
+    | PLxor _ | PLseparated _ ->
       if ctxt.silent then raise Backtrack;
       ctxt.error loc "syntax error (expression expected but predicate found)"
   and type_relation:
     'a. _ -> _ -> (_ -> _ -> _ -> _ -> 'a) -> _ -> _ -> _ -> 'a =
     fun ctxt env f t1 op t2 ->
-      let loc1 = t1.lexpr_loc in
-      let loc2 = t2.lexpr_loc in
-      let loc = loc_join t1.lexpr_loc t2.lexpr_loc in
-      let t1 = ctxt.type_term ctxt env t1 in
-      let ty1 = t1.term_type in
-      let t2 = ctxt.type_term ctxt env t2 in
-      let ty2 = t2.term_type in
-      let rel = match op with
-        | Eq -> "eq"
-        | Neq -> "ne"
-        | Le -> "le"
-        | Lt -> "lt"
-        | Ge -> "ge"
-        | Gt -> "gt"
+    let loc1 = t1.lexpr_loc in
+    let loc2 = t2.lexpr_loc in
+    let loc = loc_join t1.lexpr_loc t2.lexpr_loc in
+    let t1 = ctxt.type_term ctxt env t1 in
+    let ty1 = t1.term_type in
+    let t2 = ctxt.type_term ctxt env t2 in
+    let ty2 = t2.term_type in
+    let rel = match op with
+      | Eq -> "eq"
+      | Neq -> "ne"
+      | Le -> "le"
+      | Lt -> "lt"
+      | Ge -> "ge"
+      | Gt -> "gt"
+    in
+    let conditional_conversion t1 t2 =
+      let env,t,ty1,ty2 =
+        conditional_conversion loc env (Some rel) t1 t2
       in
-      let conditional_conversion t1 t2 =
-        let env,t,ty1,ty2 =
-          conditional_conversion loc env (Some rel) t1 t2
-        in
-        let t1 = { t1 with term_type = instantiate env t1.term_type } in
-        let _,t1 =
-          implicit_conversion ~overloaded:false loc1 t1 t1.term_type ty1
-        in
-        let t2 = { t2 with term_type = instantiate env t2.term_type } in
-        let _,t2 =
-          implicit_conversion ~overloaded:false loc2 t2 t2.term_type ty2
-        in
-        f loc op (mk_cast t1 t) (mk_cast t2 t)
+      let t1 = { t1 with term_type = instantiate env t1.term_type } in
+      let _,t1 =
+        implicit_conversion ~overloaded:false loc1 t1 t1.term_type ty1
       in
-      begin match op with
-        | _ when plain_arithmetic_type ty1 && plain_arithmetic_type ty2 ->
-          conditional_conversion t1 t2
-        | Eq | Neq when isLogicPointer t1 && isLogicNull t2 ->
-          let t1 = mk_logic_pointer_or_StartOf t1 in
-          let t2 =
-            (* in case of a set, we perform two conversions: first from
-               integer to pointer, then from pointer to set of pointer. *)
-            if is_set_type t1.term_type then
-              mk_cast t2 (type_of_set_elem t1.term_type)
-            else t2
-          in
-          f loc op t1 (mk_cast t2 t1.term_type)
-        | Eq | Neq when isLogicPointer t2 && isLogicNull t1 ->
-          let t2 = mk_logic_pointer_or_StartOf t2 in
-          let t1 =
-            if is_set_type t2.term_type then
-              mk_cast t1 (type_of_set_elem t2.term_type)
-            else t1
-          in
-          f loc op (mk_cast t1 t2.term_type) t2
-        | Eq | Neq when isLogicArrayType ty1 && isLogicArrayType ty2 ->
-          if is_same_logic_array_type ty1 ty2 then f loc op t1 t2
-          else
-            ctxt.error loc "comparison of incompatible types %a and %a"
-              Cil_printer.pp_logic_type ty1 Cil_printer.pp_logic_type ty2
-        | _ when isLogicPointer t1 && isLogicPointer t2 ->
-          let t1 = mk_logic_pointer_or_StartOf t1 in
-          let t2 = mk_logic_pointer_or_StartOf t2 in
-          if is_same_logic_ptr_type ty1 ty2 ||
-             ((op = Eq || op = Neq) &&
-              (isLogicVoidPointerType t1.term_type ||
-               isLogicVoidPointerType t2.term_type))
-          then f loc op t1 t2
-          else if (op=Eq || op = Neq) then conditional_conversion t1 t2
-          else
-            ctxt.error loc "comparison of incompatible types: %a and %a"
-              Cil_printer.pp_logic_type t1.term_type
-              Cil_printer.pp_logic_type t2.term_type
-        | Eq | Neq -> conditional_conversion t1 t2
-        | _ ->
+      let t2 = { t2 with term_type = instantiate env t2.term_type } in
+      let _,t2 =
+        implicit_conversion ~overloaded:false loc2 t2 t2.term_type ty2
+      in
+      f loc op (mk_cast t1 t) (mk_cast t2 t)
+    in
+    begin match op with
+      | _ when plain_arithmetic_type ty1 && plain_arithmetic_type ty2 ->
+        conditional_conversion t1 t2
+      | Eq | Neq when isLogicPointer t1 && isLogicNull t2 ->
+        let t1 = mk_logic_pointer_or_StartOf t1 in
+        let t2 =
+          (* in case of a set, we perform two conversions: first from
+             integer to pointer, then from pointer to set of pointer. *)
+          if is_set_type t1.term_type then
+            mk_cast t2 (type_of_set_elem t1.term_type)
+          else t2
+        in
+        f loc op t1 (mk_cast t2 t1.term_type)
+      | Eq | Neq when isLogicPointer t2 && isLogicNull t1 ->
+        let t2 = mk_logic_pointer_or_StartOf t2 in
+        let t1 =
+          if is_set_type t2.term_type then
+            mk_cast t1 (type_of_set_elem t2.term_type)
+          else t1
+        in
+        f loc op (mk_cast t1 t2.term_type) t2
+      | Eq | Neq when isLogicArrayType ty1 && isLogicArrayType ty2 ->
+        if is_same_logic_array_type ty1 ty2 then f loc op t1 t2
+        else
+          ctxt.error loc "comparison of incompatible types %a and %a"
+            Cil_printer.pp_logic_type ty1 Cil_printer.pp_logic_type ty2
+      | _ when isLogicPointer t1 && isLogicPointer t2 ->
+        let t1 = mk_logic_pointer_or_StartOf t1 in
+        let t2 = mk_logic_pointer_or_StartOf t2 in
+        if is_same_logic_ptr_type ty1 ty2 ||
+           ((op = Eq || op = Neq) &&
+            (isLogicVoidPointerType t1.term_type ||
+             isLogicVoidPointerType t2.term_type))
+        then f loc op t1 t2
+        else if (op=Eq || op = Neq) then conditional_conversion t1 t2
+        else
           ctxt.error loc "comparison of incompatible types: %a and %a"
             Cil_printer.pp_logic_type t1.term_type
             Cil_printer.pp_logic_type t2.term_type
-      end
+      | Eq | Neq -> conditional_conversion t1 t2
+      | _ ->
+        ctxt.error loc "comparison of incompatible types: %a and %a"
+          Cil_printer.pp_logic_type t1.term_type
+          Cil_printer.pp_logic_type t2.term_type
+    end
 
   and term_lval f t =
     let check_lval t =
@@ -3424,14 +3410,13 @@ struct
     | PLcast _ | PLblock_length _ | PLbase_addr _ | PLoffset _
     | PLrepeat _ | PLlist _ | PLarrget _ | PLarrow _
     | PLdot _ | PLbinop _ | PLunop _ | PLconstant _
-    | PLnull | PLresult | PLcoercion _ | PLcoercionE _ | PLsizeof _
+    | PLnull | PLresult | PLsizeof _
     | PLsizeofE _ | PLlambda _
     | PLupdate _ | PLinitIndex _ | PLinitField _
     | PLtypeof _ | PLtype _ -> boolean_to_predicate ctxt env p0
     | PLrange _ -> ctxt.error loc "cannot use operator .. within a predicate"
     | PLnamed (n, p) ->
       let p = predicate env p in { p with pred_name = n::p.pred_name }
-    | PLsubtype (t,tc) -> psubtype ~loc (term env t, term env tc)
     | PLseparated seps ->
       let seps = List.map (term_ptr ~check_non_void:true) seps in
       pseparated ~loc seps

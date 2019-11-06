@@ -91,7 +91,7 @@ let sanitize ~to_lowercase base =
         Buffer.add_char p c
     | 'A' .. 'Z' ->
         Buffer.add_char p
-          (if to_lowercase then Transitioning.Char.lowercase_ascii c else c)
+          (if to_lowercase then Char.lowercase_ascii c else c)
     | _ -> ()
   done ;
   Buffer.contents p

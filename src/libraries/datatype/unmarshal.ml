@@ -503,7 +503,7 @@ let input_val ch t =
           read_string stk t len
 
       | _ ->
-	  ill_formed (Printf.sprintf "code %x" code)
+	  ill_formed (Printf.sprintf "code 0x%x" code)
     in
     match t with
     | Dynamic f ->

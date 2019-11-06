@@ -16,85 +16,91 @@ enum aorai_OpStatusList {
 /*@ ghost int S1 = 0; */
 /*@ ghost int S2 = 0; */
 /*@ ghost int main_0 = 1; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_decode_int;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
-    
-    behavior buch_state_S1_in:
-      assumes 1 ≡ S1;
-      ensures 1 ≡ S1;
-    
-    behavior buch_state_S1_out:
-      assumes 0 ≡ S1;
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_out:
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_main_0_out:
-      ensures 0 ≡ main_0;
- */
-void decode_int_pre_func(char *s)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int main_0_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_decode_int;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  main_0_tmp = main_0;
-  main_0_tmp = 0;
-  S2_tmp = 0;
-  if (S1 == 1) S1_tmp = 1; else S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  main_0 = main_0_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_decode_int;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
+     
+     behavior buch_state_S1_in:
+       assumes 1 ≡ S1;
+       ensures 1 ≡ S1;
+     
+     behavior buch_state_S1_out:
+       assumes 0 ≡ S1;
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_out:
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_main_0_out:
+       ensures 0 ≡ main_0;
+   @/
+  void decode_int_pre_func(char *s)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int main_0_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_decode_int;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    main_0_tmp = main_0;
+    main_0_tmp = 0;
+    S2_tmp = 0;
+    if (S1 == 1) S1_tmp = 1; else S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    main_0 = main_0_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ main_0;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_decode_int;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
-    
-    behavior buch_state_S1_in:
-      assumes 1 ≡ S1;
-      ensures 1 ≡ S1;
-    
-    behavior buch_state_S1_out:
-      assumes 0 ≡ S1;
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_in:
-      assumes 1 ≡ S1 ∧ 1 ≢ 0;
-      ensures 1 ≡ S2;
-    
-    behavior buch_state_S2_out:
-      assumes 0 ≡ S1 ∨ 1 ≡ 0;
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_main_0_out:
-      ensures 0 ≡ main_0;
- */
-void decode_int_post_func(int res)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int main_0_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_decode_int;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  main_0_tmp = main_0;
-  main_0_tmp = 0;
-  if (S1 == 1) S2_tmp = 1; else S2_tmp = 0;
-  if (S1 == 1) S1_tmp = 1; else S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  main_0 = main_0_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ main_0;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_decode_int;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
+     
+     behavior buch_state_S1_in:
+       assumes 1 ≡ S1;
+       ensures 1 ≡ S1;
+     
+     behavior buch_state_S1_out:
+       assumes 0 ≡ S1;
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_in:
+       assumes 1 ≡ S1 ∧ 1 ≢ 0;
+       ensures 1 ≡ S2;
+     
+     behavior buch_state_S2_out:
+       assumes 0 ≡ S1 ∨ 1 ≡ 0;
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_main_0_out:
+       ensures 0 ≡ main_0;
+   @/
+  void decode_int_post_func(int res)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int main_0_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_decode_int;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    main_0_tmp = main_0;
+    main_0_tmp = 0;
+    if (S1 == 1) S2_tmp = 1; else S2_tmp = 0;
+    if (S1 == 1) S1_tmp = 1; else S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    main_0 = main_0_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires 1 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ main_0;
     
@@ -107,10 +113,10 @@ void decode_int_post_func(int res)
  */
 int decode_int(char *s)
 {
-  int aorai_Loop_Init_5;
+  /*@ ghost int aorai_Loop_Init_5; */
   int __retres;
   char c;
-  decode_int_pre_func(s);
+  /*@ ghost decode_int_pre_func(s); */
   int intmax = ~ (1 << (sizeof(int) * (unsigned int)8 - (unsigned int)1));
   int cutlim = intmax % 10;
   int cutoff = intmax / 10;
@@ -170,97 +176,104 @@ int decode_int(char *s)
     }
   }
   __retres = value;
-  return_label: {
-                  decode_int_post_func(__retres);
-                  return __retres;
-                }
+  return_label:
+  {
+    /*@ ghost decode_int_post_func(__retres); */
+    return __retres;
+  }
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_factorial;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
-    
-    behavior buch_state_S1_out:
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_in:
-      assumes 1 ≡ S2 ∨ (1 ≡ S1 ∧ 1 ≢ 0);
-      ensures 1 ≡ S2;
-    
-    behavior buch_state_S2_out:
-      assumes 0 ≡ S2 ∧ (0 ≡ S1 ∨ 1 ≡ 0);
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_main_0_out:
-      ensures 0 ≡ main_0;
- */
-void factorial_pre_func(int value)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int main_0_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_factorial;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  main_0_tmp = main_0;
-  main_0_tmp = 0;
-  if (S1 == 1) S2_tmp = 1;
-  else 
-    if (S2 == 1) S2_tmp = 1; else S2_tmp = 0;
-  S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  main_0 = main_0_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_factorial;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
+     
+     behavior buch_state_S1_out:
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_in:
+       assumes 1 ≡ S2 ∨ (1 ≡ S1 ∧ 1 ≢ 0);
+       ensures 1 ≡ S2;
+     
+     behavior buch_state_S2_out:
+       assumes 0 ≡ S2 ∧ (0 ≡ S1 ∨ 1 ≡ 0);
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_main_0_out:
+       ensures 0 ≡ main_0;
+   @/
+  void factorial_pre_func(int value)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int main_0_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_factorial;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    main_0_tmp = main_0;
+    main_0_tmp = 0;
+    if (S1 == 1) S2_tmp = 1;
+    else 
+      if (S2 == 1) S2_tmp = 1; else S2_tmp = 0;
+    S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    main_0 = main_0_tmp;
+    return;
+  }
 
-/*@ requires (1 ≡ S1 ∨ 1 ≡ S2) ∧ 0 ≡ main_0;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_factorial;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
-    
-    behavior buch_state_S1_in:
-      assumes 1 ≡ S2 ∨ 1 ≡ S1;
-      ensures 1 ≡ S1;
-    
-    behavior buch_state_S1_out:
-      assumes 0 ≡ S2 ∧ 0 ≡ S1;
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_in:
-      assumes 1 ≡ S2 ∨ (1 ≡ S1 ∧ 1 ≢ 0);
-      ensures 1 ≡ S2;
-    
-    behavior buch_state_S2_out:
-      assumes 0 ≡ S2 ∧ (0 ≡ S1 ∨ 1 ≡ 0);
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_main_0_out:
-      ensures 0 ≡ main_0;
- */
-void factorial_post_func(int res)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int main_0_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_factorial;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  main_0_tmp = main_0;
-  main_0_tmp = 0;
-  if (S1 == 1) S2_tmp = 1;
-  else 
-    if (S2 == 1) S2_tmp = 1; else S2_tmp = 0;
-  if (S1 == 1) S1_tmp = 1;
-  else 
-    if (S2 == 1) S1_tmp = 1; else S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  main_0 = main_0_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires (1 ≡ S1 ∨ 1 ≡ S2) ∧ 0 ≡ main_0;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_factorial;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
+     
+     behavior buch_state_S1_in:
+       assumes 1 ≡ S2 ∨ 1 ≡ S1;
+       ensures 1 ≡ S1;
+     
+     behavior buch_state_S1_out:
+       assumes 0 ≡ S2 ∧ 0 ≡ S1;
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_in:
+       assumes 1 ≡ S2 ∨ (1 ≡ S1 ∧ 1 ≢ 0);
+       ensures 1 ≡ S2;
+     
+     behavior buch_state_S2_out:
+       assumes 0 ≡ S2 ∧ (0 ≡ S1 ∨ 1 ≡ 0);
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_main_0_out:
+       ensures 0 ≡ main_0;
+   @/
+  void factorial_post_func(int res)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int main_0_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_factorial;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    main_0_tmp = main_0;
+    main_0_tmp = 0;
+    if (S1 == 1) S2_tmp = 1;
+    else 
+      if (S2 == 1) S2_tmp = 1; else S2_tmp = 0;
+    if (S1 == 1) S1_tmp = 1;
+    else 
+      if (S2 == 1) S1_tmp = 1; else S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    main_0 = main_0_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires (1 ≡ S1 ∨ 1 ≡ S2) ∧ 0 ≡ main_0;
     requires 1 ≡ S1 ⇒ 1 ≢ 0;
@@ -279,96 +292,102 @@ void factorial_post_func(int res)
 int factorial(int value)
 {
   int tmp_0;
-  factorial_pre_func(value);
+  /*@ ghost factorial_pre_func(value); */
   if (value > 0) {
     int tmp;
     tmp = factorial(value - 1);
     tmp_0 = tmp * value;
   }
   else tmp_0 = 1;
-  factorial_post_func(tmp_0);
+  /*@ ghost factorial_post_func(tmp_0); */
   return tmp_0;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
-    
-    behavior buch_state_S1_in:
-      assumes 1 ≡ main_0;
-      ensures 1 ≡ S1;
-    
-    behavior buch_state_S1_out:
-      assumes 0 ≡ main_0;
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_out:
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_main_0_out:
-      ensures 0 ≡ main_0;
- */
-void main_pre_func(int argc, char **argv)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int main_0_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  main_0_tmp = main_0;
-  main_0_tmp = 0;
-  S2_tmp = 0;
-  if (main_0 == 1) S1_tmp = 1; else S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  main_0 = main_0_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
+     
+     behavior buch_state_S1_in:
+       assumes 1 ≡ main_0;
+       ensures 1 ≡ S1;
+     
+     behavior buch_state_S1_out:
+       assumes 0 ≡ main_0;
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_out:
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_main_0_out:
+       ensures 0 ≡ main_0;
+   @/
+  void main_pre_func(int argc, char **argv)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int main_0_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    main_0_tmp = main_0;
+    main_0_tmp = 0;
+    S2_tmp = 0;
+    if (main_0 == 1) S1_tmp = 1; else S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    main_0 = main_0_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ main_0;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
-    
-    behavior buch_state_S1_in:
-      assumes 1 ≡ S1;
-      ensures 1 ≡ S1;
-    
-    behavior buch_state_S1_out:
-      assumes 0 ≡ S1;
-      ensures 0 ≡ S1;
-    
-    behavior buch_state_S2_in:
-      assumes 1 ≡ S1 ∧ 1 ≢ 0;
-      ensures 1 ≡ S2;
-    
-    behavior buch_state_S2_out:
-      assumes 0 ≡ S1 ∨ 1 ≡ 0;
-      ensures 0 ≡ S2;
-    
-    behavior buch_state_main_0_out:
-      ensures 0 ≡ main_0;
- */
-void main_post_func(int res)
-{
-  /*@ ghost int S1_tmp; */
-  /*@ ghost int S2_tmp; */
-  /*@ ghost int main_0_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  S1_tmp = S1;
-  S2_tmp = S2;
-  main_0_tmp = main_0;
-  main_0_tmp = 0;
-  if (S1 == 1) S2_tmp = 1; else S2_tmp = 0;
-  if (S1 == 1) S1_tmp = 1; else S1_tmp = 0;
-  S1 = S1_tmp;
-  S2 = S2_tmp;
-  main_0 = main_0_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ main_0;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, main_0;
+     
+     behavior buch_state_S1_in:
+       assumes 1 ≡ S1;
+       ensures 1 ≡ S1;
+     
+     behavior buch_state_S1_out:
+       assumes 0 ≡ S1;
+       ensures 0 ≡ S1;
+     
+     behavior buch_state_S2_in:
+       assumes 1 ≡ S1 ∧ 1 ≢ 0;
+       ensures 1 ≡ S2;
+     
+     behavior buch_state_S2_out:
+       assumes 0 ≡ S1 ∨ 1 ≡ 0;
+       ensures 0 ≡ S2;
+     
+     behavior buch_state_main_0_out:
+       ensures 0 ≡ main_0;
+   @/
+  void main_post_func(int res)
+  {
+    int S1_tmp;
+    int S2_tmp;
+    int main_0_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    S1_tmp = S1;
+    S2_tmp = S2;
+    main_0_tmp = main_0;
+    main_0_tmp = 0;
+    if (S1 == 1) S2_tmp = 1; else S2_tmp = 0;
+    if (S1 == 1) S1_tmp = 1; else S1_tmp = 0;
+    S1 = S1_tmp;
+    S2 = S2_tmp;
+    main_0 = main_0_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires 1 ≡ main_0 ∧ 0 ≡ S1 ∧ 0 ≡ S2;
     requires argc ≡ 2;
@@ -385,7 +404,7 @@ int main(int argc, char **argv)
 {
   int __retres;
   int value;
-  main_pre_func(argc,argv);
+  /*@ ghost main_pre_func(argc,argv); */
   if (argc != 2) {
     __retres = 1;
     goto return_label;
@@ -405,7 +424,7 @@ int main(int argc, char **argv)
   factorial(value);
   __retres = 0;
   return_label: {
-                  main_post_func(__retres);
+                  /*@ ghost main_post_func(__retres); */
                   return __retres;
                 }
 }

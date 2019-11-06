@@ -1,3 +1,13 @@
-logic const : 'b -> ('a,'b) farray
-axiom const_access : forall k:'a,v:'b. const(v)[k] = v
+module Flash
+       use map.Map
+       use map.Const
+       use int.Int
+       use frama_c_wp.memory.Memory
 
+       type t = map addr int
+
+       function get (m:t) (x:addr) : int = m[x]
+       function update (m:t) (x:addr) : t = m[ x <- (m[x] + 1) ]
+
+       function init : t = const 0
+end

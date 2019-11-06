@@ -79,12 +79,13 @@ let rec bind_exists bindings property =
           Lang.F.p_bind L.Exists x property
         else
           let value = Tactical.selected v in
-          Lang.F.p_apply x value property
+          Lang.F.p_subst_var x value property
       in bind_exists bindings closed
 
 let rec range x a b w =
   if a <= b then
-    ( Printf.sprintf "%s-%d" (fst w) a , F.p_apply x (F.e_int a) (snd w) )
+    ( Printf.sprintf "%s-%d" (fst w) a ,
+      Lang.F.p_subst_var x (F.e_int a) (snd w) )
     :: range x (succ a) b w
   else []
 
@@ -104,7 +105,7 @@ let rec bind_forall ranges bindings property =
             bind_forall ranges bindings (Lang.F.p_bind L.Forall x property)
         | _ ->
             let value = Tactical.selected v in
-            bind_forall ranges bindings (Lang.F.p_apply x value property)
+            bind_forall ranges bindings (Lang.F.p_subst_var x value property)
       end
   | [] ->
       bind_ranges [ "Instance" , property ] ranges
@@ -159,7 +160,7 @@ class instance =
           let tooltip = fieldname ~range env.index x in
           env.feedback#update_field
             ~tooltip ~range ~enabled:true ~filter:(filter x) fd ;
-          let lemma = F.QED.lc_open x phi in
+          let lemma = F.QED.e_unbind x phi in
           let bindings,property = self#wrap env lemma fields in
           (x,v) :: bindings , property
       | _ ->

@@ -22,18 +22,12 @@
 
 (** {2 Term & Predicate Introspection} *)
 
-(** Environment for binder resolution, see Forall & Exists *)
-type env
-
 type tau = Lang.F.tau
 type var = Lang.F.var
 type field = Lang.field
 type lfun = Lang.lfun
 type term = Lang.F.term
 type pred = Lang.F.pred
-
-(** Create environment from a set of free variables *)
-val env : Lang.F.Vars.t -> env
 
 type repr =
   | True
@@ -43,8 +37,6 @@ type repr =
   | Not of term
   | Imply of term list * term
   | If of term * term * term
-  | Forall of tau * (env -> var * term)
-  | Exists of tau * (env -> var * term)
   | Var of var
   | Int of Z.t
   | Real of Q.t
@@ -63,7 +55,7 @@ type repr =
   | Cst of tau * term
   | Get of term * term
   | Set of term * term * term
-  | Abstract
+  | HigherOrder (** See Lang.F.e_open and Lang.F.e_close *)
 
 val term : term -> repr
 val pred : pred -> repr

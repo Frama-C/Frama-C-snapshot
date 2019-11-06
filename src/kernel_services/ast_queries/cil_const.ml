@@ -55,6 +55,8 @@ module CurrentLoc =
 let voidType = TVoid([])
 
 module Vid = State_builder.SharedCounter(struct let name = "vid_counter" end)
+module Sid = State_builder.SharedCounter(struct let name = "sid" end)
+module Eid = State_builder.SharedCounter(struct let name = "eid" end)
 
 let set_vid v =
   let n = Vid.next () in
@@ -78,6 +80,68 @@ let change_varinfo_name vi name =
     | Some lv -> lv.lv_name <- name
 
 let new_raw_id = Vid.next
+
+(* The next compindo identifier to use. Counts up. *)
+ let nextCompinfoKey =
+   let module M =
+         State_builder.SharedCounter(struct let name = "compinfokey" end)
+   in
+   M.next
+
+(** Creates a (potentially recursive) composite type. Make sure you add a
+  * GTag for it to the file! **)
+let mkCompInfo
+    (isstruct: bool)
+    (n: string)
+    ?(norig=n)
+    (* fspec is a function that when given a forward
+       * representation of the structure type constructs the type of
+       * the fields. The function can ignore this argument if not
+       * constructing a recursive type.  *)
+    (mkfspec: compinfo -> (string * typ * int option * attribute list *
+			   location) list)
+    (a: attribute list) : compinfo =
+
+  (* make a new name for anonymous structs *)
+  if n = "" then Kernel.fatal "mkCompInfo: missing structure name\n" ;
+  (* Make a new self cell and a forward reference *)
+  let comp =
+    { cstruct = isstruct;
+      corig_name = norig;
+      cname = n;
+      ckey = nextCompinfoKey ();
+      cfields = []; (* fields will be added afterwards. *)
+      cattr = a;
+      creferenced = false;
+      (* Make this compinfo undefined by default *)
+      cdefined = false; }
+  in
+  let flds =
+    List.map (fun (fn, ft, fb, fa, fl) ->
+	{ fcomp = comp;
+	  ftype = ft;
+	  forig_name = fn;
+	  fname = fn;
+	  fbitfield = fb;
+	  fattr = fa;
+	  floc = fl;
+	  faddrof = false;
+	  fsize_in_bits = None;
+	  foffset_in_bits = None;
+	  fpadding_in_bits = None;
+	}) (mkfspec comp) in
+  comp.cfields <- flds;
+  if flds <> [] then comp.cdefined <- true;
+  comp
+
+(** Make a copy of a compinfo, changing the name and the key *)
+let copyCompInfo ?(fresh=true) ci cname =
+  let ckey = if fresh then nextCompinfoKey () else ci.ckey in
+  let ci' = { ci with cname; ckey } in
+  (* Copy the fields and set the new pointers to parents *)
+  ci'.cfields <- List.map (fun f -> {f with fcomp = ci'}) ci'.cfields;
+  ci'
+
 
 let make_logic_var_kind x kind typ =
   {lv_name = x; lv_id = new_raw_id(); lv_type = typ; lv_kind = kind; 

@@ -1,0 +1,4 @@
+MACRO: DEST @PTEST_RESULT@/gen_@PTEST_NAME@
+MACRO: OUT @PTEST_NAME@.res.log
+MACRO: ERR @PTEST_NAME@.err.log
+EXEC: ./scripts/e-acsl-gcc.sh --libc-replacements -q -c -X --frama-c-extra="-journal-disable -verbose 0 -kernel-warn-key *=inactive" -o @DEST@.run.c -O @DEST@.out @PTEST_FILE@ > @PTEST_RESULT@/@OUT@ 2> @PTEST_RESULT@/@ERR@ && ./@DEST@.e-acsl > /dev/null

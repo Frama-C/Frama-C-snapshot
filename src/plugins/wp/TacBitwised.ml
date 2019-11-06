@@ -53,22 +53,31 @@ class bitcase =
         ~descr:"Decompose Bitwise Equality"
         ~params:[prange]
 
+    (*   range:(0 <= a < 2^n && 0 <= b < 2^n)
+         && bitwise:(forall k; 0 <= k <= n ==> (bit(a,k) <==> bit(b,k)))
+         |- a <= b *)
+
+    method private process (feedback:Tactical.feedback) ~neq e a b =
+      if F.is_int a && F.is_int b then
+        let n = self#get_field vrange in
+        let inrange = F.p_and (range a n) (range b n) in
+        let bitwise = bitwise_eq a b n in
+        let e' = if neq then F.e_not bitwise else bitwise in
+        feedback#set_title "Bitwise %s. (%d bits)"
+          (if neq then "Neq" else "Eq") n ;
+        Tactical.Applicable
+          (fun seq ->
+             ("range" , (fst seq , inrange)) ::
+             rewrite "bitwise" e e' seq)
+      else
+        Tactical.Not_applicable
+
     method select feedback selection =
       let e = Tactical.selected selection in
       let open Qed.Logic in
       match F.repr e with
-      | Eq(a,b) when F.is_int a && F.is_int b ->
-          let n = self#get_field vrange in
-          feedback#set_title "Bitwise Eq. (%d bits)" n ;
-          (*   range:(0 <= a < 2^n && 0 <= b < 2^n)
-               && bitwise:(forall k; 0 <= k <= n ==> (bit(a,k) <==> bit(b,k)))
-               |- a <= b *)
-          let inrange = F.p_and (range a n) (range b n) in
-          let bitwise = bitwise_eq a b n in
-          Tactical.Applicable
-            (fun seq ->
-               ("range" , (fst seq , inrange)) ::
-               rewrite "bitwise" e bitwise seq)
+      | Eq(a,b) -> self#process feedback ~neq:false e a b
+      | Neq(a,b) -> self#process feedback ~neq:true e a b
       | _ -> Tactical.Not_applicable
 
   end
@@ -97,7 +106,7 @@ let rec lookup push clause ~nbits ~priority p =
       List.iter (lookup push clause ~priority ~nbits) ps
   | Imply(hs,p) ->
       List.iter (lookup push clause ~priority ~nbits) (p::hs)
-  | Eq(x,y) when F.is_int x && F.is_int y ->
+  | Eq(x,y) | Neq(x,y) when F.is_int x && F.is_int y ->
       let bx = is_bitwised x in
       let by = is_bitwised y in
       if bx || by then
@@ -108,7 +117,7 @@ let rec lookup push clause ~nbits ~priority p =
 class autobitwise =
   object(self)
 
-    method private nbits = Ctypes.range (Ctypes.c_ptr ())
+    method private nbits = Ctypes.i_bits (Ctypes.c_ptr ())
 
     method id = "wp:bitwised"
     method title =

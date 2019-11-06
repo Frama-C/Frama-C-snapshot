@@ -1,0 +1,25 @@
+[kernel] Parsing tests/syntax/ghost_parameters_formals_status.i (no preprocessing)
+[kernel] Type of caller is void (void).
+  No Formals
+[kernel] Type of declaration_not_void is void (int a, int b)
+                                       /*@ ghost (int x, int y) */.
+  Formals are 
+               - a which is non-ghost
+               - b which is non-ghost
+               - x which is ghost
+               - y which is ghost
+[kernel] Type of declaration_void is void (void) /*@ ghost (int x, int y) */.
+  Formals are 
+               - x which is ghost
+               - y which is ghost
+[kernel] Type of definition_not_void is void (int a, int b)
+                                      /*@ ghost (int x, int y) */.
+  Formals are 
+               - a which is non-ghost
+               - b which is non-ghost
+               - x which is ghost
+               - y which is ghost
+[kernel] Type of definition_void is void (void) /*@ ghost (int x, int y) */.
+  Formals are 
+               - x which is ghost
+               - y which is ghost

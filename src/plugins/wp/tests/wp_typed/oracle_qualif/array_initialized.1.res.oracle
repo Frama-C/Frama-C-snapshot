@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_typed/array_initialized.c (with preprocessing)
 [kernel] tests/wp_typed/array_initialized.c:13: Warning: 
   Too many initializers for array g
@@ -6,21 +6,21 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 5 goals scheduled
-[wp] [Alt-Ergo] Goal typed_main1_assert : Valid
-[wp] [Alt-Ergo] Goal typed_main2_assert : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_main1_assert : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_main2_assert : Valid
 [wp] [Qed] Goal typed_main3_assert : Valid
-[wp] [Alt-Ergo] Goal typed_main_pointer_assert : Valid
-[wp] [Alt-Ergo] Goal typed_simpl_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_main_pointer_assert : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_simpl_ensures : Valid
 [wp] Proved goals:    5 / 5
-  Qed:             1 
-  Alt-Ergo:        4
+  Qed:               1 
+  Alt-Ergo 2.0.0:    4
 [wp] Report in:  'tests/wp_typed/oracle_qualif/array_initialized.1.report.json'
 [wp] Report out: 'tests/wp_typed/result_qualif/array_initialized.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-main1               -       1 (16..28)       1       100%
-main2               -       1 (112..136)     1       100%
+main1               -       1 (8..20)        1       100%
+main2               -       1 (104..128)     1       100%
 main3                1     -                 1       100%
-main_pointer        -       1 (64..88)       1       100%
-simpl               -       1 (16..28)       1       100%
+main_pointer        -       1 (44..56)       1       100%
+simpl               -       1 (12..24)       1       100%
 -------------------------------------------------------------

@@ -38,6 +38,23 @@ module Big_Endian = struct
 
   let shorter (m:int) (n:int) = m > n
 
+  (* Returns a mask for the highest bit differing between [p0] and [p1]. *)
+  let branching_bit p0 p1 =
+    (* We want to compute the leftmost bit set in [v]; let's call it [i]. *)
+    let v = p0 lxor p1 in
+    (* Set all bits to the right of [i] in [v]; note that [i] is already set. *)
+    let v = v lor (v lsr 1) in
+    (* Now the 2 bits starting from [i] are set: [v] is 0-011?-?. *)
+    let v = v lor (v lsr 2) in
+    (* Now the 4 bits starting from [i] are set: [v] is 0-01111?-?. Etc. *)
+    let v = v lor (v lsr 4) in
+    let v = v lor (v lsr 8) in
+    let v = v lor (v lsr 16) in
+    let v = if Sys.int_size > 32 then v lor (v lsr 32) else v in
+    (* All bits at the right of [i] are set: [v] is 0-011-1.
+       Gets the highest bit set in [v]. *)
+    (succ v) lsr 1
+
 end
 
 (*i ------------------------------------------------------------------------ i*)
@@ -96,6 +113,60 @@ end
 
 module Shape(Key: Id_Datatype) = struct
   type 'b t = (Key.t, 'b) tree
+
+  let compare_v cmp t1 t2 =
+    match t1, t2 with
+    | Empty, Empty -> 0
+    | Empty, _ -> -1
+    | _, Empty -> 1
+    | Leaf (k1,x1,_), Leaf (k2,x2,_) ->
+      let c = Key.compare k1 k2 in
+      if c <> 0 then c else cmp x1 x2
+    | Leaf _, Branch _ -> -1
+    | Branch _, Leaf _ -> 1
+    | Branch (_p1,_m1,_l1,_r1,t1), Branch (_p2,_m2,_l2,_r2,t2) ->
+      let t1 = Tag_comp.get_tag t1 in
+      let t2 = Tag_comp.get_tag t2 in
+      Datatype.Int.compare t1 t2
+      (* Taken and adapted from JCF code for the implementation
+         without tag *)
+      (*let c = Datatype.Int.compare p1 p2 in
+        if c <> 0 then c else
+        let c = Big_endian.compare m1 m2 in
+        if c <> 0 then c else
+        let c = compare l1 l2 in
+        if c <> 0 then c else
+        compare r1 r2
+      *)
+
+  let compare =
+    if Key.compare == Datatype.undefined
+    then begin
+      Cmdline.Kernel_log.debug
+        "%s shape, missing comparison function" (Type.name Key.ty);
+      Datatype.undefined
+    end
+    else compare_v
+
+  let rec iter f htr =
+    match htr with
+    | Empty -> ()
+    | Leaf (key, data, _) ->
+      f key data
+    | Branch (_, _, tree0, tree1, _tl) ->
+      iter f tree0;
+      iter f tree1
+
+    let pretty pretty_value fmt tree =
+      Pretty_utils.pp_iter2
+        ~pre:"@[<v 3>{[ " ~suf:" ]}@]" ~sep:"@ " ~between:" -> "
+        iter Key.pretty (fun fmt v -> Format.fprintf fmt "@[%a@]" pretty_value v)
+        fmt tree
+
+    let hash = hash_generic
+
+    let equal = ( == )
+
 end
 
 module Make
@@ -113,7 +184,8 @@ struct
 
     type key = Key.t
     type v = V.t
-    type 'a shape = 'a Shape(Key).t
+    module Shape = Shape(Key)
+    type 'a shape = 'a Shape.t
     type prefix = int * int
 
     (* A tree is either empty, or a leaf node, containing both
@@ -142,42 +214,14 @@ struct
           prefix mask  pretty_debug t1 pretty_debug t2
 
     let compare =
-      if Key.compare == Datatype.undefined ||
-        V.compare == Datatype.undefined 
-      then (
+      if V.compare == Datatype.undefined
+      then begin
         Cmdline.Kernel_log.debug
-          "(%s, %s) ptmap, missing comparison function: %b %b"
-            (Type.name Key.ty) (Type.name V.ty)
-            (Key.compare == Datatype.undefined)
-            (V.compare == Datatype.undefined);
-          Datatype.undefined
-        )
-      else 
-	let compare t1 t2 = 
-	  match t1, t2 with
-          | Empty, Empty -> 0
-          | Empty, _ -> -1
-          | _, Empty -> 1
-          | Leaf (k1,x1,_), Leaf (k2,x2,_) ->
-	      let c = Key.compare k1 k2 in 
-	      if c <> 0 then c else V.compare x1 x2
-          | Leaf _, Branch _ -> -1
-          | Branch _, Leaf _ -> 1
-          | Branch (_p1,_m1,_l1,_r1,t1), Branch (_p2,_m2,_l2,_r2,t2) ->
-	      let t1 = Tag_comp.get_tag t1 in
-	      let t2 = Tag_comp.get_tag t2 in
-              Datatype.Int.compare t1 t2
-		(* Taken and adapted from JCF code for the implementation
-                   without tag *)
-		(*let c = Datatype.Int.compare p1 p2 in
-	          if c <> 0 then c else
-	          let c = Big_endian.compare m1 m2 in
-	          if c <> 0 then c else
-                  let c = compare l1 l2 in
-                  if c <> 0 then c else
-                  compare r1 r2
-		*)
-	in compare
+          "(%s, %s) ptmap, missing comparison function"
+          (Type.name Key.ty) (Type.name V.ty);
+        Datatype.undefined
+      end
+      else Shape.compare V.compare
 
     let compositional_bool t = 
       match t with
@@ -197,20 +241,9 @@ struct
       | Branch (_,_,_,right,_) -> max_binding right
       | Leaf (key, data, _) -> key, data
 
-    let rec iter f htr = 
-      match htr with
-      | Empty -> ()
-      | Leaf (key, data, _) ->
-	  f key data
-      | Branch (_, _, tree0, tree1, _tl) ->
-	  iter f tree0;
-	  iter f tree1
+    let iter = Shape.iter
 
-    let pretty fmt tree =
-      Pretty_utils.pp_iter2
-        ~pre:"@[<v 3>{[ " ~suf:" ]}@]" ~sep:"@ " ~between:" -> "
-        iter Key.pretty (fun fmt v -> Format.fprintf fmt "@[%a@]" V.pretty v)
-        fmt tree
+    let pretty = Shape.pretty V.pretty
 
     let empty = Empty
 
@@ -441,26 +474,8 @@ struct
        matter how large $t_0$ and $t_1$ are, we can merge them simply by
        creating a new [Branch] node that has $t_0$ and $t_1$ as children! *)
     let join p0 t0 p1 t1 =
-      let m = (* Big_Endian.branching_bit p0 p1 in (inlined) *)
-	let v = p0 lxor p1 in
-	(* compute highest bit. 
-	   First, set all bits with weight less than
-	   the highest set bit *)
-	let v1 = v lsr 1 in
-	let v2 = v lsr 2 in
-	let v = v lor v1 in
-	let v = v lor v2 in
-	let v1 = v lsr 3 in
-	let v2 = v lsr 6 in
-	let v = v lor v1 in
-	let v = v lor v2 in
-	let v1 = v lsr 9 in
-	let v2 = v lsr 18 in
-	let v = v lor v1 in
-	let v = v lor v2 in
-	(* then get highest bit *)
-	(succ v) lsr 1
-      in
+      (* Computes a mask for the highest bit differing between [p0] and [p1]. *)
+      let m = Big_Endian.branching_bit p0 p1 in
       let p = Big_Endian.mask p0 (* for instance *) m in
       if (p0 land m) = 0 then
 	wrap_Branch p m t0 t1
@@ -806,11 +821,9 @@ struct
           else if tree1' == Empty then tree0'
           else wrap_Branch p m tree0' tree1'
 
-    (* The comment below is outdated: [map] and [endo_map] do not have the
-       same signature for [f] *)
     (** [endo_map] is similar to [map], but attempts to physically share its
-	result with its input. This saves memory when [f] is the identity
-	function. *)
+        result with its input. This saves memory when [f] is the identity
+        function. *)
     let rec endo_map f tree =
       match tree with
       | Empty ->
@@ -834,6 +847,16 @@ struct
         | Leaf (key, value, _) -> wrap_Leaf key (f key value)
         | Branch (p, m, t1, t2, _) ->
           wrap_Branch p m (from_shape f t1) (from_shape f t2)
+
+      let rec from_shape_id = function
+        | Empty -> Empty
+        | Leaf (key, value, _) -> wrap_Leaf key value
+        | Branch (p, m, t1, t2, _) as t ->
+          let t1' = from_shape_id t1 in
+          let t2' = from_shape_id t2 in
+          if (t1' == t1) && (t2' == t2)
+          then t
+          else wrap_Branch p m t1' t2'
 
 
   module Cacheable = struct

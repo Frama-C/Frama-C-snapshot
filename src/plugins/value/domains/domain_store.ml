@@ -104,6 +104,13 @@ module Make (Domain: InputDomain) = struct
         let size = size
         let dependencies = dependencies
       end)
+  module AfterTable =
+    Cil_state_builder.Stmt_hashtbl (Domain)
+      (struct
+        let name = name ^ ".AfterTable"
+        let size = size
+        let dependencies = [ AfterTable_By_Callstack.self ]
+      end)
 
   module Called_Functions_By_Callstack =
     State_builder.Hashtbl
@@ -201,13 +208,18 @@ module Make (Domain: InputDomain) = struct
       try `Value (Called_Functions_By_Callstack.find kf)
       with Not_found -> `Bottom
 
-  let get_stmt_state s =
+  let get_stmt_state ~after s =
     if not (Storage.get ())
     then `Value Domain.top
     else
-      try `Value (Table.find s)
+      let (find, add), find_by_callstack =
+        if after
+        then AfterTable.(find, add), AfterTable_By_Callstack.find
+        else Table.(find, add), Table_By_Callstack.find
+      in
+      try `Value (find s)
       with Not_found ->
-        let ho = try Some (Table_By_Callstack.find s) with Not_found -> None in
+        let ho = try Some (find_by_callstack s) with Not_found -> None in
         let state =
           match ho with
           | None -> `Bottom
@@ -216,7 +228,7 @@ module Make (Domain: InputDomain) = struct
               (fun _cs state acc -> Bottom.join Domain.join acc (`Value state))
               h `Bottom
         in
-        ignore (state >>-: Table.add s);
+        ignore (state >>-: add s);
         state
 
   let get_stmt_state_by_callstack ~after stmt =

@@ -1,18 +1,18 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/init_label.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[kernel] tests/wp_acsl/init_label.i:21: Warning: 
+[kernel] tests/wp_acsl/init_label.i:27: Warning: 
   No code nor implicit assigns clause for function main, generating default assigns from the prototype
 [wp] Warning: Missing RTE guards
 [wp] 4 goals scheduled
-[wp] [Alt-Ergo] Goal typed_extra_ensures_KO : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_extra_ensures_KO : Unsuccess
 [wp] [Qed] Goal typed_foreign_ensures_OK : Valid
-[wp] [Alt-Ergo] Goal typed_job_ensures_OK : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_job_ensures_OK : Valid
 [wp] [Qed] Goal typed_main_requires_OK : Valid
 [wp] Proved goals:    3 / 4
-  Qed:             2 
-  Alt-Ergo:        1  (unsuccess: 1)
+  Qed:               2 
+  Alt-Ergo 2.0.0:    1  (unsuccess: 1)
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/init_label.0.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/init_label.0.report.json'
 -------------------------------------------------------------

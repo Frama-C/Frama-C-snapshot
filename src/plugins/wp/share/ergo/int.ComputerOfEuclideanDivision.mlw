@@ -1,0 +1,52 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+(*  Copyright 2010-2019   --   Inria - CNRS - Paris-Sud University        *)
+(*                                                                        *)
+(*  This software is distributed under the terms of the GNU Lesser        *)
+(*  General Public License version 2.1, with the special exception        *)
+(*  on linking described in file LICENSE.                                 *)
+(*                                                                        *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+(** The theory int_Abs_ must be appended to this file*)
+(** The theory int_ComputerDivision_ must be appended to this file*)
+
+axiom cdiv_cases :
+  (forall n:int. forall d:int [div(n, d)]. ((0 <= n) -> ((0 <  d) -> (div(n,
+  d) = (n / d)))))
+
+axiom cdiv_cases1 :
+  (forall n:int. forall d:int [div(n, d)]. ((n <= 0) -> ((0 <  d) -> (div(n,
+  d) = (-((-n) / d))))))
+
+axiom cdiv_cases2 :
+  (forall n:int. forall d:int [div(n, d)]. ((0 <= n) -> ((d <  0) -> (div(n,
+  d) = (-(n / (-d)))))))
+
+axiom cdiv_cases3 :
+  (forall n:int. forall d:int [div(n, d)]. ((n <= 0) -> ((d <  0) -> (div(n,
+  d) = ((-n) / (-d))))))
+
+axiom cmod_cases :
+  (forall n:int. forall d:int [mod(n, d)]. ((0 <= n) -> ((0 <  d) -> (mod(n,
+  d) = (n % d)))))
+
+axiom cmod_cases1 :
+  (forall n:int. forall d:int [mod(n, d)]. ((n <= 0) -> ((0 <  d) -> (mod(n,
+  d) = (-((-n) % d))))))
+
+axiom cmod_cases2 :
+  (forall n:int. forall d:int [mod(n, d)]. ((0 <= n) -> ((d <  0) -> (mod(n,
+  d) = (n % (-d))))))
+
+axiom cmod_cases3 :
+  (forall n:int. forall d:int [mod(n, d)]. ((n <= 0) -> ((d <  0) -> (mod(n,
+  d) = (-((-n) % (-d)))))))

@@ -51,18 +51,18 @@
 
 (* Some clients may wish to augment or replace the standard strategy
  * for finding the initially reachable roots.  The optional
- * "isRoot" argument to Rmtmps.removeUnusedTemps grants this
- * flexibility.  If given, it should name a function which will return
- * true if a given global should be treated as a retained root.
+ * "isRoot" argument to Rmtmps.removeUnused grants this
+ * flexibility.  It specifies the globals which will serve as roots
+ * to be kept. Starting from these roots, all reachable (used) AST
+ * elements will be kept.
  *
- * Function Rmtmps.isDefaultRoot encapsulates the default root
+ * Function [Rmtmps.isExportedRoot] encapsulates the default root
  * collection, which consists of those global variables and functions
  * which are visible to the linker and runtime loader.  A client's
  * root filter can use this if the goal is to augment rather than
- * replace the standard logic.  Function Rmtmps.isExportedRoot is an
- * alternate name for this same function.
+ * replace the standard logic.
  *
- * Function Rmtmps.isCompleteProgramRoot is an example of an alternate
+ * Function [Rmtmps.isCompleteProgramRoot] is an example of an alternate
  * root collection.  This function assumes that it is operating on a
  * complete program rather than just one object file.  It treats
  * "main()" as a root, as well as any function carrying the
@@ -75,12 +75,11 @@
 *)
 
 
-type rootsFilter = Cil_types.global -> bool
-val isExportedRoot : rootsFilter
-val isCompleteProgramRoot : rootsFilter
+val isExportedRoot : Cil_types.global -> bool
+val isCompleteProgramRoot : Cil_types.global -> bool
 
 (* process a complete Cil file *)
-val removeUnusedTemps: ?isRoot:rootsFilter -> Cil_types.file -> unit
+val removeUnused: ?isRoot:(Cil_types.global -> bool) -> Cil_types.file -> unit
 
 (** removes unused labels for which [is_removable] is true.
     [is_removable] defaults to the negation of boolean flag of [Label]

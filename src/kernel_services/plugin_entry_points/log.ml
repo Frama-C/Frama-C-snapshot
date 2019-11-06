@@ -718,7 +718,7 @@ let rec split_joker = function
   | ""::w -> split_joker w
   | a::w -> a::split_joker w
 
-let split_category s = split_joker (Transitioning.String.split_on_char ':' s)
+let split_category s = split_joker (String.split_on_char ':' s)
 
 let evt_category = function
   | { evt_category = None } -> []

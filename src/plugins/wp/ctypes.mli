@@ -90,18 +90,23 @@ val c_int    : ikind -> c_int   (** Conforms to {Cil.theMachine} *)
 val c_float  : fkind -> c_float (** Conforms to {Cil.theMachine} *)
 val object_of : typ -> c_object
 
-val is_void : typ -> bool
 val is_pointer : c_object -> bool
 
 val char : char -> int64
 val constant : exp -> int64
-val get_int : exp -> int64 option
+
+val get_int : exp -> int option
+val get_int64 : exp -> int64 option
 
 val signed : c_int -> bool  (** [true] if signed *)
-val range : c_int -> int (** range in 2^n *)
 val bounds: c_int -> Integer.t * Integer.t (** domain, bounds included *)
 
-(** All sizes are in bits *)
+val i_bits : c_int -> int (** size in bits *)
+val i_bytes : c_int -> int (** size in bytes *)
+val f_bits : c_float -> int (** size in bits *)
+val f_bytes : c_float -> int (** size in bytes *)
+val p_bits : unit -> int (** pointer size in bits *)
+val p_bytes : unit -> int (** pointer size in bits *)
 
 val sub_c_int: c_int -> c_int -> bool
 
@@ -109,6 +114,9 @@ val equal_float : c_float -> c_float -> bool
 
 val sizeof_defined : c_object -> bool
 val sizeof_object : c_object -> int
+val bits_sizeof_comp : compinfo -> int
+val bits_sizeof_array : arrayinfo -> int
+val bits_sizeof_object : c_object -> int
 val field_offset : fieldinfo -> int
 
 val no_infinite_array : c_object -> bool
@@ -148,6 +156,9 @@ sig
   val equal : t -> t -> bool
   val hash : t -> int
 end
+
+val compare_c_int : c_int -> c_int -> int
+val compare_c_float : c_float -> c_float -> int
 
 val compare_ptr_conflated : c_object -> c_object -> int
 (** same as {!compare} but all PTR are considered the same *)

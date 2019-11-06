@@ -1,34 +1,34 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/div_mod.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 22 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_ensures_d0_div_pos_pos : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_d1_div_neg_pos : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_d2_div_pos_neg : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_d3_div_neg_neg : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_d4_div_x_1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_d5_div_x_minus1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_d6_div_0_x : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_sd0_div_pos_pos : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_sd1_div_neg_pos : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_sd2_div_pos_neg : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_sd3_div_neg_neg : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_m0_mod_pos_pos : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_m1_mod_neg_pos : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_m2_mod_pos_neg : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_m3_mod_neg_neg : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_m4_mod_x_1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_m5_mod_x_minus1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_m6_mod_0_x : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_sm0_mod_pos_pos : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_sm1_mod_neg_pos : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_sm2_mod_pos_neg : Valid
-[wp] [Alt-Ergo] Goal typed_f_ensures_sm3_mod_neg_neg : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_d0_div_pos_pos : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_d1_div_neg_pos : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_d2_div_pos_neg : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_d3_div_neg_neg : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_d4_div_x_1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_d5_div_x_minus1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_d6_div_0_x : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_sd0_div_pos_pos : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_sd1_div_neg_pos : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_sd2_div_pos_neg : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_sd3_div_neg_neg : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_m0_mod_pos_pos : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_m1_mod_neg_pos : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_m2_mod_pos_neg : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_m3_mod_neg_neg : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_m4_mod_x_1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_m5_mod_x_minus1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_m6_mod_0_x : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_sm0_mod_pos_pos : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_sm1_mod_neg_pos : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_sm2_mod_pos_neg : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures_sm3_mod_neg_neg : Valid
 [wp] Proved goals:   22 / 22
-  Qed:             0 
-  Alt-Ergo:       22
+  Qed:               0 
+  Alt-Ergo 2.0.0:   22
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/div_mod.0.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/div_mod.0.report.json'
 -------------------------------------------------------------

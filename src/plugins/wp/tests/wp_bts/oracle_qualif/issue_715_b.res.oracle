@@ -1,0 +1,19 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/issue_715_b.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[kernel] tests/wp_bts/issue_715_b.i:9: Warning: 
+  No code nor implicit assigns clause for function dummy, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
+[wp] 2 goals scheduled
+[wp] [Alt-Ergo 2.0.0] Goal typed_foo_call_dummy_requires : Valid
+[wp] [Qed] Goal typed_foo_call_dummy_requires_2 : Valid
+[wp] Proved goals:    2 / 2
+  Qed:               1 
+  Alt-Ergo 2.0.0:    1
+[wp] Report in:  'tests/wp_bts/oracle_qualif/issue_715_b.0.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/issue_715_b.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+foo                  1      1 (8..20)        2       100%
+-------------------------------------------------------------

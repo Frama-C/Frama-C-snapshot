@@ -1,21 +1,21 @@
-# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
 [kernel] Parsing tests/wp_hoare/logicref.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 5 goals scheduled
 [wp] [Qed] Goal typed_ref_fvrange_n_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_ref_fvrange_n_assert : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_fvrange_n_assert : Valid
 [wp] [Qed] Goal typed_ref_fvrange_n_assigns : Valid
 [wp] [Qed] Goal typed_ref_gcd_ensures : Valid
 [wp] [Qed] Goal typed_ref_gcd_assigns : Valid
 [wp] Proved goals:    5 / 5
-  Qed:             4 
-  Alt-Ergo:        1
+  Qed:               4 
+  Alt-Ergo 2.0.0:    1
 [wp] Report in:  'tests/wp_hoare/oracle_qualif/logicref.0.report.json'
 [wp] Report out: 'tests/wp_hoare/result_qualif/logicref.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-fvrange_n            2      1 (96..120)      3       100%
+fvrange_n            2      1 (56..80)       3       100%
 gcd                  2     -                 2       100%
 -------------------------------------------------------------

@@ -529,6 +529,9 @@ class focused (wtext : Wtext.text) =
     method set_iformat = plang#set_iformat
     method get_iformat = plang#get_iformat
 
+    method set_rformat = plang#set_rformat
+    method get_rformat = plang#get_rformat
+
     method selected =
       begin
         self#set_target self#selection ;
@@ -714,7 +717,6 @@ class focused (wtext : Wtext.text) =
     method goal w fmt =
       let open Wpo in
       match w.po_formula with
-      | GoalCheck _ -> Wpo.pp_goal fmt w
       | GoalLemma _ ->
           Format.fprintf fmt "@\n@{<wp:clause>Lemma@} %a:@\n" Wpo.pp_title w ;
           let _,sequent = Wpo.compute w in

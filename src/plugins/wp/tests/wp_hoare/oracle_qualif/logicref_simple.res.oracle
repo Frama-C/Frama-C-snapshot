@@ -1,27 +1,27 @@
-# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
 [kernel] Parsing tests/wp_hoare/logicref_simple.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 9 goals scheduled
-[wp] [Alt-Ergo] Goal typed_ref_fsimple_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_fsimple_ensures : Valid
 [wp] [Qed] Goal typed_ref_fsimple_assigns : Valid
-[wp] [Alt-Ergo] Goal typed_ref_fsimple_array_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_fsimple_array_ensures : Valid
 [wp] [Qed] Goal typed_ref_fsimple_array_assigns : Valid
-[wp] [Alt-Ergo] Goal typed_ref_ftwo_star_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_ftwo_star_ensures : Valid
 [wp] [Qed] Goal typed_ref_ftwo_star_assigns : Valid
 [wp] [Qed] Goal typed_ref_fvpositive_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_ref_fvpositive_assert_OK : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_fvpositive_assert_OK : Valid
 [wp] [Qed] Goal typed_ref_fvpositive_assigns : Valid
 [wp] Proved goals:    9 / 9
-  Qed:             5 
-  Alt-Ergo:        4
+  Qed:               5 
+  Alt-Ergo 2.0.0:    4
 [wp] Report in:  'tests/wp_hoare/oracle_qualif/logicref_simple.0.report.json'
 [wp] Report out: 'tests/wp_hoare/result_qualif/logicref_simple.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 fsimple              1      1 (8..20)        2       100%
-fsimple_array        1      1 (28..40)       2       100%
+fsimple_array        1      1 (8..20)        2       100%
 ftwo_star            1      1 (12..24)       2       100%
 fvpositive           2      1 (4..16)        3       100%
 -------------------------------------------------------------

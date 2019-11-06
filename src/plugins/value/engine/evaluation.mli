@@ -46,6 +46,7 @@ module type S = sig
         or `Value (valuation, value), where [value] is the numeric value computed
         for the expression [expr], and [valuation] contains all the intermediate
         results of the evaluation.
+
       The [valuation] argument is a cache of already computed expressions.
       It is empty by default.
       The [reduction] argument allows deactivating the backward reduction
@@ -104,7 +105,7 @@ module type S = sig
 end
 
 module type Value = sig
-  include Abstract_value.External
+  include Abstract.Value.External
 
   (** Inter-reduction of values. Useful when the value module is a reduced
       product of several abstraction.

@@ -114,7 +114,7 @@ let dump_buffer buffer = function
       let n = Buffer.length buffer in
       if n > 0 then
         Command.write_file log (fun out -> Buffer.output_buffer out buffer)
-      else if Wp_parameters.is_out () then
+      else if Wp_parameters.has_out () then
         Extlib.safe_remove log
 
 let echo_buffer buffer =
@@ -139,10 +139,6 @@ let timeout = function
 
 let stepout = function
   | None -> Wp_parameters.Steps.get ()
-  | Some t -> t
-
-let depth = function
-  | None -> Wp_parameters.Depth.get ()
   | Some t -> t
 
 let pp_file ~message ~file =
@@ -296,9 +292,14 @@ let getprocs = function Some n -> n | None -> Wp_parameters.Procs.get ()
 let server ?procs () =
   match !server with
   | Some s ->
-      Task.set_procs s (getprocs procs) ; s
+      let np = getprocs procs in
+      Task.set_procs s np ;
+      Why3Provers.set_procs np ;
+      s
   | None ->
-      let s = Task.server ~procs:(getprocs procs) () in
+      let np = getprocs procs in
+      let s = Task.server ~procs:np () in
+      Why3Provers.set_procs np ;
       Task.on_server_stop s Proof.savescripts ;
       server := Some s ; s
 

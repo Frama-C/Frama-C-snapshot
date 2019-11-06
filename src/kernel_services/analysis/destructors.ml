@@ -179,8 +179,11 @@ class vis flag = object(self)
       end;
       Cil.SkipChildren
     in
-    let vars_from_blocks blocks =
-      List.fold_left (fun acc b -> b.blocals @ acc) [] blocks
+    let vars_from_blocks s blocks =
+      List.fold_left
+        (fun acc b ->
+           (List.filter (Kernel_function.var_is_in_scope s) b.blocals) @ acc)
+        [] blocks
     in
     let vars_from_edge s succ =
       let closed_blocks = Kernel_function.blocks_closed_by_edge s succ in
@@ -189,7 +192,7 @@ class vis flag = object(self)
          which expects variable from oldest to newest.
       *)
       let current_block = Kernel_function.common_block s succ in
-      let vars = vars_from_blocks closed_blocks in
+      let vars = vars_from_blocks s closed_blocks in
       (* for the common block, we have to check whether we are backjumping
          over some definitions in the middle of the block, that is
          definitions that dominate s but not its successor.
@@ -270,7 +273,7 @@ class vis flag = object(self)
     (* jump outside of the function: all currently opened blocks are closed. *)
     | Return _ | Throw _ ->
       insert_destructors
-        (vars_from_blocks (Kernel_function.find_all_enclosing_blocks s))
+        (vars_from_blocks s (Kernel_function.find_all_enclosing_blocks s))
     (* no jump yet, visit children *)
     | _ -> Cil.DoChildren
 

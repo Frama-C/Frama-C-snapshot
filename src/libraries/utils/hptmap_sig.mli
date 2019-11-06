@@ -61,8 +61,8 @@ module type S = sig
       except for the key [k] which is:
       - removed from the map if [f o] = None
       - bound to v' if [f o] = Some v'
-      where [o] is (Some v) if [k] is bound to [v] in [m], or None if [k]
-      is not bound in [m]. *)
+        where [o] is (Some v) if [k] is bound to [v] in [m], or None if [k]
+        is not bound in [m]. *)
 
   val find : key -> t -> v
   val find_check_missing: key -> t -> v
@@ -141,9 +141,9 @@ module type S = sig
       - Absorbing returns the empty tree;
       - (Traversing f) applies the function [f] to each binding of the remaining
         subtree [t] (see [map']).
-      The results of the function may be cached, depending on [cache]. If a cache
-      is used, then the merge functions must be pure.
-  *)
+
+      The results of the function may be cached, depending on [cache]. If a
+      cache is used, then the merge functions must be pure. *)
 
   val generic_join :
     cache:cache_type ->
@@ -316,6 +316,9 @@ module type S = sig
   (** Build an entire map from another map indexed by the same keys.
       More efficient than just performing successive {!add} the elements
       of the other map *)
+
+  val from_shape_id: v shape -> t
+  (** Same as [from_shape (fun _ v -> v)]. *)
 
   val shape: t -> v shape
   (** Export the map as a value suitable for functions {!inter_with_shape}

@@ -24,8 +24,8 @@ open Lang
 
 module PartitionsQQ : sig
   val destructs_qq :
-    Lang.F.pool ->
-    Qed.Logic.binder -> tau:Lang.F.QED.tau -> phi:Lang.F.QED.bind ->
+    Lang.F.pool -> is_forall:bool ->
+    Lang.F.QED.term ->
     Lang.F.Vars.t * Lang.F.QED.term
 
   val get : vars:Lang.F.Vars.t -> Lang.F.term list ->
@@ -35,17 +35,10 @@ end
   let dkey = Wp_parameters.register_category "tac_split_quantifiers" (* debugging key *)
   let debug fmt = Wp_parameters.debug ~dkey fmt
 
-  let destructs_qq pool qq ~tau ~phi =
-    let rec destructs_qq vars ~tau ~phi =
-      let open Qed.Logic in
-      let x = F.fresh pool tau in
-      let vars = F.Vars.add x vars in
-      let p = F.QED.lc_open x phi in
-      match F.repr p with
-      | Bind (binder, tau, phi) when binder = qq ->
-          destructs_qq vars ~tau ~phi
-      | _ -> vars, p
-    in destructs_qq F.Vars.empty ~tau ~phi
+  let destructs_qq pool ~is_forall t =
+    let ctx,a = F.e_open ~pool ~forall:is_forall ~exists:(not is_forall) ~lambda:false t in
+    let vars = List.fold_left (fun vars (_,var) -> F.Vars.add var vars) F.Vars.empty ctx
+    in vars, a
 
   type kind_t = Root of F.Tset.t | Node of node_t
   and  node_t = { var: F.Var.t;
@@ -211,8 +204,8 @@ class split =
           begin
             let open Qed.Logic in
             match Lang.F.e_expr p with
-            | Bind (Exists,tau,phi) -> begin
-                let vars,q = PartitionsQQ.destructs_qq feedback#pool Exists ~tau ~phi in
+            | Bind (Exists,_,_) -> begin
+                let vars,q = PartitionsQQ.destructs_qq feedback#pool ~is_forall:false (e_prop p) in
                 match Lang.F.repr q with
                 | If (c,p,q) ->
                     if F.Vars.is_empty (F.Vars.inter (F.vars c) vars) then
@@ -320,8 +313,8 @@ class split =
                 begin
                   let open Qed.Logic in
                   match F.e_expr p with
-                  | Bind (Forall,tau,phi) -> begin
-                      let vars,q = PartitionsQQ.destructs_qq feedback#pool Forall ~tau ~phi in
+                  | Bind (Forall,_,_) -> begin
+                      let vars,q = PartitionsQQ.destructs_qq feedback#pool ~is_forall:true (e_prop p) in
                       match Lang.F.repr q with
                       | If (c,p,q) ->
                           if F.Vars.is_empty (F.Vars.inter (F.vars c) vars) then

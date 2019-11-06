@@ -23,6 +23,6 @@
 (** Gauges domain ("Arnaud Venet: The Gauge Domain: Scalable Analysis of
     Linear Inequality Invariants. CAV 2012") *)
 
-module D: Abstract_domain.Internal
+module D: Abstract_domain.Leaf
   with type value = Cvalue.V.t
    and type location = Precise_locs.precise_location

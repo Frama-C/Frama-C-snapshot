@@ -22,28 +22,18 @@
 
 (** Main domain of the Value Analysis. *)
 
-module State : Abstract_domain.Internal
+module State : Abstract_domain.Leaf
   with type value = Main_values.CVal.t
    and type location = Main_locations.PLoc.location
-
-
-val key : Cvalue.Model.t Abstract_domain.key
-
-val extract :
-  (Cvalue.Model.t Abstract_domain.key -> ('state -> Cvalue.Model.t) option) ->
-  'state Eval.or_bottom -> Cvalue.Model.t
-
-val inject : Cvalue.Model.t -> State.t
-val project : State.t -> Cvalue.Model.t
-
+   and type state = Cvalue.Model.t * Locals_scoping.clobbered_set
 
 (** Specific functions for partitioning optimizations.  *)
 
 type prefix
 module Subpart : Hashtbl.HashedType
 val distinct_subpart :
-  Cvalue.Model.t -> Cvalue.Model.t -> (prefix * Subpart.t * Subpart.t) option
-val find_subpart : Cvalue.Model.t -> prefix -> Subpart.t option
+  State.t -> State.t -> (prefix * Subpart.t * Subpart.t) option
+val find_subpart : State.t -> prefix -> Subpart.t option
 
 
 

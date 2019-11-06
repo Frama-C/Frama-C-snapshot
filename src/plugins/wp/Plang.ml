@@ -68,6 +68,7 @@ module Env = E.Env
 
 type scope = Qed.Engine.scope
 type iformat = [ `Dec | `Hex | `Bin ]
+type rformat = [ `Ratio | `Float | `Double ]
 let sanitizer = Qed.Export.sanitize ~to_lowercase:false
 
 class engine =
@@ -75,10 +76,6 @@ class engine =
     inherit E.engine as super
     inherit Lang.idprinting
     method infoprover w = w.altergo
-
-    val mutable iformat : iformat = `Dec
-    method get_iformat = iformat
-    method set_iformat (f : iformat) = iformat <- f
 
     (* --- Types --- *)
 
@@ -98,10 +95,16 @@ class engine =
     method pp_datatype a fmt ts =
       Qed.Plib.pp_call_var ~f:(self#datatype a) self#pp_tau fmt ts
 
-    (* --- Primitives --- *)
+    (* --- Booleans --- *)
 
     method e_true _ = "true"
     method e_false _ = "false"
+
+    (* --- Integers --- *)
+
+    val mutable iformat : iformat = `Dec
+    method get_iformat = iformat
+    method set_iformat (f : iformat) = iformat <- f
 
     method pp_int _ fmt z =
       try
@@ -116,6 +119,12 @@ class engine =
       | `Hex -> Integer.pp_hex ~sep:"," fmt z
       | `Bin -> Integer.pp_bin ~sep:"," fmt z
 
+    (* --- Reals --- *)
+
+    val mutable rformat : rformat = `Ratio
+    method get_rformat = rformat
+    method set_rformat (f : rformat) = rformat <- f
+
     method pp_real fmt q =
       match Q.classify q with
       | Q.ZERO -> Format.pp_print_string fmt ".0"
@@ -123,11 +132,19 @@ class engine =
       | Q.MINF -> Format.pp_print_string fmt "(-1/.0)"
       | Q.UNDEF -> Format.pp_print_string fmt "(.0/.0)"
       | Q.NZERO ->
-          let { Q.num = num ; Q.den = den } = q in
-          if Z.equal den Z.one then
-            Format.fprintf fmt "%s.0" (Z.to_string num)
-          else
-            Format.fprintf fmt "(%s.0/%s)" (Z.to_string num) (Z.to_string den)
+          match rformat with
+          | `Ratio ->
+              let { Q.num = num ; Q.den = den } = q in
+              if Z.equal den Z.one then
+                Format.fprintf fmt "%s.0" (Z.to_string num)
+              else
+                Format.fprintf fmt "(%s.0/%s)"
+                  (Z.to_string num)
+                  (Z.to_string den)
+          | `Float ->
+              Format.fprintf fmt "%sf" (Cfloat.float_lit Ctypes.Float32 q)
+          | `Double ->
+              Format.fprintf fmt "%sd" (Cfloat.float_lit Ctypes.Float64 q)
 
     (* --- Atomicity --- *)
 

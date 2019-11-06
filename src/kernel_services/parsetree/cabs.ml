@@ -121,7 +121,7 @@ and decl_type =
                                           (* Prints "decl [ attrs exp ]".
                                            * decl is never a PTR. *)
  | PTR of attribute list * decl_type      (* Prints "* attrs decl" *)
- | PROTO of decl_type * single_name list * bool
+ | PROTO of decl_type * single_name list * single_name list * bool
                                           (* Prints "decl (args[, ...])".
                                            * decl is never a PTR.*)
 
@@ -299,7 +299,7 @@ and cabsexp =
     (* There is a special form of CALL in which the function called is
        __builtin_va_arg and the second argument is sizeof(T). This
        should be printed as just T *)
-  | CALL of expression * expression list
+  | CALL of expression * expression list * expression list
   | COMMA of expression list
   | CONSTANT of constant
   | PAREN of expression

@@ -1770,6 +1770,10 @@ $as_echo "$as_me: $banner" >&6;}
 # (even if there is no plug-in using it)
 
 
+# 1st param: actual name of the ocamlfind package (often lowercase)
+# 2nd param: warning to display if problem
+
+
 # 1st param: uppercase name of the program
 # 2nd param: program which must exist. See comment on configure_library()
 # on how to deal with multiple choices for a given program.
@@ -1778,7 +1782,12 @@ $as_echo "$as_me: $banner" >&6;}
 # (even if there is no plug-in using it)
 
 
+
 EXTERNAL_PLUGINS=
+
+
+
+
 
 
 

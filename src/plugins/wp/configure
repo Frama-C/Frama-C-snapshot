@@ -584,9 +584,9 @@ PACKAGE_URL=
 ac_unique_file="Makefile.in"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-WHY3API
-WHY3COQC
 COQC
+HAS_WHY3
+WHY3
 ENABLE_WP
 ENABLE_GUI
 FRAMAC_VERSION
@@ -633,7 +633,6 @@ ac_user_opts='
 enable_option_checking
 enable_wp
 enable_wp_coq
-enable_wp_why3
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1247,7 +1246,6 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-wp             WP plug-in (default: yes)
   --enable-wp-coq         Wp precompiled Coq libraries (default: yes)
-  --enable-wp-why3        Wp precompiled Why3-Coq libraries (default: yes)
 
 Report bugs to the package provider.
 _ACEOF
@@ -1775,6 +1773,10 @@ $as_echo "$as_me: $banner" >&6;}
 # (even if there is no plug-in using it)
 
 
+# 1st param: actual name of the ocamlfind package (often lowercase)
+# 2nd param: warning to display if problem
+
+
 # 1st param: uppercase name of the program
 # 2nd param: program which must exist. See comment on configure_library()
 # on how to deal with multiple choices for a given program.
@@ -1783,7 +1785,12 @@ $as_echo "$as_me: $banner" >&6;}
 # (even if there is no plug-in using it)
 
 
+
 EXTERNAL_PLUGINS=
+
+
+
+
 
 
 
@@ -2103,15 +2110,6 @@ else
 fi
 
 
-# Check whether --enable-wp-why3 was given.
-if test "${enable_wp_why3+set}" = set; then :
-  enableval=$enable_wp_why3; WPWHY3COQ=$enableval
-else
-  WPWHY3COQ=yes
-
-fi
-
-
 
 
 
@@ -2146,6 +2144,123 @@ fi
 
 
 
+# Why3 API dependency
+######################
+# REQUIRE_LIBRARY: library *must* be present in order to build plugins
+# USE_LIBRARY: better for plugins if library is present, but not required
+# HAS_LIBRARY: is the library available?
+
+REQUIRE_WHY3=
+USE_WHY3=
+HAS_WHY3=
+
+WHY3_PATH=`ocamlfind query why3 | tr -d '\\r\\n'`
+echo "Ocamlfind -> using $WHY3_PATH"
+WHY3PATH_FOR_CONFIGURE=$WHY3_PATH
+
+
+# No need to check the same thing multiple times.
+
+
+
+
+
+
+
+
+
+# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
+# It works by chance but it is not robust enough.
+# Should be rewritten
+    HAS_WHY3=no
+    if test "$HAS_WHY3" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_WHY3=yes
+else
+  HAS_WHY3=no
+fi
+
+          if test "$HAS_WHY3" = "yes"; then SELECTED_WHY3=$WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX
+          fi
+       fi
+
+    WHY3=$SELECTED_WHY3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        REQUIRE_WHY3=$REQUIRE_WHY3" "wp
+
+
+
+
+
+
+
+    if test -n "$REQUIRE_WHY3" -o -n "$USE_WHY3" -o "$force_check" = "yes"; then
+      if test "$HAS_WHY3" = "no"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX not found." >&5
+$as_echo "$as_me: WARNING: $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX not found." >&2;}
+        reason="$WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX missing"
+
+        for p in $REQUIRE_WHY3; do
+	  up=`upper "$p"`
+          ep=ENABLE_$up
+          eval enable_p=\$$ep
+          if test "$enable_p" != "no"; then
+            fp=FORCE_`upper "$p"`
+	    if eval test "\$$fp" = "yes"; then
+	      as_fn_error $? "$p requested but $reason." "$LINENO" 5
+	    fi
+	    eval $ep="no\ \(see\ warning\ about\ $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX\)"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
+	    eval INFO_$up=\", $reason\"
+          fi
+        done
+        for p in $USE_WHY3; do
+          up=`upper "$p"`
+          ep=ENABLE_$up
+          eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ $WHY3PATH_FOR_CONFIGURE/why3.$LIB_SUFFIX\)"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
+	    eval INFO_$up=\", $reason\"
+          fi
+        done
+      fi
+    fi
 
 
 # First, initialize some variables
@@ -2224,93 +2339,6 @@ $as_echo "$as_me: rerun configure to make wp using coq 8.7.2 or higher" >&6;}
   else
     COQC="no"
   fi
-
-
-  ## Configuring for WHY3-COQ
-  if test "$COQC" = "yes" -a "$WPWHY3COQ" = "yes" ; then
-    # Extract the first word of "why3", so it can be a program name with args.
-set dummy why3; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_WHY3COQC+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$WHY3COQC"; then
-  ac_cv_prog_WHY3COQC="$WHY3COQC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_WHY3COQC="yes"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_WHY3COQC" && ac_cv_prog_WHY3COQC="no"
-fi
-fi
-WHY3COQC=$ac_cv_prog_WHY3COQC
-if test -n "$WHY3COQC"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $WHY3COQC" >&5
-$as_echo "$WHY3COQC" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-    if test "$WHY3COQC" = "yes" ; then
-      WHY3VERSION=`why3 --version | sed -n -e 's|.*version *\([^ ]*\)$|\1|p' `
-      case $WHY3VERSION in
-        1.*)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
-$as_echo "why3 version $WHY3VERSION found" >&6; }
-	  WHY3LIB=`why3 --print-libdir`
-	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries found" >&5
-$as_echo "why3 compiled coq libraries found" >&6; }
-	  else
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries not found in $WHY3LIB" >&5
-$as_echo "why3 compiled coq libraries not found in $WHY3LIB" >&6; }
-	    WHY3COQC="no"
-          fi
-          ;;
-        *)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 unsupported version $WHY3VERSION" >&5
-$as_echo "why3 unsupported version $WHY3VERSION" >&6; }
-          WHY3COQC="no"
-          ;;
-      esac
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 (1.0.0+)" >&5
-$as_echo "$as_me: rerun configure to make wp using why3 (1.0.0+)" >&6;}
-    fi
-  else
-    WHY3COQC="no"
-  fi
-
-
-  ## Configuring for WHY3-API
-  WHY3API_VERSION=$($OCAMLFIND query why3 -format %v)
-  case $WHY3API_VERSION in
-    1.*)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 api $WHY3API_VERSION found" >&5
-$as_echo "why3 api $WHY3API_VERSION found" >&6; }
-        WHY3API="yes"
-        ;;
-    *)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 api not found (no why3 prover detection)" >&5
-$as_echo "why3 api not found (no why3 prover detection)" >&6; }
-        WHY3API="no"
-        ;;
-  esac
 
 
 fi

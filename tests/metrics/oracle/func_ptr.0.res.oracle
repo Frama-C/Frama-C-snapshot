@@ -48,7 +48,7 @@
 [eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  1 function analyzed (out of 8): 12% coverage.
+  1 function analyzed (out of 4): 25% coverage.
   In this function, 6 statements reached (out of 13): 46% coverage.
   ----------------------------------------------------------------------------
   Some errors and warnings have been raised during the analysis:

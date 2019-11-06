@@ -256,7 +256,7 @@
 %token GHOST MODEL CASE
 %token VOID CHAR SIGNED UNSIGNED SHORT LONG DOUBLE STRUCT ENUM UNION
 %token BSUNION INTER
-%token LTCOLON COLONGT TYPE BEHAVIOR BEHAVIORS ASSUMES COMPLETE DISJOINT
+%token TYPE BEHAVIOR BEHAVIORS ASSUMES COMPLETE DISJOINT
 %token TERMINATES
 %token BIFF BIMPLIES STARHAT HAT HATHAT PIPE TILDE GTGT LTLT
 %token SIZEOF LAMBDA LET
@@ -282,14 +282,13 @@
 %left PIPE
 %left HAT
 %left STARHAT
-%nonassoc IN
 %left AMP
+%nonassoc IN
 %left LT
 %left LTLT GTGT
 %left PLUS MINUS
 %left STAR SLASH PERCENT
 %right prec_cast TILDE NOT prec_unary_op
-%nonassoc LTCOLON COLONGT
 %left DOT ARROW LSQUARE
 
 %type <Logic_ptree.lexpr> lexpr_eof
@@ -525,12 +524,6 @@ lexpr_inner:
 | LPAR range RPAR { info $2.lexpr_node }
 | LPAR cast_logic_type RPAR lexpr_inner %prec prec_cast
       { info (PLcast ($2, $4)) }
-| lexpr_inner LTCOLON lexpr_inner %prec prec_cast
-      { info (PLsubtype ($1, $3)) }
-| lexpr_inner COLONGT logic_type 
-      { info (PLcoercion ($1, $3)) }
-| lexpr_inner COLONGT lexpr_inner %prec prec_cast
-      { info (PLcoercionE ($1, $3)) }
 | TYPEOF LPAR lexpr RPAR { info (PLtypeof $3) }
 | BSTYPE LPAR type_spec RPAR { info (PLtype $3) }
 | BSTYPE LPAR type_spec stars RPAR { info (PLtype ($4 $3)) }
@@ -728,8 +721,8 @@ cv:
 
 type_spec_cv:
      type_spec { $1 }
-|    cv type_spec { LTattribute ($2, $1) }
-|    type_spec cv { LTattribute ($1, $2) }
+|    cv type_spec_cv { LTattribute ($2, $1) }
+|    type_spec_cv cv { LTattribute ($1, $2) }
 
 cast_logic_type:
  | type_spec_cv abs_spec_cv_option { $2 $1 }
@@ -1944,7 +1937,6 @@ wildcard:
 | COLON { () }
 | COLON2 { () }
 | COLONCOLON { () }
-| COLONGT { () }
 | COMMA { () }
 | CONSTANT { () }
 | CONSTANT10 { () }
@@ -1969,7 +1961,6 @@ wildcard:
 | LSQUARE { () }
 | LSQUAREPIPE { () }
 | LT { () }
-| LTCOLON { () }
 | LTLT { () }
 | MINUS { () }
 | NE { () }

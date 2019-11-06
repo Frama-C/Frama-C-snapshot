@@ -1,1 +1,1 @@
-let () = Db.Main.extend (fun _ -> ignore (!Db.Sparecode.get true true))
+let () = Db.Main.extend (fun _ -> ignore (Sparecode.Register.get true true))

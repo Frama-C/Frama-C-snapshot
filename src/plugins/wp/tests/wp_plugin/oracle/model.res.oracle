@@ -1,52 +1,88 @@
 # frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/model.i (no preprocessing)
-[kernel] tests/wp_plugin/model.i:11: Warning: 
+[kernel] tests/wp_plugin/model.i:10: Warning: 
   parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
 ---------------------------------------------
---- File 'typed/f_ensures.ergo' 
+--- Context 'typed_f' Cluster 'Compound' 
 ---------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Post-condition (file tests/wp_plugin/model.i, line 13) in 'f' --- *)
-(* ---------------------------------------------------------- *)
-
-goal f_ensures:
-  forall i : int.
-  forall t : (addr,int) farray.
-  forall a : addr.
-  let x = t[shift_sint32(a, i)] : int in
-  (region(a.base) <= 0) ->
-  is_sint32(i) ->
-  is_sint32(x) ->
-  P_P(x)
-
+theory Compound
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  (* use bool.Bool *)
+  
+  (* use int.Int *)
+  
+  (* use int.ComputerDivision *)
+  
+  (* use real.RealInfix *)
+  
+  (* use frama_c_wp.qed.Qed *)
+  
+  (* use map.Map *)
+  
+  (* use frama_c_wp.memory.Memory *)
+  
+  function shift_sint32 (p:addr) (k:int) : addr = shift p k
+end
 ---------------------------------------------
---- File 'typed/Compound.ergo' 
+--- Context 'typed_f' Cluster 'Axiomatic' 
 ---------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Memory Compound Updates                            --- *)
-(* ---------------------------------------------------------- *)
-
-function shift_sint32(p:addr, k:int) : addr = shift(p, k)
-
----------------------------------------------
---- File 'typed/Axiomatic.ergo' 
----------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Global Definitions                                 --- *)
-(* ---------------------------------------------------------- *)
-
-logic P_P : int -> prop
-
+theory Axiomatic
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  (* use bool.Bool *)
+  
+  (* use int.Int *)
+  
+  (* use int.ComputerDivision *)
+  
+  (* use real.RealInfix *)
+  
+  (* use frama_c_wp.qed.Qed *)
+  
+  (* use map.Map *)
+  
+  predicate P_P int
+end
+[wp:print-generated] 
+  theory WP
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    (* use frama_c_wp.memory.Memory *)
+    
+    (* use frama_c_wp.cint.Cint *)
+    
+    (* use Compound *)
+    
+    (* use Axiomatic *)
+    
+    goal wp_goal :
+      forall t:addr -> int, i:int, a:addr.
+       let x = get t (shift_sint32 a i) in
+       region (base a) <= 0 -> is_sint32 i -> is_sint32 x -> P_P x
+  end
 [wp] 1 goal generated
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_plugin/model.i, line 13) in 'f':
+Goal Post-condition (file tests/wp_plugin/model.i, line 12) in 'f':
 Let x = Mint_0[shift_sint32(p, k)].
 Assume {
   Type: is_sint32(k) /\ is_sint32(x).
@@ -59,63 +95,111 @@ Prove: P_P(x).
 [wp] Running WP plugin...
 [wp] 2 goals scheduled
 ---------------------------------------------
---- File 'typed_ref/f_ensures.ergo' 
+--- Context 'typed_ref_f' Cluster 'Compound' 
 ---------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Post-condition (file tests/wp_plugin/model.i, line 13) in 'f' --- *)
-(* ---------------------------------------------------------- *)
-
-goal f_ensures:
-  forall i : int.
-  forall t : (addr,int) farray.
-  forall a : addr.
-  let x = t[shift_sint32(a, i)] : int in
-  (region(a.base) <= 0) ->
-  is_sint32(i) ->
-  is_sint32(x) ->
-  P_P(x)
-
+theory Compound1
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  (* use bool.Bool1 *)
+  
+  (* use int.Int1 *)
+  
+  (* use int.ComputerDivision1 *)
+  
+  (* use real.RealInfix1 *)
+  
+  (* use frama_c_wp.qed.Qed1 *)
+  
+  (* use map.Map1 *)
+  
+  (* use frama_c_wp.memory.Memory1 *)
+  
+  function shift_sint321 (p:addr1) (k:int) : addr1 = shift1 p k
+end
 ---------------------------------------------
---- File 'typed_ref/Compound.ergo' 
+--- Context 'typed_ref_f' Cluster 'Axiomatic' 
 ---------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Memory Compound Updates                            --- *)
-(* ---------------------------------------------------------- *)
-
-function shift_sint32(p:addr, k:int) : addr = shift(p, k)
-
----------------------------------------------
---- File 'typed_ref/Axiomatic.ergo' 
----------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Global Definitions                                 --- *)
-(* ---------------------------------------------------------- *)
-
-logic P_P : int -> prop
-
----------------------------------------------
---- File 'typed/f_ensures.ergo' 
----------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Post-condition (file tests/wp_plugin/model.i, line 13) in 'f' --- *)
-(* ---------------------------------------------------------- *)
-
-goal f_ensures:
-  forall i : int.
-  forall t : (addr,int) farray.
-  forall a : addr.
-  let x = t[shift_sint32(a, i)] : int in
-  (region(a.base) <= 0) ->
-  is_sint32(i) ->
-  is_sint32(x) ->
-  P_P(x)
-
+theory Axiomatic1
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  (* use bool.Bool1 *)
+  
+  (* use int.Int1 *)
+  
+  (* use int.ComputerDivision1 *)
+  
+  (* use real.RealInfix1 *)
+  
+  (* use frama_c_wp.qed.Qed1 *)
+  
+  (* use map.Map1 *)
+  
+  predicate P_P1 int
+end
+[wp:print-generated] 
+  theory WP1
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool1 *)
+    
+    (* use int.Int1 *)
+    
+    (* use int.ComputerDivision1 *)
+    
+    (* use real.RealInfix1 *)
+    
+    (* use frama_c_wp.qed.Qed1 *)
+    
+    (* use map.Map1 *)
+    
+    (* use frama_c_wp.memory.Memory1 *)
+    
+    (* use frama_c_wp.cint.Cint1 *)
+    
+    (* use Compound1 *)
+    
+    (* use Axiomatic1 *)
+    
+    goal wp_goal :
+      forall t:addr1 -> int, i:int, a:addr1.
+       let x = get1 t (shift_sint321 a i) in
+       region1 (base1 a) <=' 0 -> is_sint321 i -> is_sint321 x -> P_P1 x
+  end
+[wp:print-generated] 
+  theory WP2
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    (* use frama_c_wp.memory.Memory *)
+    
+    (* use frama_c_wp.cint.Cint *)
+    
+    (* use Compound *)
+    
+    (* use Axiomatic *)
+    
+    goal wp_goal :
+      forall t:addr -> int, i:int, a:addr.
+       let x = get t (shift_sint32 a i) in
+       region (base a) <= 0 -> is_sint32 i -> is_sint32 x -> P_P x
+  end
 [wp] 2 goals generated
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_plugin/model.i, line 13) in 'f':
+Goal Post-condition (file tests/wp_plugin/model.i, line 12) in 'f':
 Let x = Mint_0[shift_sint32(p, k)].
 Assume {
   Type: is_sint32(k) /\ is_sint32(x).
@@ -126,7 +210,7 @@ Prove: P_P(x).
 
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_plugin/model.i, line 13) in 'f':
+Goal Post-condition (file tests/wp_plugin/model.i, line 12) in 'f':
 Let x = Mint_0[shift_sint32(p, k)].
 Assume {
   Type: is_sint32(k) /\ is_sint32(x).

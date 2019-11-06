@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Ref)' -wp-no-let -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-model 'Typed (Ref)' -wp-no-let [...]
 [kernel] Parsing tests/wp_hoare/dispatch_var2.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'

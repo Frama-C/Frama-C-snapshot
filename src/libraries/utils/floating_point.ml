@@ -258,7 +258,7 @@ let parse string =
   then Kernel.fatal ~current:true
       "Parsing an empty string as a floating-point constant."
   else
-    let last = Transitioning.Char.uppercase_ascii string.[l] in
+    let last = Char.uppercase_ascii string.[l] in
     let suffix, kind =
       match last with
       | 'F' -> true, Cil_types.FFloat

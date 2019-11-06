@@ -52,7 +52,7 @@ let prec = function NaN p -> p | I (x, _, _) -> F.prec x
 
 let get_max_exponent = function
   | NaN _ -> Value_parameters.fatal "Numerors: can't return the exponent of a NaN"
-  | I (x, y, _) -> Pervasives.max (F.exponent x) (F.exponent y)
+  | I (x, y, _) -> Transitioning.Stdlib.max (F.exponent x) (F.exponent y)
 
 let get_exponents = function
   | NaN _ -> Value_parameters.fatal "Numerors: can't return the exponent of a NaN"

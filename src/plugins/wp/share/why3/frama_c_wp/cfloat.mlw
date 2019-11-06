@@ -1,0 +1,223 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2019                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* -------------------------------------------------------------------------- *)
+(* --- C-Integer Arithmetics for Alt-Ergo                                 --- *)
+(* -------------------------------------------------------------------------- *)
+
+theory Cfloat
+
+  use bool.Bool
+  use real.RealInfix
+  use real.Abs
+  use real.Square
+  use real.FromInt
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- C-Integer Arithmetics for Alt-Ergo                                 --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  type f32 (* single precision IEEE *)
+  type f64 (* double precision IEEE *)
+
+  (* C-Float Conversion *)
+
+  function to_f32 real : f32
+  function of_f32 f32 : real
+
+  function to_f64 real : f64
+  function of_f64 f64 : real
+
+  axiom to_f32_zero: of_f32 (to_f32 0.0) = 0.0
+  axiom to_f32_one:  of_f32 (to_f32 1.0) = 1.0
+  axiom to_f64_zero: of_f64 (to_f64 0.0) = 0.0
+  axiom to_f64_one:  of_f64 (to_f64 1.0) = 1.0
+
+  (* C-Float Rounding Modes *)
+
+  type rounding_mode = Up | Down | ToZero | NearestTiesToAway | NearestTiesToEven
+
+  function round_float rounding_mode real : f32
+  function round_double rounding_mode real : f64
+
+  axiom float_32:
+    forall x:real [ round_float NearestTiesToEven x ].
+    to_f32 x = round_float NearestTiesToEven x
+
+  axiom float_64:
+    forall x:real [ round_double NearestTiesToEven x ].
+    to_f64 x = round_double NearestTiesToEven x
+
+  (* C-Float Classification *)
+
+  type float_kind = Finite | NaN | Inf_pos | Inf_neg
+
+  function classify_f32 f32 : float_kind
+  function classify_f64 f64 : float_kind
+
+  predicate is_finite_f32 (f:f32) = (classify_f32 f = Finite)
+  predicate is_finite_f64 (d:f64) = (classify_f64 d = Finite)
+
+  predicate is_NaN_f32 (f:f32) = (classify_f32 f = NaN)
+  predicate is_NaN_f64 (d:f64) = (classify_f64 d = NaN)
+
+  predicate is_infinite_f32 (f:f32) = (classify_f32 f = Inf_pos || classify_f32 f = Inf_neg)
+  predicate is_infinite_f64 (d:f64) = (classify_f64 d = Inf_pos || classify_f64 d = Inf_neg)
+
+  predicate is_positive_infinite_f32 (f:f32) = (classify_f32 f = Inf_pos)
+  predicate is_positive_infinite_f64 (d:f64) = (classify_f64 d = Inf_pos)
+
+  predicate is_negative_infinite_f32 (f:f32) = (classify_f32 f = Inf_neg)
+  predicate is_negative_infinite_f64 (d:f64) = (classify_f64 d = Inf_neg)
+
+  axiom is_finite_to_float_32 :
+    forall x:real [is_finite_f32(to_f32 x)]. is_finite_f32 (to_f32 x)
+
+  axiom is_finite_to_float_64 :
+    forall x:real [is_finite_f64(to_f64 x)]. is_finite_f64 (to_f64 x)
+
+  axiom to_float_is_finite_32 :
+    forall f:f32 [ to_f32( of_f32 f ) | is_finite_f32(f) ]. is_finite_f32(f) -> to_f32( of_f32 f ) = f
+
+  axiom to_float_is_finite_64 :
+    forall d:f64 [ to_f64( of_f64 d ) | is_finite_f64(d) ]. is_finite_f64(d) -> to_f64( of_f64 d ) = d
+
+  (* Finite Constants *)
+
+  predicate finite (x:real) = (is_finite_f32 (to_f32 x)) /\ (is_finite_f64 (to_f64 x))
+
+  constant max_f32 : real = 340282346600000016151267322115014000640.0
+  constant max_f64 : real = 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0
+
+  axiom finite_small_f32 : forall x:real. -. max_f64 <=. x <=. max_f32 -> is_finite_f32(to_f32 x)
+  axiom finite_small_f64 : forall x:real. -. max_f64 <=. x <=. max_f64 -> is_finite_f64(to_f64 x)
+  axiom finite_range_f32 : forall f:f32. is_finite_f32(f) <-> -. max_f32 <=. of_f32 f <=. max_f32
+  axiom finite_range_f64 : forall d:f64. is_finite_f64(d) <-> -. max_f64 <=. of_f64 d <=. max_f64
+
+  (* Equal *)
+
+  function eq_f32b (x:f32) (y:f32) : bool
+  function eq_f64b (x:f64) (y:f64) : bool
+  predicate eq_f32 (x:f32) (y:f32) = (eq_f32b x y = true)
+  predicate eq_f64 (x:f64) (y:f64) = (eq_f64b x y = true)
+  axiom eq_finite_f32 : forall x,y:f32 [eq_f32 x y]. is_finite_f32 x -> is_finite_f32 y ->
+                                        eq_f32 x y <-> of_f32 x = of_f32 y
+
+  axiom eq_finite_f64 : forall x,y:f64 [eq_f64 x y]. is_finite_f64 x -> is_finite_f64 y ->
+                                        eq_f64 x y <-> of_f64 x = of_f64 y
+
+  (* Not Equal *)
+
+  function ne_f32b (x:f32) (y:f32) : bool
+  function ne_f64b (x:f64) (y:f64) : bool
+  predicate ne_f32 (x:f32) (y:f32) = (ne_f32b x y = true)
+  predicate ne_f64 (x:f64) (y:f64) = (ne_f64b x y = true)
+
+  axiom ne_finite_f32 : forall x,y:f32 [ne_f32 x y]. is_finite_f32 x -> is_finite_f32 y ->
+                                        ne_f32 x y <-> of_f32 x <> of_f32 y
+
+  axiom ne_finite_f64 : forall x,y:f64 [ne_f64 x y]. is_finite_f64 x -> is_finite_f64 y ->
+                                        ne_f64 x y <-> of_f64 x <> of_f64 y
+  (* Comparison (<=) *)
+
+  function le_f32b (x:f32) (y:f32) : bool
+  function le_f64b (x:f64) (y:f64) : bool
+  predicate le_f32 (x:f32) (y:f32) = (le_f32b x y = true)
+  predicate le_f64 (x:f64) (y:f64) = (le_f64b x y = true)
+
+  axiom le_finite_f32 : forall x,y:f32 [le_f32 x y]. is_finite_f32 x -> is_finite_f32 y ->
+                                        le_f32 x y <-> of_f32 x <=. of_f32 y
+
+  axiom le_finite_f64 : forall x,y:f64 [le_f64 x y]. is_finite_f64 x -> is_finite_f64 y ->
+                                        le_f64 x y <-> of_f64 x <=. of_f64 y
+  (* Comparison (<) *)
+
+  function lt_f32b (x:f32) (y:f32) : bool
+  function lt_f64b (x:f64) (y:f64) : bool
+  predicate lt_f32 (x:f32) (y:f32) = (lt_f32b x y = true)
+  predicate lt_f64 (x:f64) (y:f64) = (lt_f64b x y = true)
+
+  axiom lt_finite_f32 : forall x,y:f32 [lt_f32 x y]. is_finite_f32 x -> is_finite_f32 y ->
+                                        lt_f32 x y <-> of_f32 x <. of_f32 y
+
+  axiom lt_finite_f64 : forall x,y:f64 [lt_f64 x y]. is_finite_f64 x -> is_finite_f64 y ->
+                                        lt_f64 x y <-> of_f64 x <. of_f64 y
+
+  (* Negation *)
+
+
+  function neg_f32 (x:f32) : f32
+  function neg_f64 (x:f64) : f64
+
+  axiom neg_finite_f32 : forall x:f32 [neg_f32 x]. is_finite_f32 x -> of_f32 (neg_f32 x) = -. (of_f32 x)
+  axiom neg_finite_f64 : forall x:f64 [neg_f64 x]. is_finite_f64 x -> of_f64 (neg_f64 x) = -. (of_f64 x)
+
+  (* Addition *)
+
+  function add_f32 (x:f32) (y:f32) : f32
+  function add_f64 (x:f64) (y:f64) : f64
+
+  axiom add_finite_f32 : forall x,y:f32 [add_f32 x y]. is_finite_f32 x -> is_finite_f32 y ->
+                                         add_f32 x y = to_f32 (of_f32 x +. of_f32 y)
+
+  axiom add_finite_f64 : forall x,y:f64 [add_f64 x y]. is_finite_f64 x -> is_finite_f64 y ->
+                                         add_f64 x y = to_f64 (of_f64 x +. of_f64 y)
+  (* Multiplication *)
+
+  function mul_f32 (x:f32) (y:f32) : f32
+  function mul_f64 (x:f64) (y:f64) : f64
+
+  axiom mul_finite_f32 : forall x,y:f32 [mul_f32 x y]. is_finite_f32 x -> is_finite_f32 y ->
+                                         mul_f32 x y = to_f32 (of_f32 x *. of_f32 y)
+
+  axiom mul_finite_f64 : forall x,y:f64 [mul_f64 x y]. is_finite_f64 x -> is_finite_f64 y ->
+                                         mul_f64 x y = to_f64 (of_f64 x *. of_f64 y)
+  (* Division *)
+
+  function div_f32 (x:f32) (y:f32) : f32
+  function div_f64 (x:f64) (y:f64) : f64
+
+  axiom div_finite_f32 : forall x,y:f32 [div_f32 x y]. is_finite_f32 x -> is_finite_f32 y ->
+                                         div_f32 x y = to_f32 (of_f32 x /. of_f32 y)
+
+  axiom div_finite_f64 : forall x,y:f64 [div_f64 x y]. is_finite_f64 x -> is_finite_f64 y ->
+                                         div_f64 x y = to_f64 (of_f64 x /. of_f64 y)
+
+  (* Square Root *)
+
+  function sqrt_f32 f32 : f32
+  function sqrt_f64 f64 : f64
+
+  axiom sqrt_finite_f32 : forall x:f32 [sqrt_f32 x]. is_finite_f32 x -> sqrt_f32 x = to_f32 (sqrt (of_f32 x))
+  axiom sqrt_finite_f64 : forall x:f64 [sqrt_f64 x]. is_finite_f64 x -> sqrt_f64 x = to_f64 (sqrt (of_f64 x))
+
+  (* Models *)
+
+  function model_f32 (f:f32) : real
+  function delta_f32 (f:f32) : real = abs( of_f32 f -. model_f32 f )
+  function error_f32 (f:f32) : real = (delta_f32 f) /. (abs (model_f32 f))
+
+  function model_f64 (f:f64) : real
+  function delta_f64 (f:f64) : real = abs( of_f64 f -. model_f64 f )
+  function error_f64 (f:f64) : real = (delta_f64 f) /. (abs (model_f64 f))
+
+end

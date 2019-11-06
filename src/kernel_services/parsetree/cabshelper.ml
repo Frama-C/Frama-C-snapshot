@@ -232,6 +232,41 @@ let mk_behavior ?(name=Cil.default_behavior_name) ?(assumes=[]) ?(requires=[])
     b_extended = extended;
   }
 
+let mk_asm_templates =
+  let buf = Buffer.create 100 in
+  let rec outer res = function
+    | [] when res = [] && Buffer.length buf = 0 -> [""]
+    | [] when Buffer.length buf = 0 -> List.rev res
+    | [] ->
+       let res = List.rev @@ Buffer.contents buf :: res in
+       Buffer.clear buf;
+       res
+    | str :: tail -> tail |> outer @@ inner res str 0
+  and inner res template i =
+    if i < String.length template then
+      let c = String.get template i in
+      Buffer.add_char buf c;
+      if c = '\n' then
+        if i < String.length template - 1 then
+          match String.get template @@ i + 1 with
+          | '\t' ->
+             Buffer.add_char buf '\t';
+             let res = Buffer.contents buf :: res in
+             Buffer.clear buf;
+             inner res template @@ i + 2
+          | c ->
+             let res = Buffer.contents buf :: res in
+             Buffer.clear buf;
+             Buffer.add_char buf c;
+             inner res template @@ i + 2
+        else
+          let res = Buffer.contents buf :: res in
+          Buffer.clear buf;
+          res
+      else inner res template @@ i + 1
+    else res in
+  outer []
+
 
 (*
 Local Variables:

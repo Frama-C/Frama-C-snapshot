@@ -1,67 +1,67 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-timeout 90 [...]
 [kernel] Parsing tests/wp_gallery/binary-multiplication.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 17 goals scheduled
-[wp] [alt-ergo] Goal typed_lemma_ax4_ok : Valid
-[wp] [alt-ergo] Goal typed_lemma_ax5_ok : Valid
-[wp] [alt-ergo] Goal typed_lemma_ax7_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ax4_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ax5_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ax7_ok : Valid
 [wp] [Qed] Goal typed_lemma_sizeof_ok_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_ensures_product : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_ensures_product : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_preserved : Unsuccess
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_established : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_preserved : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_established : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a2_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a3_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a4_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a5_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a2_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a3_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a4_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a5_ok : Valid
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_assigns : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_variant_decrease : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_variant_decrease : Valid
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_variant_positive : Valid
-[wp] Proved goals:   17 / 17
-  Qed:                4 
-  Alt-Ergo (why3):   13
+[wp] Proved goals:   16 / 17
+  Qed:               4 
+  Alt-Ergo 2.0.0:   12  (unsuccess: 1)
 [wp] Report in:  'tests/wp_gallery/oracle_qualif/binary-multiplication.0.report.json'
 [wp] Report out: 'tests/wp_gallery/result_qualif/binary-multiplication.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
-Axiomatic mult       1     -                 4       100%
+Axiomatic mult       1      3 (8..20)        4       100%
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-BinaryMultiplication   3   -                13       100%
+BinaryMultiplication   3    9 (400..448)    13      92.3%
 -------------------------------------------------------------
 [wp] Running WP plugin...
 [rte] annotating function BinaryMultiplication
 [wp] 17 goals scheduled
-[wp] [alt-ergo] Goal typed_lemma_ax4_ok : Valid
-[wp] [alt-ergo] Goal typed_lemma_ax5_ok : Valid
-[wp] [alt-ergo] Goal typed_lemma_ax7_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ax4_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ax5_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ax7_ok : Valid
 [wp] [Qed] Goal typed_lemma_sizeof_ok_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_ensures_product : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_ensures_product : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_preserved : Unsuccess
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_established : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_preserved : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_established : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a2_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a3_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a4_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a5_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a2_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a3_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a4_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a5_ok : Valid
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_assigns : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_variant_decrease : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_variant_decrease : Valid
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_variant_positive : Valid
 [wp] Proved goals:   13 / 17
-  Qed:                0 
-  Alt-Ergo (why3):   13
+  Qed:               1 
+  Alt-Ergo 2.0.0:   12  (unsuccess: 1)
 [wp] Report in:  'tests/wp_gallery/oracle_qualif/binary-multiplication.0.report.json'
 [wp] Report out: 'tests/wp_gallery/result_qualif/binary-multiplication.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
-Axiomatic mult       1     -                 4       100%
+Axiomatic mult       1      3 (8..20)        4       100%
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-BinaryMultiplication   3   -                13       100%
+BinaryMultiplication   3    9 (400..448)    13      92.3%
 -------------------------------------------------------------

@@ -1,4 +1,4 @@
-{ "wp:global": { "alt-ergo": { "total": 5, "unknown": 5 },
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 5, "unknown": 5 },
                  "qed": { "total": 1, "valid": 1 },
                  "wp:main": { "total": 6, "valid": 1, "unknown": 5 } },
   "wp:functions": { "job": { "job_assert_rte_mem_access_3": { "qed": 
@@ -7,44 +7,44 @@
                                                               "wp:main": 
                                                                 { "total": 1,
                                                                   "valid": 1 } },
-                             "job_assert_rte_signed_overflow_2": { "alt-ergo": 
+                             "job_assert_rte_signed_overflow_2": { "why3:Alt-Ergo,2.0.0": 
                                                                     { "total": 1,
                                                                     "unknown": 1 },
                                                                    "wp:main": 
                                                                     { "total": 1,
                                                                     "unknown": 1 } },
-                             "job_assert_rte_signed_overflow": { "alt-ergo": 
+                             "job_assert_rte_signed_overflow": { "why3:Alt-Ergo,2.0.0": 
                                                                    { "total": 1,
                                                                     "unknown": 1 },
                                                                  "wp:main": 
                                                                    { "total": 1,
                                                                     "unknown": 1 } },
-                             "job_assert_rte_mem_access_2": { "alt-ergo": 
+                             "job_assert_rte_mem_access_2": { "why3:Alt-Ergo,2.0.0": 
                                                                 { "total": 1,
                                                                   "unknown": 1 },
                                                               "wp:main": 
                                                                 { "total": 1,
                                                                   "unknown": 1 } },
-                             "job_assert_rte_mem_access": { "alt-ergo": 
+                             "job_assert_rte_mem_access": { "why3:Alt-Ergo,2.0.0": 
                                                               { "total": 1,
                                                                 "unknown": 1 },
                                                             "wp:main": 
                                                               { "total": 1,
                                                                 "unknown": 1 } },
-                             "wp:section": { "alt-ergo": { "total": 4,
-                                                           "unknown": 4 },
+                             "wp:section": { "why3:Alt-Ergo,2.0.0": { "total": 4,
+                                                                    "unknown": 4 },
                                              "qed": { "total": 1,
                                                       "valid": 1 },
                                              "wp:main": { "total": 5,
                                                           "valid": 1,
                                                           "unknown": 4 } } },
-                    "job3": { "job3_assert_rte_bool_value": { "alt-ergo": 
+                    "job3": { "job3_assert_rte_bool_value": { "why3:Alt-Ergo,2.0.0": 
                                                                 { "total": 1,
                                                                   "unknown": 1 },
                                                               "wp:main": 
                                                                 { "total": 1,
                                                                   "unknown": 1 } },
-                              "wp:section": { "alt-ergo": { "total": 1,
-                                                            "unknown": 1 },
+                              "wp:section": { "why3:Alt-Ergo,2.0.0": 
+                                                { "total": 1, "unknown": 1 },
                                               "wp:main": { "total": 1,
                                                            "unknown": 1 } } } } }

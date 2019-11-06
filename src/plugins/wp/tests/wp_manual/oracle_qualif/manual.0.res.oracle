@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_manual/manual.i (no preprocessing)
 [kernel] Parsing tests/wp_manual/working_dir/swap.c (with preprocessing)
 [kernel] Parsing tests/wp_manual/working_dir/swap1.h (with preprocessing)
@@ -6,14 +6,14 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_swap_ensures_A : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_swap_ensures_A : Valid
 [wp] [Qed] Goal typed_swap_ensures_B : Valid
 [wp] Proved goals:    2 / 2
-  Qed:             1 
-  Alt-Ergo:        1
+  Qed:               1 
+  Alt-Ergo 2.0.0:    1
 [wp] Report in:  'tests/wp_manual/oracle_qualif/manual.0.report.json'
 [wp] Report out: 'tests/wp_manual/result_qualif/manual.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-swap                 1      1 (12..24)       2       100%
+swap                 1      1 (8..20)        2       100%
 -------------------------------------------------------------

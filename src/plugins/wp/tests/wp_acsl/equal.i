@@ -1,5 +1,9 @@
+/* run.config
+   STDOPT: +"-wp-no-extensional"
+*/
 /* run.config_qualif
    COMMENT:
+   STDOPT: +"-wp-no-extensional"
 */
 
 /* -------------------------------------------------------------------------- */

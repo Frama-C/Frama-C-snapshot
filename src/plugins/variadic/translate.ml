@@ -140,19 +140,20 @@ let translate_variadics (file : file) =
       let fundec = the self#current_func in
       let loc = Cil_datatype.Instr.loc i in
       let block = self#enclosing_block () in
+      let ghost = (the self#current_stmt).ghost in
       let make_new_args mk_call f args =
         let vf = Table.find classification f in
         try
           let call_translator = match vf.vf_class with
             | Overload o -> Standard.overloaded_call ~fundec o
-            | Aggregator a -> Standard.aggregator_call ~fundec a
+            | Aggregator a -> Standard.aggregator_call ~fundec ~ghost a
             | FormatFun f -> Standard.format_fun_call ~fundec env f
             | _ -> raise Standard.Translate_call_exn
           in
           call_translator block loc mk_call vf args
         with Standard.Translate_call_exn ->
           Generic.translate_call
-            ~fundec block loc mk_call (Cil.evar ~loc f) args
+            ~fundec ~ghost block loc mk_call (Cil.evar ~loc f) args
       in
       begin match i with
       | Call(_, {enode = Lval(Var vi, _)}, _, _)
@@ -173,14 +174,15 @@ let translate_variadics (file : file) =
       | Call(lv, callee, args, loc) ->
         let is_variadic =
           try
-            let last = Extends.List.last (Typ.params (Cil.typeOf callee)) in
+            let args, _ = Typ.ghost_partitioned_params (Cil.typeOf callee) in
+            let last = Extends.List.last args in
             last = Generic.vpar
           with Extends.List.EmptyList -> false
         in
         if is_variadic then begin
           let mk_call f args = Call (lv, f, args, loc) in
           let res =
-            Generic.translate_call ~fundec block loc mk_call callee args
+            Generic.translate_call ~fundec ~ghost block loc mk_call callee args
           in
           File.must_recompute_cfg fundec;
           Cil.ChangeTo res

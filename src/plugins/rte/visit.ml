@@ -108,15 +108,15 @@ class annot_visitor kf flags on_alarm = object (self)
 
   method private generate_assertion: 'a. 'a Rte.alarm_gen -> 'a -> unit =
     fun fgen ->
-      let curr_stmt = self#current_stmt in
-      let on_alarm ~invalid a =
-        match curr_stmt with
-        | None -> Options.warning ~current:true
-                    "Alarm generated outside any statement:@ %a"
-                    Alarms.pretty a
-        | Some stmt -> on_alarm stmt ~invalid a
-      in
-      fgen ~remove_trivial:flags.Flags.remove_trivial ~on_alarm
+    let curr_stmt = self#current_stmt in
+    let on_alarm ~invalid a =
+      match curr_stmt with
+      | None -> Options.warning ~current:true
+                  "Alarm generated outside any statement:@ %a"
+                  Alarms.pretty a
+      | Some stmt -> on_alarm stmt ~invalid a
+    in
+    fgen ~remove_trivial:flags.Flags.remove_trivial ~on_alarm
 
   (* Do not visit variable declarations, as no alarm should be emitted here,
      and there is no statement to emit an alarm anyway ([generate_assertion]

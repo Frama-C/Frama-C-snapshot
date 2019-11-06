@@ -22,3 +22,10 @@ int f(int z) {
 
   return x;
 }
+
+static __inline void
+insw (unsigned short int __port, void *__addr, unsigned long int __count)
+{
+  __asm__ __volatile__ ("cld ; rep ; insw":"=D" (__addr), "=c" (__count)
+   :"d" (__port), "0" (__addr), "1" (__count));
+}

@@ -1,29 +1,29 @@
-# frama-c -wp -wp-model 'Typed (Caveat)' -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-model 'Typed (Caveat)' [...]
 [kernel] Parsing tests/wp_usage/caveat_range.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 12 goals scheduled
-[wp] [Alt-Ergo] Goal typed_caveat_reset_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_caveat_reset_ensures_2 : Valid
-[wp] [Alt-Ergo] Goal typed_caveat_reset_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_reset_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_reset_ensures_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_reset_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_caveat_reset_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_caveat_reset_loop_invariant_2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_reset_loop_invariant_2_preserved : Valid
 [wp] [Qed] Goal typed_caveat_reset_loop_invariant_2_established : Valid
-[wp] [Alt-Ergo] Goal typed_caveat_reset_loop_invariant_3_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_reset_loop_invariant_3_preserved : Valid
 [wp] [Qed] Goal typed_caveat_reset_loop_invariant_3_established : Valid
 [wp] [Qed] Goal typed_caveat_reset_loop_assigns_part1 : Valid
 [wp] [Qed] Goal typed_caveat_reset_loop_assigns_part2 : Valid
 [wp] [Qed] Goal typed_caveat_reset_loop_assigns_part3 : Valid
 [wp] [Qed] Goal typed_caveat_reset_assigns : Valid
 [wp] Proved goals:   12 / 12
-  Qed:             7 
-  Alt-Ergo:        5
+  Qed:               7 
+  Alt-Ergo 2.0.0:    5
 [wp] Report in:  'tests/wp_usage/oracle_qualif/caveat_range.0.report.json'
 [wp] Report out: 'tests/wp_usage/result_qualif/caveat_range.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-reset                7      5 (48..60)      12       100%
+reset                7      5 (44..56)      12       100%
 -------------------------------------------------------------
 [wp] Warning: Memory model hypotheses for function 'reset':
   /*@ behavior typed_caveat: requires \valid(p+(..)); */

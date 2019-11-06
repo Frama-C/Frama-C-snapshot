@@ -54,9 +54,9 @@ let () = Ast.add_monotonic_state Dynamic_Alloc_Bases.self
 
 (* Remove some parts of the callstack:
    - Remove the bottom of the call tree until we get to the call site
-   of the call to the first malloc function. The idea is that each of
-   these call site correspond to a different use of a malloc function,
-   so it is interesting to keep their bases separated. *)
+     of the call to the first malloc function. The idea is that each of
+     these call site correspond to a different use of a malloc function,
+     so it is interesting to keep their bases separated. *)
 let call_stack_no_wrappers () =
   let stack = Value_util.call_stack () in
   assert (stack != []);

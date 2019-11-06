@@ -1,0 +1,40 @@
+digraph "job" {
+  rankdir="LR" ;
+  node [ fontname="monospace" ];
+  edge [ fontname="monospace" ];
+  V000 [ label="x", shape="cds", style="filled", fillcolor="yellow" ];
+  V000:e -> A000 ;
+  V001 [ label="y", shape="cds", style="filled", fillcolor="yellow" ];
+  V001:e -> A001 ;
+  V002 [ label="t", shape="cds", style="filled", fillcolor="yellow" ];
+  V002:e -> A002 ;
+  A000 [ label="D", shape="oval" ];
+  _003 [ label="roots:&x", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A000; _003; }
+  _003 -> A000 [ arrowhead="tee" ];
+  _004 [ shape="record", label="<_p1> Ref" ];
+  _004:_p1 -> A003:w [ taillabel="*", labelangle="+30", color="red" ];
+  A000 -> _004:w [ arrowhead="tee" ];
+  A001 [ label="D", shape="oval" ];
+  _005 [ label="roots:&y", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A001; _005; }
+  _005 -> A001 [ arrowhead="tee" ];
+  _006 [ shape="record", label="<_p1> Ref" ];
+  _006:_p1 -> A004:w [ taillabel="*", labelangle="+30", color="red" ];
+  A001 -> _006:w [ arrowhead="tee" ];
+  A002 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _007 [ shape="record", label="Var sint32" ];
+  A002 -> _007:w [ arrowhead="tee" ];
+  A003 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _008 [ label="roots:&x", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A003; _008; }
+  _008 -> A003 [ arrowhead="tee" ];
+  _009 [ shape="record", label="Var sint32" ];
+  A003 -> _009:w [ arrowhead="tee" ];
+  A004 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _010 [ label="roots:&y", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A004; _010; }
+  _010 -> A004 [ arrowhead="tee" ];
+  _011 [ shape="record", label="Var sint32" ];
+  A004 -> _011:w [ arrowhead="tee" ];
+}

@@ -29,7 +29,7 @@ __PUSH_FC_STDLIB
 
 __BEGIN_DECLS
 
-typedef struct _code {
+typedef struct __fc_code {
 	const char	*c_name;
 	int	c_val;
 } CODE;

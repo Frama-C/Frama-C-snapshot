@@ -40,7 +40,7 @@
 [eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  4 functions analyzed (out of 4): 100% coverage.
+  4 functions analyzed (out of 5): 80% coverage.
   In these functions, 10 statements reached (out of 10): 100% coverage.
   ----------------------------------------------------------------------------
   No errors or warnings raised during the analysis.

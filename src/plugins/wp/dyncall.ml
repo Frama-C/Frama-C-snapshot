@@ -67,7 +67,7 @@ let get_calls ecmd bhvs : (string * Kernel_function.t list) list =
        let fs = ref [] in
        List.iter
          (function
-           | _,cmd, _, _, Ext_terms ts when cmd = ecmd ->
+           | {ext_name; ext_kind = Ext_terms ts} when ext_name = ecmd ->
                fs := !fs @ List.map get_call ts
            | _ -> ())
          bhv.Cil_types.b_extended ;
@@ -138,7 +138,8 @@ class dyncall =
     method! vcode_annot ca =
       match ca.annot_content with
       | Cil_types.AExtended
-          (bhvs,_,((_,"calls",_,_,Ext_terms calls) as extended)) ->
+          (bhvs, _,
+           ({ext_name = "calls"; ext_kind = Ext_terms calls} as extended)) ->
           if calls <> [] && (scope <> [] || not (Stack.is_empty block_calls))
           then begin
             let bhvs =

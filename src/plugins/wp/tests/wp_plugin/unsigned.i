@@ -3,7 +3,7 @@
 */
 
 /* run.config_qualif
-   OPT: -session tests/wp_plugin/unsigned -wp-prover script
+   OPT: -wp-prover script
 */
 
 /*@

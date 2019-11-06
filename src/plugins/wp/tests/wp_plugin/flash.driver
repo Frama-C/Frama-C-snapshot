@@ -1,7 +1,8 @@
 library INDEX: memory
-type index = "(addr,int)farray" ;
-logic integer INDEX_access( index , addr ) = "(%1)[%2]" ;
-logic index   INDEX_update( index , addr ) = "((%1)[(%2) <- (%1)[%2]+1])" ;
+why3.file += "flash.mlw";
+type index = {coq="dumb"; altergo="(addr,int)farray"; why3="Flash.t"; } ;
+logic integer INDEX_access( index , addr ) = {coq="dumb"; altergo="(%1)[%2]"; why3="Flash.get"; } ;
+logic index   INDEX_update( index , addr ) = {coq="dumb"; altergo="((%1)[(%2) <- (%1)[%2]+1])"; why3="Flash.update"};
 logic index   INDEX_init := "INDEX_init" ;
 
 library RD: INDEX

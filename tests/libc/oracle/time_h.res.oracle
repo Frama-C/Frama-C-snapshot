@@ -37,9 +37,13 @@
   function nanosleep: precondition 'valid_nanosecs' got status valid.
 [eva] tests/libc/time_h.c:22: 
   function nanosleep: precondition 'valid_remaining_or_null' got status valid.
+[eva:invalid-assigns] tests/libc/time_h.c:22: 
+  Completely invalid destination for assigns clause *rmtp. Ignoring.
 [eva] Done for function nanosleep
 [eva] computing for function nanosleep <- main.
   Called from tests/libc/time_h.c:22.
+[eva:invalid-assigns] tests/libc/time_h.c:22: 
+  Completely invalid destination for assigns clause *rmtp. Ignoring.
 [eva] Done for function nanosleep
 [eva] computing for function clock_nanosleep <- main.
   Called from tests/libc/time_h.c:28.

@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
 [kernel] Parsing tests/wp_typed/unit_alloc.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -6,20 +6,20 @@
 [wp] 7 goals scheduled
 [wp] [Qed] Goal typed_ref_f_assigns : Valid
 [wp] [Qed] Goal typed_ref_g_assigns : Valid
-[wp] [Alt-Ergo] Goal typed_ref_h_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_h_ensures : Valid
 [wp] [Qed] Goal typed_ref_job_assert : Valid
-[wp] [Alt-Ergo] Goal typed_ref_job_assert_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_job_assert_2 : Valid
 [wp] [Qed] Goal typed_ref_job_assert_3 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_job_assert_4 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_job_assert_4 : Valid
 [wp] Proved goals:    7 / 7
-  Qed:             4 
-  Alt-Ergo:        3
+  Qed:               4 
+  Alt-Ergo 2.0.0:    3
 [wp] Report in:  'tests/wp_typed/oracle_qualif/unit_alloc.1.report.json'
 [wp] Report out: 'tests/wp_typed/result_qualif/unit_alloc.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-job                  2      2 (20..32)       4       100%
+job                  2      2 (16..28)       4       100%
 f                    1     -                 1       100%
 g                    1     -                 1       100%
-h                   -       1 (12..24)       1       100%
+h                   -       1 (8..20)        1       100%
 -------------------------------------------------------------

@@ -22,8 +22,6 @@
 
 (** Sign domain: abstraction of integer numerical values by their signs. *)
 
-include Abstract_value.Internal
+include Abstract_value.Leaf
 
 val pretty_debug: t Pretty_utils.formatter
-
-val sign_key : t Structure.Key_Value.k

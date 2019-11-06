@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of the Frama-C's E-ACSL plug-in.                    #
 #                                                                        #
-#  Copyright (C) 2012-2018                                               #
+#  Copyright (C) 2012-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -57,49 +57,7 @@ Darwin | Linux | DragonFly | FreeBSD | NetBSD | OpenBSD)
 ;;
 esac
 
-# perform additional checks when not compiled
-# directly with main Frama-C distribution
-m4_ifndef([FRAMAC_MAIN_AUTOCONF],
-[
-
 check_plugin_dependencies
-
-# Check Frama-C version
-#######################
-
-AC_MSG_CHECKING(for Frama-C version)
-AC_MSG_RESULT($FRAMAC_VERSION)
-
-VERSION_NUMBER=`echo $FRAMAC_VERSION | sed -n -e 's/[[a-zA-Z]]\+-\([[0-9]]\+\).*/\1/p'`
-EXTRA_VERSION_NUMBER=`echo $FRAMAC_VERSION | sed -n -e 's/[[a-zA-Z]]\+-[[0-9]]\+-\(.*\)/\1/p'`
-REQUIRED_NUMBER=20161101
-REQUIRED_NAME=Silicon
-
-case $FRAMAC_VERSION in
-  $REQUIRED_NAME-$REQUIRED_NUMBER+dev*)
-    # at the time being, must use the Frama-C development version
-    ;;
-#   $REQUIRED_NAME-$REQUIRED_NUMBER*)
-#     if test -n "$EXTRA_VERSION_NUMBER"; then
-#       AC_MSG_WARN(no guarantee of compatibility with your Frama-C custom \
-# version of $REQUIRED_NAME)
-#     fi;;
-  *)
-    if test $VERSION_NUMBER -lt $REQUIRED_NUMBER; then
-      AC_MSG_ERROR(Frama-C version must be at least \
-$REQUIRED_NAME-$REQUIRED_NUMBER.)
-    else
-      if test $VERSION_NUMBER -gt $REQUIRED_NUMBER; then
-        AC_MSG_WARN(Frama-C version is more recent than $REQUIRED_NAME: \
-use it at your own risk)
-      fi
-    fi;;
-esac
-],
-[]) # end of configuration specific to external compilation mode
-
-# no need to continue checking other features if E-ACSL is disabled
-if test "$ENABLE_E_ACSL" != "no"; then
 
 ###############################
 # C specific stuff for E-ACSL #
@@ -130,9 +88,7 @@ AC_OUTPUT(PLUGIN_RELATIVE_PATH(doc/doxygen/doxygen.cfg), [  ])
 # Generating Makefile #
 #######################
 
-AC_SUBST(OPTIMIZED_RTL)
 AC_SUBST(MAY_RUN_TESTS)
-AC_SUBST(OCAMLVERSION)
 
 write_plugin_config(Makefile)
 
@@ -143,5 +99,3 @@ write_plugin_config(Makefile)
 m4_ifndef([plugin_dir], [
   m4_define([plugin_dir],[./])
 ])
-
-fi

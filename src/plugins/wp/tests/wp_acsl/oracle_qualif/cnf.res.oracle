@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/cnf.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -11,14 +11,14 @@
 [wp:cnf] CNF=P_A2
 [wp] [Qed] Goal typed_f_ensures_a2 : Valid
 [wp:cnf] CNF=((not P_A1) \/ P_A2) /\ (P_A1 \/ (not P_A2))
-[wp] [Alt-Ergo] Goal typed_f_ensures_a3 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_a3 : Valid
 [wp:cnf] CNF=((not P_A) \/ P_A1) /\ (P_A \/ P_A2)
-[wp] [Alt-Ergo] Goal typed_f_ensures_a4 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_a4 : Valid
 [wp:cnf] 
   CNF=(P_A \/ P_B) /\ (P_A \/ P_B1) /\ (P_A \/ P_B2) /\ (P_A \/ P_C)
        /\ (P_A1 \/ P_B) /\ (P_A1 \/ P_B1) /\ (P_A1 \/ P_B2) /\ (P_A1 \/ P_C)
        /\ (P_A2 \/ P_B) /\ (P_A2 \/ P_B1) /\ (P_A2 \/ P_B2) /\ (P_A2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_a5 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_a5 : Valid
 [wp:cnf] 
   CNF=(P_A \/ P_A1 \/ P_A2 \/ P_C) /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_C)
        /\ (P_A \/ P_A1 \/ P_A2 \/ P_B1 \/ P_C)
@@ -27,17 +27,15 @@
        /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_C)
        /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B2 \/ P_C)
        /\ (P_A \/ P_A1 \/ P_A2 \/ P_B1 \/ P_B2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_a6 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_a6 : Valid
 [wp:cnf] 
-  CNF=((not P_A) \/ (not P_A1) \/ P_A2 \/ P_C)
-       /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B) \/ P_C)
-       /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B1) \/ P_C)
-       /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ P_B2 \/ P_C)
-       /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B) \/ (not P_B1) \/ P_B2)
-       /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B) \/ (not P_B1) \/ P_C)
-       /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B) \/ P_B2 \/ P_C)
-       /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B1) \/ P_B2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_a7 : Valid
+  CNF=(P_A2 \/ P_C) /\ (P_A2 \/ (not P_B) \/ P_C)
+       /\ (P_A2 \/ (not P_B1) \/ P_C) /\ (P_A2 \/ P_B2 \/ P_C)
+       /\ (P_A2 \/ (not P_B) \/ (not P_B1) \/ P_B2)
+       /\ (P_A2 \/ (not P_B) \/ (not P_B1) \/ P_C)
+       /\ (P_A2 \/ (not P_B) \/ P_B2 \/ P_C)
+       /\ (P_A2 \/ (not P_B1) \/ P_B2 \/ P_C)
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_a7 : Valid
 [wp:cnf] 
   CNF=((not P_A1) \/ P_A2 \/ P_C) /\ (P_A1 \/ (not P_A2) \/ P_C)
        /\ ((not P_A1) \/ P_A2 \/ (not P_B1) \/ P_B2)
@@ -60,7 +58,7 @@
        /\ (P_A1 \/ (not P_A2) \/ (not P_B1) \/ P_B2 \/ P_C)
        /\ (P_A1 \/ (not P_A2) \/ P_B1 \/ (not P_B2) \/ P_C)
        /\ (P_A1 \/ (not P_A2) \/ P_B1 \/ P_B2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_a8 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_a8 : Valid
 [wp:cnf] 
   CNF=((not P_A) \/ P_A1 \/ P_C) /\ (P_A \/ P_A2 \/ P_C)
        /\ ((not P_A) \/ P_A1 \/ (not P_B) \/ P_B1)
@@ -122,17 +120,17 @@
        /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_B2 \/ P_C)
        /\ (P_A \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_B2 \/ P_C)
        /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_B2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_a9 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_a9 : Valid
 [wp:cnf] CNF=P_B /\ P_B1 /\ P_B2 /\ P_C
 [wp] [Qed] Goal typed_f_ensures_b0 : Valid
 [wp:cnf] CNF=P_C /\ (P_B \/ P_B1 \/ P_B2)
 [wp] [Qed] Goal typed_f_ensures_b1 : Valid
 [wp:cnf] CNF=P_C /\ ((not P_B) \/ (not P_B1) \/ P_B2)
-[wp] [Alt-Ergo] Goal typed_f_ensures_b2 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_b2 : Valid
 [wp:cnf] CNF=P_C /\ ((not P_B1) \/ P_B2) /\ (P_B1 \/ (not P_B2))
-[wp] [Alt-Ergo] Goal typed_f_ensures_b3 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_b3 : Valid
 [wp:cnf] CNF=P_C /\ ((not P_B) \/ P_B1) /\ (P_B \/ P_B2)
-[wp] [Alt-Ergo] Goal typed_f_ensures_b4 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_b4 : Valid
 [wp:cnf] CNF=true
 [wp] [Qed] Goal typed_f_ensures_b5 : Valid
 [wp:cnf] CNF=P_B \/ P_B1 \/ P_B2 \/ P_C1
@@ -142,17 +140,17 @@
 [wp:cnf] CNF=true
 [wp] [Qed] Goal typed_f_ensures_b9 : Valid
 [wp:cnf] CNF=(P_B \/ P_C) /\ (P_B1 \/ P_C) /\ (P_B2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_c0 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_c0 : Valid
 [wp:cnf] CNF=P_B \/ P_B1 \/ P_B2 \/ P_C
 [wp] [Qed] Goal typed_f_ensures_c1 : Valid
-[wp:cnf] CNF=(not P_B) \/ (not P_B1) \/ P_B2 \/ P_C
-[wp] [Alt-Ergo] Goal typed_f_ensures_c2 : Valid
+[wp:cnf] CNF=P_B2 \/ P_C
+[wp] [Qed] Goal typed_f_ensures_c2 : Valid
 [wp:cnf] CNF=((not P_B1) \/ P_B2 \/ P_C) /\ (P_B1 \/ (not P_B2) \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_c3 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_c3 : Valid
 [wp:cnf] 
   CNF=((not P_B) \/ P_B1 \/ P_C) /\ (P_B \/ P_B2 \/ P_C)
        /\ ((not P_B) \/ P_B1 \/ P_B2 \/ P_C) /\ (P_B \/ P_B1 \/ P_B2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_c4 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_c4 : Valid
 [wp:cnf] 
   CNF=(P_B \/ (not P_C) \/ (not P_C1)) /\ (P_B \/ P_C \/ P_C1)
        /\ (P_B1 \/ (not P_C) \/ (not P_C1)) /\ (P_B1 \/ P_C \/ P_C1)
@@ -181,7 +179,7 @@
        /\ (P_B \/ (not P_B1) \/ (not P_B2) \/ P_C \/ P_C1)
        /\ (P_B \/ (not P_B1) \/ P_B2 \/ P_C \/ P_C1)
        /\ (P_B \/ P_B1 \/ (not P_B2) \/ P_C \/ P_C1)
-[wp] [Alt-Ergo] Goal typed_f_ensures_c5 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_c5 : Valid
 [wp:cnf] 
   CNF=((not P_B) \/ P_C1) /\ ((not P_B1) \/ P_C1) /\ ((not P_B2) \/ P_C1)
        /\ ((not P_B) \/ (not P_B1) \/ P_C1)
@@ -208,7 +206,7 @@
        /\ (P_B \/ P_B1 \/ (not P_B2) \/ (not P_C) \/ P_C1)
        /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C) \/ (not P_C1))
        /\ (P_B \/ P_B1 \/ P_B2 \/ P_C \/ P_C1)
-[wp] [Alt-Ergo] Goal typed_f_ensures_c6 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_c6 : Valid
 [wp:cnf] 
   CNF=((not P_B2) \/ P_C1) /\ (P_B \/ P_C1) /\ (P_B1 \/ P_C1)
        /\ ((not P_B) \/ (not P_B2) \/ P_C1) /\ ((not P_B) \/ P_B1 \/ P_C1)
@@ -234,79 +232,79 @@
        /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ P_C \/ P_C1)
        /\ ((not P_B) \/ P_B1 \/ P_B2 \/ (not P_C) \/ P_C1)
        /\ (P_B \/ (not P_B1) \/ P_B2 \/ (not P_C) \/ P_C1)
-[wp] [Alt-Ergo] Goal typed_f_ensures_c7 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_c7 : Valid
 [wp:cnf] Too big CNF/DNF
 [wp:cnf] 
   CNF=((P_C \/ (P_B2 <-> P_B1)) -> ((P_B2 <-> P_B1) <-> P_C1))
        /\ (((P_B2 <-> P_B1) <-> P_C1) -> (P_C \/ (P_B2 <-> P_B1)))
-[wp] [Alt-Ergo] Goal typed_f_ensures_c8 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_c8 : Valid
 [wp:cnf] Too big CNF/DNF
 [wp:cnf] 
   CNF=((P_C \/ ((P_B -> P_B1) /\ ((not P_B) -> P_B2)))
         -> ((P_B2 <-> P_B1) <-> P_C1))
        /\ (((P_B2 <-> P_B1) <-> P_C1)
            -> (P_C \/ ((P_B -> P_B1) /\ ((not P_B) -> P_B2))))
-[wp] [Alt-Ergo] Goal typed_f_ensures_c9 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_c9 : Valid
 [wp:cnf] 
   CNF=(P_B \/ (not P_C)) /\ (P_B1 \/ (not P_C)) /\ (P_B2 \/ (not P_C))
        /\ ((not P_B) \/ (not P_B1) \/ (not P_B2) \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_d0 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d0 : Valid
 [wp:cnf] 
   CNF=((not P_B) \/ P_C) /\ ((not P_B1) \/ P_C) /\ ((not P_B2) \/ P_C)
        /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C))
-[wp] [Alt-Ergo] Goal typed_f_ensures_d1 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d1 : Valid
 [wp:cnf] 
   CNF=((not P_B2) \/ P_C) /\ (P_B \/ P_C) /\ (P_B1 \/ P_C)
        /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ (not P_C))
-[wp] [Alt-Ergo] Goal typed_f_ensures_d2 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d2 : Valid
 [wp:cnf] 
   CNF=((not P_B1) \/ (not P_B2) \/ P_C) /\ ((not P_B1) \/ P_B2 \/ (not P_C))
        /\ (P_B1 \/ (not P_B2) \/ (not P_C)) /\ (P_B1 \/ P_B2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_d3 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d3 : Valid
 [wp:cnf] 
   CNF=((not P_B) \/ (not P_B1) \/ P_C) /\ ((not P_B) \/ P_B1 \/ (not P_C))
        /\ ((not P_B1) \/ (not P_B2) \/ P_C) /\ (P_B \/ (not P_B2) \/ P_C)
        /\ (P_B \/ P_B2 \/ (not P_C))
        /\ ((not P_B) \/ P_B1 \/ P_B2 \/ (not P_C))
        /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C))
-[wp] [Alt-Ergo] Goal typed_f_ensures_d4 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d4 : Valid
 [wp:cnf] 
   CNF=((not P_B1) \/ P_B2) /\ (P_B \/ (not P_B1)) /\ (P_B \/ (not P_B2))
        /\ (P_B \/ (not P_C)) /\ (P_B1 \/ (not P_B2)) /\ (P_B1 \/ (not P_C))
        /\ (P_B2 \/ (not P_C))
-[wp] [Alt-Ergo] Goal typed_f_ensures_d5 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d5 : Valid
 [wp:cnf] 
   CNF=((not P_B) \/ P_B1 \/ P_B2 \/ P_C) /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C))
-[wp] [Alt-Ergo] Goal typed_f_ensures_d6 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d6 : Valid
 [wp:cnf] 
   CNF=((not P_B) \/ (not P_B1) \/ P_B2) /\ (P_B1 \/ P_B2 \/ P_C)
        /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ (not P_C))
        /\ (P_B \/ P_B1 \/ P_B2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_d7 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d7 : Valid
 [wp:cnf] 
   CNF=((not P_B1) \/ P_B2) /\ (P_B1 \/ (not P_B2))
        /\ ((not P_B1) \/ P_B2 \/ (not P_C))
        /\ (P_B1 \/ (not P_B2) \/ (not P_C)) /\ (P_B1 \/ P_B2 \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_d8 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d8 : Valid
 [wp:cnf] 
   CNF=((not P_B) \/ P_B1 \/ (not P_B2)) /\ ((not P_B) \/ P_B1 \/ (not P_C))
        /\ (P_B \/ (not P_B1) \/ P_B2) /\ (P_B \/ P_B2 \/ (not P_C))
        /\ ((not P_B) \/ P_B1 \/ P_B2 \/ (not P_C))
        /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C))
-[wp] [Alt-Ergo] Goal typed_f_ensures_d9 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_d9 : Valid
 [wp:cnf] CNF=P_A /\ ((not P_B) \/ P_C) /\ ((not P_A) \/ (not P_B) \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_e0 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_e0 : Valid
 [wp:cnf] CNF=P_B /\ ((not P_B) \/ P_C) /\ ((not P_A) \/ (not P_B) \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_e1 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_e1 : Valid
 [wp:cnf] CNF=P_C /\ ((not P_B) \/ P_C) /\ ((not P_A) \/ (not P_B) \/ P_C)
-[wp] [Alt-Ergo] Goal typed_f_ensures_e2 : Valid
+[wp] [Why:Alt-Ergo,2.0.0] Goal typed_f_ensures_e2 : Valid
 [wp] Proved goals:   43 / 43
-  Qed:            11 
-  Alt-Ergo:       32
+  Qed:              12 
+  Alt-Ergo 2.0.0:   31
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/cnf.0.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/cnf.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-f                   11     32 (336..384)    43       100%
+f                   12     31 (168..192)    43       100%
 -------------------------------------------------------------
 [wp] Logging keys: success-only,shell,cnf.

@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp/wp_call_pre.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -13,14 +13,14 @@
 [wp] [Qed] Goal typed_call_main_ensures_qed_ok : Valid
 [wp] [Qed] Goal typed_call_main_call_main_requires_qed_ok_Rmain : Valid
 [wp] [Qed] Goal typed_double_call_call_f_requires_qed_ok_Rf : Valid
-[wp] [Alt-Ergo] Goal typed_double_call_call_f_2_requires_qed_ok_Rf : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_double_call_call_f_2_requires_qed_ok_Rf : Valid
 [wp] [Qed] Goal typed_main_requires_qed_ok_Rmain : Valid
 [wp] [Qed] Goal typed_main_ensures_qed_ok_Emain : Valid
 [wp] [Qed] Goal typed_main_call_f_requires_qed_ok_Rf : Valid
 [wp] [Qed] Goal typed_stmt_pre_requires_qed_ok_Rstmt : Valid
 [wp] Proved goals:   10 / 10
-  Qed:             9 
-  Alt-Ergo:        1
+  Qed:               9 
+  Alt-Ergo 2.0.0:    1
 [wp] Report in:  'tests/wp/oracle_qualif/wp_call_pre.0.report.json'
 [wp] Report out: 'tests/wp/result_qualif/wp_call_pre.0.report.json'
 -------------------------------------------------------------

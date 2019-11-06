@@ -210,33 +210,33 @@ let pp_active fmt active =
     (Datatype.String.Set.elements active)
 
 let pp_capitalize fmt s =
-  Format.pp_print_string fmt (Transitioning.String.capitalize_ascii s)
+  Format.pp_print_string fmt (String.capitalize_ascii s)
 
-let pp_acsl_extension fmt (_,s,_,_,_) = pp_capitalize fmt s
+let pp_acsl_extension fmt {ext_name} = pp_capitalize fmt ext_name
 
 let rec pp_prop kfopt kiopt kloc fmt = function
-  | IPAxiom (s,_,_,_,_) -> Format.fprintf fmt "Axiom '%s'" s
-  | IPLemma (s,_,_,_,_) -> Format.fprintf fmt "Lemma '%s'" s
-  | IPTypeInvariant (s,_,_,_) -> Format.fprintf fmt "Type invariant '%s'" s
-  | IPGlobalInvariant (s,_,_) -> Format.fprintf fmt "Global invariant '%s'" s
-  | IPAxiomatic (s,_) -> Format.fprintf fmt "Axiomatic '%s'" s
-  | IPOther(s,le) ->
+  | IPAxiom {il_name=s} -> Format.fprintf fmt "Axiom '%s'" s
+  | IPLemma {il_name=s} -> Format.fprintf fmt "Lemma '%s'" s
+  | IPTypeInvariant {iti_name=s} -> Format.fprintf fmt "Type invariant '%s'" s
+  | IPGlobalInvariant {igi_name=s} -> Format.fprintf fmt "Global invariant '%s'" s
+  | IPAxiomatic {iax_name=s} -> Format.fprintf fmt "Axiomatic '%s'" s
+  | IPOther {io_name=s;io_loc=le} ->
     Format.fprintf fmt "%a%a" pp_capitalize s (pp_other_loc kfopt kiopt kloc) le
-  | IPPredicate(kind,kf,Kglobal,idpred) ->
+  | IPPredicate {ip_kind; ip_kf; ip_kinstr=Kglobal; ip_pred} ->
     Format.fprintf fmt "%a%a%a"
-      pp_predicate kind
-      (pp_idpred kloc) idpred
-      (pp_context kfopt) (Some kf)
-  | IPPredicate(kind,_,ki,idpred) ->
+      pp_predicate ip_kind
+      (pp_idpred kloc) ip_pred
+      (pp_context kfopt) (Some ip_kf)
+  | IPPredicate {ip_kind; ip_kinstr; ip_pred} ->
     Format.fprintf fmt "%a%a%a"
-      pp_predicate kind
-      (pp_idpred kloc) idpred
-      (pp_kinstr kloc) ki
-  | IPExtended(le,(_,_,loc,_,_ as ext)) ->
+      pp_predicate ip_kind
+      (pp_idpred kloc) ip_pred
+      (pp_kinstr kloc) ip_kinstr
+  | IPExtended {ie_loc=le; ie_ext=ext} ->
     Format.fprintf fmt "%a%a"
       pp_acsl_extension ext
-      (pp_extended_loc kfopt kiopt kloc) (loc,le)
-  | IPBehavior(_,ki, active, bhv) ->
+      (pp_extended_loc kfopt kiopt kloc) (ext.ext_loc,le)
+  | IPBehavior {ib_kinstr=ki; ib_active=active; ib_bhv=bhv} ->
     if Cil.is_default_behavior bhv then
       Format.fprintf fmt "Default behavior%a%a"
         (pp_opt kiopt (pp_kinstr kloc)) ki (pp_opt kiopt pp_active) active
@@ -244,100 +244,104 @@ let rec pp_prop kfopt kiopt kloc fmt = function
       Format.fprintf fmt "Behavior '%s'%a"
         bhv.b_name
         (pp_opt kiopt (pp_kinstr kloc)) ki
-  | IPComplete(_,ki,active, bs) ->
+  | IPComplete {ic_kinstr; ic_active; ic_bhvs} ->
     Format.fprintf fmt "Complete behaviors%a%a%a"
-      pp_bhvs bs
-      (pp_opt kiopt (pp_kinstr kloc)) ki (pp_opt kiopt pp_active) active
-  | IPDisjoint(_,ki,active, bs) ->
+      pp_bhvs ic_bhvs
+      (pp_opt kiopt (pp_kinstr kloc)) ic_kinstr (pp_opt kiopt pp_active) ic_active
+  | IPDisjoint {ic_kinstr; ic_active; ic_bhvs} ->
     Format.fprintf fmt "Disjoint behaviors%a%a%a"
-      pp_bhvs bs
-      (pp_opt kiopt (pp_kinstr kloc)) ki
-      (pp_opt kiopt pp_active) active
-  | IPCodeAnnot(_,_,{annot_content=AAssert(bs,Assert,np)}) ->
+      pp_bhvs ic_bhvs
+      (pp_opt kiopt (pp_kinstr kloc)) ic_kinstr
+      (pp_opt kiopt pp_active) ic_active
+  | IPCodeAnnot {ica_ca={annot_content=AAssert(bs,Assert,np)}} ->
     Format.fprintf fmt "Assertion%a%a%a"
       pp_for bs
       pp_named np
       (pp_kloc kloc) np.pred_loc
-  | IPCodeAnnot(_,_,{annot_content=AAssert(bs,Check,np)}) ->
+  | IPCodeAnnot {ica_ca={annot_content=AAssert(bs,Check,np)}} ->
     Format.fprintf fmt "Check%a%a%a"
       pp_for bs
       pp_named np
       (pp_kloc kloc) np.pred_loc
-  | IPCodeAnnot(_,_,{annot_content=AInvariant(bs,_,np)}) ->
+  | IPCodeAnnot {ica_ca={annot_content=AInvariant(bs,_,np)}} ->
     Format.fprintf fmt "Invariant%a%a%a"
       pp_for bs
       pp_named np
       (pp_kloc kloc) np.pred_loc
-  | IPCodeAnnot(_,stmt,{annot_content=AExtended(bs,_,(_,clause,_,_,_))}) ->
+  | IPCodeAnnot {ica_ca={annot_content=AExtended(bs,_,{ext_name})};ica_stmt} ->
     Format.fprintf fmt "%a%a %a"
-      pp_capitalize clause pp_for bs (pp_stmt kloc) stmt
-  | IPCodeAnnot(_,stmt,_) ->
-    Format.fprintf fmt "Annotation %a" (pp_stmt kloc) stmt
-  | IPAllocation(kf,Kglobal,Id_contract (_,bhv),(frees,allocates)) ->
+      pp_capitalize ext_name pp_for bs (pp_stmt kloc) ica_stmt
+  | IPCodeAnnot {ica_stmt} ->
+    Format.fprintf fmt "Annotation %a" (pp_stmt kloc) ica_stmt
+  | IPAllocation {ial_kf; ial_kinstr=Kglobal; ial_bhv=Id_contract (_,bhv);
+                  ial_allocs = (frees, allocates)} ->
     Format.fprintf fmt "Frees/Allocates%a %a/%a %a"
       pp_bhv bhv
       (pp_allocation kloc) frees
       (pp_allocation kloc) allocates
-      (pp_context kfopt) (Some kf)
-  | IPAssigns(kf,Kglobal,Id_contract(_, bhv),region) ->
+      (pp_context kfopt) (Some ial_kf)
+  | IPAssigns {ias_kf; ias_kinstr=Kglobal; ias_bhv=Id_contract (_,bhv);
+               ias_froms = region} ->
     Format.fprintf fmt "Assigns%a %a%a"
       pp_bhv bhv
       (pp_region kloc) region
-      (pp_context kfopt) (Some kf)
-  | IPFrom (kf,Kglobal,Id_contract(_,bhv),depend) ->
+      (pp_context kfopt) (Some ias_kf)
+  | IPFrom {if_kf; if_kinstr=Kglobal; if_bhv=Id_contract (_,bhv);
+            if_from = depend} ->
     Format.fprintf fmt "Froms%a %a%a"
       pp_bhv bhv
       (pp_region kloc) [depend]
-      (pp_context kfopt) (Some kf)
-  | IPAllocation(_,ki,Id_contract (active,bhv),(frees,allocates)) ->
+      (pp_context kfopt) (Some if_kf)
+  | IPAllocation {ial_kinstr; ial_bhv=Id_contract (active,bhv);
+                  ial_allocs = (frees, allocates)} ->
     Format.fprintf fmt "Frees/Allocates%a %a/%a %a%a"
       pp_bhv bhv
       (pp_allocation kloc) frees
       (pp_allocation kloc) allocates
-      (pp_opt kiopt (pp_kinstr kloc)) ki
+      (pp_opt kiopt (pp_kinstr kloc)) ial_kinstr
       (pp_opt kiopt pp_active) active
-  | IPAssigns(_,ki,Id_contract (active,bhv),region) ->
+  | IPAssigns {ias_kinstr; ias_bhv=Id_contract (active,bhv); ias_froms = region} ->
     Format.fprintf fmt "Assigns%a %a%a%a"
       pp_bhv bhv
       (pp_region kloc) region
-      (pp_opt kiopt (pp_kinstr kloc)) ki
+      (pp_opt kiopt (pp_kinstr kloc)) ias_kinstr
       (pp_opt kiopt pp_active) active
-  | IPFrom (_,ki,Id_contract (active,bhv),depend) ->
+  | IPFrom {if_kinstr; if_bhv=Id_contract (active,bhv); if_from = depend} ->
     Format.fprintf fmt "Froms%a %a%a%a"
       pp_bhv bhv
       (pp_region kloc) [depend]
-      (pp_opt kiopt (pp_kinstr kloc)) ki
+      (pp_opt kiopt (pp_kinstr kloc)) if_kinstr
       (pp_opt kiopt pp_active) active
-  | IPAllocation(_,_,Id_loop _,(frees,allocates)) ->
+  | IPAllocation {ial_bhv=Id_loop _; ial_allocs = (frees, allocates)} ->
     Format.fprintf fmt "Loop frees%a Loop allocates%a"
       (pp_allocation kloc) frees
       (pp_allocation kloc) allocates
-  | IPAssigns(_,_,Id_loop _,region) ->
+  | IPAssigns {ias_bhv = Id_loop _; ias_froms = region} ->
     Format.fprintf fmt "Loop assigns %a" (pp_region kloc) region
-  | IPFrom(_,_,Id_loop _,depend) ->
+  | IPFrom {if_bhv = Id_loop _; if_from = depend} ->
     Format.fprintf fmt "Loop froms %a" (pp_region kloc) [depend]
-  | IPDecrease(_,Kglobal,_,_) ->
+  | IPDecrease {id_kinstr = Kglobal} ->
     Format.fprintf fmt "Recursion variant"
-  | IPDecrease(_,Kstmt stmt,_,_) ->
+  | IPDecrease {id_kinstr = Kstmt stmt} ->
     Format.fprintf fmt "Loop variant at %a" (pp_stmt kloc) stmt
-  | IPReachable (None, Kglobal, Before) ->
+  | IPReachable {ir_kf=None; ir_kinstr=Kglobal; ir_program_point = Before} ->
     (* print "Unreachable": it seems that it is what the user want to see *)
     Format.fprintf fmt "Unreachable entry point"
-  | IPReachable (None, Kglobal, After)
-  | IPReachable (None, Kstmt _, _) -> assert false
-  | IPReachable (Some _, Kstmt stmt, ba) ->
+  | IPReachable {ir_kf=None; ir_kinstr=Kglobal; ir_program_point = After}
+  | IPReachable {ir_kf=None; ir_kinstr=Kstmt _} -> assert false
+  | IPReachable {ir_kf=Some _; ir_kinstr=Kstmt stmt;  ir_program_point=ba} ->
     (* print "Unreachable": it seems that it is what the user want to see *)
     Format.fprintf fmt "Unreachable %a%s"
       (pp_stmt kloc) stmt
       (match ba with Before -> "" | After -> " (after it)")
-  | IPReachable (Some kf, Kglobal, _) ->
+  | IPReachable {ir_kf=Some kf; ir_kinstr=Kglobal} ->
     (* print "Unreachable": it seems that it is what the user want to see *)
     Format.fprintf fmt "Unreachable %a" Kernel_function.pretty kf
-  | IPPropertyInstance (kf, stmt, _, ip) ->
+  | IPPropertyInstance {ii_kf; ii_stmt; ii_ip} ->
     Format.fprintf fmt "Instance of '%a'%a%a@."
-      (pp_prop kfopt kiopt kloc) ip
-      (pp_context kfopt) (Some kf)
-      (pp_opt kiopt (pp_kinstr kloc)) (Kstmt stmt)
+      (pp_prop kfopt kiopt kloc) ii_ip
+      (pp_context kfopt) (Some ii_kf)
+      (pp_opt kiopt (pp_kinstr kloc)) (Kstmt ii_stmt)
 
 
 
@@ -375,18 +379,19 @@ let property_kind_and_node property =
   let default kind = Some (kind, to_string Property.pretty property) in
   let open Property in
   match property with
-  | IPCodeAnnot (_kf, _stmt, code_annot) -> code_annot_kind_and_node code_annot
-  | IPPredicate (kind, _kf, _, p) ->
-    let kind = match kind with
+  | IPCodeAnnot {ica_ca} -> code_annot_kind_and_node ica_ca
+  | IPPredicate {ip_kind; ip_pred} ->
+    let kind = match ip_kind with
       | PKRequires _ -> "precondition"
       | PKAssumes _  -> "behavior assumption"
       | PKEnsures _  -> "postcondition"
       | PKTerminates -> "termination clause"
     in
-    Some (kind, to_string Printer.pp_identified_predicate p)
-  | IPPropertyInstance (_, _, _, IPPredicate (PKRequires _, kf', Kglobal, p)) ->
-    let kind = "precondition of " ^ Kernel_function.get_name kf' in
-    Some (kind, to_string Printer.pp_identified_predicate p)
+    Some (kind, to_string Printer.pp_identified_predicate ip_pred)
+  | IPPropertyInstance {ii_ip=IPPredicate {ip_kind=PKRequires _; ip_kf;
+                                           ip_kinstr=Kglobal; ip_pred}} ->
+    let kind = "precondition of " ^ Kernel_function.get_name ip_kf in
+    Some (kind, to_string Printer.pp_identified_predicate ip_pred)
   | IPAssigns _  -> default "assigns clause"
   | IPFrom _     -> default "from clause"
   | IPComplete _ -> default "complete behaviors"
@@ -478,30 +483,40 @@ let loop_order = function
   | Id_loop _ -> []
 
 let rec ip_order = function
-  | IPAxiomatic(a,_) -> [I 0;S a]
-  | IPAxiom(a,_,_,_,_) | IPLemma(a,_,_,_,_) -> [I 1;S a]
-  | IPOther(s,OLContract kf) -> [I 3;F kf;S s]
-  | IPOther(s,OLStmt (kf, stmt)) -> [I 4;F kf;K (Kstmt stmt);S s]
-  | IPOther (s, OLGlob _) -> [I 5; S s]
-  | IPBehavior(kf,ki,a,bhv) -> [I 6;F kf;K ki;B bhv; A a]
-  | IPComplete(kf,ki,a,bs) -> [I 7;F kf;K ki; A a] @ for_order 0 bs
-  | IPDisjoint(kf,ki,a, bs) -> [I 8;F kf;K ki; A a] @ for_order 0 bs
-  | IPPredicate(kind,kf,ki,_) -> [I 9;F kf;K ki] @ kind_order kind
-  | IPCodeAnnot(kf,st,a) -> [I 10;F kf;K(Kstmt st)] @ annot_order a
-  | IPAllocation(kf,ki,ib,_) -> [I 11;F kf;K ki] @ loop_order ib
-  | IPAssigns(kf,ki,ib,_) -> [I 12;F kf;K ki] @ loop_order ib
-  | IPFrom (kf,ki,ib,_) -> [I 13;F kf;K ki] @ loop_order ib
-  | IPDecrease(kf,ki,None,_) -> [I 14;F kf;K ki]
-  | IPDecrease(kf,ki,Some a,_) -> [I 15;F kf;K ki] @ annot_order a
-  | IPReachable(None,_,_) -> [I 16]
-  | IPReachable(Some kf,ki,_) -> [I 17;F kf;K ki]
-  | IPPropertyInstance (kf, s, _, ip) -> [I 18; F kf; K (Kstmt s)] @ ip_order ip
-  | IPTypeInvariant(a,_,_,_) -> [I 19; S a]
-  | IPGlobalInvariant(a,_,_) -> [I 20; S a]
-  | IPExtended(ELContract kf,(_,n,_,_,_)) -> [I 21;F kf; S n]
-  | IPExtended(ELStmt (kf, stmt), (_,n,_,_,_)) ->
-    [ I 22; F kf; K (Kstmt stmt); S n]
-  | IPExtended(ELGlob, (_,n,_,_,_)) -> [ I 23; S n]
+  | IPAxiomatic {iax_name=a} -> [I 0;S a]
+  | IPAxiom {il_name=a} | IPLemma {il_name=a} -> [I 1;S a]
+  | IPOther {io_name=s;io_loc=OLContract kf} -> [I 3;F kf;S s]
+  | IPOther {io_name=s;io_loc=OLStmt (kf, stmt)} -> [I 4;F kf;K (Kstmt stmt);S s]
+  | IPOther {io_name=s;io_loc=OLGlob _} -> [I 5; S s]
+  | IPBehavior {ib_kf;ib_kinstr;ib_active;ib_bhv} ->
+    [I 6;F ib_kf;K ib_kinstr;B ib_bhv; A ib_active]
+  | IPComplete {ic_kf;ic_kinstr;ic_active;ic_bhvs} ->
+    [I 7;F ic_kf;K ic_kinstr; A ic_active] @ for_order 0 ic_bhvs
+  | IPDisjoint {ic_kf;ic_kinstr;ic_active;ic_bhvs} ->
+    [I 8;F ic_kf;K ic_kinstr; A ic_active] @ for_order 0 ic_bhvs
+  | IPPredicate {ip_kind;ip_kf;ip_kinstr} ->
+    [I 9;F ip_kf;K ip_kinstr] @ kind_order ip_kind
+  | IPCodeAnnot {ica_kf;ica_stmt;ica_ca} ->
+    [I 10;F ica_kf;K(Kstmt ica_stmt)] @ annot_order ica_ca
+  | IPAllocation {ial_kf;ial_kinstr;ial_bhv} ->
+    [I 11;F ial_kf;K ial_kinstr] @ loop_order ial_bhv
+  | IPAssigns {ias_kf; ias_kinstr; ias_bhv} ->
+    [I 12;F ias_kf;K ias_kinstr] @ loop_order ias_bhv
+  | IPFrom {if_kf;if_kinstr;if_bhv} ->
+    [I 13;F if_kf;K if_kinstr] @ loop_order if_bhv
+  | IPDecrease {id_kf;id_kinstr;id_ca=None} -> [I 14;F id_kf;K id_kinstr]
+  | IPDecrease {id_kf;id_kinstr;id_ca=Some a} ->
+    [I 15;F id_kf;K id_kinstr] @ annot_order a
+  | IPReachable {ir_kf=None} -> [I 16]
+  | IPReachable {ir_kf=Some kf; ir_kinstr} -> [I 17;F kf;K ir_kinstr]
+  | IPPropertyInstance {ii_kf; ii_stmt; ii_ip} ->
+    [I 18; F ii_kf; K (Kstmt ii_stmt)] @ ip_order ii_ip
+  | IPTypeInvariant {iti_name=a} -> [I 19; S a]
+  | IPGlobalInvariant {igi_name=a} -> [I 20; S a]
+  | IPExtended {ie_loc=ELContract kf;ie_ext={ext_name}} -> [I 21;F kf; S ext_name]
+  | IPExtended {ie_loc=ELStmt (kf, stmt);ie_ext={ext_name}} ->
+    [ I 22; F kf; K (Kstmt stmt); S ext_name]
+  | IPExtended {ie_loc=ELGlob; ie_ext={ext_name}} -> [ I 23; S ext_name]
 
 let pp_compare p q = cmp (ip_order p) (ip_order q)
 

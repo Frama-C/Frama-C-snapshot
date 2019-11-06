@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/struct_hack.i (no preprocessing)
 [kernel] tests/wp_plugin/struct_hack.i:46: Warning: 
   parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
@@ -10,23 +10,23 @@
 [wp] tests/wp_plugin/struct_hack.i:53: Warning: 
   Missing assigns clause (assigns 'everything' instead)
 [wp] 10 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f0_loop_invariant_qed_ok_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f0_loop_invariant_qed_ok_preserved : Valid
 [wp] [Qed] Goal typed_f0_loop_invariant_qed_ok_established : Valid
-[wp] [Alt-Ergo] Goal typed_f0_assert_qed_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f0_assert_qed_ok : Valid
 [wp] [Qed] Goal typed_f0_loop_variant_decrease : Valid
 [wp] [Qed] Goal typed_f0_loop_variant_positive : Valid
-[wp] [Alt-Ergo] Goal typed_f1_loop_invariant_qed_ok_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f1_loop_invariant_qed_ok_preserved : Valid
 [wp] [Qed] Goal typed_f1_loop_invariant_qed_ok_established : Valid
-[wp] [Alt-Ergo] Goal typed_f1_assert_qed_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f1_assert_qed_ok : Valid
 [wp] [Qed] Goal typed_f1_loop_variant_decrease : Valid
 [wp] [Qed] Goal typed_f1_loop_variant_positive : Valid
 [wp] Proved goals:   10 / 10
-  Qed:             6 
-  Alt-Ergo:        4
+  Qed:               6 
+  Alt-Ergo 2.0.0:    4
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/struct_hack.0.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/struct_hack.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-f0                   3      2 (24..36)       5       100%
-f1                   3      2 (16..28)       5       100%
+f0                   3      2 (20..32)       5       100%
+f1                   3      2 (12..24)       5       100%
 -------------------------------------------------------------

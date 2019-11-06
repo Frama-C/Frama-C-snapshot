@@ -126,30 +126,6 @@ endif
 
 GENERATED+= src/libraries/utils/json.ml src/libraries/stdlib/transitioning.ml
 
-ifeq ($(HAS_OCAML403),yes)
-  STACK_FOLD=Stack.fold
-else
-  STACK_FOLD=stack_fold
-endif
-
-ifeq ($(HAS_OCAML404),yes)
-  SPLIT_ON_CHAR=String.split_on_char
-else
-  SPLIT_ON_CHAR=split_on_char
-endif
-
-ifeq ($(HAS_OCAML405),yes)
-  NTH_OPT=List.nth_opt
-  FIND_OPT=List.find_opt
-  ASSOC_OPT=List.assoc_opt
-  ASSQ_OPT=List.assq_opt
-else
-  NTH_OPT=nth_opt
-  FIND_OPT=find_opt
-  ASSOC_OPT=assoc_opt
-  ASSQ_OPT=assq_opt
-endif
-
 ifeq ($(HAS_OCAML408),yes)
   DYNLINK_INIT=fun () -> ()
   FORMAT_STAG=stag
@@ -157,11 +133,23 @@ ifeq ($(HAS_OCAML408),yes)
         Format.String_tag str -> str \
       | _ -> raise (Invalid_argument "unsupported tag extension")
   FORMAT_STAG_OF_STRING=Format.String_tag s
+  HAS_OCAML407_OR_408=yes
 else
   DYNLINK_INIT=Dynlink.init
   FORMAT_STAG=tag
   FORMAT_STRING_OF_STAG=s
   FORMAT_STAG_OF_STRING=s
+  ifeq ($(HAS_OCAML407),yes)
+    HAS_OCAML407_OR_408=yes
+  else
+    HAS_OCAML407_OR_408=no
+  endif
+endif
+
+ifeq ($(HAS_OCAML407_OR_408),yes)
+  FLOAT_MAX_FLOAT=Float.max_float
+else
+  FLOAT_MAX_FLOAT=Pervasives.max_float
 endif
 
 src/libraries/stdlib/transitioning.ml: \
@@ -177,6 +165,7 @@ src/libraries/stdlib/transitioning.ml: \
          -e 's/@ASSOC_OPT@/$(ASSOC_OPT)/g' \
          -e 's/@ASSQ_OPT@/$(ASSQ_OPT)/g' \
          -e 's/@DYNLINK_INIT@/$(DYNLINK_INIT)/g' \
+         -e 's/@FLOAT_MAX_FLOAT@/$(FLOAT_MAX_FLOAT)/g' \
          -e 's/@FORMAT_STAG@/$(FORMAT_STAG)/g' \
          -e 's/@FORMAT_STRING_OF_STAG@/$(FORMAT_STRING_OF_STAG)/g' \
          -e 's/@FORMAT_STAG_OF_STRING@/$(FORMAT_STAG_OF_STRING)/g' \

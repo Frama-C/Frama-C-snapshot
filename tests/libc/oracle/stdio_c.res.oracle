@@ -17,18 +17,26 @@
 [eva] computing for function ferror <- getline <- main.
   Called from share/libc/stdio.c:46.
 [eva] using specification for function ferror
+[eva] share/libc/stdio.c:46: 
+  function ferror: precondition 'valid_stream' got status valid.
 [eva] Done for function ferror
 [eva] computing for function feof <- getline <- main.
   Called from share/libc/stdio.c:46.
 [eva] using specification for function feof
+[eva] share/libc/stdio.c:46: 
+  function feof: precondition 'valid_stream' got status valid.
 [eva] Done for function feof
 [eva] share/libc/stdio.c:51: Call to builtin malloc
 [eva] share/libc/stdio.c:51: allocating variable __malloc_getline_l51
 [eva] computing for function ferror <- getline <- main.
   Called from share/libc/stdio.c:60.
+[eva] share/libc/stdio.c:60: 
+  function ferror: precondition 'valid_stream' got status valid.
 [eva] Done for function ferror
 [eva] computing for function feof <- getline <- main.
   Called from share/libc/stdio.c:60.
+[eva] share/libc/stdio.c:60: 
+  function feof: precondition 'valid_stream' got status valid.
 [eva] Done for function feof
 [eva] computing for function fgetc <- getline <- main.
   Called from share/libc/stdio.c:62.

@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_typed/unit_loopscope.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -7,10 +7,10 @@
   Missing assigns clause (assigns 'everything' instead)
 [wp] 2 goals scheduled
 [wp] [Qed] Goal typed_f_loop_invariant_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_f_loop_invariant_established : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_loop_invariant_established : Unsuccess
 [wp] Proved goals:    1 / 2
-  Qed:             1 
-  Alt-Ergo:        0  (unsuccess: 1)
+  Qed:               1 
+  Alt-Ergo 2.0.0:    0  (unsuccess: 1)
 [wp] Report in:  'tests/wp_typed/oracle_qualif/unit_loopscope.0.report.json'
 [wp] Report out: 'tests/wp_typed/result_qualif/unit_loopscope.0.report.json'
 -------------------------------------------------------------

@@ -269,9 +269,9 @@ let is_between b s1 s2 s3 =
       Kernel.fatal
         "Unexpected end of block while looking for %a"
         Cil_printer.pp_stmt s3
+    | s :: _ when Cil_datatype.Stmt.equal s s3 -> false
     | s :: l when Cil_datatype.Stmt.equal s s1 -> aux true l
     | s :: _ when Cil_datatype.Stmt.equal s s2 -> has_s1
-    | s :: _ when Cil_datatype.Stmt.equal s s3 -> false
     | _ :: l -> aux has_s1 l
   in
   aux false b.bstmts
@@ -513,10 +513,41 @@ let find_syntactic_callsites kf =
   try CallSites.find table kf
   with Not_found -> []
 
+let local_definition kf vi =
+  let locals = get_locals kf in
+  if not vi.vdefined ||
+     not (List.exists (fun vi' -> Cil_datatype.Varinfo.equal vi vi') locals)
+  then
+    Kernel.fatal
+      "%a is not a defined local variable of %a"
+      Cil_datatype.Varinfo.pretty vi pretty kf;
+  try
+    List.find
+      (fun s ->
+         match s.skind with
+         | Instr (Local_init (vi', _, _)) -> Cil_datatype.Varinfo.equal vi vi'
+         | _ -> false)
+      (get_definition kf).sallstmts
+  with Not_found -> assert false (* cannot occur on well-formed AST. *)
+
 let var_is_in_scope stmt vi =
   let blocks = find_all_enclosing_blocks stmt in
+  let is_def_above b =
+    let sdef = local_definition (find_englobing_kf stmt) vi in
+    match b.bstmts with
+    | [] -> assert false (* at least contains stmt *)
+    | sfst :: _ ->
+      (* if sfst is sdef (or an unspecified sequence containing sdef), it
+         is necessarily above stmt. Otherwise, we can rely on is_between to
+         check that. *)
+      Cil_datatype.Stmt.equal sfst (find_enclosing_stmt_in_block b sdef) ||
+      is_between b sfst sdef stmt
+  in
   List.exists
-    (fun b -> List.exists (Cil_datatype.Varinfo.equal vi) b.blocals)
+    (fun b ->
+       List.exists (Cil_datatype.Varinfo.equal vi) b.blocals &&
+       (not vi.vdefined || is_def_above b)
+    )
     blocks
 
 (* ************************************************************************* *)

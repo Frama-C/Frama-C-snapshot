@@ -103,9 +103,9 @@ let reduce_by_initialized_defined f loc state =
         (* il and ih are the bounds of the interval to reduce.
            We change the initialized flags in the following cases:
            - either we overwrite entire values, or the partly overwritten
-           value is at the beginning or at the end of the subrange
+             value is at the beginning or at the end of the subrange
            - or we do not lose information on misaligned or partial values:
-           the result is a singleton *)
+             the result is a singleton *)
         if V_Or_Uninitialized.(cardinal_zero_or_one v' || is_isotropic v') ||
            ((Int.equal offl il || Int.equal (Int.e_rem ll modu) abs_shift) &&
             (Int.equal offh ih ||

@@ -122,9 +122,8 @@ module Internal = struct
   type state = t
 
   let name = "Equality domain"
-  let key = Structure.Key_Domain.create_key "equality_domain"
-  let structure : t Abstract_domain.structure = Abstract_domain.Leaf key
   let log_category = dkey
+  let key = Structure.Key_Domain.create_key "equality_domain"
 
   type equalities = Equality.Set.t
   let project (t, _, _) = t
@@ -180,13 +179,13 @@ module Store = Domain_store.Make (Internal)
 (* ------------------------- Abstract Domain -------------------------------- *)
 
 module Make
-    (Value : Abstract_value.External)
+    (Value : Abstract.Value.External)
 = struct
 
   include Internal
   module Store = Store
 
-  let get_cvalue = Value.get Main_values.cvalue_key
+  let get_cvalue = Value.get Main_values.CVal.key
 
   type value = Value.t
   type location = Precise_locs.precise_location
@@ -218,7 +217,7 @@ module Make
         let c = get v in
         if Cvalue.V.is_imprecise c then
           let c' = Cvalue.V.topify_with_origin Origin.top c in
-          Value.set Main_values.cvalue_key c' v
+          Value.set Main_values.CVal.key c' v
         else v
 
   let coop_eval oracle equalities atom_src =

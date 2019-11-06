@@ -1,72 +1,72 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_gallery/frama_c_exo2_solved.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 22 goals scheduled
-[wp] [Alt-Ergo] Goal typed_max_subarray_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_ensures_2 : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_ensures_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_2_preserved : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_2_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_3_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_3_preserved : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_3_established : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_4_preserved : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_4_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_5_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_5_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_6_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_6_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_7_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_7_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_8_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_8_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_5_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_5_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_6_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_6_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_7_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_7_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_8_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_8_established : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_assigns : Valid
 [wp] [Qed] Goal typed_max_subarray_assigns : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_variant_decrease : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_variant_positive : Valid
 [wp] Proved goals:   22 / 22
-  Qed:             9 
-  Alt-Ergo:       13
+  Qed:               9 
+  Alt-Ergo 2.0.0:   13
 [wp] Report in:  'tests/wp_gallery/oracle_qualif/frama_c_exo2_solved.0.report.json'
 [wp] Report out: 'tests/wp_gallery/result_qualif/frama_c_exo2_solved.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-max_subarray         9     13 (272..320)    22       100%
+max_subarray         9     13 (256..304)    22       100%
 -------------------------------------------------------------
 [wp] Running WP plugin...
 [rte] annotating function max_subarray
 [wp] 23 goals scheduled
-[wp] [Alt-Ergo] Goal typed_max_subarray_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_ensures_2 : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_ensures_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_2_preserved : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_2_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_3_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_3_preserved : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_3_established : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_4_preserved : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_invariant_4_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_5_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_5_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_6_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_6_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_7_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_7_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_8_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_loop_invariant_8_established : Valid
-[wp] [Alt-Ergo] Goal typed_max_subarray_assert_rte_mem_access : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_5_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_5_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_6_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_6_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_7_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_7_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_8_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_loop_invariant_8_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_max_subarray_assert_rte_mem_access : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_assigns : Valid
 [wp] [Qed] Goal typed_max_subarray_assigns : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_variant_decrease : Valid
 [wp] [Qed] Goal typed_max_subarray_loop_variant_positive : Valid
 [wp] Proved goals:   14 / 23
-  Qed:             0 
-  Alt-Ergo:       14
+  Qed:               0 
+  Alt-Ergo 2.0.0:   14
 [wp] Report in:  'tests/wp_gallery/oracle_qualif/frama_c_exo2_solved.0.report.json'
 [wp] Report out: 'tests/wp_gallery/result_qualif/frama_c_exo2_solved.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-max_subarray         9     14 (272..320)    23       100%
+max_subarray         9     14 (256..304)    23       100%
 -------------------------------------------------------------

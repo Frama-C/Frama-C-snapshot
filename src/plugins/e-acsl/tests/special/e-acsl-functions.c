@@ -1,7 +1,7 @@
-/* run.config
+/* run.config_ci
    COMMENT: test option -e-acsl-functions
    LOG: gen_@PTEST_NAME@.c
-   OPT: -machdep gcc_x86_64 -e-acsl-functions f -e-acsl -then-last -load-script tests/print.cmxs -print -ocode tests/special/result/gen_@PTEST_NAME@.c -kernel-verbose 0 -eva-verbose 0 -eva
+   STDOPT: #"-e-acsl-functions f"
 */
 
 /*@ requires \initialized(p);

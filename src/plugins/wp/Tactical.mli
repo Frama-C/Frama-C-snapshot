@@ -133,9 +133,9 @@ val search :
   find:(string -> 'a) ->
   unit -> 'a named option field * parameter
 (** Search field.
-     - [browse s n] is the lookup function, used in the GUI only.
+    - [browse s n] is the lookup function, used in the GUI only.
        Shall returns at most [n] results applying to selection [s].
-     - [find n] is used at script replay, and shall retrieve the
+    - [find n] is used at script replay, and shall retrieve the
        selected item's [id] later on. *)
 
 type 'a formatter = ('a,Format.formatter,unit) format -> 'a

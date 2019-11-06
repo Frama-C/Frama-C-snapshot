@@ -1,11 +1,8 @@
 /* run.config
    COMMENT: complex fields and indexes + potential RTE in \initialized
-   STDOPT: +"-no-val-alloc-returns-null"
 */
 
 #include "stdlib.h"
-
-extern void *malloc(size_t p);
 
 struct spongeStateStruct {
    unsigned char __attribute__((__aligned__(32))) state[1600 / 8] ;

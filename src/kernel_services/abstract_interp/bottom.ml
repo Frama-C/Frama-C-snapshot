@@ -52,6 +52,12 @@ let equal equal x y = match x, y with
   | `Value vx, `Value vy -> equal vx vy
   | _                    -> false
 
+let compare compare a b = match a, b with
+  | `Bottom, `Bottom   -> 0
+  | `Bottom, _         -> -1
+  | _, `Bottom         -> 1
+  | `Value v, `Value w -> compare v w
+
 let is_included is_included x y = match x, y with
   | `Bottom, _           -> true
   | _, `Bottom           -> false
@@ -74,6 +80,10 @@ let narrow narrow x y = match x, y with
 let pretty pretty fmt = function
   | `Bottom  -> Format.fprintf fmt "Bottom"
   | `Value v -> pretty fmt v
+
+let iter f = function
+  | `Bottom -> ()
+  | `Value v -> f v
 
 
 let counter = ref 0

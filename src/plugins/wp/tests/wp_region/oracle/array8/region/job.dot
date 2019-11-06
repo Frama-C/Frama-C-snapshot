@@ -1,0 +1,58 @@
+digraph "job" {
+  rankdir="LR" ;
+  node [ fontname="monospace" ];
+  edge [ fontname="monospace" ];
+  V000 [ label="A", shape="cds", style="filled", fillcolor="yellow" ];
+  V000:e -> A000 ;
+  V001 [ label="B", shape="cds", style="filled", fillcolor="yellow" ];
+  V001:e -> A000 ;
+  V002 [ label="c", shape="cds", style="filled", fillcolor="yellow" ];
+  V002:e -> A001 ;
+  V003 [ label="k", shape="cds", style="filled", fillcolor="yellow" ];
+  V003:e -> A002 ;
+  V004 [ label="s", shape="cds", style="filled", fillcolor="yellow" ];
+  V004:e -> A003 ;
+  V005 [ label="p", shape="cds", style="filled", fillcolor="yellow" ];
+  V005:e -> A004 ;
+  V006 [ label="tmp", shape="cds", style="filled", fillcolor="yellow" ];
+  V006:e -> A005 ;
+  A000 [ label="R[]&", shape="oval", fillcolor="orange", style="filled" ];
+  _007 [ label="roots:*", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A000; _007; }
+  _007 -> A000 [ arrowhead="tee" ];
+  _008 [ shape="record", label="Mem sint32" ];
+  A000 -> _008:w [ arrowhead="tee" ];
+  A001 [ label="R", shape="oval", fillcolor="green", style="filled" ];
+  _009 [ label="roots:&c", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A001; _009; }
+  _009 -> A001 [ arrowhead="tee" ];
+  _010 [ shape="record", label="Var sint32" ];
+  A001 -> _010:w [ arrowhead="tee" ];
+  A002 [ label="R", shape="oval", fillcolor="green", style="filled" ];
+  _011 [ label="roots:&k", style="filled", color="lightblue", shape="box" ];
+  { rank=same; A002; _011; }
+  _011 -> A002 [ arrowhead="tee" ];
+  _012 [ shape="record", label="Var sint32" ];
+  A002 -> _012:w [ arrowhead="tee" ];
+  A003 [ label="RW", shape="oval", fillcolor="green", style="filled" ];
+  _013 [ shape="record", label="Var sint32" ];
+  A003 -> _013:w [ arrowhead="tee" ];
+  A004 [ label="DW", shape="oval", fillcolor="green", style="filled" ];
+  _014 [ shape="record", label="<_p1> Var ptr" ];
+  _014:_p1 -> A000:w [ taillabel="[..]", labeldistance="1.7",
+    labelangle="+40", color="red"
+  ];
+  A004 -> _014:w [ arrowhead="tee" ];
+  A005 [ label="DW", shape="oval", fillcolor="green", style="filled" ];
+  _015 [ shape="record", label="<_p1> Var ptr" ];
+  _015:_p1 -> A000:w [ taillabel="[..]", labeldistance="1.7",
+    labelangle="+40", color="red"
+  ];
+  A005 -> _015:w [ arrowhead="tee" ];
+  R016 [ label="\\result", shape="tab", style="filled", fillcolor="yellow" ];
+  { rank=same; R016; A006; }
+  R016 -> A006 ;
+  A006 [ label="W", shape="oval", fillcolor="green", style="filled" ];
+  _017 [ shape="record", label="Var sint32" ];
+  A006 -> _017:w [ arrowhead="tee" ];
+}

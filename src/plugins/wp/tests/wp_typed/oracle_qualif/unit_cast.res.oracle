@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_typed/unit_cast.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -6,10 +6,10 @@
 [wp] tests/wp_typed/unit_cast.i:4: Warning: 
   Cast with incompatible pointers types (source: sint32*) (target: sint8*)
 [wp] 1 goal scheduled
-[wp] [Alt-Ergo] Goal typed_f_assert_OUT : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_assert_OUT : Valid
 [wp] Proved goals:    1 / 1
-  Qed:             0 
-  Alt-Ergo:        1
+  Qed:               0 
+  Alt-Ergo 2.0.0:    1
 [wp] Report in:  'tests/wp_typed/oracle_qualif/unit_cast.0.report.json'
 [wp] Report out: 'tests/wp_typed/result_qualif/unit_cast.0.report.json'
 -------------------------------------------------------------

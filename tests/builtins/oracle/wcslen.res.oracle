@@ -618,7 +618,7 @@
 [inout] Inputs for function misc:
     Frama_C_entropy_source; static_str; zero_str; tab_str[0..11];
     unterminated_string[0..11]; nondet; L"Hello World\n"[bits 0 to 415];
-    L"abc\000\000\000abc"[bits 0 to 319]; L""; L"a"[bits 0 to 63];
+    L"abc\000\000\000abc"[bits 0 to 127]; L""; L"a"[bits 0 to 63];
     L"aa"[bits 0 to 95]; L"aaa"[bits 0 to 127]; L"aaaa"[bits 0 to 159];
     L"aaaaa"[bits 0 to 191]; L"aaaaaa"[bits 0 to 223];
     L"aaaaaaaaa"[bits 0 to 319]; L"aaaaaaaaaa"[bits 0 to 351];
@@ -662,7 +662,7 @@
 [inout] Inputs for function main:
     Frama_C_entropy_source; static_str; zero_str; tab_str[0..11];
     unterminated_string[0..11]; nondet; L"Hello World\n"[bits 0 to 415];
-    L"abc\000\000\000abc"[bits 0 to 319]; L""; L"a"[bits 0 to 63];
+    L"abc\000\000\000abc"[bits 0 to 127]; L""; L"a"[bits 0 to 63];
     L"aa"[bits 0 to 95]; L"aaa"[bits 0 to 127]; L"aaaa"[bits 0 to 159];
     L"aaaaa"[bits 0 to 191]; L"aaaaaa"[bits 0 to 223];
     L"aaaaaaaaa"[bits 0 to 319]; L"aaaaaaaaaa"[bits 0 to 351];

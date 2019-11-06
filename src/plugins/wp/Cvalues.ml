@@ -228,27 +228,35 @@ let volatile ?warn () =
       warn ; false )
 
 (* -------------------------------------------------------------------------- *)
-(* --- ACSL Equality                                                      --- *)
+(* --- ACSL Equality BootStrap                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-let s_eq = ref (fun _ _ _ -> assert false) (* recursion for equal_object *)
+let equal_rec = ref (fun _ _ _ -> assert false) (* recursion for equal_object *)
 
 let rec reduce_eqcomp = function
   | [a;b] when Lang.F.equal a b -> F.e_true
   | _::ws -> reduce_eqcomp ws
   | [] -> raise Not_found
 
-module EQARRAY = Model.Generator(Matrix.NATURAL)
+(* -------------------------------------------------------------------------- *)
+(* --- ACSL Array Equality                                                --- *)
+(* -------------------------------------------------------------------------- *)
+
+module EQARRAY = WpContext.Generator(Matrix.NATURAL)
     (struct
       open Matrix
-      type key = matrix
-      type data = Lang.lfun
       let name = "Cvalues.EqArray"
+      type key = matrix
+      type data = lfun
       let compile (te,ds) =
-        let lfun = Lang.generated_f ~sort:Logic.Sprop "EqArray%s_%s"
-            (Matrix.id ds) (Matrix.natural_id te)
-        in
-        let cluster = Definitions.matrix te in
+        (* Contextual Symbol *)
+        let lfun = Lang.generated_f
+            ~context:true
+            ~sort:Logic.Sprop
+            "EqArray%s_%s" (Matrix.id ds) (Matrix.natural_id te) in
+        (* Simplification of the symbol *)
+        Lang.F.set_builtin lfun reduce_eqcomp ;
+        (* Definition of the symbol *)
         let denv = Matrix.denv ds in
         let tau = Matrix.tau te ds in
         let xa = Lang.freshvar ~basename:"T" tau in
@@ -257,60 +265,69 @@ module EQARRAY = Model.Generator(Matrix.NATURAL)
         let tb = e_var xb in
         let ta_xs = List.fold_left e_get ta denv.index_val in
         let tb_xs = List.fold_left e_get tb denv.index_val in
-        let property = p_hyps (denv.index_range) (!s_eq te ta_xs tb_xs) in
+        let property = p_hyps (denv.index_range) (!equal_rec te ta_xs tb_xs) in
         let definition = p_forall denv.index_var property in
-        (* Definition of the symbol *)
+        (* Registration *)
         Definitions.define_symbol {
+          d_cluster = Definitions.matrix te ;
           d_lfun = lfun ; d_types = 0 ;
           d_params = denv.size_var @ [xa ; xb ] ;
           d_definition = Predicate(Def,definition) ;
-          d_cluster = cluster ;
-        } ;
-        Lang.F.set_builtin lfun reduce_eqcomp ;
-        (* Finally return symbol *)
-        lfun
+        } ; lfun
     end)
 
-let rec equal_object obj a b =
-  match obj with
-  | C_int _ | C_float _ | C_pointer _ -> p_equal a b
-  | C_array t ->
-      equal_array (Matrix.of_array t) a b
-  | C_comp c ->
-      equal_comp c a b
+(* -------------------------------------------------------------------------- *)
+(* --- ACSL Compound Equality                                             --- *)
+(* -------------------------------------------------------------------------- *)
 
-and equal_typ typ a b = equal_object (Ctypes.object_of typ) a b
+module EQCOMP = WpContext.Generator(Cil_datatype.Compinfo)
+    (struct
+      let name = "Cvalues.EqComp"
+      type key = compinfo
+      type data = lfun
+      let compile c =
+        (* Contextual Symbol *)
+        let lfun = Lang.generated_p ~context:true ("Eq" ^ Lang.comp_id c) in
+        (* Simplification of the symbol *)
+        Lang.F.set_builtin lfun reduce_eqcomp ;
+        (* Definition of the symbol *)
+        let basename = if c.cstruct then "S" else "U" in
+        let xa = Lang.freshvar ~basename (Lang.tau_of_comp c) in
+        let xb = Lang.freshvar ~basename (Lang.tau_of_comp c) in
+        let ra = e_var xa in
+        let rb = e_var xb in
+        let def = p_all
+            (fun f ->
+               let fd = Cfield f in
+               !equal_rec (Ctypes.object_of f.ftype)
+                 (e_getfield ra fd) (e_getfield rb fd))
+            c.cfields
+        in
+        (* Registration *)
+        Definitions.define_symbol {
+          d_cluster = Definitions.compinfo c ;
+          d_lfun = lfun ; d_types = 0 ; d_params = [xa;xb] ;
+          d_definition = Predicate(Def,def) ;
+        } ; lfun
+    end)
 
-and equal_comp c a b =
-  Definitions.call_pred
-    (Lang.generated_p ("Eq" ^ Lang.comp_id c))
-    (fun lfun ->
-       let basename = if c.cstruct then "S" else "U" in
-       let xa = Lang.freshvar ~basename (Lang.tau_of_comp c) in
-       let xb = Lang.freshvar ~basename (Lang.tau_of_comp c) in
-       let ra = e_var xa in
-       let rb = e_var xb in
-       let def = p_all
-           (fun f ->
-              let fd = Cfield f in
-              equal_typ f.ftype
-                (e_getfield ra fd) (e_getfield rb fd))
-           c.cfields
-       in
-       Lang.F.set_builtin lfun reduce_eqcomp ;
-       {
-         d_lfun = lfun ; d_types = 0 ; d_params = [xa;xb] ;
-         d_cluster = Definitions.compinfo c ;
-         d_definition = Predicate(Def,def) ;
-       }
-    ) [a;b]
+(* -------------------------------------------------------------------------- *)
+(* --- ACSL Equality                                                      --- *)
+(* -------------------------------------------------------------------------- *)
 
-and equal_array m a b =
+let equal_comp c a b = p_call (EQCOMP.get c) [a;b]
+let equal_array m a b =
   match m with
   | _obj , [None] -> p_equal a b
-  | _ -> p_call (EQARRAY.get m) (Matrix.size m @ [a;b])
+  | m -> p_call (EQARRAY.get m) (Matrix.size m @ [a;b])
 
-let () = s_eq := equal_object
+let equal_object obj a b =
+  match obj with
+  | C_int _ | C_float _ | C_pointer _ -> p_equal a b
+  | C_comp c -> equal_comp c a b
+  | C_array t -> equal_array (Matrix.of_array t) a b
+
+let () = equal_rec := equal_object
 
 (* -------------------------------------------------------------------------- *)
 (* --- Lifting Values                                                     --- *)
@@ -340,6 +357,42 @@ let plain lt e =
     Vexp e
 
 (* -------------------------------------------------------------------------- *)
+(* --- Printing Values                                                    --- *)
+(* -------------------------------------------------------------------------- *)
+
+type 'a printer = Format.formatter -> 'a -> unit
+
+let pp_bound fmt = function None -> () | Some p -> F.pp_term fmt p
+
+let pp_value pp fmt = function
+  | Loc l -> pp fmt l
+  | Val v -> F.pp_term fmt v
+
+let pp_logic pp fmt = function
+  | Vexp e -> F.pp_term fmt e
+  | Vloc l -> pp fmt l
+  | Lset _ | Vset _ -> Format.pp_print_string fmt "<set>"
+
+let pp_rloc pp fmt = function
+  | Rloc(obj,l) ->
+      Format.fprintf fmt "@[<hov 2>%a:@,%a@]" pp l Ctypes.pretty obj
+  | Rrange(l,obj,a,b) ->
+      Format.fprintf fmt "@[<hov2>%a@,.(%a@,..%a):@,%a@]"
+        pp l pp_bound a pp_bound b Ctypes.pretty obj
+
+let pp_sloc pp fmt = function
+  | Sloc l -> pp fmt l
+  | Sarray(l,_,n) ->
+      Format.fprintf fmt "@[<hov2>%a@,.(..%d)@]" pp l (n-1)
+  | Srange(l,_,a,b) ->
+      Format.fprintf fmt "@[<hov2>%a@,.(%a@,..%a)@]" pp l pp_bound a pp_bound b
+  | Sdescr(xs,l,p) ->
+      Format.fprintf fmt "@[<hov2>{ %a | %a }@]" pp l F.pp_pred (F.p_forall xs p)
+
+let pp_region pp fmt sloc =
+  List.iter (fun (_,s) -> Format.fprintf fmt "@ %a" (pp_sloc pp) s) sloc
+
+(* -------------------------------------------------------------------------- *)
 (* --- Int-As-Booleans                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
@@ -352,6 +405,16 @@ let bool_or  a b = e_or  [e_neq a e_zero ; e_neq b e_zero]
 let bool_val e = e_if e e_one e_zero
 let is_true p = e_if (e_prop p) e_one e_zero
 let is_false p = e_if (e_prop p) e_zero e_one
+
+(* -------------------------------------------------------------------------- *)
+(* --- Start Of Arrays                                                    --- *)
+(* -------------------------------------------------------------------------- *)
+
+let startof ~shift loc typ =
+  if Cil.isArrayType typ then
+    let t_elt = Cil.typeOf_array_elem typ in
+    shift loc (Ctypes.object_of t_elt) e_zero
+  else loc
 
 (* -------------------------------------------------------------------------- *)
 (* --- Lifting Memory Model to Values                                     --- *)

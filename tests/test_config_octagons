@@ -1,0 +1,3 @@
+MACRO: EVA_OPTIONS -eva-show-progress -eva-msg-key=-summary -eva-octagon-domain
+MACRO: EVA_CONFIG @EVA_OPTIONS@ -no-autoload-plugins -load-module from,inout,eva,scope,variadic
+OPT: -eva @EVA_CONFIG@ -journal-disable -out -input -deps

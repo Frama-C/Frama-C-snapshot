@@ -288,7 +288,7 @@ let string_to_float_lconstant string =
      constant and the nearest parsed float is exact. Otherwise, use the upper
      and lower float computed by [parse]. *)
   let l = String.length string - 1 in
-  let last = Transitioning.Char.uppercase_ascii string.[l] in
+  let last = Char.uppercase_ascii string.[l] in
   let exact = last = 'F' || last = 'D' in
   if exact
   then LReal (real_of_float string f.Floating_point.f_nearest)
@@ -778,10 +778,6 @@ let rec is_same_term t1 t2 =
   | Toffset (l1,t1), Toffset (l2,t2)
   | Tat(t1,l1), Tat(t2,l2) -> is_same_logic_label l1 l2 && is_same_term t1 t2
   | Tnull, Tnull -> true
-  | TCoerce(t1,typ1), TCoerce(t2,typ2) ->
-    is_same_term t1 t2 && Cil_datatype.TypByName.equal typ1 typ2
-  | TCoerceE(t1,tt1), TCoerceE(t2,tt2) ->
-    is_same_term t1 t2 && is_same_term tt1 tt2
   | Tlambda (v1,t1), Tlambda(v2,t2) ->
     is_same_list is_same_var v1 v2 && is_same_term t1 t2
   | TUpdate(t1,i1,nt1), TUpdate(t2,i2,nt2) ->
@@ -810,7 +806,7 @@ let rec is_same_term t1 t2 =
     | TAlignOf _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TCastE _
     | TAddrOf _ | TStartOf _ | Tapp _ | Tlambda _ | TDataCons _
     | Tif _ | Tat _ | Tbase_addr _ | Tblock_length _ | Toffset _ | Tnull
-    | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
+    | TUpdate _ | Ttypeof _ | Ttype _
     | Tcomprehension _ | Tempty_set | Tunion _ | Tinter _ | Trange _
     | Tlet _ | TLogic_coerce _
     ),_ -> false
@@ -900,8 +896,6 @@ and is_same_predicate_node p1 p2 =
   | Pfresh (l1,m1,t1,n1), Pfresh (l2,m2,t2,n2) ->
     is_same_logic_label l1 l2 && is_same_logic_label m1 m2 &&
     is_same_term t1 t2 && is_same_term n1 n2
-  | Psubtype(lt1,rt1), Psubtype(lt2,rt2) ->
-    is_same_term lt1 lt2 && is_same_term rt1 rt2
   | Pseparated(seps1), Pseparated(seps2) ->
     (try List.for_all2 is_same_term seps1 seps2
      with Invalid_argument _ -> false)
@@ -909,7 +903,7 @@ and is_same_predicate_node p1 p2 =
     | Piff _ | Pnot _ | Pif _ | Plet _ | Pforall _ | Pexists _
     | Pat _ | Pvalid _ | Pvalid_read _ | Pvalid_function _
     | Pinitialized _ | Pdangling _
-    | Pfresh _ | Pallocable _ | Pfreeable _ | Psubtype _ | Pxor _ | Pseparated _
+    | Pfresh _ | Pallocable _ | Pfreeable _ | Pxor _ | Pseparated _
     ), _ -> false
 
 and is_same_predicate pred1 pred2 =
@@ -1008,10 +1002,10 @@ let is_same_pragma p1 p2 =
   | Impact_pragma p1, Impact_pragma p2 -> is_same_impact_pragma p1 p2
   | (Loop_pragma _ | Slice_pragma _ | Impact_pragma _), _ -> false
 
-let is_same_extension (_,e1,_,s1,c1) (_,e2,_,s2,c2) =
-  Datatype.String.equal e1 e2 &&
-  (s1 = s2) &&
-  match c1, c2 with
+let is_same_extension x1 x2 =
+  Datatype.String.equal x1.ext_name x2.ext_name &&
+  (x1.ext_has_status = x2.ext_has_status) &&
+  match x1.ext_kind, x2.ext_kind with
   | Ext_id i1, Ext_id i2 -> i1 = i2
   | Ext_terms t1, Ext_terms t2 ->
     is_same_list is_same_term t1 t2
@@ -1214,15 +1208,12 @@ and is_same_lexpr l1 l2 =
   | PLresult, PLresult | PLnull, PLnull
   | PLfalse, PLfalse | PLtrue, PLtrue | PLempty, PLempty ->
     true
-  | PLcast(t1,e1), PLcast(t2,e2) | PLcoercion(e1,t1), PLcoercion (e2,t2)->
+  | PLcast(t1,e1), PLcast(t2,e2) ->
     is_same_pl_type t1 t2 && is_same_lexpr e1 e2
   | PLrange(l1,h1), PLrange(l2,h2) ->
     is_same_opt is_same_lexpr l1 l2 && is_same_opt is_same_lexpr h1 h2
   | PLsizeof t1, PLsizeof t2 -> is_same_pl_type t1 t2
   | PLsizeofE e1,PLsizeofE e2 | PLtypeof e1,PLtypeof e2-> is_same_lexpr e1 e2
-  | PLcoercionE (b1,t1), PLcoercionE(b2,t2)
-  | PLsubtype(b1,t1), PLsubtype(b2,t2) ->
-    is_same_lexpr b1 b2 && is_same_lexpr t1 t2
   | PLupdate(b1,p1,r1), PLupdate(b2,p2,r2) ->
     is_same_lexpr b1 b2
     && is_same_list is_same_path_elt p1 p2 && is_same_update_term r1 r2
@@ -1273,14 +1264,14 @@ and is_same_lexpr l1 l2 =
     | PLold _ | PLat _
     | PLbase_addr _ | PLblock_length _ | PLoffset _
     | PLresult | PLnull | PLcast _
-    | PLrange _ | PLsizeof _ | PLsizeofE _ | PLtypeof _ | PLcoercion _
-    | PLcoercionE _ | PLupdate _ | PLinitIndex _ | PLtype _ | PLfalse
+    | PLrange _ | PLsizeof _ | PLsizeofE _ | PLtypeof _
+    | PLupdate _ | PLinitIndex _ | PLtype _ | PLfalse
     | PLtrue | PLinitField _ | PLrel _ | PLand _ | PLor _ | PLxor _
     | PLimplies _ | PLiff _ | PLnot _ | PLif _ | PLforall _
     | PLexists _ | PLvalid _ | PLvalid_read _ | PLvalid_function _
     | PLfreeable _ | PLallocable _
     | PLinitialized _ | PLdangling _ | PLseparated _ | PLfresh _ | PLnamed _
-    | PLsubtype _ | PLcomprehension _ | PLunion _ | PLinter _
+    | PLcomprehension _ | PLunion _ | PLinter _
     | PLset _ | PLempty
     ),_ -> false
 
@@ -1351,12 +1342,6 @@ let rec hash_term (acc,depth,tot) t =
       let hash = acc + 351 + hash_label l in
       hash_term (hash,depth-1,tot-2) t
     | Tnull -> acc+361, tot - 1
-    | TCoerce(t,ty) ->
-      let hash = Cil_datatype.TypByName.hash ty in
-      hash_term (acc+380+hash,depth-1,tot-2) t
-    | TCoerceE(t1,t2) ->
-      let hash1,tot1 = hash_term (acc+399,depth-1,tot-1) t1 in
-      hash_term (hash1,depth-1,tot1) t2
     | TUpdate(t1,off,t2) ->
       let hash1,tot1 = hash_term (acc+418,depth-1,tot-1) t1 in
       let hash2,tot2 = hash_term_offset (hash1,depth-1,tot1) off in
@@ -1507,9 +1492,6 @@ and hash_predicate (acc,depth,tot) p =
           (acc + 259 + hash_label l1 + hash_label l2, depth - 1, tot - 2) t1
       in
       hash_term (acc, depth-1, tot) t2
-    | Psubtype(t1, t2) ->
-      let (acc, tot) = hash_term (acc + 263, depth - 1, tot - 1) t1 in
-      hash_term (acc, depth - 1, tot) t2
   end
 
 let hash_term t =
@@ -1600,16 +1582,6 @@ let rec compare_term t1 t2 =
   | Tnull, Tnull -> 0
   | Tnull, _ -> 1
   | _, Tnull -> -1
-  | TCoerce(t1,typ1), TCoerce(t2,typ2) ->
-    let res = compare_term t1 t2 in
-    if res = 0 then Cil_datatype.TypByName.compare typ1 typ2 else res
-  | TCoerce _, _ -> 1
-  | _, TCoerce _ -> -1
-  | TCoerceE(t1,tt1), TCoerceE(t2,tt2) ->
-    let res = compare_term t1 t2 in
-    if res = 0 then compare_term tt1 tt2 else res
-  | TCoerceE _, _ -> 1
-  | _, TCoerceE _ -> -1
   | Tlambda (v1,t1), Tlambda(v2,t2) ->
     let res = Extlib.list_compare compare_var v1 v2 in
     if res = 0 then compare_term t1 t2 else res
@@ -1834,11 +1806,6 @@ and compare_predicate_node p1 p2 =
     else res
   | Pfresh _, _ -> 1
   | _, Pfresh _ -> -1
-  | Psubtype(lt1,rt1), Psubtype(lt2,rt2) ->
-    let res = compare_term lt1 lt2 in
-    if res = 0 then compare_term rt1 rt2 else res
-  | Psubtype _, _ -> 1
-  | _, Psubtype _ -> -1
   | Pseparated(seps1), Pseparated(seps2) ->
     Extlib.list_compare compare_term seps1 seps2
 
@@ -1956,7 +1923,14 @@ let merge_post_cond l1 l2 =
        else pc::acc)
     l1 l2
 
-let merge_behaviors ~silent old_behaviors fresh_behaviors =
+let pp_old_loc fmt oldloc =
+  if Cil_datatype.Location.(equal oldloc unknown) then
+    Format.ifprintf fmt ""
+  else
+    Format.fprintf fmt " (old location: %a)"
+      Cil_datatype.Location.pretty oldloc
+
+let merge_behaviors ?(oldloc=Cil_datatype.Location.unknown) ~silent old_behaviors fresh_behaviors =
   old_behaviors @
   (List.filter
      (fun b ->
@@ -1964,9 +1938,10 @@ let merge_behaviors ~silent old_behaviors fresh_behaviors =
           let old_b = List.find (fun x -> x.b_name = b.b_name) old_behaviors in
           if not (is_same_behavior b old_b) then begin
             if not silent then
-              Kernel.warning ~current:true "found two %s. Merging them%t"
+              Kernel.warning ~current:true "found two %s%a. Merging them%t"
                 (if Cil.is_default_behavior b then "contracts"
                  else "behaviors named " ^ b.b_name)
+                pp_old_loc oldloc
                 (fun fmt ->
                    if Kernel.debug_atleast 1 then
                      Format.fprintf fmt ":@ @[%a@] vs. @[%a@]"
@@ -1983,7 +1958,7 @@ let merge_behaviors ~silent old_behaviors fresh_behaviors =
         with Not_found -> true)
      fresh_behaviors)
 
-let merge_funspec ?(silent_about_merging_behav=false) old_spec fresh_spec =
+let merge_funspec ?(oldloc=Cil_datatype.Location.unknown) ?(silent_about_merging_behav=false) old_spec fresh_spec =
   if not (is_same_spec old_spec fresh_spec || Cil.is_empty_funspec fresh_spec)
   then
     if Cil.is_empty_funspec old_spec then begin
@@ -1994,7 +1969,7 @@ let merge_funspec ?(silent_about_merging_behav=false) old_spec fresh_spec =
       old_spec.spec_variant <- fresh_spec.spec_variant;
     end else begin
       old_spec.spec_behavior <-
-        merge_behaviors ~silent:silent_about_merging_behav
+        merge_behaviors ~oldloc ~silent:silent_about_merging_behav
           old_spec.spec_behavior fresh_spec.spec_behavior ;
       (match old_spec.spec_variant,fresh_spec.spec_variant with
        | None,None -> ()
@@ -2002,14 +1977,17 @@ let merge_funspec ?(silent_about_merging_behav=false) old_spec fresh_spec =
        | None, Some _ -> old_spec.spec_variant <- fresh_spec.spec_variant
        | Some _old, Some _fresh ->
          Kernel.warning ~current:true
-           "found two variants for function specification. Keeping only the first one.");
+           "found two variants for function specification%a. \
+            Keeping only the first one."
+           pp_old_loc oldloc);
       (match old_spec.spec_terminates, fresh_spec.spec_terminates with
        | None, None -> ()
        | Some p1, Some p2 when is_same_identified_predicate p1 p2 -> ()
        | _ ->
          Kernel.warning ~current:true
-           "found two different terminates clause for function specification. \
-            keeping only the fist one");
+           "found two different terminates clauses \
+            for function specification%a. Keeping only the first one"
+           pp_old_loc oldloc);
       old_spec.spec_complete_behaviors <-
         List.fold_left (fun acc b ->
             if List.mem b old_spec.spec_complete_behaviors then acc
@@ -2185,7 +2163,7 @@ let complete_types f = Cil.visitCilFile (new complete_types) f
 (**
    - false => keywords are all ACSL keywords
    - true => only C keywords are recognized as such.
-   (other remains plain identifiers/typenames)
+     (other remains plain identifiers/typenames)
 *)
 let kw_c_mode = ref false
 
@@ -2301,7 +2279,7 @@ let rec constFoldTermToInt ?(machdep=true) (e: term) : Integer.t option =
     constFoldMinMax ~machdep Integer.min args
 
   | TLval _ | TAddrOf _ | TStartOf _ | Tapp _ | Tlambda _ | TDataCons _
-  | Tat _ | Tbase_addr _ | Tblock_length _ | TCoerce _ | TCoerceE _
+  | Tat _ | Tbase_addr _ | Tblock_length _
   | TUpdate _ | Ttypeof _ | Ttype _ | Tempty_set | Tunion _ | Tinter _
   | Tcomprehension _ | Trange _ | Tlet _ ->
     None
@@ -2535,7 +2513,7 @@ let eval_term_lval global_find_init (lhost, loff) =
   | _ -> None
 
 class simplify_const_lval global_find_init = object (self)
-  inherit Cil.genericCilVisitor (Cil.copy_visit (Project.current ()))
+  inherit Cil.genericCilVisitor (Visitor_behavior.copy (Project.current ()))
 
   method! vterm t =
     match t.term_node with

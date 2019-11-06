@@ -1,0 +1,11 @@
+library c2fc_bit : cbits;
+
+logic boolean lbtest (integer, integer) = "bit_testb";
+
+predicate btest (integer, integer) =
+   "bit_test";
+
+
+logic boolean lbtest_qed (integer, integer) := \bit_test;
+
+predicate btest_qed (integer, integer) := \bit_test;

@@ -1,0 +1,18 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/unroll.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_plugin/unroll.i:20: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] 1 goal scheduled
+[wp] [Tactical] Goal typed_unrolled_loop_ensures_zero : Valid
+[wp] Proved goals:    1 / 1
+  Qed:             0 
+  Script:          1
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/unroll.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/unroll.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+unrolled_loop       -      -                 1       100%
+-------------------------------------------------------------

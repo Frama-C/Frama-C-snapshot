@@ -20,70 +20,288 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Configuration of the abstract domain. *)
+(* --- Registration types --------------------------------------------------- *)
 
-type config = {
-  cvalue : bool;
-  equalities : bool;
-  symbolic_locs : bool;
-  bitwise : bool;
-  gauges : bool;
-  apron_oct : bool;
-  apron_box : bool;
-  polka_loose : bool;
-  polka_strict : bool;
-  polka_equalities : bool;
-  inout: bool;
-  signs: bool;
-  printer: bool;
-  numerors: bool;
-}
+type 'v value =
+  | Single of (module Abstract_value.Leaf with type t = 'v)
+  | Struct of 'v Abstract.Value.structure
 
-let configure () = {
-  cvalue = Value_parameters.CvalueDomain.get ();
-  equalities = Value_parameters.EqualityDomain.get ();
-  symbolic_locs = Value_parameters.SymbolicLocsDomain.get ();
-  bitwise = Value_parameters.BitwiseOffsmDomain.get ();
-  gauges = Value_parameters.GaugesDomain.get ();
-  apron_oct = Value_parameters.ApronOctagon.get ();
-  apron_box = Value_parameters.ApronBox.get ();
-  polka_loose = Value_parameters.PolkaLoose.get ();
-  polka_strict = Value_parameters.PolkaStrict.get ();
-  polka_equalities = Value_parameters.PolkaEqualities.get ();
-  inout = Value_parameters.InoutDomain.get ();
-  signs = Value_parameters.SignDomain.get ();
-  printer = Value_parameters.PrinterDomain.get ();
-  numerors = Value_parameters.NumerorsDomain.get ();
-}
+type precise_loc = Precise_locs.precise_location
 
-let default_config = configure ()
+module type leaf_domain = Abstract_domain.Leaf with type location = precise_loc
 
-let legacy_config = {
-  cvalue = true;
-  equalities = false;
-  symbolic_locs = false;
-  bitwise = false;
-  gauges = false;
-  apron_oct = false;
-  apron_box = false;
-  polka_loose = false;
-  polka_strict = false;
-  polka_equalities = false;
-  inout = false;
-  signs = false;
-  printer = false;
-  numerors = false;
-}
+module type domain_functor =
+  functor (Value: Abstract.Value.External) ->
+    (leaf_domain with type value = Value.t)
+
+type 'v domain =
+  | Domain: (module leaf_domain with type value = 'v) -> 'v domain
+  | Functor: (module domain_functor) -> _ domain
+
+type 'v abstraction =
+  { name: string;
+    priority: int;
+    values: 'v value;
+    domain: 'v domain; }
+
+(* --- Config and registration ---------------------------------------------- *)
+
+module Config = struct
+  type flag = Flag: 'v abstraction -> flag
+
+  module Flag = struct
+    type t = flag
+
+    (* Flags are sorted by increasing priority order, and then by name. *)
+    let compare (Flag f1) (Flag f2) =
+      let c = Datatype.Int.compare f1.priority f2.priority in
+      if c <> 0 then c else Datatype.String.compare f1.name f2.name
+  end
+
+  include Set.Make (Flag)
+
+  type dynamic = Dynamic: (unit -> 'a option) * ('a -> 'v abstraction) -> dynamic
+
+  let abstractions = ref []
+  let dynamic_abstractions : dynamic list ref = ref []
+
+  let register ~enable abstraction =
+    abstractions := (enable, Flag abstraction) :: !abstractions
+
+  let dynamic_register ~configure ~make =
+    dynamic_abstractions := Dynamic (configure, make) :: !dynamic_abstractions
+
+  let configure () =
+    let aux config (enable, flag) =
+      if enable () then add flag config else config
+    in
+    let config = List.fold_left aux empty !abstractions in
+    let aux config (Dynamic (configure, make)) =
+      match configure () with
+      | None -> config
+      | Some c -> add (Flag (make c)) config
+    in
+    List.fold_left aux config !dynamic_abstractions
+
+  (* --- Register default abstractions -------------------------------------- *)
+
+  let create ~enable abstract = register ~enable abstract; Flag abstract
+  let create_domain priority name enable values domain =
+    create ~enable
+      { name; priority; values = Single values; domain = Domain domain }
+
+  open Value_parameters
+
+  (* Register standard domains over cvalues. *)
+  let make rank name enable =
+    create_domain rank name enable (module Main_values.CVal)
+
+  let cvalue = make 9 "cvalue" CvalueDomain.get (module Cvalue_domain.State)
+  let gauges = make 6 "gauges" GaugesDomain.get (module Gauges_domain.D)
+  let octagon = make 6 "octagon" OctagonDomain.get (module Octagons)
+  let inout = make 5 "inout" InoutDomain.get (module Inout_domain.D)
+  let traces = make 2 "traces" TracesDomain.get (module Traces_domain.D)
+  let printer = make 2 "printer" PrinterDomain.get (module Printer_domain)
+  let symbolic_locations =
+    make 7  "symbolic_locations" SymbolicLocsDomain.get (module Symbolic_locs.D)
+
+  let sign =
+    create_domain 4 "sign" SignDomain.get
+      (module Sign_value) (module Sign_domain)
+
+  let bitwise =
+    create_domain 3 "bitwise" BitwiseOffsmDomain.get
+      (module Offsm_value.Offsm) (module Offsm_domain.D)
+
+  let equality_domain =
+    { name = "equality";
+      priority = 8;
+      values = Struct Abstract.Value.Unit;
+      domain = Functor (module Equality_domain.Make); }
+  let equality = create ~enable:EqualityDomain.get equality_domain
+
+  (* --- Default and legacy configurations ---------------------------------- *)
+
+  let default = configure ()
+  let legacy = singleton cvalue
+end
+
+let register = Config.register
+let dynamic_register = Config.dynamic_register
+
+(* --- Building value abstractions ------------------------------------------ *)
+
+module Leaf_Value (V: Abstract_value.Leaf) = struct
+  include V
+  let structure = Abstract.Value.Leaf (V.key, (module V))
+end
+
+module Leaf_Location (Loc: Abstract_location.Leaf) = struct
+  include Loc
+  let structure = Abstract.Location.Leaf (Loc.key, (module Loc))
+end
+
+module Leaf_Domain (D: Abstract_domain.Leaf) = struct
+  include D
+  let structure = Abstract.Domain.Leaf (D.key, (module D))
+end
+
+module type Acc = sig
+  module Val : Abstract.Value.External
+  module Loc : Abstract.Location.Internal with type value = Val.t
+                                           and type location = precise_loc
+  module Dom : Abstract.Domain.Internal with type value = Val.t
+                                         and type location = Loc.location
+end
+
+module Internal_Value = struct
+  open Abstract.Value
+
+  type value_key_module =  V : 'v key * 'v data -> value_key_module
+
+  let open_value_abstraction (module Value : Internal) =
+    (module struct
+      include Value
+      include Structure.Open (Abstract.Value) (Value)
+    end : Abstract.Value.External)
+
+  let add_value_leaf value (V (key, v)) =
+    let module Value = (val open_value_abstraction value) in
+    if Value.mem key then value else
+      (module struct
+        include Value_product.Make (Value) (val v)
+        let structure = Node (Value.structure, Leaf (key, v))
+      end)
+
+  let add_value_structure value internal =
+    let rec aux: type v. (module Internal) -> v structure -> (module Internal) =
+      fun value -> function
+        | Leaf (key, v) -> add_value_leaf value (V (key, v))
+        | Node (s1, s2) -> aux (aux value s1) s2
+        | Unit -> value
+    in
+    aux value internal
+
+  let build_values config initial_value =
+    let build (Config.Flag abstraction) acc =
+      match abstraction.values with
+      | Struct structure -> add_value_structure acc structure
+      | Single (module V) -> add_value_leaf acc (V (V.key, (module V)))
+    in
+    let value = Config.fold build config initial_value in
+    open_value_abstraction value
+
+
+  module Convert
+      (Value: Abstract.Value.External)
+      (Struct: sig type v val s : v value end)
+  = struct
+
+    let structure = match Struct.s with
+      | Single (module V) -> Abstract.Value.Leaf (V.key, (module V))
+      | Struct s -> s
+
+    type extended_value = Value.t
+
+    let replace_val =
+      let rec set: type v. v structure -> v -> Value.t -> Value.t =
+        function
+        | Leaf (key, _) -> Value.set key
+        | Node (s1, s2) ->
+          let set1 = set s1 and set2 = set s2 in
+          fun (v1, v2) value -> set1 v1 (set2 v2 value)
+        | Unit -> fun () value -> value
+      in
+      set structure
+
+    let extend_val v = replace_val v Value.top
+
+    let restrict_val =
+      let rec get: type v. v structure -> Value.t -> v = function
+        | Leaf (key, _) -> Extlib.the (Value.get key)
+        | Node (s1, s2) ->
+          let get1 = get s1 and get2 = get s2 in
+          fun v -> get1 v, get2 v
+        | Unit -> fun _ -> ()
+      in
+      get structure
+
+    type extended_location = Main_locations.PLoc.location
+
+    let restrict_loc = fun x -> x
+    let extend_loc = fun x -> x
+  end
+end
+
+(* --- Building domain abstractions ----------------------------------------- *)
+
+module type internal_loc =
+  Abstract.Location.Internal with type location = precise_loc
+module type internal_domain =
+  Abstract.Domain.Internal with type location = precise_loc
+
+let eq_value:
+  type a b. a Abstract.Value.structure -> b value -> (a,b) Structure.eq option
+  = fun structure -> function
+    | Struct s -> Abstract.Value.eq_structure structure s
+    | Single (module V) ->
+      match structure with
+      | Abstract.Value.Leaf (key, _) -> Abstract.Value.eq_type key V.key
+      | _ -> None
+
+let add_domain (type v) (abstraction: v abstraction) (module Acc: Acc) =
+  let domain : (module internal_domain with type value = Acc.Val.t) =
+    match abstraction.domain with
+    | Functor make ->
+      let module Make = (val make: domain_functor) in
+      (module Leaf_Domain (Make (Acc.Val)))
+    | Domain domain ->
+      match eq_value Acc.Val.structure abstraction.values with
+      | Some Structure.Eq ->
+        let module Domain = (val domain) in
+        (module Leaf_Domain (Domain))
+      | None ->
+        let module Domain = (val domain : leaf_domain with type value = v) in
+        let module Struct = struct
+          type v = Domain.value
+          let s = abstraction.values
+        end in
+        let module Convert = Internal_Value.Convert (Acc.Val) (Struct) in
+        (module Domain_lift.Make (Domain) (Convert))
+  in
+  let domain : (module internal_domain with type value = Acc.Val.t) =
+    match Abstract.Domain.(eq_structure Acc.Dom.structure Unit) with
+    | Some _ -> domain
+    | None ->
+      (* The new [domain] becomes the left leaf of the domain product, and will
+         be processed before the domains from [Acc.Dom] during the analysis. *)
+      (module Domain_product.Make (Acc.Val) ((val domain)) (Acc.Dom))
+  in
+  (module struct
+    module Val = Acc.Val
+    module Loc = Acc.Loc
+    module Dom = (val domain)
+  end : Acc)
+
+let build_domain config abstract =
+  let build (Config.Flag abstraction) acc = add_domain abstraction acc in
+  (* Domains in the [config] are sorted by increasing priority: domains with
+     higher priority are added last: they will be at the top of the domains
+     tree, and thus will be processed first during the analysis. *)
+  Config.fold build config abstract
+
+
+(* --- Value reduced product ----------------------------------------------- *)
 
 module type Value = sig
-  include Abstract_value.External
+  include Abstract.Value.External
   val reduce : t -> t
 end
 
 module type S = sig
   module Val : Value
-  module Loc : Abstract_location.External with type value = Val.t
-  module Dom : Abstract_domain.External with type value = Val.t
+  module Loc : Abstract.Location.External with type value = Val.t
+  module Dom : Abstract.Domain.External with type value = Val.t
                                          and type location = Loc.location
 end
 
@@ -95,493 +313,132 @@ module type Eva = sig
                              and type origin = Dom.origin
 end
 
-(* -------------------------------------------------------------------------- *)
-(*                           Value Abstraction                                *)
-(* -------------------------------------------------------------------------- *)
 
-module type V = sig
-  include Abstract_value.External
-  val structure : t Abstract_value.structure
-end
+type ('a, 'b) value_reduced_product =
+  'a Abstract.Value.key * 'b Abstract.Value.key * ('a -> 'b -> 'a * 'b)
 
-module CVal = struct
-  include Main_values.CVal
-  include Structure.Open (Structure.Key_Value) (Main_values.CVal)
-end
+type v_reduced_product = R: ('a, 'b) value_reduced_product -> v_reduced_product
 
-let has_apron config =
-  config.apron_oct || config.apron_box || config.polka_equalities
-  || config.polka_loose || config.polka_strict
+let value_reduced_product = ref []
 
-(* The apron domains relies on a specific interval abstraction to communicate
-   with other domains. This function adds the intervals to the current [value]
-   abstraction. These intervals carry the same information as the cvalue
-   abstractions (if they are enabled). Do not display the intervals in the GUI
-   in this case. *)
-let add_apron_value config value =
-  let module Left = ((val value: Abstract_value.Internal)) in
-  let module V = struct
-    include Value_product.Make (Left) (Main_values.Interval)
-    let pretty_typ =
-      if config.cvalue
-      then fun fmt typ (left, _right) -> Left.pretty_typ fmt typ left
-      else pretty_typ
-  end in
-  (module V: Abstract_value.Internal)
+let register_value_reduction reduced_product =
+  value_reduced_product := (R reduced_product) :: !value_reduced_product
 
-let open_value_abstraction value =
-  let module Value = (val value : Abstract_value.Internal) in
-  (module struct
-    include Value
-    include Structure.Open (Structure.Key_Value) (Value)
-  end : V)
-
-let build_value config =
-  let value =
-    if config.bitwise
-    then (module Offsm_value.CvalueOffsm : Abstract_value.Internal)
-    else (module Main_values.CVal : Abstract_value.Internal)
-  in
-  let value =
-    if config.signs
-    then
-      let module V = Value_product.Make ((val value)) (Sign_value) in
-      (module V: Abstract_value.Internal)
-    else value
-  in
-  let value =
-    if config.numerors
-    then Numerors_domain.add_numerors_value value
-    else value
-  in
-  let value =
-    if has_apron config
-    then add_apron_value config value
-    else value
-  in
-  open_value_abstraction value
-
-(* Builds a module conversion from a generic external value to a key. *)
-module Convert
-    (Value : Abstract_value.External)
-    (K : sig type v val key : v Abstract_value.key end)
-= struct
-  type extended_value = Value.t
-  type extended_location = Main_locations.PLoc.location
-
-  let extend_val =
-    let set = Value.set K.key in
-    fun v -> set v Value.top
-
-  let replace_val = Value.set K.key
-
-  let restrict_val = match Value.get K.key with
-    | None -> assert false
-    | Some get -> get
-
-  let restrict_loc = fun x -> x
-  let extend_loc = fun x -> x
-end
-
-
-(* -------------------------------------------------------------------------- *)
-(*                              Cvalue Domain                                 *)
-(* -------------------------------------------------------------------------- *)
-
-(* Abstractions needed for the analysis: value, location and domain. *)
-module type Abstract = sig
-  module Val : V
-  module Loc : Abstract_location.Internal with type value = Val.t
-                                           and type location = Precise_locs.precise_location
-  module Dom : Abstract_domain.Internal with type value = Val.t
-                                         and type location = Loc.location
-end
-
-let default_root_abstraction config =
-  if config.cvalue
-  then
-    (module struct
-      module Val = CVal
-      module Loc = Main_locations.PLoc
-      module Dom = Cvalue_domain.State
-    end : Abstract)
-  else
-    (module struct
-      module Val = CVal
-      module Loc = Main_locations.PLoc
-      module Dom = Unit_domain.Make (Val) (Loc)
-    end : Abstract)
-
-let build_root_abstraction config value =
-  let module Val = (val value : V) in
-  let module K = struct
-    type v = Cvalue.V.t
-    let key = Main_values.cvalue_key
-  end in
-  let module Conv = Convert (Val) (K) in
-  if config.cvalue
-  then
-    (module struct
-      module Val = Val
-      module Loc = Location_lift.Make (Main_locations.PLoc) (Conv)
-      module Dom = Domain_lift.Make (Cvalue_domain.State) (Conv)
-    end : Abstract)
-  else
-    (module struct
-      module Val = Val
-      module Loc = Location_lift.Make (Main_locations.PLoc) (Conv)
-      module Dom = Unit_domain.Make (Val) (Loc)
-    end : Abstract)
-
-
-(* -------------------------------------------------------------------------- *)
-(*                              Apron Domains                                 *)
-(* -------------------------------------------------------------------------- *)
-
-let add_apron_domain abstract apron =
-  let module Abstract = (val abstract: Abstract) in
-  let module K = struct
-    type v = Main_values.Interval.t
-    let key = Main_values.interval_key
-  end in
-  let module Conv = Convert (Abstract.Val) (K) in
-  let module Apron = Domain_lift.Make ((val apron : Apron_domain.S)) (Conv) in
-  (module struct
-    module Val = Abstract.Val
-    module Loc = Abstract.Loc
-    module Dom = Domain_product.Make (Abstract.Val) (Abstract.Dom) (Apron)
-  end : Abstract)
-
-let dkey_experimental = Value_parameters.register_category "experimental-ok"
-
-let add_apron_domain abstractions apron =
-  if not (Value_parameters.is_debug_key_enabled dkey_experimental) then
-    Value_parameters.warning  "The Apron domains binding is experimental.";
-  if Apron_domain.ok
-  then add_apron_domain abstractions apron
-  else
-    Value_parameters.abort
-      "Apron domain requested but apron binding not available: analysis aborted."
-
-
-(* -------------------------------------------------------------------------- *)
-(*                            Equality Domain                                 *)
-(* -------------------------------------------------------------------------- *)
-
-module CvalueEquality = Equality_domain.Make (CVal)
-
-let add_generic_equalities (module Abstract : Abstract) =
-  let module EqDom = Equality_domain.Make (Abstract.Val) in
-  let module Dom = Domain_product.Make (Abstract.Val) (Abstract.Dom) (EqDom) in
-  (module struct
-    module Val = Abstract.Val
-    module Loc = Abstract.Loc
-    module Dom = Dom
-  end : Abstract)
-
-let add_equalities (type v) (module Abstract : Abstract with type Val.t = v) =
-  match Abstract.Val.structure with
-  | Structure.Key_Value.Leaf key ->
-    begin
-      match Structure.Key_Value.eq_type key Main_values.cvalue_key with
-      | None -> add_generic_equalities (module Abstract)
-      | Some Structure.Eq ->
-        let module Dom =
-          Domain_product.Make (Abstract.Val) (Abstract.Dom) (CvalueEquality)
-        in
-        (module struct
-          module Val = Abstract.Val
-          module Loc = Abstract.Loc
-          module Dom = Dom
-        end : Abstract)
+(* When the value abstraction contains both a cvalue and an interval
+   component (coming currently from an Apron domain), reduce them from each
+   other. If the Cvalue is not a scalar do nothing, because we do not
+   currently use Apron for pointer offsets. *)
+let reduce_apron_itv cvalue ival =
+  match ival with
+  | None -> begin
+      try cvalue, Some (Cvalue.V.project_ival cvalue)
+      with Cvalue.V.Not_based_on_null -> cvalue, ival
     end
-  | _ -> add_generic_equalities (module Abstract)
+  | Some ival ->
+    try
+      let ival' = Cvalue.V.project_ival cvalue in
+      (match ival' with
+       | Ival.Float _ -> raise Cvalue.V.Not_based_on_null
+       | _ -> ());
+      let reduced_ival = Ival.narrow ival ival' in
+      let cvalue = Cvalue.V.inject_ival reduced_ival in
+      cvalue, Some reduced_ival
+    with Cvalue.V.Not_based_on_null -> cvalue, Some ival
 
+let () =
+  register_value_reduction
+    (Main_values.CVal.key, Main_values.Interval.key, reduce_apron_itv)
 
-(* -------------------------------------------------------------------------- *)
-(*                            Offsetmap Domain                                *)
-(* -------------------------------------------------------------------------- *)
-
-let add_offsm abstract =
-  let module Abstract = (val abstract : Abstract) in
-  let module K = struct
-    type v = Offsm_value.offsm_or_top
-    let key = Offsm_value.offsm_key
-  end in
-  let module Conv = Convert (Abstract.Val) (K) in
-  let module Offsm = Domain_lift.Make (Offsm_domain.D) (Conv) in
-  let module Dom = Domain_product.Make (Abstract.Val) (Abstract.Dom) (Offsm) in
-  (module struct
-    module Val = Abstract.Val
-    module Loc = Abstract.Loc
-    module Dom = Dom
-  end : Abstract)
-
-(* -------------------------------------------------------------------------- *)
-(*                   Domains on standard locations and values                 *)
-(* -------------------------------------------------------------------------- *)
-
-module type Standard_abstraction = Abstract_domain.Internal
-  with type value = Cvalue.V.t
-   and type location = Precise_locs.precise_location
-
-let add_standard_domain d abstract =
-  let module Abstract = (val abstract : Abstract) in
-  let module K = struct
-    type v = Cvalue.V.t
-    let key = Main_values.cvalue_key
-  end in
-  let module Conv = Convert (Abstract.Val) (K) in
-  let module D = (val d: Standard_abstraction) in
-  let module LD = Domain_lift.Make (D) (Conv) in
-  let module Dom = Domain_product.Make (Abstract.Val)(Abstract.Dom)(LD) in
-  (module struct
-    module Val = Abstract.Val
-    module Loc = Abstract.Loc
-    module Dom = Dom
-  end : Abstract)
-
-(* List of abstractions registered by other plugins *)
-let dynamic_abstractions = ref []
-
-let add_dynamic_abstractions abstract =
-  List.fold_left
-    (fun d abstract -> add_standard_domain abstract d)
-    abstract !dynamic_abstractions
-
-let register_dynamic_abstraction d =
-  dynamic_abstractions := d :: !dynamic_abstractions
-
-(* --------------------------------------------------------------------------*)
-(*                            Symbolic locations                             *)
-(* --------------------------------------------------------------------------*)
-
-let add_symbolic_locs =
-  add_standard_domain (module Symbolic_locs.D)
-
-(* -------------------------------------------------------------------------- *)
-(*                            Gauges                                          *)
-(* -------------------------------------------------------------------------- *)
-
-let add_gauges =
-  add_standard_domain (module Gauges_domain.D)
-
-(* -------------------------------------------------------------------------- *)
-(*                            Inout                                           *)
-(* -------------------------------------------------------------------------- *)
-
-let add_inout =
-  add_standard_domain (module Inout_domain.D)
-
-(* -------------------------------------------------------------------------- *)
-(*                            Sign Domain                                     *)
-(* -------------------------------------------------------------------------- *)
-
-let add_signs abstract =
-  let module Abstract = (val abstract : Abstract) in
-  let module K = struct
-    type v = Sign_value.t
-    let key = Sign_value.sign_key
-  end in
-  let module Conv = Convert (Abstract.Val) (K) in
-  let module Sign = Domain_lift.Make (Sign_domain) (Conv) in
-  let module Dom = Domain_product.Make (Abstract.Val) (Abstract.Dom) (Sign) in
-  (module struct
-    module Val = Abstract.Val
-    module Loc = Abstract.Loc
-    module Dom = Dom
-  end : Abstract)
-
-(* -------------------------------------------------------------------------- *)
-(*                           Numerors Domain                                  *)
-(* -------------------------------------------------------------------------- *)
-
-let add_errors abstract =
-  let module Abstract = (val abstract : Abstract) in
-  let module K = struct
-    type v = Numerors_domain.value
-    let key = Numerors_domain.value_key
-  end in
-  let module Conv = Convert (Abstract.Val) (K) in
-  let module Numerors = (val Numerors_domain.numerors_domain ()) in
-  let module Errors = Domain_lift.Make (Numerors) (Conv) in
-  let module Dom = Domain_product.Make (Abstract.Val) (Abstract.Dom) (Errors) in
-  (module struct
-    module Val = Abstract.Val
-    module Loc = Abstract.Loc
-    module Dom = Dom
-  end : Abstract)
-
-(* -------------------------------------------------------------------------- *)
-(*                                 Printer                                    *)
-(* -------------------------------------------------------------------------- *)
-
-let add_printer =
-  add_standard_domain (module Printer_domain)
-
-(* -------------------------------------------------------------------------- *)
-(*                            Build Abstractions                              *)
-(* -------------------------------------------------------------------------- *)
-
-let build_abstractions config =
-  let value = build_value config in
-  let module V = (val value : V) in
-  let abstractions =
-    match V.structure with
-    | Structure.Key_Value.Leaf key
-      when Structure.Key_Value.equal key Main_values.cvalue_key ->
-      default_root_abstraction config
-    | _ -> build_root_abstraction config value
-  in
-  let abstractions =
-    if config.apron_oct
-    then add_apron_domain abstractions (module Apron_domain.Octagon)
-    else abstractions
-  in
-  let abstractions =
-    if config.apron_box
-    then add_apron_domain abstractions (module Apron_domain.Box)
-    else abstractions
-  in
-  let abstractions =
-    if config.polka_loose
-    then add_apron_domain abstractions (module Apron_domain.Polka_Loose)
-    else abstractions
-  in
-  let abstractions =
-    if config.polka_strict
-    then add_apron_domain abstractions (module Apron_domain.Polka_Strict)
-    else abstractions
-  in
-  let abstractions =
-    if config.polka_equalities
-    then add_apron_domain abstractions (module Apron_domain.Polka_Equalities)
-    else abstractions
-  in
-  let module A = (val abstractions : Abstract) in
-  let abstractions =
-    if config.equalities
-    then add_equalities (module A)
-    else abstractions
-  in
-  let abstractions =
-    if config.symbolic_locs
-    then add_symbolic_locs abstractions
-    else abstractions
-  in
-  let abstractions =
-    if config.bitwise
-    then add_offsm abstractions
-    else abstractions
-  in
-  let abstractions =
-    if config.gauges
-    then add_gauges abstractions
-    else abstractions
-  in
-  let abstractions =
-    if config.inout
-    then add_inout abstractions
-    else abstractions
-  in
-  let abstractions =
-    if config.signs
-    then add_signs abstractions
-    else abstractions
-  in
-  let abstractions =
-    if config.numerors
-    then add_errors abstractions
-    else abstractions
-  in
-  let abstractions =
-    if config.printer
-    then add_printer abstractions
-    else abstractions
-  in
-  let abstractions = add_dynamic_abstractions abstractions in
-  abstractions
-
-
-(* Add the reduce function to the value module. *)
-module Reduce (Value : Abstract_value.External) = struct
-
+module Reduce (Value : Abstract.Value.External) = struct
   include Value
 
-  (* When the value abstraction contains both a cvalue and an interval
-     component (coming currently from an Apron domain), reduce them from each
-     other. If the Cvalue is not a scalar do nothing, because we do not
-     currently use Apron for pointer offsets. *)
-  let reduce_apron_itv =
-    match Value.get Main_values.interval_key, Value.get Main_values.cvalue_key with
-    | Some get_interval, Some get_cvalue ->
-      begin
-        let set_cvalue = Value.set Main_values.cvalue_key in
-        let set_interval = Value.set Main_values.interval_key in
-        fun t ->
-          match get_interval t with
-          | None -> begin
-              let cvalue = get_cvalue t in
-              try
-                let ival = Cvalue.V.project_ival cvalue in
-                set_interval (Some ival) t
-              with Cvalue.V.Not_based_on_null -> t
-            end
-          | Some ival ->
-            let cvalue = get_cvalue t in
-            try
-              let ival' = Cvalue.V.project_ival cvalue in
-              (match ival' with
-               | Ival.Float _ -> raise Cvalue.V.Not_based_on_null
-               | _ -> ());
-              let reduced_ival = Ival.narrow ival ival' in
-              let cvalue = Cvalue.V.inject_ival reduced_ival in
-              set_interval (Some reduced_ival) (set_cvalue cvalue t)
-            with Cvalue.V.Not_based_on_null -> t
-      end
-    | _, _ -> fun x -> x
+  let make_reduction acc (R (key1, key2, f)) =
+    match Value.get key1, Value.get key2 with
+    | Some get1, Some get2 ->
+      let set1 = Value.set key1
+      and set2 = Value.set key2 in
+      let reduce v = let v1, v2 = f (get1 v) (get2 v) in set1 v1 (set2 v2 v) in
+      reduce :: acc
+    | _, _ -> acc
 
-  let reduce_error = Numerors_domain.reduce_error (module Value)
-
-  let reduce t = reduce_apron_itv (reduce_error t)
+  let reduce =
+    let list = List.fold_left make_reduction [] !value_reduced_product in
+    fun v -> List.fold_left (fun v reduce -> reduce v) v list
 end
 
-let open_abstractions abstraction =
-  let module Abstract = (val abstraction : Abstract) in
-  let module Val = Reduce (Abstract.Val) in
-  let module Loc = struct
-    include Abstract.Loc
-    include Structure.Open
-        (Structure.Key_Location)
-        (struct include Abstract.Loc type t = location end)
-  end in
-  let module Domain = struct
-    include Abstract.Dom
-    include Structure.Open (Structure.Key_Domain) (Abstract.Dom)
-  end in
-  (module struct
-    module Val = Val
-    module Loc = Loc
-    module Dom = Domain
-  end : S)
+(* --- Final hook ----------------------------------------------------------- *)
 
+let final_hooks = ref []
+
+let register_hook f =
+  final_hooks := f :: !final_hooks
+
+let apply_final_hooks abstractions =
+  List.fold_left (fun acc f -> f acc) abstractions !final_hooks
+
+(* --- Building abstractions ------------------------------------------------ *)
+
+module Open (Acc: Acc) : S = struct
+  module Val = Reduce (Acc.Val)
+  module Loc = struct
+    include Acc.Loc
+    include Structure.Open (Abstract.Location)
+        (struct include Acc.Loc type t = location end)
+  end
+  module Dom = struct
+    include Acc.Dom
+    include Structure.Open (Abstract.Domain) (Acc.Dom)
+
+    let get_cvalue = match get Cvalue_domain.State.key with
+      | None -> None
+      | Some get -> Some (fun s -> fst (get s))
+
+    let get_cvalue_or_top = match get Cvalue_domain.State.key with
+      | None -> fun _ -> Cvalue.Model.top
+      | Some get -> fun s -> fst (get s)
+
+    let get_cvalue_or_bottom = function
+      | `Bottom -> Cvalue.Model.bottom
+      | `Value state -> get_cvalue_or_top state
+  end
+end
+
+module CVal = Leaf_Value (Main_values.CVal)
+
+let unit_acc (module Value: Abstract.Value.External) =
+  let loc : (module internal_loc with type value = Value.t) =
+    match Abstract.Value.eq_structure Value.structure CVal.structure with
+    | Some Structure.Eq -> (module Leaf_Location (Main_locations.PLoc))
+    | _ ->
+      let module Struct = struct
+        type v = Cvalue.V.t
+        let s = Single (module Main_values.CVal)
+      end in
+      let module Conv = Internal_Value.Convert (Value) (Struct) in
+      (module Location_lift.Make (Main_locations.PLoc) (Conv))
+  in
+  (module struct
+    module Val = Value
+    module Loc = (val loc)
+    module Dom = Unit_domain.Make (Val) (Loc)
+  end : Acc)
+
+let build_abstractions config =
+  let initial_value : (module Abstract.Value.Internal) =
+    if Config.mem Config.bitwise config
+    then (module Offsm_value.CvalueOffsm)
+    else (module CVal)
+  in
+  let value = Internal_Value.build_values config initial_value in
+  let acc = unit_acc value in
+  build_domain config acc
+
+let configure = Config.configure
 
 let make config =
   let abstractions = build_abstractions config in
-  open_abstractions abstractions
+  let abstractions = (module Open (val abstractions): S) in
+  apply_final_hooks abstractions
 
-
-(* -------------------------------------------------------------------------- *)
-(*                       Default and Legacy Abstractions                      *)
-(* -------------------------------------------------------------------------- *)
-
-module Legacy =  (val make legacy_config)
-module Default = (val make default_config)
-
-
-
-(*
-Local Variables:
-compile-command: "make -C ../../../.."
-End:
-*)
+module Default = (val make Config.default)
+module Legacy = (val make Config.legacy)

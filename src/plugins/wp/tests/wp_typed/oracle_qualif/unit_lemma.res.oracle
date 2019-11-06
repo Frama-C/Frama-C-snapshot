@@ -1,17 +1,17 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_typed/unit_lemma.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] 6 goals scheduled
-[wp] [Alt-Ergo] Goal typed_lemma_P23_KO : Unsuccess
-[wp] [Alt-Ergo] Goal typed_lemma_P52 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_P13 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_P14 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_P54 : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_Foo : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_P23_KO : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_P52 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_P13 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_P14 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_P54 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_Foo : Valid
 [wp] Proved goals:    5 / 6
-  Qed:             0 
-  Alt-Ergo:        5  (unsuccess: 1)
+  Qed:               0 
+  Alt-Ergo 2.0.0:    5  (unsuccess: 1)
 [wp] Report in:  'tests/wp_typed/oracle_qualif/unit_lemma.0.report.json'
 [wp] Report out: 'tests/wp_typed/result_qualif/unit_lemma.0.report.json'
 -------------------------------------------------------------

@@ -35,6 +35,11 @@ module Typ = struct
     | TFun (_,args,_,_) -> Cil.argsToList args
     | _ -> invalid_arg "params"
 
+  let ghost_partitioned_params typ =
+    match Cil.unrollType typ with
+    | TFun (_,args,_,_) -> Cil.argsToPairOfLists args
+    | _ -> invalid_arg "params"
+
   let params_types typ =
     List.map (fun (_,typ,_) -> typ) (params typ)
 

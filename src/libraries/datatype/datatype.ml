@@ -146,7 +146,7 @@ end
 let valid_varname s =
   let r = Str.regexp "[^A-Za-z0-9_]+" in
   let s = Str.global_replace r "__" s in
-  Transitioning.String.uncapitalize_ascii s
+  String.uncapitalize_ascii s
 
 let check f fname tname fstr =
   assert
@@ -272,7 +272,7 @@ let is_module_name s =
   List.for_all
     (fun x ->
        String.length x > 0 &&
-       x.[0] = Transitioning.Char.uppercase_ascii x.[0]) l
+       x.[0] = Char.uppercase_ascii x.[0]) l
 
 module Make(X: Make_input) = struct
 
@@ -1711,7 +1711,7 @@ end
 module Make_with_collections(X: Make_input) =
   With_collections
     (Make(X))
-    (struct let module_name = Transitioning.String.capitalize_ascii X.name end)
+    (struct let module_name = String.capitalize_ascii X.name end)
 
 (* ****************************************************************************)
 (** {2 Predefined datatype} *)
@@ -1730,7 +1730,7 @@ module Simple_type
   end) =
 struct
 
-  let module_name = "Datatype." ^ Transitioning.String.capitalize_ascii X.name
+  let module_name = "Datatype." ^ String.capitalize_ascii X.name
 
   include With_collections
   (Make(struct

@@ -128,8 +128,8 @@ module type Queries = sig
         of [exp]. [Alarmset.all] is always a sound over-approximation of these
         alarms.
       - a value for the expression, which can be:
-        - `Bottom if its evaluation is infeasible;
-        - `Value (v, o) where [v] is an over-approximation of the abstract
+        – `Bottom if its evaluation is infeasible;
+        – `Value (v, o) where [v] is an over-approximation of the abstract
            value of the expression [exp], and [o] is the origin of the value. *)
 
   (** Query function for compound expressions:
@@ -193,6 +193,8 @@ module type Transfer = sig
       assignment has been performed.
       - [kinstr] is the statement of the assignment, or Kglobal for the
         initialization of a global variable.
+      - when the kinstr is a function call, [expr] is the special variable in
+        [!Eval.call.return].
       - [v] carries the value being assigned to [lv], i.e. the value of the
         expression [expr]. [v] also denotes the kind of assignment: Assign for
         the default assignment of the value, or Copy for the exact copy of a
@@ -230,7 +232,7 @@ module type Transfer = sig
       - [stmt] is the statement of the call site;
       - [call] represents the function call and its arguments.
       - [pre] and [post] are the states before and at the end of the call
-      respectively. *)
+        respectively. *)
   val finalize_call:
     stmt -> (location, value) call -> pre:state -> post:state -> state or_bottom
 
@@ -382,8 +384,8 @@ module type S = sig
 
   (** [initialize_variable lval loc ~initialized init_value state] initializes
       the value of the location [loc] of lvalue [lval] in [state] with:
-      - bits 0 if init_value = Zero;
-      - any bits if init_value = Top.
+      – bits 0 if init_value = Zero;
+      – any bits if init_value = Top.
       The boolean initialized is true if the location is initialized, and false
       if the location may be not initialized. *)
   val initialize_variable:
@@ -394,73 +396,12 @@ module type S = sig
   val initialize_variable_using_type: init_kind -> varinfo -> t -> t
 
   include Recycle with type t := t
-end
-
-
-(** Keys identify abstract domains through the type of their abstract values. *)
-type 'a key = 'a Structure.Key_Domain.k
-
-(** Describes the internal structure of a domain.
-    Used internally to automatically generate efficient accessors from a
-    generic abstract domain, which may be a combination of several domains,
-    to a specific one. *)
-type 'a structure = 'a Structure.Key_Domain.structure =
-  | Void : 'a structure
-  | Leaf : 'a key -> 'a structure
-  | Node : 'a structure * 'b structure -> ('a * 'b) structure
-
-(**
-   For a simple 'leaf' domain, the structure should be:
-     [let key = Structure.Key_Domain.create_key "name_of_the_domain";;
-      let structure = Leaf key;;]
-
-   Then, the key should be exported by the domain, to allow the use of the
-   functions defined in the {!Interface} interface below.
-
-   A compound domain may use the {!Node} constructor to provide a separate
-   access to each of its parts.
-
-   A domain can also use the {!Void} constructor to prevent access to itself.
-*)
-
-(** Structure of a domain. *)
-module type S_with_Structure = sig
-  include S
-
-  (** A structure matching the type of the domain. *)
-  val structure : t structure
 
   (** Category for the messages about the domain.
       Must be created through {!Value_parameters.register_category}. *)
   val log_category : Value_parameters.category
 end
 
-(** External interface of a domain, with accessors.
-    Automatically built by the functor {!Structure.Open}.
-    When a generic domain is a combination of several domains, these functions
-    allow interacting with its subparts. Note that their behavior is undefined
-    if the overall domain contains several times the same domain. *)
-module type Interface = sig
-  type t
-
-  (** Tests whether a key belongs to the domain. *)
-  val mem : 'a key -> bool
-
-  (** For a key of type [k key]:
-      - if the states of this domain (of type [t]) contain a part (of type [k])
-        from the domain identified by the key,
-        then [get key] returns an accessor for this part of a state.
-      - otherwise, [get key] returns None. *)
-  val get : 'a key -> (t -> 'a) option
-
-  (** For a key of type [k key]:
-      - if the states of this domain (of type [t]) contain a part (of type [k])
-        from the domain identified by the key,
-        then [set key d state] returns the state [state] in which this part
-        has been replaced by [d].
-      - otherwise, [set key _] is the identity function. *)
-  val set : 'a key -> 'a -> t -> t
-end
 
 (** Automatic storage of the states computed during the analysis. *)
 module type Store = sig
@@ -470,12 +411,14 @@ module type Store = sig
   val register_state_before_stmt: Value_types.callstack -> stmt -> state -> unit
   val register_state_after_stmt: Value_types.callstack -> stmt -> state -> unit
 
+  (** Allows accessing the states inferred by an Eva analysis after it has
+      been computed with the domain enabled. *)
   val get_global_state: unit -> state or_bottom
   val get_initial_state: kernel_function -> state or_bottom
   val get_initial_state_by_callstack:
     kernel_function -> state Value_types.Callstack.Hashtbl.t or_top_or_bottom
 
-  val get_stmt_state: stmt -> state or_bottom
+  val get_stmt_state: after:bool -> stmt -> state or_bottom
   val get_stmt_state_by_callstack:
     after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t or_top_or_bottom
 end
@@ -483,7 +426,7 @@ end
 (** Full implementation of domains. Automatically built by
     {!Domain_builder.Complete} from an {!S_with_Structure} domain. *)
 module type Internal = sig
-  include S_with_Structure
+  include S
   module Store: Store with type state := state
 
   (** This function is called after the analysis. The argument is the state
@@ -493,11 +436,14 @@ module type Internal = sig
   val post_analysis: t or_bottom -> unit
 end
 
-(** Final interface of domains, as generated and used by Eva, with generic
-    accessors for domains. *)
-module type External = sig
+type 't key = 't Structure.Key_Domain.key
+
+(** Signature for a leaf module of a domain. *)
+module type Leaf = sig
   include Internal
-  include Interface with type t := state
+
+  (** The key identifies the domain and the type [t] of its states. *)
+  val key: t key
 end
 
 

@@ -167,7 +167,7 @@ let get_widen_hints_annots stmt =
     (fun _emitter annot acc ->
        match annot with
        | {annot_content =
-            AExtended (_, _,(_,"widen_hints", _, _,Ext_terms terms))} ->
+            AExtended (_, _, {ext_name = "widen_hints"; ext_kind = Ext_terms terms})} ->
          (* loop widen_hints *)
          acc @ [terms]
        | _ -> acc

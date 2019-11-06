@@ -461,8 +461,11 @@ module Select (Eval: Eval) = struct
       | PVDecl (Some kf, Kstmt stmt, vi) ->
         let lv = (Var vi, NoOffset) in
         select_lv main_ui (GL_Stmt (kf, stmt)) lv
-      | PIP (IPCodeAnnot (kf, stmt,
-                          ({annot_content = AAssert (_, _, p) | AInvariant (_, true, p)} as ca)) as ip) ->
+      | PIP (IPCodeAnnot {ica_kf = kf; ica_stmt = stmt;
+                          ica_ca = {annot_content =
+                                      AAssert (_, _, p)
+                                    | AInvariant (_, true, p)} as ca
+                         } as ip) ->
         begin
           let loc = GL_Stmt (kf, stmt) in
           let alarm_or_property =
@@ -472,14 +475,15 @@ module Select (Eval: Eval) = struct
           in
           select_predicate_with_red main_ui loc (alarm_or_property, p)
         end;
-      | PIP (IPPredicate (_, kf, Kglobal, p) as ip) -> begin
+      | PIP (IPPredicate {ip_kf=kf; ip_kinstr=Kglobal; ip_pred=p} as ip) -> begin
           match Gui_eval.classify_pre_post kf ip with
           | None -> ()
           | Some loc ->
             select_predicate_with_red
               main_ui loc (Red_statuses.Prop ip, Logic_const.pred_of_id_pred p)
         end
-      | PIP (IPPropertyInstance (kf, stmt, Some pred, ip)) ->
+      | PIP (IPPropertyInstance {ii_kf=kf;ii_stmt=stmt;
+                                 ii_pred=Some pred;ii_ip=ip}) ->
         let loc = GL_Stmt (kf, stmt) in
         select_predicate_with_red main_ui loc
           (Red_statuses.Prop ip, Logic_const.pred_of_id_pred pred)
@@ -515,7 +519,7 @@ module Select (Eval: Eval) = struct
              (* Function pointers *)
              (* get the list of functions in the values *)
              let e = Value_util.lval_to_exp lv in
-             match Eval.Analysis.get_kinstr_state ki with
+             match Eval.Analysis.get_kinstr_state ~after:false ki with
              | `Bottom -> ()
              | `Value state ->
                let funs, _ = Eval.Analysis.eval_function_exp state e in
@@ -630,11 +634,12 @@ let add_keybord_shortcut_evaluate main_ui =
           let bl = Ast_info.block_of_local fdec vi in
           select (find_loc kf fdec bl)
       end
-    | PIP (Property.IPCodeAnnot (kf, stmt,
-                                 {annot_content = AAssert _ | AInvariant (_, true, _)} )) ->
+    | PIP (Property.(IPCodeAnnot {ica_kf = kf; ica_stmt = stmt;
+                                  ica_ca = {annot_content =
+                                              AAssert _ | AInvariant (_, true, _)}})) ->
       select (Some (GL_Stmt (kf, stmt)))
-    | PIP (Property.IPPredicate (_, kf, Kglobal, _) as ip) ->
-      select (Gui_eval.classify_pre_post kf ip)
+    | PIP (Property.(IPPredicate {ip_kf; ip_kinstr=Kglobal} as ip)) ->
+      select (Gui_eval.classify_pre_post ip_kf ip)
     | _ -> select None
   in
   main_ui#register_source_selector can_eval_acsl_expr_selector;

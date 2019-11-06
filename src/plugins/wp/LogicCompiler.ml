@@ -452,7 +452,7 @@ struct
   (* --- Registering User-Defined Signatures                                --- *)
   (* -------------------------------------------------------------------------- *)
 
-  module Typedefs = Model.Index
+  module Typedefs = WpContext.Index
       (struct
         type key = logic_type_info
         type data = unit
@@ -461,7 +461,7 @@ struct
         let pretty = Logic_type_info.pretty
       end)
 
-  module Signature = Model.Index
+  module Signature = WpContext.Index
       (struct
         type key = logic_info
         type data = signature
@@ -875,17 +875,21 @@ struct
         match LogicBuiltins.logic cst with
         | ACSLDEF -> call_fun env cst [] []
         | HACK phi -> phi []
-        | LFUN f -> e_fun f []
+        | LFUN phi -> e_fun phi [] ~result:(Lang.tau_of_ltype x.lv_type)
       in Cvalues.plain x.lv_type v
     with Not_found ->
-      Wp_parameters.fatal "Unbound logic variable '%a'"
-        Printer.pp_logic_var x
+      if Logic_env.is_logic_function x.lv_name then
+        Warning.error "Lambda-functions not yet implemented (at '%s')"
+          x.lv_name
+      else
+        Wp_parameters.fatal "Name '%a' has no definition in term"
+          Printer.pp_logic_var x
 
   let logic_info env f =
     try
       match Logic_var.Map.find f.l_var_info env.vars with
       | Vexp p -> Some (F.p_bool p)
-      | _ -> Wp_parameters.fatal "Logic variable '%a' is not a predicate"
+      | _ -> Wp_parameters.fatal "Variable '%a' is not a predicate"
                Logic_info.pretty f
     with Not_found -> None
 

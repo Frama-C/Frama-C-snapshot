@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_typed/user_string.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -7,22 +7,22 @@
 [wp] [Qed] Goal typed_strlen_ensures : Valid
 [wp] [Qed] Goal typed_strlen_loop_invariant_BASE_preserved : Valid
 [wp] [Qed] Goal typed_strlen_loop_invariant_BASE_established : Valid
-[wp] [Alt-Ergo] Goal typed_strlen_loop_invariant_RANGE_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_strlen_loop_invariant_RANGE_established : Valid
-[wp] [Alt-Ergo] Goal typed_strlen_loop_invariant_ZERO_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_strlen_loop_invariant_RANGE_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_strlen_loop_invariant_RANGE_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_strlen_loop_invariant_ZERO_preserved : Valid
 [wp] [Qed] Goal typed_strlen_loop_invariant_ZERO_established : Valid
-[wp] [Alt-Ergo] Goal typed_strlen_assert_END : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_strlen_assert_END : Valid
 [wp] [Qed] Goal typed_strlen_loop_assigns : Valid
 [wp] [Qed] Goal typed_strlen_assigns_part1 : Valid
 [wp] [Qed] Goal typed_strlen_assigns_part2 : Valid
 [wp] [Qed] Goal typed_strlen_loop_variant_decrease : Valid
-[wp] [Alt-Ergo] Goal typed_strlen_loop_variant_positive : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_strlen_loop_variant_positive : Valid
 [wp] Proved goals:   13 / 13
-  Qed:             8 
-  Alt-Ergo:        5
+  Qed:               8 
+  Alt-Ergo 2.0.0:    5
 [wp] Report in:  'tests/wp_typed/oracle_qualif/user_string.0.report.json'
 [wp] Report out: 'tests/wp_typed/result_qualif/user_string.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-strlen               8      5 (208..256)    13       100%
+strlen               8      5 (120..144)    13       100%
 -------------------------------------------------------------

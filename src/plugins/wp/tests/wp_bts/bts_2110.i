@@ -1,5 +1,5 @@
 /* run.config
-   CMD: @frama-c@ -wp -wp-msg-key shell,cluster -wp-gen -wp-share ./share
+   CMD: @frama-c@ -wp -wp-msg-key shell,cluster,print-generated -wp-prover why3 -wp-gen -wp-share ./share
    OPT:
 */
 

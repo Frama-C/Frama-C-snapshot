@@ -71,7 +71,7 @@ extern void                  if_freenameindex(struct if_nameindex *ni);
 struct ifaddr
   {
     struct sockaddr ifa_addr;	/* Address of interface.  */
-    union
+    union __fc_ifa_ifu
       {
 	struct sockaddr	ifu_broadaddr;
 	struct sockaddr	ifu_dstaddr;
@@ -111,11 +111,11 @@ struct ifmap {
 struct ifreq {
 # define IFHWADDRLEN	6
 # define IFNAMSIZ	IF_NAMESIZE
-  union {
+  union __fc_ifr_ifrn {
     char ifrn_name[IFNAMSIZ];	/* Interface name, e.g. "en0".  */
   } ifr_ifrn;
   
-  union {
+  union __fc_ifr_ifru {
     struct sockaddr ifru_addr;
     struct sockaddr ifru_dstaddr;
     struct sockaddr ifru_broadaddr;
@@ -154,7 +154,7 @@ struct ifreq {
 struct ifconf
   {
     int	ifc_len;			/* Size of buffer.  */
-    union
+    union __fc_ifc_ifcu
       {
 	char *ifcu_buf;
 	struct ifreq *ifcu_req;

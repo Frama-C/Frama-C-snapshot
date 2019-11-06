@@ -1,27 +1,27 @@
-# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
 [kernel] Parsing tests/wp_hoare/refguards.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 9 goals scheduled
 [wp] [Qed] Goal typed_ref_f_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_ref_g_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_g_ensures : Valid
 [wp] [Qed] Goal typed_ref_h_ensures : Valid
 [wp] [Qed] Goal typed_ref_s_ensures : Valid
 [wp] [Qed] Goal typed_ref_s_ensures_2 : Valid
 [wp] [Qed] Goal typed_ref_s_ensures_3 : Valid
 [wp] [Qed] Goal typed_ref_s_ensures_4 : Valid
 [wp] [Qed] Goal typed_ref_s_ensures_5 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_s_ensures_KO : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_ref_s_ensures_KO : Unsuccess
 [wp] Proved goals:    8 / 9
-  Qed:             7 
-  Alt-Ergo:        1  (unsuccess: 1)
+  Qed:               7 
+  Alt-Ergo 2.0.0:    1  (unsuccess: 1)
 [wp] Report in:  'tests/wp_hoare/oracle_qualif/refguards.0.report.json'
 [wp] Report out: 'tests/wp_hoare/result_qualif/refguards.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                    1     -                 1       100%
-g                   -       1 (12..24)       1       100%
+g                   -       1 (8..20)        1       100%
 h                    1     -                 1       100%
 s                    5     -                 6      83.3%
 -------------------------------------------------------------

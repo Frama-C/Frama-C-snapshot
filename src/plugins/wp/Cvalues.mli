@@ -31,6 +31,17 @@ open Lang.F
 
 val equation : Sigs.equation -> pred
 
+(** {2 Pretty Printing} *)
+
+type 'a printer = Format.formatter -> 'a -> unit
+
+val pp_bound : term option printer
+val pp_value : 'a printer -> 'a value printer
+val pp_logic : 'a printer -> 'a logic printer
+val pp_region : 'a printer -> 'a region printer
+val pp_sloc : 'a printer -> 'a sloc printer
+val pp_rloc : 'a printer -> 'a rloc printer
+
 (** {2 Int-As-Booleans} *)
 
 val bool_val : unop
@@ -48,6 +59,11 @@ val is_false : pred -> term (** [p ? 0 : 1] *)
 val null : (term -> pred) Context.value (** test for null pointer value *)
 
 val is_null : c_object -> term -> pred
+
+(** {2 Start of Arrays} *)
+
+(** Shift a location with 0-indices wrt to its array type *)
+val startof : shift:('a -> c_object -> term -> 'a) -> 'a -> typ -> 'a
 
 (** {2 Typing and Sub-Typing for C and ACSL Types} *)
 

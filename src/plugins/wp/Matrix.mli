@@ -30,8 +30,8 @@ open Lang.F
 type dim = int option
 type matrix = c_object * dim list
 
-module MACHINE : Model.Key with type t = matrix
-module NATURAL : Model.Key with type t = matrix
+module MACHINE : WpContext.Key with type t = matrix
+module NATURAL : WpContext.Key with type t = matrix
 
 val of_array : arrayinfo -> matrix
 val id : dim list -> string (** unique w.r.t [equal] *)

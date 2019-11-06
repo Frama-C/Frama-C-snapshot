@@ -1,31 +1,35 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/simpl_is_type.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
-[wp] 15 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_f_loop_invariant_preserved : Valid
+[wp] 18 goals scheduled
+[wp] [Alt-Ergo 2.0.0] Goal typed_check_acsl_check_ok_C1_absurd_is_cint : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_check_acsl_check_ok_C2_absurd_is_cint : Valid
+[wp] [Qed] Goal typed_check_acsl_check_ok_C5_absurd_cmp : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_f_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_f_loop_invariant_2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_loop_invariant_2_preserved : Valid
 [wp] [Qed] Goal typed_f_loop_invariant_2_established : Valid
-[wp] [Alt-Ergo] Goal typed_f_loop_invariant_3_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_f_loop_invariant_3_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_loop_invariant_3_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_loop_invariant_3_established : Valid
 [wp] [Qed] Goal typed_f_loop_assigns_part1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_loop_assigns_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_g_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_g_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f_loop_assigns_part2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_g_ensures : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_g_loop_invariant_preserved : Valid
 [wp] [Qed] Goal typed_g_loop_invariant_established : Valid
-[wp] [Alt-Ergo] Goal typed_g_loop_invariant_2_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_g_loop_invariant_2_preserved : Valid
 [wp] [Qed] Goal typed_g_loop_invariant_2_established : Valid
 [wp] [Qed] Goal typed_g_loop_assigns : Valid
-[wp] Proved goals:   15 / 15
-  Qed:             6 
-  Alt-Ergo:        9
+[wp] Proved goals:   18 / 18
+  Qed:               7 
+  Alt-Ergo 2.0.0:   11
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/simpl_is_type.0.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/simpl_is_type.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-f                    3      6 (88..112)      9       100%
-g                    3      3 (36..48)       6       100%
+f                    3      6 (56..68)       9       100%
+g                    3      3 (24..36)       6       100%
+check_acsl           1      2 (44..56)       3       100%
 -------------------------------------------------------------

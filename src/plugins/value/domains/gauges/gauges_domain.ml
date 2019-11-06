@@ -1120,7 +1120,7 @@ end
 
 let dkey = Value_parameters.register_category "d-gauges"
 
-module D_Impl : Abstract_domain.S_with_Structure
+module D_Impl : Abstract_domain.S
   with type state = G.t
    and type value = Cvalue.V.t
    and type location = Precise_locs.precise_location
@@ -1132,8 +1132,6 @@ module D_Impl : Abstract_domain.S_with_Structure
   include G
 
   let name = "Gauges domain"
-
-  let structure = Abstract_domain.Void
   let log_category = dkey
 
   let empty _ = G.empty

@@ -17,108 +17,114 @@ enum aorai_OpStatusList {
 /*@ ghost int End = 0; */
 /*@ ghost int Idle = 1; */
 /*@ ghost int WillDoFoo = 0; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_isPresent;
-    assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
-    
-    behavior buch_state_End_out:
-      ensures 0 ≡ End;
-    
-    behavior buch_state_Idle_in:
-      assumes 1 ≡ Idle;
-      ensures 1 ≡ Idle;
-    
-    behavior buch_state_Idle_out:
-      assumes 0 ≡ Idle;
-      ensures 0 ≡ Idle;
-    
-    behavior buch_state_WillDoFoo_out:
-      ensures 0 ≡ WillDoFoo;
- */
-void isPresent_pre_func(int *t, int size, int val)
-{
-  /*@ ghost int End_tmp; */
-  /*@ ghost int Idle_tmp; */
-  /*@ ghost int WillDoFoo_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_isPresent;
-  End_tmp = End;
-  Idle_tmp = Idle;
-  WillDoFoo_tmp = WillDoFoo;
-  WillDoFoo_tmp = 0;
-  if (Idle == 1) Idle_tmp = 1; else Idle_tmp = 0;
-  End_tmp = 0;
-  End = End_tmp;
-  Idle = Idle_tmp;
-  WillDoFoo = WillDoFoo_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_isPresent;
+     assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
+     
+     behavior buch_state_End_out:
+       ensures 0 ≡ End;
+     
+     behavior buch_state_Idle_in:
+       assumes 1 ≡ Idle;
+       ensures 1 ≡ Idle;
+     
+     behavior buch_state_Idle_out:
+       assumes 0 ≡ Idle;
+       ensures 0 ≡ Idle;
+     
+     behavior buch_state_WillDoFoo_out:
+       ensures 0 ≡ WillDoFoo;
+   @/
+  void isPresent_pre_func(int *t, int size, int val)
+  {
+    int End_tmp;
+    int Idle_tmp;
+    int WillDoFoo_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_isPresent;
+    End_tmp = End;
+    Idle_tmp = Idle;
+    WillDoFoo_tmp = WillDoFoo;
+    WillDoFoo_tmp = 0;
+    if (Idle == 1) Idle_tmp = 1; else Idle_tmp = 0;
+    End_tmp = 0;
+    End = End_tmp;
+    Idle = Idle_tmp;
+    WillDoFoo = WillDoFoo_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ End ∨ 1 ≡ Idle ∨ 1 ≡ WillDoFoo;
-    requires 1 ≡ End ⇒ res ≢ -1;
-    requires 1 ≡ Idle ⇒ res ≡ -1 ∨ res ≢ -1;
-    requires 1 ≡ WillDoFoo ⇒ res ≡ -1;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_isPresent;
-    assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
-    
-    behavior buch_state_End_in:
-      assumes (1 ≡ Idle ∧ res ≢ -1) ∨ (1 ≡ End ∧ res ≢ -1);
-      ensures 1 ≡ End;
-    
-    behavior buch_state_End_out:
-      assumes
-        (0 ≡ Idle ∨ ¬(res ≢ -1)) ∧ (0 ≡ End ∨ ¬(res ≢ -1));
-      ensures 0 ≡ End;
-    
-    behavior buch_state_Idle_out:
-      ensures 0 ≡ Idle;
-    
-    behavior buch_state_WillDoFoo_in:
-      assumes
-        (1 ≡ WillDoFoo ∧ res ≡ -1) ∨ (1 ≡ Idle ∧ res ≡ -1);
-      ensures 1 ≡ WillDoFoo;
-    
-    behavior buch_state_WillDoFoo_out:
-      assumes
-        (0 ≡ WillDoFoo ∨ ¬(res ≡ -1)) ∧
-        (0 ≡ Idle ∨ ¬(res ≡ -1));
-      ensures 0 ≡ WillDoFoo;
- */
-void isPresent_post_func(int res)
-{
-  /*@ ghost int End_tmp; */
-  /*@ ghost int Idle_tmp; */
-  /*@ ghost int WillDoFoo_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_isPresent;
-  End_tmp = End;
-  Idle_tmp = Idle;
-  WillDoFoo_tmp = WillDoFoo;
-  if (Idle == 1) {
-    if (res == -1) WillDoFoo_tmp = 1; else goto _LAND;
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ End ∨ 1 ≡ Idle ∨ 1 ≡ WillDoFoo;
+     requires 1 ≡ End ⇒ res ≢ -1;
+     requires 1 ≡ Idle ⇒ res ≡ -1 ∨ res ≢ -1;
+     requires 1 ≡ WillDoFoo ⇒ res ≡ -1;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_isPresent;
+     assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
+     
+     behavior buch_state_End_in:
+       assumes (1 ≡ Idle ∧ res ≢ -1) ∨ (1 ≡ End ∧ res ≢ -1);
+       ensures 1 ≡ End;
+     
+     behavior buch_state_End_out:
+       assumes
+         (0 ≡ Idle ∨ ¬(res ≢ -1)) ∧ (0 ≡ End ∨ ¬(res ≢ -1));
+       ensures 0 ≡ End;
+     
+     behavior buch_state_Idle_out:
+       ensures 0 ≡ Idle;
+     
+     behavior buch_state_WillDoFoo_in:
+       assumes
+         (1 ≡ WillDoFoo ∧ res ≡ -1) ∨ (1 ≡ Idle ∧ res ≡ -1);
+       ensures 1 ≡ WillDoFoo;
+     
+     behavior buch_state_WillDoFoo_out:
+       assumes
+         (0 ≡ WillDoFoo ∨ ¬(res ≡ -1)) ∧
+         (0 ≡ Idle ∨ ¬(res ≡ -1));
+       ensures 0 ≡ WillDoFoo;
+   @/
+  void isPresent_post_func(int res)
+  {
+    int End_tmp;
+    int Idle_tmp;
+    int WillDoFoo_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_isPresent;
+    End_tmp = End;
+    Idle_tmp = Idle;
+    WillDoFoo_tmp = WillDoFoo;
+    if (Idle == 1) {
+      if (res == -1) WillDoFoo_tmp = 1; else goto _LAND;
+    }
+    else {
+      _LAND: ;
+      if (WillDoFoo == 1) 
+        if (res == -1) WillDoFoo_tmp = 1; else WillDoFoo_tmp = 0;
+      else WillDoFoo_tmp = 0;
+    }
+    Idle_tmp = 0;
+    if (End == 1) {
+      if (res != -1) End_tmp = 1; else goto _LAND_0;
+    }
+    else {
+      _LAND_0: ;
+      if (Idle == 1) 
+        if (res != -1) End_tmp = 1; else End_tmp = 0;
+      else End_tmp = 0;
+    }
+    End = End_tmp;
+    Idle = Idle_tmp;
+    WillDoFoo = WillDoFoo_tmp;
+    return;
   }
-  else {
-    _LAND: ;
-    if (WillDoFoo == 1) 
-      if (res == -1) WillDoFoo_tmp = 1; else WillDoFoo_tmp = 0;
-    else WillDoFoo_tmp = 0;
-  }
-  Idle_tmp = 0;
-  if (End == 1) {
-    if (res != -1) End_tmp = 1; else goto _LAND_0;
-  }
-  else {
-    _LAND_0: ;
-    if (Idle == 1) 
-      if (res != -1) End_tmp = 1; else End_tmp = 0;
-    else End_tmp = 0;
-  }
-  End = End_tmp;
-  Idle = Idle_tmp;
-  WillDoFoo = WillDoFoo_tmp;
-  return;
-}
+
+*/
 
 /*@ requires 1 ≡ Idle ∧ 0 ≡ End ∧ 0 ≡ WillDoFoo;
     requires \valid(t + (0 .. size - 1));
@@ -147,7 +153,7 @@ int isPresent(int *t, int size, int val)
 {
   int __retres;
   int tmp;
-  isPresent_pre_func(t,size,val);
+  /*@ ghost isPresent_pre_func(t,size,val); */
   if (size == 0) {
     __retres = -1;
     goto return_label;
@@ -160,86 +166,93 @@ int isPresent(int *t, int size, int val)
   int r = 1 + tmp;
   if (r == 0) r = -1;
   __retres = r;
-  return_label: {
-                  isPresent_post_func(__retres);
-                  return __retres;
-                }
+  return_label:
+  {
+    /*@ ghost isPresent_post_func(__retres); */
+    return __retres;
+  }
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_foo;
-    assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
-    
-    behavior buch_state_End_in:
-      assumes 1 ≡ WillDoFoo;
-      ensures 1 ≡ End;
-    
-    behavior buch_state_End_out:
-      assumes 0 ≡ WillDoFoo;
-      ensures 0 ≡ End;
-    
-    behavior buch_state_Idle_out:
-      ensures 0 ≡ Idle;
-    
-    behavior buch_state_WillDoFoo_out:
-      ensures 0 ≡ WillDoFoo;
- */
-void foo_pre_func(void)
-{
-  /*@ ghost int End_tmp; */
-  /*@ ghost int Idle_tmp; */
-  /*@ ghost int WillDoFoo_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_foo;
-  End_tmp = End;
-  Idle_tmp = Idle;
-  WillDoFoo_tmp = WillDoFoo;
-  WillDoFoo_tmp = 0;
-  Idle_tmp = 0;
-  if (WillDoFoo == 1) End_tmp = 1; else End_tmp = 0;
-  End = End_tmp;
-  Idle = Idle_tmp;
-  WillDoFoo = WillDoFoo_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_foo;
+     assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
+     
+     behavior buch_state_End_in:
+       assumes 1 ≡ WillDoFoo;
+       ensures 1 ≡ End;
+     
+     behavior buch_state_End_out:
+       assumes 0 ≡ WillDoFoo;
+       ensures 0 ≡ End;
+     
+     behavior buch_state_Idle_out:
+       ensures 0 ≡ Idle;
+     
+     behavior buch_state_WillDoFoo_out:
+       ensures 0 ≡ WillDoFoo;
+   @/
+  void foo_pre_func(void)
+  {
+    int End_tmp;
+    int Idle_tmp;
+    int WillDoFoo_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_foo;
+    End_tmp = End;
+    Idle_tmp = Idle;
+    WillDoFoo_tmp = WillDoFoo;
+    WillDoFoo_tmp = 0;
+    Idle_tmp = 0;
+    if (WillDoFoo == 1) End_tmp = 1; else End_tmp = 0;
+    End = End_tmp;
+    Idle = Idle_tmp;
+    WillDoFoo = WillDoFoo_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ End ∧ 0 ≡ Idle ∧ 0 ≡ WillDoFoo;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_foo;
-    assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
-    
-    behavior buch_state_End_in:
-      assumes 1 ≡ End;
-      ensures 1 ≡ End;
-    
-    behavior buch_state_End_out:
-      assumes 0 ≡ End;
-      ensures 0 ≡ End;
-    
-    behavior buch_state_Idle_out:
-      ensures 0 ≡ Idle;
-    
-    behavior buch_state_WillDoFoo_out:
-      ensures 0 ≡ WillDoFoo;
- */
-void foo_post_func(void)
-{
-  /*@ ghost int End_tmp; */
-  /*@ ghost int Idle_tmp; */
-  /*@ ghost int WillDoFoo_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_foo;
-  End_tmp = End;
-  Idle_tmp = Idle;
-  WillDoFoo_tmp = WillDoFoo;
-  WillDoFoo_tmp = 0;
-  Idle_tmp = 0;
-  if (End == 1) End_tmp = 1; else End_tmp = 0;
-  End = End_tmp;
-  Idle = Idle_tmp;
-  WillDoFoo = WillDoFoo_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ End ∧ 0 ≡ Idle ∧ 0 ≡ WillDoFoo;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_foo;
+     assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
+     
+     behavior buch_state_End_in:
+       assumes 1 ≡ End;
+       ensures 1 ≡ End;
+     
+     behavior buch_state_End_out:
+       assumes 0 ≡ End;
+       ensures 0 ≡ End;
+     
+     behavior buch_state_Idle_out:
+       ensures 0 ≡ Idle;
+     
+     behavior buch_state_WillDoFoo_out:
+       ensures 0 ≡ WillDoFoo;
+   @/
+  void foo_post_func(void)
+  {
+    int End_tmp;
+    int Idle_tmp;
+    int WillDoFoo_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_foo;
+    End_tmp = End;
+    Idle_tmp = Idle;
+    WillDoFoo_tmp = WillDoFoo;
+    WillDoFoo_tmp = 0;
+    Idle_tmp = 0;
+    if (End == 1) End_tmp = 1; else End_tmp = 0;
+    End = End_tmp;
+    Idle = Idle_tmp;
+    WillDoFoo = WillDoFoo_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires 1 ≡ WillDoFoo ∧ 0 ≡ End ∧ 0 ≡ Idle;
     
@@ -249,85 +262,91 @@ void foo_post_func(void)
  */
 void foo(void)
 {
-  foo_pre_func();
-  foo_post_func();
+  /*@ ghost foo_pre_func(); */
+  /*@ ghost foo_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
-    
-    behavior buch_state_End_out:
-      ensures 0 ≡ End;
-    
-    behavior buch_state_Idle_in:
-      assumes 1 ≡ Idle;
-      ensures 1 ≡ Idle;
-    
-    behavior buch_state_Idle_out:
-      assumes 0 ≡ Idle;
-      ensures 0 ≡ Idle;
-    
-    behavior buch_state_WillDoFoo_out:
-      ensures 0 ≡ WillDoFoo;
- */
-void main_pre_func(int argc, char **argv)
-{
-  /*@ ghost int End_tmp; */
-  /*@ ghost int Idle_tmp; */
-  /*@ ghost int WillDoFoo_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  End_tmp = End;
-  Idle_tmp = Idle;
-  WillDoFoo_tmp = WillDoFoo;
-  WillDoFoo_tmp = 0;
-  if (Idle == 1) Idle_tmp = 1; else Idle_tmp = 0;
-  End_tmp = 0;
-  End = End_tmp;
-  Idle = Idle_tmp;
-  WillDoFoo = WillDoFoo_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
+     
+     behavior buch_state_End_out:
+       ensures 0 ≡ End;
+     
+     behavior buch_state_Idle_in:
+       assumes 1 ≡ Idle;
+       ensures 1 ≡ Idle;
+     
+     behavior buch_state_Idle_out:
+       assumes 0 ≡ Idle;
+       ensures 0 ≡ Idle;
+     
+     behavior buch_state_WillDoFoo_out:
+       ensures 0 ≡ WillDoFoo;
+   @/
+  void main_pre_func(int argc, char **argv)
+  {
+    int End_tmp;
+    int Idle_tmp;
+    int WillDoFoo_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    End_tmp = End;
+    Idle_tmp = Idle;
+    WillDoFoo_tmp = WillDoFoo;
+    WillDoFoo_tmp = 0;
+    if (Idle == 1) Idle_tmp = 1; else Idle_tmp = 0;
+    End_tmp = 0;
+    End = End_tmp;
+    Idle = Idle_tmp;
+    WillDoFoo = WillDoFoo_tmp;
+    return;
+  }
 
-/*@ requires 1 ≡ End ∧ 0 ≡ Idle ∧ 0 ≡ WillDoFoo;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
-    
-    behavior buch_state_End_in:
-      assumes 1 ≡ End;
-      ensures 1 ≡ End;
-    
-    behavior buch_state_End_out:
-      assumes 0 ≡ End;
-      ensures 0 ≡ End;
-    
-    behavior buch_state_Idle_out:
-      ensures 0 ≡ Idle;
-    
-    behavior buch_state_WillDoFoo_out:
-      ensures 0 ≡ WillDoFoo;
- */
-void main_post_func(int res)
-{
-  /*@ ghost int End_tmp; */
-  /*@ ghost int Idle_tmp; */
-  /*@ ghost int WillDoFoo_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  End_tmp = End;
-  Idle_tmp = Idle;
-  WillDoFoo_tmp = WillDoFoo;
-  WillDoFoo_tmp = 0;
-  Idle_tmp = 0;
-  if (End == 1) End_tmp = 1; else End_tmp = 0;
-  End = End_tmp;
-  Idle = Idle_tmp;
-  WillDoFoo = WillDoFoo_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ End ∧ 0 ≡ Idle ∧ 0 ≡ WillDoFoo;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, End, Idle, WillDoFoo;
+     
+     behavior buch_state_End_in:
+       assumes 1 ≡ End;
+       ensures 1 ≡ End;
+     
+     behavior buch_state_End_out:
+       assumes 0 ≡ End;
+       ensures 0 ≡ End;
+     
+     behavior buch_state_Idle_out:
+       ensures 0 ≡ Idle;
+     
+     behavior buch_state_WillDoFoo_out:
+       ensures 0 ≡ WillDoFoo;
+   @/
+  void main_post_func(int res)
+  {
+    int End_tmp;
+    int Idle_tmp;
+    int WillDoFoo_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    End_tmp = End;
+    Idle_tmp = Idle;
+    WillDoFoo_tmp = WillDoFoo;
+    WillDoFoo_tmp = 0;
+    Idle_tmp = 0;
+    if (End == 1) End_tmp = 1; else End_tmp = 0;
+    End = End_tmp;
+    Idle = Idle_tmp;
+    WillDoFoo = WillDoFoo_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires 1 ≡ Idle ∧ 0 ≡ End ∧ 0 ≡ WillDoFoo;
     
@@ -341,12 +360,12 @@ void main_post_func(int res)
 int main(int argc, char **argv)
 {
   int __retres;
-  main_pre_func(argc,argv);
+  /*@ ghost main_pre_func(argc,argv); */
   int tab[4] = {10, 20, 33, 15};
   int r = isPresent(tab,4,33);
   if (r == -1) foo();
   __retres = 1;
-  main_post_func(__retres);
+  /*@ ghost main_post_func(__retres); */
   return __retres;
 }
 

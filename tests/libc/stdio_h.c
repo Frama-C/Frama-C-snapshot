@@ -29,5 +29,15 @@ int main() {
   if (!redirected) return 3;
   printf("redirected to file");
   fclose(redirected);
+
+  char fgets_buf0[1];
+  char *fgets_res = fgets(fgets_buf0, 1, f); // ok
+  if (!fgets_res) return 1;
+  //@ check \initialized(&fgets_buf0[0]);
+  if (nondet) {
+    fgets(fgets_buf0, 2, f); // error: buf too small
+    //@ assert unreachable: \false;
+  }
+
   return 0;
 }

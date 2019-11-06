@@ -31,25 +31,25 @@ __PUSH_FC_STDLIB
 // The values for the constants below are based on an x86 Linux,
 // declared in the order given by POSIX.1-2008.
 
-enum
+enum __fc_pthread_cancelstate
 {
   PTHREAD_CANCEL_ENABLE,
   PTHREAD_CANCEL_DISABLE
 };
 
-enum
+enum __fc_pthread_canceltype
 {
   PTHREAD_CANCEL_DEFERRED,
   PTHREAD_CANCEL_ASYNCHRONOUS
 };
 
-enum
+enum __fc_pthread_detachstate
 {
   PTHREAD_CREATE_JOINABLE,
   PTHREAD_CREATE_DETACHED
 };
 
-enum
+enum __fc_pthread_inheritsched
 {
   PTHREAD_INHERIT_SCHED,
   PTHREAD_EXPLICIT_SCHED
@@ -57,13 +57,13 @@ enum
 
 
 /* Scope handling.  */
-enum
+enum __fc_pthread_scope
 {
   PTHREAD_SCOPE_SYSTEM,
   PTHREAD_SCOPE_PROCESS
 };
 
-enum
+enum __fc_pthread_mutex_type
 {
   PTHREAD_MUTEX_NORMAL,
   PTHREAD_MUTEX_RECURSIVE,
@@ -71,20 +71,20 @@ enum
   PTHREAD_MUTEX_DEFAULT
 };
 
-enum
+enum __fc_pthread_mutex_robust
 {
   PTHREAD_MUTEX_STALLED,
   PTHREAD_MUTEX_ROBUST
 };
 
-enum
+enum __fc_pthread_mutex_protocol
 {
   PTHREAD_PRIO_NONE,
   PTHREAD_PRIO_INHERIT,
   PTHREAD_PRIO_PROTECT
 };
 
-enum
+enum __fc_pthread_mutex_pshared
 {
   PTHREAD_PROCESS_PRIVATE,
   PTHREAD_PROCESS_SHARED

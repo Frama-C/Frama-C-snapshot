@@ -36,10 +36,10 @@ end
 
 
 module Make
-    (Domain: Abstract_domain.Internal)
+    (Domain: Abstract_domain.Leaf)
     (Convert : Conversion with type internal_value := Domain.value
                            and type internal_location := Domain.location)
-  : Abstract_domain.Internal with type state = Domain.state
+  : Abstract.Domain.Internal with type state = Domain.state
                               and type value = Convert.extended_value
                               and type location = Convert.extended_location
                               and type origin = Domain.origin

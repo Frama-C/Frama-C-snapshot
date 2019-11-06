@@ -71,7 +71,7 @@ let main _ =
   Format.printf "After Constant propagation :@.";
   File.pretty_ast ~prj:proj3 ();
 
-  let proj4 = !Db.Sparecode.get ~select_annot:true ~select_slice_pragma:true in
+  let proj4 = Sparecode.Register.get ~select_annot:true ~select_slice_pragma:true in
   Format.printf "After Sparecode :@.";
   File.pretty_ast ~prj:proj4 ();;
 

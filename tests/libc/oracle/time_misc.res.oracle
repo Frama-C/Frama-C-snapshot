@@ -23,6 +23,8 @@
 [eva] computing for function localtime <- test_strftime <- main.
   Called from tests/libc/time_misc.c:19.
 [eva] using specification for function localtime
+[eva] tests/libc/time_misc.c:19: 
+  function localtime: precondition 'valid_timer' got status valid.
 [eva] Done for function localtime
 [eva] computing for function strftime <- test_strftime <- main.
   Called from tests/libc/time_misc.c:21.

@@ -5,7 +5,7 @@
 ... Ref Usage
 .................................................
 Init: { }
-Function f: { *ptr src[] idx }
+Function f: { *ptr src idx }
 .................................................
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards

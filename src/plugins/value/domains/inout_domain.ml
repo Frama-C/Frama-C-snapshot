@@ -204,8 +204,6 @@ module Transfer = struct
 
 end
 
-let key = Structure.Key_Domain.create_key "inout domain"
-
 module Internal
   (*: Domain_builder.InputDomain
     with type state = inout
@@ -221,7 +219,7 @@ module Internal
              include Abstract_domain.Lattice with type state := state
            end)
 
-  let structure : t Abstract_domain.structure = Abstract_domain.Leaf key
+  let name = "inout"
   let log_category = Value_parameters.register_category "d-inout"
 
   let enter_scope _kf _vars state = state

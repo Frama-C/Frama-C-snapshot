@@ -610,6 +610,15 @@ diff tests/value/oracle/nonlin.res.oracle tests/value/oracle_equalities/nonlin.r
 <   q ∈ {{ &x + [-400..400],0%4 }}
 ---
 >   q ∈ {{ &x }}
+diff tests/value/oracle/octagons.res.oracle tests/value/oracle_equalities/octagons.res.oracle
+29c29
+<   Frama_C_show_each_unreduced_unsigned: [0..4294967295], [0..4294967295]
+---
+>   Frama_C_show_each_unreduced_unsigned: [0..4294967295], [6..4294967295]
+255c255
+<   t ∈ [--..--] or UNINITIALIZED
+---
+>   t ∈ [6..4294967295] or UNINITIALIZED
 diff tests/value/oracle/offsetmap.0.res.oracle tests/value/oracle_equalities/offsetmap.0.res.oracle
 38d37
 < [eva] Recording results for g

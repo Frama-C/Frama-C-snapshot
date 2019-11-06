@@ -1,0 +1,18 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_typed/mvar.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[kernel] tests/wp_typed/mvar.i:14: Warning: 
+  No code nor implicit assigns clause for function Write, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
+[wp] 1 goal scheduled
+[wp] [Alt-Ergo 2.0.0] Goal typed_Job_ensures : Valid
+[wp] Proved goals:    1 / 1
+  Qed:               0 
+  Alt-Ergo 2.0.0:    1
+[wp] Report in:  'tests/wp_typed/oracle_qualif/mvar.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/mvar.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+Job                 -       1                1       100%
+-------------------------------------------------------------

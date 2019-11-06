@@ -52,45 +52,45 @@ let ask_for_lval (main_ui:Design.main_window_extension_points) kf =
     Gtk_helper.input_string
       ~parent:main_ui#main_window ~title:"Input lvalue expression" ""
   in
-    match txt with None | Some "" -> None
-      | Some txt ->
-          try
-            let term_lval = !Db.Properties.Interp.term_lval kf txt in
-            let lval =
-              !Db.Properties.Interp.term_lval_to_lval ~result:None term_lval
-            in
-              Some (txt, lval)
-          with e ->
-            main_ui#error "[ask for lval] '%s' invalid expression: %s@."
-              txt (Printexc.to_string e);
-            None
+  match txt with None | Some "" -> None
+               | Some txt ->
+                 try
+                   let term_lval = !Db.Properties.Interp.term_lval kf txt in
+                   let lval =
+                     !Db.Properties.Interp.term_lval_to_lval ~result:None term_lval
+                   in
+                   Some (txt, lval)
+                 with e ->
+                   main_ui#error "[ask for lval] '%s' invalid expression: %s@."
+                     txt (Printexc.to_string e);
+                   None
 
 let get_annot_opt localizable = match localizable with
-  | Pretty_source.PIP(Property.IPCodeAnnot(_,_,annot)) -> Some annot
+  | Pretty_source.PIP(Property.(IPCodeAnnot {ica_ca})) -> Some ica_ca
   | _ -> None
 
 (** [kf_opt] is used if we want to ask the lval to the user in a popup *)
 let get_lval_opt main_ui kf_opt localizable =
   match localizable with
-    | Pretty_source.PLval (Some _kf, (Kstmt _stmt), lv) ->
-        let lv_txt = Format.asprintf "%a" Printer.pp_lval lv in
+  | Pretty_source.PLval (Some _kf, (Kstmt _stmt), lv) ->
+    let lv_txt = Format.asprintf "%a" Printer.pp_lval lv in
+    Some (lv_txt, lv)
+  | PTermLval (Some _kf, Kstmt _stmt, _, tlv) -> begin
+      try
+        let lv =
+          !Db.Properties.Interp.term_lval_to_lval ~result:None tlv
+        in
+        let lv_txt = Format.asprintf "%a" Printer.pp_term_lval tlv in
         Some (lv_txt, lv)
-    | PTermLval (Some _kf, Kstmt _stmt, _, tlv) -> begin
-        try
-          let lv =
-            !Db.Properties.Interp.term_lval_to_lval ~result:None tlv
-          in
-          let lv_txt = Format.asprintf "%a" Printer.pp_term_lval tlv in
-          Some (lv_txt, lv)
-        with Invalid_argument _ -> None
-      end
-    | _ ->
-       ( match kf_opt with
-         None -> None
-       | Some kf ->
-              match (ask_for_lval main_ui kf) with
-                None -> None
-              | Some (lv_txt, lv) -> Some (lv_txt, lv))
+      with Invalid_argument _ -> None
+    end
+  | _ ->
+    ( match kf_opt with
+        None -> None
+      | Some kf ->
+        match (ask_for_lval main_ui kf) with
+          None -> None
+        | Some (lv_txt, lv) -> Some (lv_txt, lv))
 
 let eval_lval =
   let typ_lval_to_zone_gui = Datatype.func2 Stmt.ty Lval.ty Locations.Zone.ty in
@@ -98,54 +98,54 @@ let eval_lval =
 
 module Kf_containing_highlighted_stmt =
   Kernel_function.Make_Table
-      (Datatype.String.Set)
-      (struct
-        let name = "Dpds_gui.Kf_containing_highlighted_stmt"
-        let size = 7
-        let dependencies =
-          [ (*Dependencies are managed manually by Make_StmtSetState*) ]
-       end)
+    (Datatype.String.Set)
+    (struct
+      let name = "Dpds_gui.Kf_containing_highlighted_stmt"
+      let size = 7
+      let dependencies =
+        [ (*Dependencies are managed manually by Make_StmtSetState*) ]
+    end)
 
 let default_icon_name = "gtk-apply"
 let default_icon = Datatype.String.Set.singleton default_icon_name
 
 module Make_StmtSetState (Info:sig val name: string end) =
-  struct include State_builder.Ref
+struct include State_builder.Ref
     (Stmt.Hptset)
     (struct
-       let name = Info.name
-       let dependencies = [ Db.Value.self ]
-       let default () = Stmt.Hptset.empty
-     end)
+      let name = Info.name
+      let dependencies = [ Db.Value.self ]
+      let default () = Stmt.Hptset.empty
+    end)
 
-   let set s =
-     set s;
-     Kf_containing_highlighted_stmt.clear ();
-     Stmt.Hptset.iter
-       (fun stmt ->
+  let set s =
+    set s;
+    Kf_containing_highlighted_stmt.clear ();
+    Stmt.Hptset.iter
+      (fun stmt ->
          Kf_containing_highlighted_stmt.replace
            (Kernel_function.find_englobing_kf stmt) default_icon)
-       s;
-     !update_column `Contents
+      s;
+    !update_column `Contents
 
-  end
+end
 
 module Make_StmtMapState (Info:sig val name: string end) =
-  struct
-    module D = Datatype
-    include State_builder.Ref
-    (Stmt.Map.Make(Datatype.String.Set))
-    (struct
-       let name = Info.name
-       let dependencies = [ Db.Value.self ]
-       let default () = Stmt.Map.empty
-     end)
+struct
+  module D = Datatype
+  include State_builder.Ref
+      (Stmt.Map.Make(Datatype.String.Set))
+      (struct
+        let name = Info.name
+        let dependencies = [ Db.Value.self ]
+        let default () = Stmt.Map.empty
+      end)
 
-   let set s =
-     set s;
-     Kf_containing_highlighted_stmt.clear ();
-     Stmt.Map.iter
-       (fun stmt s ->
+  let set s =
+    set s;
+    Kf_containing_highlighted_stmt.clear ();
+    Stmt.Map.iter
+      (fun stmt s ->
          let kf = Kernel_function.find_englobing_kf stmt in
          let prev =
            try Kf_containing_highlighted_stmt.find kf
@@ -153,10 +153,10 @@ module Make_StmtMapState (Info:sig val name: string end) =
          in
          let union = D.String.Set.union prev s in
          Kf_containing_highlighted_stmt.replace kf union)
-       s;
-     !update_column `Contents
+      s;
+    !update_column `Contents
 
-  end
+end
 
 
 module type DpdCmdSig = sig
@@ -187,14 +187,14 @@ module DataScope : (DpdCmdSig with type t_in = lval)  = struct
   let clear () = Fscope.clear(); FBscope.clear(); Bscope.clear()
 
   let help = ("[data_scope] "
-      ^"highlight the statements where the value of D is the same "
-      ^"than at its value at L.\n\t"
-      ^"For more information, please look at the Scope plugin documentation.")
+              ^"highlight the statements where the value of D is the same "
+              ^"than at its value at L.\n\t"
+              ^"For more information, please look at the Scope plugin documentation.")
 
   let get_info _kf_stmt_opt =
     if Stmt.Hptset.is_empty (Fscope.get ())
-      && Stmt.Hptset.is_empty (FBscope.get ())
-      && Stmt.Hptset.is_empty (Bscope.get ())
+    && Stmt.Hptset.is_empty (FBscope.get ())
+    && Stmt.Hptset.is_empty (Bscope.get ())
     then ""
     else "[scope] selected"
 
@@ -225,13 +225,13 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
       (struct
         let name = "Dpds_gui.Highlighter.Pscope_warn"
         let dependencies = [ Db.Value.self ]
-       end)
+      end)
 
   let clear () = Pscope.clear(); Pscope_warn.clear()
 
   let help = ("[prop_scope] "
-      ^"highlight the statements where the value of the assertion is also ok\n\t"
-      ^"For more information, please look at the Scope plugin documentation.")
+              ^"highlight the statements where the value of the assertion is also ok\n\t"
+              ^"For more information, please look at the Scope plugin documentation.")
 
   let get_info _kf_stmt_opt =
     if Stmt.Hptset.is_empty (Pscope.get ())
@@ -245,7 +245,7 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
 
   let tag_stmt stmt =
     (*if Stmt.Hptset.mem stmt (Pscope_warn.get()) then scope_p_warn_tag
-    else*) if Stmt.Hptset.mem stmt (Pscope.get()) then scope_p_tag
+      else*) if Stmt.Hptset.mem stmt (Pscope.get()) then scope_p_tag
     else empty_tag
 
   let tag_annot annot =
@@ -265,10 +265,10 @@ module ShowDef : (DpdCmdSig with type t_in = lval) = struct
   let clear () = ShowDefState.clear()
 
   let help = ("[show_def] "
-      ^"highlight the statements that define the value of D at L,\n\t"
-      ^"and print a message if a part of D might be undefined.\n\t"
-      ^"Notice that 'undefined' only means here "
-      ^"not defined on some path from the beginning of the function.")
+              ^"highlight the statements that define the value of D at L,\n\t"
+              ^"and print a message if a part of D might be undefined.\n\t"
+              ^"Notice that 'undefined' only means here "
+              ^"not defined on some path from the beginning of the function.")
 
 
   let get_info _kf_stmt_opt =
@@ -292,18 +292,18 @@ module ShowDef : (DpdCmdSig with type t_in = lval) = struct
     let r = Defs.compute_with_def_type_zone kf stmt z in
     Datascope.R.feedback "Defs computed";
     match r with
-      | None -> clear ();
-        "[Show Defs] nothing found. The information about some functions \
-           may be missing."
-      | Some (defs, undef) ->
-          let msg = match undef with
-            | None -> ""
-            | Some undef ->
-                Format.asprintf "[Show Defs] notice that %a %s"
-                  pretty_zone undef
-                  "may not be defined by this function at this point"
-          in
-          ShowDefState.set (conv defs); msg
+    | None -> clear ();
+      "[Show Defs] nothing found. The information about some functions \
+       may be missing."
+    | Some (defs, undef) ->
+      let msg = match undef with
+        | None -> ""
+        | Some undef ->
+          Format.asprintf "[Show Defs] notice that %a %s"
+            pretty_zone undef
+            "may not be defined by this function at this point"
+      in
+      ShowDefState.set (conv defs); msg
 
   let tag_stmt stmt =
     try
@@ -319,49 +319,49 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
   type t_in = lval
 
   module ZonesState =
-    struct include State_builder.Option_ref
+  struct include State_builder.Option_ref
       (Datatype.Pair
          (Stmt.Hashtbl.Make(Locations.Zone))
          (Stmt.Hptset))
       (struct
-         let name = "Dpds_gui.Highlighter.ZonesState"
-         let dependencies = [ Db.Value.self ]
-       end)
+        let name = "Dpds_gui.Highlighter.ZonesState"
+        let dependencies = [ Db.Value.self ]
+      end)
     let set s =
       set s;
       Kf_containing_highlighted_stmt.clear ();
       Stmt.Hptset.iter
         (fun stmt ->
-          Kf_containing_highlighted_stmt.replace
-            (Kernel_function.find_englobing_kf stmt) default_icon)
+           Kf_containing_highlighted_stmt.replace
+             (Kernel_function.find_englobing_kf stmt) default_icon)
         (snd s);
-     !update_column `Contents
-    end
+      !update_column `Contents
+  end
   let clear () = ZonesState.clear ()
 
   let help =
     ("[zones] computes, for each point Li of the function, "
-      ^"the data Di needed to know the value of D at L.\n"
-      ^"\tAfter this computation, the result Di will be printed in the "
+     ^"the data Di needed to know the value of D at L.\n"
+     ^"\tAfter this computation, the result Di will be printed in the "
      ^" information window each time a statement Li is selected.")
 
   let get_info kf_stmt_opt =
     try
       let zones, _ = ZonesState.get () in
-        match kf_stmt_opt with
-          | None -> "[zones] no information for this point"
-          | Some (_kf, stmt) ->
-              let z = Zones.get_zones zones stmt in
-              let txt =
-                Format.asprintf "[zones] needed before stmt %d = %a"
-                  stmt.sid pretty_zone z
-              in txt
+      match kf_stmt_opt with
+      | None -> "[zones] no information for this point"
+      | Some (_kf, stmt) ->
+        let z = Zones.get_zones zones stmt in
+        let txt =
+          Format.asprintf "[zones] needed before stmt %d = %a"
+            stmt.sid pretty_zone z
+        in txt
     with Not_found -> ""
 
   let compute kf stmt lval =
     let used_stmts, zones = Zones.build_zones kf stmt lval in
-      ZonesState.set (zones, used_stmts);
-      "[zones] computed"
+    ZonesState.set (zones, used_stmts);
+    "[zones] computed"
 
   let tag_stmt stmt =
     let is_used =
@@ -370,32 +370,32 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
         Stmt.Hptset.mem stmt used
       with Not_found -> false
     in
-      if is_used then zones_used_tag else empty_tag
+    if is_used then zones_used_tag else empty_tag
 
 end
 
 let help (main_ui:Design.main_window_extension_points) =
   let add txt = add_msg main_ui txt in
-    add ("General : "
-     ^"each of these commands starts from a data D at a program point L.\n\t"
-     ^"The program point is the one that is before the selected statement,\n\t"
+  add ("General : "
+       ^"each of these commands starts from a data D at a program point L.\n\t"
+       ^"The program point is the one that is before the selected statement,\n\t"
        ^"and the data is the one that is selected if any, "
        ^"or it can be given via a popup.\n"
        ^"\tIf the text given in the popup is empty, or 'Cancel' is chosen, "
        ^"the selection of the command is reset.");
-    add (ShowDef.help);
-    add (Zones.help);
-    add (DataScope.help);
-    add (Pscope.help);
-    add ("Reset : reset the internal state for all the previous commands.")
+  add (ShowDef.help);
+  add (Zones.help);
+  add (DataScope.help);
+  add (Pscope.help);
+  add ("Reset : reset the internal state for all the previous commands.")
 
 module DpdsState =
   State_builder.Option_ref
     (Stmt)
     (struct
-       let name = "Dpds_gui.Highlighter.DpdsState"
-       let dependencies = [ Db.Value.self ]
-     end)
+      let name = "Dpds_gui.Highlighter.DpdsState"
+      let dependencies = [ Db.Value.self ]
+    end)
 
 let reset () =
   DpdsState.clear ();
@@ -422,8 +422,8 @@ let callbacks funct main_ui (kf, stmt, localizable) =
   in
   let set_txt x =
     let txt = Format.asprintf
-      "[dependencies] for %s before stmt %d in %a"
-      x stmt.sid Kernel_function.pretty kf
+        "[dependencies] for %s before stmt %d in %a"
+        x stmt.sid Kernel_function.pretty kf
     in
     DpdsState.set stmt;
     add_msg main_ui txt
@@ -455,7 +455,7 @@ let highlighter (buffer:Design.reactive_buffer) localizable ~start ~stop =
     let buffer = buffer#buffer in
     let start_s = DpdsState.get () in
     let put_tag tag = match tag with ("",[]) -> ()
-      | _ -> add_tag buffer tag start stop
+                                   | _ -> add_tag buffer tag start stop
     in
     match localizable with
     | PStmt (_,stmt) ->
@@ -464,8 +464,8 @@ let highlighter (buffer:Design.reactive_buffer) localizable ~start ~stop =
       put_tag (DataScope.tag_stmt stmt);
       put_tag (Zones.tag_stmt stmt );
       put_tag (ShowDef.tag_stmt stmt)
-    | PIP (Property.IPCodeAnnot (_, _, annot)) ->
-      put_tag (Pscope.tag_annot annot)
+    | PIP (Property.(IPCodeAnnot {ica_ca})) ->
+      put_tag (Pscope.tag_annot ica_ca)
     | PStmtStart _ | PExp _
     | PVDecl _ | PTermLval _ | PLval _ | PGlobal _ | PIP _ -> ()
   with Not_found -> ()
@@ -474,42 +474,42 @@ let check_value (main_ui:Design.main_window_extension_points) =
   if Db.Value.is_computed () then true
   else
     let answer = GToolbox.question_box
-      ~title:("Eva Needed")
-      ~buttons:[ "Run"; "Cancel" ]
-      ("Eva has to be run first.\nThis can take some time.\n"
-       ^"Do you want to run Eva with its current settings now?")
+        ~title:("Eva Needed")
+        ~buttons:[ "Run"; "Cancel" ]
+        ("Eva has to be run first.\nThis can take some time.\n"
+         ^"Do you want to run Eva with its current settings now?")
     in
-      if answer = 1 then
-        match main_ui#full_protect ~cancelable:true !Db.Value.compute with
-          | Some _ ->
-            main_ui#redisplay (); (* New alarms *)
-            true
-          | None -> false
-      else false
+    if answer = 1 then
+      match main_ui#full_protect ~cancelable:true !Db.Value.compute with
+      | Some _ ->
+        main_ui#redisplay (); (* New alarms *)
+        true
+      | None -> false
+    else false
 
 
 (** To add a sensitive/insensitive menu item to a [factory].
-* The menu item is insensitive when [arg_opt = None],
-* else, when the item is selected, the callback is called with the argument.
-* If [~use_values], check if the value analysis has been computed.
- *)
+ * The menu item is insensitive when [arg_opt = None],
+ * else, when the item is selected, the callback is called with the argument.
+ * If [~use_values], check if the value analysis has been computed.
+*)
 let add_item (main_ui:Design.main_window_extension_points)
-      ~use_values (factory:GMenu.menu GMenu.factory) name arg_opt callback =
-    match arg_opt with
-      | None -> (* add the menu item, but it isn't sensitive *)
-          let item = factory#add_item name ~callback: (fun () -> ())
-          in item#misc#set_sensitive false
-      | Some arg -> (* add the menu item with its callback *)
-          let cb arg =
-            if use_values then
-              if check_value main_ui then callback arg else ()
-            else callback arg
-          in
-          ignore (factory#add_item name ~callback: (fun () -> cb arg))
+    ~use_values (factory:GMenu.menu GMenu.factory) name arg_opt callback =
+  match arg_opt with
+  | None -> (* add the menu item, but it isn't sensitive *)
+    let item = factory#add_item name ~callback: (fun () -> ())
+    in item#misc#set_sensitive false
+  | Some arg -> (* add the menu item with its callback *)
+    let cb arg =
+      if use_values then
+        if check_value main_ui then callback arg else ()
+      else callback arg
+    in
+    ignore (factory#add_item name ~callback: (fun () -> cb arg))
 
 let selector (popup_factory:GMenu.menu GMenu.factory)
-             (main_ui:Design.main_window_extension_points)
-             ~button localizable =
+    (main_ui:Design.main_window_extension_points)
+    ~button localizable =
   if button = 3 then
     begin
       let submenu = popup_factory#add_submenu "Dependencies" in
@@ -544,32 +544,32 @@ let filetree_decorate main_ui =
   main_ui#file_tree#append_pixbuf_column
     ~title:"Scope"
     (fun globs ->
-      let icons = function
-        | GFun ({svar = v }, _) ->
-          (try Kf_containing_highlighted_stmt.find  (Globals.Functions.get v)
-           with Not_found -> Datatype.String.Set.empty)
-        |  _ -> Datatype.String.Set.empty
-      in
-      let ids =
-        if Kf_containing_highlighted_stmt.length () <> 0 then
-          let icons = List.fold_left
-            (fun acc glob -> Datatype.String.Set.union (icons glob) acc)
-            Datatype.String.Set.empty globs
-          in
-          if Datatype.String.Set.is_empty icons
-          then Datatype.String.Set.singleton ""
-          else icons
-        else
-          Datatype.String.Set.singleton ""
-      in
-      let icons =
-        if Datatype.String.Set.mem default_icon_name ids then
-          [default_icon_name]
-        else
-          Datatype.String.Set.elements
-            (Datatype.String.Set.remove default_icon_name ids)
-      in
-      List.map (fun icon -> `STOCK_ID icon) icons
+       let icons = function
+         | GFun ({svar = v }, _) ->
+           (try Kf_containing_highlighted_stmt.find  (Globals.Functions.get v)
+            with Not_found -> Datatype.String.Set.empty)
+         |  _ -> Datatype.String.Set.empty
+       in
+       let ids =
+         if Kf_containing_highlighted_stmt.length () <> 0 then
+           let icons = List.fold_left
+               (fun acc glob -> Datatype.String.Set.union (icons glob) acc)
+               Datatype.String.Set.empty globs
+           in
+           if Datatype.String.Set.is_empty icons
+           then Datatype.String.Set.singleton ""
+           else icons
+         else
+           Datatype.String.Set.singleton ""
+       in
+       let icons =
+         if Datatype.String.Set.mem default_icon_name ids then
+           [default_icon_name]
+         else
+           Datatype.String.Set.elements
+             (Datatype.String.Set.remove default_icon_name ids)
+       in
+       List.map (fun icon -> `STOCK_ID icon) icons
     )
     (fun _ -> Kf_containing_highlighted_stmt.length () <>0)
 

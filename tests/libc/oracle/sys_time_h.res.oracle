@@ -1,0 +1,83 @@
+[kernel] Parsing tests/libc/sys_time_h.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function setitimer <- main.
+  Called from tests/libc/sys_time_h.c:6.
+[eva] using specification for function setitimer
+[eva] tests/libc/sys_time_h.c:6: 
+  function setitimer: precondition 'valid_new_value' got status valid.
+[eva] tests/libc/sys_time_h.c:6: 
+  function setitimer: precondition 'old_value_null_or_valid' got status valid.
+[eva:invalid-assigns] tests/libc/sys_time_h.c:6: 
+  Completely invalid destination for assigns clause *old_value. Ignoring.
+[eva] Done for function setitimer
+[eva] tests/libc/sys_time_h.c:7: assertion got status valid.
+[eva] computing for function setitimer <- main.
+  Called from tests/libc/sys_time_h.c:9.
+[eva] tests/libc/sys_time_h.c:9: 
+  function setitimer: precondition 'valid_new_value' got status valid.
+[eva] tests/libc/sys_time_h.c:9: 
+  function setitimer: precondition 'old_value_null_or_valid' got status valid.
+[eva] Done for function setitimer
+[eva] tests/libc/sys_time_h.c:10: assertion got status valid.
+[eva] tests/libc/sys_time_h.c:11: assertion got status valid.
+[eva] computing for function getitimer <- main.
+  Called from tests/libc/sys_time_h.c:12.
+[eva] using specification for function getitimer
+[eva] tests/libc/sys_time_h.c:12: 
+  function getitimer: precondition 'valid_curr_value' got status valid.
+[eva] Done for function getitimer
+[eva] tests/libc/sys_time_h.c:13: assertion got status valid.
+[eva] tests/libc/sys_time_h.c:14: assertion got status valid.
+[eva] computing for function getitimer <- main.
+  Called from tests/libc/sys_time_h.c:16.
+[eva] tests/libc/sys_time_h.c:16: 
+  function getitimer: precondition 'valid_curr_value' got status valid.
+[eva] Done for function getitimer
+[eva] tests/libc/sys_time_h.c:17: assertion got status valid.
+[eva] computing for function setitimer <- main.
+  Called from tests/libc/sys_time_h.c:19.
+[eva] tests/libc/sys_time_h.c:19: 
+  function setitimer: precondition 'valid_new_value' got status valid.
+[eva] tests/libc/sys_time_h.c:19: 
+  function setitimer: precondition 'old_value_null_or_valid' got status valid.
+[eva] Done for function setitimer
+[eva] tests/libc/sys_time_h.c:20: assertion got status valid.
+[eva] computing for function utimes <- main.
+  Called from tests/libc/sys_time_h.c:22.
+[eva] using specification for function utimes
+[eva] tests/libc/sys_time_h.c:22: 
+  function utimes: precondition 'valid_path' got status valid.
+[eva] tests/libc/sys_time_h.c:22: 
+  function utimes: precondition 'valid_times_or_null' got status valid.
+[eva] Done for function utimes
+[eva] computing for function utimes <- main.
+  Called from tests/libc/sys_time_h.c:28.
+[eva] tests/libc/sys_time_h.c:28: 
+  function utimes: precondition 'valid_path' got status valid.
+[eva] tests/libc/sys_time_h.c:28: 
+  function utimes: precondition 'valid_times_or_null' got status valid.
+[eva] Done for function utimes
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  i1.it_interval.tv_sec ∈ {1}
+    .it_interval.tv_usec ∈ {100}
+    .it_value.tv_sec ∈ {2}
+    .it_value.tv_usec ∈ {200}
+  res ∈ {-1}
+  i2.it_interval.tv_sec ∈ [--..--]
+    .it_interval.tv_usec ∈ {1000000}
+    .it_value ∈ [--..--]
+  INVALID_ITIMER ∈ {-1}
+  r1 ∈ [--..--]
+  tv[0].tv_sec ∈ {10000000}
+    [0].tv_usec ∈ {999999}
+    [1].tv_sec ∈ {-9000000}
+    [1].tv_usec ∈ {1}
+  r2 ∈ [--..--]
+  __retres ∈ {0}

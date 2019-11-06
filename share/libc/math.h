@@ -37,10 +37,6 @@ typedef double double_t;
 #define MATH_ERRNO	1
 #define MATH_ERREXCEPT	2
 
-#define HUGE_VAL  0x1.0p2047
-#define HUGE_VALF 0x1.0p255f
-#define HUGE_VALL 0x1.0p32767L
-
 /* The constants below are not part of C99/C11 but they are defined in POSIX */
 #define M_E 0x1.5bf0a8b145769p1         /* e          */
 #define M_LOG2E 0x1.71547652b82fep0     /* log_2 e    */
@@ -754,6 +750,37 @@ extern int __finite(double d);
 
 #  define isfinite(x) \
      (sizeof (x) == sizeof (float) ? __finitef (x) : __finite (x))
+
+//The (integer x) argument is just here because a function without argument is
+//applied differently in ACSL and C
+
+/*@
+
+  logic float __fc_infinity(integer x) = \plus_infinity;
+  logic float __fc_nan(integer x) = \NaN;
+
+  @*/
+
+/*@
+  ensures result_is_infinity: \is_plus_infinity(\result);
+  assigns \result \from \nothing;
+  @*/
+extern const float __fc_infinity(int x);
+
+/*@
+  ensures result_is_nan: \is_NaN(\result);
+  assigns \result \from \nothing;
+  @*/
+extern const float __fc_nan(int x);
+
+
+#define INFINITY __fc_infinity(0)
+#define NAN __fc_nan(0)
+
+#define HUGE_VALF INFINITY
+#define HUGE_VAL  ((double)INFINITY)
+#define HUGE_VALL ((long double)INFINITY)
+
 
 __END_DECLS
 

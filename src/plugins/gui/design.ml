@@ -81,14 +81,14 @@ class type main_window_extension_points = object
   method original_source_viewer : Source_manager.t
   method reset : unit -> unit
   method error : 'a.
-                   ?parent:GWindow.window_skel -> ?reset:bool ->
+    ?parent:GWindow.window_skel -> ?reset:bool ->
     ('a, Format.formatter, unit) format ->
     'a
   method push_info : 'a. ('a, Format.formatter, unit) format -> 'a
   method pop_info : unit -> unit
   method show_ids: bool
   method help_message : 'a 'b.
-                             (<event : GObj.event_ops ; .. > as 'a)
+    (<event : GObj.event_ops ; .. > as 'a)
     -> ('b, Format.formatter, unit) format
     -> 'b
   method lower_notebook : GPack.notebook
@@ -146,18 +146,18 @@ let filetree_selector
     let source = main_ui#source_viewer in
     (match globals with
      | Filetree.File (f, l) ->
-         Source_manager.load_file
-           main_ui#original_source_viewer
-           ~filename:f ~line:1
-           ~click_cb:(fun _ ->
-               (* original_source callback unnecessary here *) ()) ();
-         main_ui#display_globals l
+       Source_manager.load_file
+         main_ui#original_source_viewer
+         ~filename:f ~line:1
+         ~click_cb:(fun _ ->
+             (* original_source callback unnecessary here *) ()) ();
+       main_ui#display_globals l
      | Filetree.Global (GVarDecl (vi, _)) ->
        (* try to find a definition instead of a declaration, which is more
           informative. *)
        main_ui#display_globals [Ast.def_or_last_decl vi]
-     | Filetree.Global g -> 
-         main_ui#display_globals [g];
+     | Filetree.Global g ->
+       main_ui#display_globals [g];
     );
     source#scroll_to_mark ~use_align:true ~xalign:0. ~yalign:0.5 `INSERT;
     let print_one_global prefix (v,loc) =
@@ -169,104 +169,104 @@ let filetree_selector
     main_ui#annot_window#clear;
     begin match globals with
       | Filetree.Global g ->
-          begin
-            History.push (History.Global g);
-            match g with
-            | GFun ({svar=v},loc) -> print_one_global "Function" (v,loc)
-            | GVar (v,_,loc) -> print_one_global "Variable" (v,loc)
-            | GVarDecl (v, loc) -> print_one_global "Variable" (v,loc)
-            | GFunDecl (_, v, loc) ->
-                print_one_global "Declared function" (v,loc)
-            | _ -> () (* cannot currently happen, we do not display the
-                         other globals in the filetree *)
-          end
+        begin
+          History.push (History.Global g);
+          match g with
+          | GFun ({svar=v},loc) -> print_one_global "Function" (v,loc)
+          | GVar (v,_,loc) -> print_one_global "Variable" (v,loc)
+          | GVarDecl (v, loc) -> print_one_global "Variable" (v,loc)
+          | GFunDecl (_, v, loc) ->
+            print_one_global "Declared function" (v,loc)
+          | _ -> () (* cannot currently happen, we do not display the
+                       other globals in the filetree *)
+        end
       | Filetree.File (f, globals) ->
-          let max_length = 40 in
-          let cons_limit r g l = if !r >= max_length then l else (incr r;g::l) in
-          let gfun_c,gtyp_c,gcomptagdecl_c,genumtagdecl_c,gvardecl_c,gvar_c=
-            ref 0,ref 0,ref 0,ref 0,ref 0,ref 0 
-          in
-          let (gfun,gtype,gcomp,genum,gvardecl,gvar) =
-            List.fold_right
-              (fun g (gfun,gtype,gcomp,genum,gvardecl,gvar) ->
-                 match g with
-                 | GFun _ -> 
-                     (cons_limit gfun_c g gfun,gtype,gcomp,genum,gvardecl,gvar)
-                 | GFunDecl _ -> 
-                     (cons_limit gfun_c g gfun,gtype,gcomp,genum,gvardecl,gvar)
-                 | GType _ -> (gfun,cons_limit gtyp_c g gtype,gcomp,genum,gvardecl,gvar)
-                 | GCompTagDecl _ -> 
-                     (gfun,gtype,cons_limit gcomptagdecl_c g gcomp,genum,gvardecl,gvar)
-                 | GEnumTagDecl _ -> 
-                     (gfun,gtype,gcomp,cons_limit genumtagdecl_c g genum,gvardecl,gvar)
-                 | GVarDecl _ -> 
-                     (gfun,gtype,gcomp,genum,cons_limit gvardecl_c g gvardecl,gvar)
-                 | GVar _ -> 
-                     (gfun,gtype,gcomp,genum,gvardecl,cons_limit gvar_c g gvar)
-                 | _ -> (gfun,gtype,gcomp,genum,gvardecl,gvar))
-              globals
-              ([],[],[],[],[],[])
-          in
-          main_ui#pretty_information "@[File %a@]@." Datatype.Filepath.pretty f;
-          let printing
-              (head:string)
-              (ellipsis:bool)
-              (f:Format.formatter -> 'a -> unit)
-              (l:'a list)
-            =
-            if l <> [] then
-              main_ui#pretty_information "@[%s @[<hov>%a@]%s@]@\n" head
-                (Pretty_utils.pp_list ~sep:",@ " f) l
-                (if ellipsis then "..." else "") 
-          in
-          printing
-            "Functions:"
-            (!gfun_c>=max_length)
-            (fun fmt -> (function GFun ({svar=v},_) | GFunDecl (_, v, _) ->
-                 Varinfo.pretty fmt v
-                                | _ -> assert false))
-            gfun;
-          printing
-            "Types:"
-            (!gtyp_c>=max_length)
-            (function fmt -> (function (GType ({tname=name},_)) ->
-                 Format.pp_print_string fmt name
-                                     | _ -> assert false))
-            gtype;
-          printing
-            "Composite types:"
-            (!gcomptagdecl_c>=max_length)
-            (function fmt ->
-              (function  GCompTagDecl
-                  ({cname=name},_) |GCompTag ({cname=name},_)->
-                  Format.pp_print_string fmt name
-                       | _ -> assert false))
-            gcomp;
-          printing
-            "Enums:"
-            (!genumtagdecl_c>=max_length)
-            (function fmt ->
-              (function GEnumTagDecl
-                  ({ename=name},_) | GEnumTag ({ename=name},_)->
-                  Format.pp_print_string fmt name
-                      |_ -> assert false))
-            genum;
-          printing
-            "Declared variables:"
-            (!gvardecl_c>=max_length)
-            (function fmt ->
-              (function GVarDecl (v,_) ->
-                Varinfo.pretty fmt v
+        let max_length = 40 in
+        let cons_limit r g l = if !r >= max_length then l else (incr r;g::l) in
+        let gfun_c,gtyp_c,gcomptagdecl_c,genumtagdecl_c,gvardecl_c,gvar_c=
+          ref 0,ref 0,ref 0,ref 0,ref 0,ref 0
+        in
+        let (gfun,gtype,gcomp,genum,gvardecl,gvar) =
+          List.fold_right
+            (fun g (gfun,gtype,gcomp,genum,gvardecl,gvar) ->
+               match g with
+               | GFun _ ->
+                 (cons_limit gfun_c g gfun,gtype,gcomp,genum,gvardecl,gvar)
+               | GFunDecl _ ->
+                 (cons_limit gfun_c g gfun,gtype,gcomp,genum,gvardecl,gvar)
+               | GType _ -> (gfun,cons_limit gtyp_c g gtype,gcomp,genum,gvardecl,gvar)
+               | GCompTagDecl _ ->
+                 (gfun,gtype,cons_limit gcomptagdecl_c g gcomp,genum,gvardecl,gvar)
+               | GEnumTagDecl _ ->
+                 (gfun,gtype,gcomp,cons_limit genumtagdecl_c g genum,gvardecl,gvar)
+               | GVarDecl _ ->
+                 (gfun,gtype,gcomp,genum,cons_limit gvardecl_c g gvardecl,gvar)
+               | GVar _ ->
+                 (gfun,gtype,gcomp,genum,gvardecl,cons_limit gvar_c g gvar)
+               | _ -> (gfun,gtype,gcomp,genum,gvardecl,gvar))
+            globals
+            ([],[],[],[],[],[])
+        in
+        main_ui#pretty_information "@[File %a@]@." Datatype.Filepath.pretty f;
+        let printing
+            (head:string)
+            (ellipsis:bool)
+            (f:Format.formatter -> 'a -> unit)
+            (l:'a list)
+          =
+          if l <> [] then
+            main_ui#pretty_information "@[%s @[<hov>%a@]%s@]@\n" head
+              (Pretty_utils.pp_list ~sep:",@ " f) l
+              (if ellipsis then "..." else "")
+        in
+        printing
+          "Functions:"
+          (!gfun_c>=max_length)
+          (fun fmt -> (function GFun ({svar=v},_) | GFunDecl (_, v, _) ->
+               Varinfo.pretty fmt v
+                              | _ -> assert false))
+          gfun;
+        printing
+          "Types:"
+          (!gtyp_c>=max_length)
+          (function fmt -> (function (GType ({tname=name},_)) ->
+               Format.pp_print_string fmt name
+                                   | _ -> assert false))
+          gtype;
+        printing
+          "Composite types:"
+          (!gcomptagdecl_c>=max_length)
+          (function fmt ->
+             (function  GCompTagDecl
+                 ({cname=name},_) |GCompTag ({cname=name},_)->
+               Format.pp_print_string fmt name
                       | _ -> assert false))
-            gvardecl;
-          printing
-            "Variables:"
-            (!gvar_c>=max_length)
-            (fun fmt -> (function GVar(v,_,_) ->
-                 Varinfo.pretty fmt v
-                                | _ -> assert false))
-            gvar;
-          main_ui#pretty_information "%!"
+          gcomp;
+        printing
+          "Enums:"
+          (!genumtagdecl_c>=max_length)
+          (function fmt ->
+             (function GEnumTagDecl
+                 ({ename=name},_) | GEnumTag ({ename=name},_)->
+               Format.pp_print_string fmt name
+                     |_ -> assert false))
+          genum;
+        printing
+          "Declared variables:"
+          (!gvardecl_c>=max_length)
+          (function fmt ->
+             (function GVarDecl (v,_) ->
+                Varinfo.pretty fmt v
+                     | _ -> assert false))
+          gvardecl;
+        printing
+          "Variables:"
+          (!gvar_c>=max_length)
+          (fun fmt -> (function GVar(v,_,_) ->
+               Varinfo.pretty fmt v
+                              | _ -> assert false))
+          gvar;
+        main_ui#pretty_information "%!"
     end
   end
 
@@ -293,22 +293,22 @@ let to_do_on_real_select _menu
 let go_to_definition selected main_ui =
   match selected with
   | PLval (_kf, _ki, lv) ->
-      begin
-        match lv with
-        | Var vi, _ when vi.vsource && vi.vglob ->
-          let typ = Cil.typeOfLval lv in
-          let glob =
-            if Cil.isFunctionType typ
-            then Kernel_function.get_global (Globals.Functions.get vi)
-            else GVarDecl (vi, Location.unknown)
-          in
-          let name =
-            Pretty_utils.escape_underscores
-              (Format.asprintf "%a" Varinfo.pretty vi)
-          in
-          Some (name, fun () -> ignore (main_ui#select_or_display_global glob))
-        | _ -> None (* cannot go to definition *)
-      end
+    begin
+      match lv with
+      | Var vi, _ when vi.vsource && vi.vglob ->
+        let typ = Cil.typeOfLval lv in
+        let glob =
+          if Cil.isFunctionType typ
+          then Kernel_function.get_global (Globals.Functions.get vi)
+          else GVarDecl (vi, Location.unknown)
+        in
+        let name =
+          Pretty_utils.escape_underscores
+            (Format.asprintf "%a" Varinfo.pretty vi)
+        in
+        Some (name, fun () -> ignore (main_ui#select_or_display_global glob))
+      | _ -> None (* cannot go to definition *)
+    end
   | PStmt (kf,{skind = Goto (stmt, _)}) ->
     begin
       match !stmt.labels with
@@ -329,7 +329,7 @@ let print_code_annotations (main_ui:main_window_extension_points) kf stmt =
          else match Alarms.find a with
            | Some _ -> "alarm"
            | None ->
-               Format.asprintf "emitted by %a" Emitter.pretty e
+             Format.asprintf "emitted by %a" Emitter.pretty e
        in
        main_ui#pretty_information "@[%s: @[<hov>%a@]@]@.%a@."
          kind Printer.pp_code_annotation a
@@ -348,21 +348,21 @@ let print_call_preconditions (main_ui: main_window_extension_points) stmt =
   match by_ptr_call with
   | None -> () (* Not a call *)
   | Some by_ptr ->
-      let called_at = Statuses_by_call.all_functions_with_preconditions stmt in
-      let aux_callee kf =
-        let warn_missing = false in
-        let l= Statuses_by_call.all_call_preconditions_at ~warn_missing kf stmt in
-        let pp_kf fmt =
-          if by_ptr then
-            Format.fprintf fmt "of %a:@ " Kernel_function.pretty kf
-        in
-        let aux_prop (orig, copy) =
-          main_ui#pretty_information "@[Precondition %t%a@.%a@]@."
-            pp_kf Property.pretty orig pretty_predicate_status copy
-        in
-        List.iter aux_prop l
+    let called_at = Statuses_by_call.all_functions_with_preconditions stmt in
+    let aux_callee kf =
+      let warn_missing = false in
+      let l= Statuses_by_call.all_call_preconditions_at ~warn_missing kf stmt in
+      let pp_kf fmt =
+        if by_ptr then
+          Format.fprintf fmt "of %a:@ " Kernel_function.pretty kf
       in
-      Kernel_function.Hptset.iter aux_callee called_at
+      let aux_prop (orig, copy) =
+        main_ui#pretty_information "@[Precondition %t%a@.%a@]@."
+          pp_kf Property.pretty orig pretty_predicate_status copy
+      in
+      List.iter aux_prop l
+    in
+    Kernel_function.Hptset.iter aux_callee called_at
 
 (* This is called when a localizable is selected in the pretty-printed source
    buffer, and also when a localizable is clicked on in the information panel *)
@@ -378,8 +378,8 @@ let to_do_on_select
       (Pretty_utils.pp_opt ~none:"None" Printer.pp_location) loc
       stmt.sid;
     match loc with
-      | None -> main_ui#view_original_stmt stmt
-      | Some loc -> main_ui#view_original loc; loc
+    | None -> main_ui#view_original_stmt stmt
+    | Some loc -> main_ui#view_original loc; loc
   in
   let current_statement_msg ?loc kf stmt =
     main_ui#pretty_information
@@ -390,11 +390,11 @@ let to_do_on_select
     match stmt with
     | Kglobal -> main_ui#pretty_information "@."
     | Kstmt s ->
-        let loc = view_original ?loc s in
-        if main_ui#show_ids then
-          main_ui#pretty_information
-            "Statement: %d (%a)@.@." s.sid Printer.pp_location loc
-        else main_ui#pretty_information "Line %a@.@." Printer.pp_location loc
+      let loc = view_original ?loc s in
+      if main_ui#show_ids then
+        main_ui#pretty_information
+          "Statement: %d (%a)@.@." s.sid Printer.pp_location loc
+      else main_ui#pretty_information "Line %a@.@." Printer.pp_location loc
   in
   let pp_decl fmt loc =
     if Cil_datatype.Location.equal loc Cil_datatype.Location.unknown then ()
@@ -419,199 +419,198 @@ let to_do_on_select
         (formal_or_local vi) pp_defining_fun vi pp_decl vi.vdecl
   in
   if button = 1 then begin
-    match selected with
+    let open Property in match selected with
     | PStmtStart _ -> ()
     | PStmt (kf, stmt) ->
-        current_statement_msg (Some kf) (Kstmt stmt);
-        print_code_annotations main_ui kf stmt;
-        print_call_preconditions main_ui stmt;
-    | PIP (Property.IPCodeAnnot (kf,stmt,ca) as ip) ->
-        current_statement_msg
-          ?loc:(Cil_datatype.Code_annotation.loc ca) (Some kf) (Kstmt stmt);
-        if main_ui#show_ids then
-          main_ui#pretty_information "Code annotation id: %d@." ca.annot_id;
-        main_ui#pretty_information "%a@." pretty_predicate_status ip
-    | PIP(Property.IPAllocation _ as ip) ->
-        main_ui#pretty_information "This is an allocation clause@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPAssigns _ as ip) ->
-        main_ui#pretty_information "This is an assigns clause@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPFrom _ as ip) ->
-        main_ui#pretty_information "This is a from clause@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPPredicate (Property.PKRequires _,_,_,_) as ip) ->
-        main_ui#pretty_information "This is a requires clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPExtended(_,(_,name,_,_,_)) as ip) ->
-        main_ui#pretty_information "This clause is a %s extension.@.%a@."
-          name
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPPredicate (Property.PKTerminates,_,_,_) as ip) ->
-        main_ui#pretty_information "This is a terminates clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPPredicate (Property.PKEnsures (_,Normal),_,_,_) as ip) ->
-        main_ui#pretty_information "This is an ensures clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPPredicate (Property.PKEnsures (_,Exits),_,_,_) as ip) ->
-        main_ui#pretty_information "This is an exits clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPPredicate (Property.PKEnsures (_,Returns),_,_,_) as ip) ->
-        main_ui#pretty_information "This is a returns clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPPredicate (Property.PKEnsures (_,Breaks),_,_,_) as ip) ->
-        main_ui#pretty_information "This is a breaks clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP
-        (Property.IPPredicate (Property.PKEnsures (_,Continues),_,_,_) as ip) ->
-        main_ui#pretty_information "This is a continues clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPPredicate(Property.PKAssumes _,_,_,_) as ip) ->
-        main_ui#pretty_information "This is an assumes clause.@.";
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPDecrease (_,Kglobal,_,_) as ip) ->
-        main_ui#pretty_information
-          "This is a decreases clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPDecrease (_,Kstmt _,_,_) as ip) ->
-        main_ui#pretty_information
-          "This is a loop variant.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPDisjoint _ as ip) ->
-        main_ui#pretty_information
-          "This is a disjoint behaviors clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPComplete _ as ip) ->
-        main_ui#pretty_information
-          "This is a complete behaviors clause.@.%a@."
-          pretty_predicate_status ip;
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPAxiom _ as ip) ->
-        main_ui#pretty_information "This is an axiom.@.";
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPAxiomatic _ as ip) ->
-        main_ui#pretty_information "This is an axiomatic.@.";
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPLemma _ as ip) ->
-        main_ui#pretty_information "This is a lemma.@.";
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPTypeInvariant _ as ip) ->
-        main_ui#pretty_information "This is a type invariant.@.";
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPGlobalInvariant _ as ip) ->
-        main_ui#pretty_information "This is a global invariant.@.";
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPBehavior _ as ip) ->
-        main_ui#pretty_information "This is a behavior.@.";
-        main_ui#view_original (Property.location ip)
-    | PIP (Property.IPPropertyInstance (_, _, _, ip') as ip) ->
+      current_statement_msg (Some kf) (Kstmt stmt);
+      print_code_annotations main_ui kf stmt;
+      print_call_preconditions main_ui stmt;
+    | PIP (IPCodeAnnot {ica_kf;ica_stmt;ica_ca} as ip) ->
+      current_statement_msg
+        ?loc:(Cil_datatype.Code_annotation.loc ica_ca)
+        (Some ica_kf) (Kstmt ica_stmt);
+      if main_ui#show_ids then
+        main_ui#pretty_information "Code annotation id: %d@." ica_ca.annot_id;
+      main_ui#pretty_information "%a@." pretty_predicate_status ip
+    | PIP(IPAllocation _ as ip) ->
+      main_ui#pretty_information "This is an allocation clause@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP(IPAssigns _ as ip) ->
+      main_ui#pretty_information "This is an assigns clause@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP(IPFrom _ as ip) ->
+      main_ui#pretty_information "This is a from clause@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPPredicate {ip_kind = PKRequires _} as ip) ->
+      main_ui#pretty_information "This is a requires clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPExtended {ie_ext={ext_name}} as ip) ->
+      main_ui#pretty_information "This clause is a %s extension.@.%a@."
+        ext_name pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPPredicate {ip_kind = PKTerminates} as ip) ->
+      main_ui#pretty_information "This is a terminates clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPPredicate {ip_kind = PKEnsures (_,Normal)} as ip) ->
+      main_ui#pretty_information "This is an ensures clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPPredicate {ip_kind = PKEnsures (_,Exits)} as ip) ->
+      main_ui#pretty_information "This is an exits clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPPredicate {ip_kind = PKEnsures (_,Returns)} as ip) ->
+      main_ui#pretty_information "This is a returns clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPPredicate {ip_kind = PKEnsures (_,Breaks)} as ip) ->
+      main_ui#pretty_information "This is a breaks clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPPredicate {ip_kind = PKEnsures (_,Continues)} as ip) ->
+      main_ui#pretty_information "This is a continues clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPPredicate {ip_kind = PKAssumes _} as ip) ->
+      main_ui#pretty_information "This is an assumes clause.@.";
+      main_ui#view_original (location ip)
+    | PIP (IPDecrease {id_kinstr=Kglobal} as ip) ->
+      main_ui#pretty_information
+        "This is a decreases clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP (IPDecrease {id_kinstr=Kstmt _} as ip) ->
+      main_ui#pretty_information
+        "This is a loop variant.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP(IPDisjoint _ as ip) ->
+      main_ui#pretty_information
+        "This is a disjoint behaviors clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP(IPComplete _ as ip) ->
+      main_ui#pretty_information
+        "This is a complete behaviors clause.@.%a@."
+        pretty_predicate_status ip;
+      main_ui#view_original (location ip)
+    | PIP(IPAxiom _ as ip) ->
+      main_ui#pretty_information "This is an axiom.@.";
+      main_ui#view_original (location ip)
+    | PIP(IPAxiomatic _ as ip) ->
+      main_ui#pretty_information "This is an axiomatic.@.";
+      main_ui#view_original (location ip)
+    | PIP(IPLemma _ as ip) ->
+      main_ui#pretty_information "This is a lemma.@.";
+      main_ui#view_original (location ip)
+    | PIP(IPTypeInvariant _ as ip) ->
+      main_ui#pretty_information "This is a type invariant.@.";
+      main_ui#view_original (location ip)
+    | PIP(IPGlobalInvariant _ as ip) ->
+      main_ui#pretty_information "This is a global invariant.@.";
+      main_ui#view_original (location ip)
+    | PIP(IPBehavior _ as ip) ->
+      main_ui#pretty_information "This is a behavior.@.";
+      main_ui#view_original (location ip)
+    | PIP (IPPropertyInstance {ii_ip=ip'} as ip) ->
       main_ui#pretty_information "@[This is an instance of property `%a'.@]@."
-        Property.short_pretty ip';
-        main_ui#view_original (Property.location ip)
-    | PIP(Property.IPReachable _ | Property.IPOther _) ->
-        (* these properties are not selectable *)
-        assert false
+        short_pretty ip';
+      main_ui#view_original (location ip)
+    | PIP(IPReachable _ | IPOther _) ->
+      (* these properties are not selectable *)
+      assert false
     | PGlobal _g -> main_ui#pretty_information "This is a global.@.";
 
     | PLval (kf, ki,lv) ->
-        let ty = typeOfLval lv in
-        if isFunctionType ty then begin
-          begin
-            match ki with
-            | Kstmt s -> ignore (view_original s)
-            | Kglobal -> ();
-          end;
-          main_ui#pretty_information "This is a C function of type `%a'@."
-            Gui_printers.pp_typ ty
-        end
-        else begin
-          current_statement_msg kf ki;
-          match lv with
-          | Var vi,NoOffset ->
-              main_ui#pretty_information
-                "Variable %a has type `%a'.@\nIt is a %a.@\n\
-                 %tIt is %sreferenced and its address is %staken.@."
-                Varinfo.pretty vi
-                Gui_printers.pp_typ vi.vtype
-                pp_var_with_decl vi
-                (fun fmt ->
-                   match vi.vdescr with
-                   | None -> ()
-                   | Some s ->
-                       Format.fprintf fmt
-                         "This is a temporary variable for \"%s\".@\n" s)
-                (if vi.vreferenced then "" else "not ")
-                (if vi.vaddrof then "" else "not ")
-          | _ ->
-              let typ = typeOfLval lv in
-              main_ui#pretty_information "This is an lvalue of type %a@."
-                Gui_printers.pp_typ typ
-        end
+      let ty = typeOfLval lv in
+      if isFunctionType ty then begin
+        begin
+          match ki with
+          | Kstmt s -> ignore (view_original s)
+          | Kglobal -> ();
+        end;
+        main_ui#pretty_information "This is a C function of type `%a'@."
+          Gui_printers.pp_typ ty
+      end
+      else begin
+        current_statement_msg kf ki;
+        match lv with
+        | Var vi,NoOffset ->
+          main_ui#pretty_information
+            "Variable %a has type `%a'.@\nIt is a %a.@\n\
+             %tIt is %sreferenced and its address is %staken.@."
+            Varinfo.pretty vi
+            Gui_printers.pp_typ vi.vtype
+            pp_var_with_decl vi
+            (fun fmt ->
+               match vi.vdescr with
+               | None -> ()
+               | Some s ->
+                 Format.fprintf fmt
+                   "This is a temporary variable for \"%s\".@\n" s)
+            (if vi.vreferenced then "" else "not ")
+            (if vi.vaddrof then "" else "not ")
+        | _ ->
+          let typ = typeOfLval lv in
+          main_ui#pretty_information "This is an lvalue of type %a@."
+            Gui_printers.pp_typ typ
+      end
 
     | PExp (_kf, _ki, e) ->
-        begin
-          let typ = typeOf e in
-          match constFoldToInt e with
-          | Some i ->
-              begin match e.enode with
-              | Const (CEnum {eihost}) ->
-                let typ_enum = TEnum (eihost, []) in
-                main_ui#pretty_information
-                  "This is a C enumeration constant, \
-                   defined in %a with a value of %a.@."
-                  Gui_printers.pp_typ typ_enum Abstract_interp.Int.pretty i
-              | _ ->
+      begin
+        let typ = typeOf e in
+        match constFoldToInt e with
+        | Some i ->
+          begin match e.enode with
+            | Const (CEnum {eihost}) ->
+              let typ_enum = TEnum (eihost, []) in
+              main_ui#pretty_information
+                "This is a C enumeration constant, \
+                 defined in %a with a value of %a.@."
+                Gui_printers.pp_typ typ_enum Abstract_interp.Int.pretty i
+            | _ ->
               main_ui#pretty_information
                 "This is a constant C expression of type %a, equal to %a.@."
                 Gui_printers.pp_typ typ Abstract_interp.Int.pretty i
-              end
-          | None ->
-              main_ui#pretty_information "This is a pure C expression of type %a.@."
-                Gui_printers.pp_typ typ
-        end
+          end
+        | None ->
+          main_ui#pretty_information "This is a pure C expression of type %a.@."
+            Gui_printers.pp_typ typ
+      end
     | PTermLval (_, _, ip, tlv) ->
-        main_ui#pretty_information "This is a logical left-value, \
-                                    of logic type %a.@."
-          Printer.pp_logic_type (Cil.typeOfTermLval tlv);
-        main_ui#view_original (Property.location ip)
+      main_ui#pretty_information "This is a logical left-value, \
+                                  of logic type %a.@."
+        Printer.pp_logic_type (Cil.typeOfTermLval tlv);
+      main_ui#view_original (Property.location ip)
 
     | PVDecl (kf,_,vi) ->
-        if vi.vglob
-        then begin
-          main_ui#view_original (Global.loc (Ast.def_or_last_decl vi));
-          main_ui#pretty_information
-            "This is the last declaration or definition of %s %a.@\n\
-             It is %sreferenced and its address is %staken.@."
-            (if Cil.isFunctionType vi.vtype
-             then "function" else "global variable")
-            Varinfo.pretty vi
-            (if vi.vreferenced then "" else "not ")
-            (if vi.vaddrof then "" else "not ")
-        end else begin
-          main_ui#view_original vi.vdecl;
-          let kf = Extlib.the kf in
-          main_ui#pretty_information
-            "This is the declaration of %s %a in function %a%t@."
-            (formal_or_local vi) Varinfo.pretty vi
-            Kernel_function.pretty kf
-            (fun fmt -> match vi.vdescr with None -> ()
-                                           | Some s ->  Format.fprintf fmt
-                                                          "@\nThis is a temporary variable for \"%s\".@." s)
-        end
+      if vi.vglob
+      then begin
+        main_ui#view_original (Global.loc (Ast.def_or_last_decl vi));
+        main_ui#pretty_information
+          "This is the last declaration or definition of %s %a.@\n\
+           It is %sreferenced and its address is %staken.@."
+          (if Cil.isFunctionType vi.vtype
+           then "function" else "global variable")
+          Varinfo.pretty vi
+          (if vi.vreferenced then "" else "not ")
+          (if vi.vaddrof then "" else "not ")
+      end else begin
+        main_ui#view_original vi.vdecl;
+        let kf = Extlib.the kf in
+        main_ui#pretty_information
+          "This is the declaration of %s %a in function %a%t@."
+          (formal_or_local vi) Varinfo.pretty vi
+          Kernel_function.pretty kf
+          (fun fmt -> match vi.vdescr with None -> ()
+                                         | Some s ->  Format.fprintf fmt
+                                                        "@\nThis is a temporary variable for \"%s\".@." s)
+      end
   end
   else if button = 3 then begin
     match go_to_definition selected main_ui with
@@ -659,7 +658,7 @@ struct
   let fold_category = "fold"
   let unfold_category = "unfold"
 
-(*GTK3 does not exist anymore in gsourceview3. *)
+  (*GTK3 does not exist anymore in gsourceview3. *)
   let declare_markers (source:GSourceView.source_view) =
     GSourceView.make_marker_attributes
       ~source ~category:fold_category ~priority:2
@@ -733,7 +732,7 @@ class protected_menu_factory (host:Gtk_helper.host) (menu:GMenu.menu) = object
     let callback = match callback with
         None -> None
       | Some cb ->
-          Some (fun () -> ignore (host#full_protect ~cancelable:true cb))
+        Some (fun () -> ignore (host#full_protect ~cancelable:true cb))
     in
     super#add_item ?key ?callback ?submenu string
 
@@ -741,8 +740,8 @@ class protected_menu_factory (host:Gtk_helper.host) (menu:GMenu.menu) = object
     let callback = match callback with
         None -> None
       | Some cb ->
-          Some (fun b ->
-              ignore (host#full_protect ~cancelable:false (fun () -> cb b)))
+        Some (fun b ->
+            ignore (host#full_protect ~cancelable:false (fun () -> cb b)))
     in
     super#add_check_item ?active ?key ?callback string
 
@@ -755,7 +754,7 @@ let selector_localizable (main_ui:main_window_extension_points) origin ~button l
     new protected_menu_factory (main_ui:>Gtk_helper.host) (GMenu.menu())
   in
   List.iter
-    (fun (f, origins) -> 
+    (fun (f, origins) ->
        if List.mem origin origins then
          f popup_factory main_ui ~button localizable
     )
@@ -1019,16 +1018,16 @@ class main_window () : main_window_extension_points =
     method main_window = main_window
     method menu_manager () = match menu_manager with
       | None ->
-          (* toplevel_vbox->[*self#menu_manager();toplevel_hpaned;bottom_hbox] *)
-          let m =
-            new Menu_manager.menu_manager
-              ~packing:(toplevel_vbox#pack ~expand:false ~fill:false ~from:`START)
-              ~host:(self :> Gtk_helper.host)
-          in
-          menu_manager <- Some m;
-          m
+        (* toplevel_vbox->[*self#menu_manager();toplevel_hpaned;bottom_hbox] *)
+        let m =
+          new Menu_manager.menu_manager
+            ~packing:(toplevel_vbox#pack ~expand:false ~fill:false ~from:`START)
+            ~host:(self :> Gtk_helper.host)
+        in
+        menu_manager <- Some m;
+        m
       | Some s ->
-          s
+        s
     method file_tree = Extlib.the file_tree
     method file_tree_view = file_tree_view
     method annot_window = annot_window
@@ -1108,18 +1107,18 @@ class main_window () : main_window_extension_points =
                      match !dragged_frame with
                      | None (* Not dropping a panel *) -> true
                      | Some (frame,title) ->
-                         (*Format.printf "Hello %d %d %ld@." x y time;*)
-                         let w = drag_context#source_widget in
-                         let new_w =
-                           GWindow.window ~position:`MOUSE ~title ~show:true () in
-                         let b = GPack.vbox ~packing:new_w#add () in
-                         frame#misc#reparent b#coerce;
-                         ignore (new_w#connect#destroy
-                                   (fun () ->
-                                      frame#misc#reparent w;
-                                      w#misc#show ()));
-                         w#misc#hide ();
-                         true));
+                       (*Format.printf "Hello %d %d %ld@." x y time;*)
+                       let w = drag_context#source_widget in
+                       let new_w =
+                         GWindow.window ~position:`MOUSE ~title ~show:true () in
+                       let b = GPack.vbox ~packing:new_w#add () in
+                       frame#misc#reparent b#coerce;
+                       ignore (new_w#connect#destroy
+                                 (fun () ->
+                                    frame#misc#reparent w;
+                                    w#misc#show ()));
+                       w#misc#hide ();
+                       true));
         ignore (widget#drag#connect#motion
                   (fun drag_context ~x:_ ~y:_ ~time ->
                      (*Format.printf "Motion %d %d %ld@." x y time;*)
@@ -1199,28 +1198,28 @@ class main_window () : main_window_extension_points =
       match Pretty_source.locate_localizable current_buffer_state#locs loc with
       | Some (b,_) -> show b
       | None ->
-          (* Searching in [current_buffer_state] did not work, let's try
-             to open a good one *)
-          begin
-            match Pretty_source.kf_of_localizable loc with
-            | Some kf ->
-                let g = Kernel_function.get_global kf in
-                self#select_or_display_global g
-            | None ->
-                match loc with
-                | PGlobal g -> self#select_or_display_global g
-                | _ ->
-                    Gui_parameters.debug ~dkey "does not know how to scroll to loc"
-                    (* In this case, there is nothing we can do: we do not
-                         know which file/global to open to scroll in *)
-          end;
-          match Pretty_source.locate_localizable current_buffer_state#locs loc with
-          | Some (b, _) -> show b
+        (* Searching in [current_buffer_state] did not work, let's try
+           to open a good one *)
+        begin
+          match Pretty_source.kf_of_localizable loc with
+          | Some kf ->
+            let g = Kernel_function.get_global kf in
+            self#select_or_display_global g
           | None ->
-              (* Can appear eg. for an if (i<5) inside a loop,
-                 which is not shown in general in the source code *)
-              Gui_parameters.debug ~dkey "Unable to scroll to loc, probably \
-                                          not shown in the buffer"
+            match loc with
+            | PGlobal g -> self#select_or_display_global g
+            | _ ->
+              Gui_parameters.debug ~dkey "does not know how to scroll to loc"
+              (* In this case, there is nothing we can do: we do not
+                   know which file/global to open to scroll in *)
+        end;
+        match Pretty_source.locate_localizable current_buffer_state#locs loc with
+        | Some (b, _) -> show b
+        | None ->
+          (* Can appear eg. for an if (i<5) inside a loop,
+             which is not shown in general in the source code *)
+          Gui_parameters.debug ~dkey "Unable to scroll to loc, probably \
+                                      not shown in the buffer"
 
     method view_stmt stmt =
       let kf = Kernel_function.find_englobing_kf stmt in
@@ -1299,18 +1298,18 @@ class main_window () : main_window_extension_points =
     method private push_info_buffer :
       'a. ?buffer:Buffer.t -> ('a, Format.formatter, unit) format -> 'a =
       fun ?buffer fmt ->
-        let b = match buffer with
-          | None -> Buffer.create 80
-          | Some b -> b
-        in
-        let bfmt = Format.formatter_of_buffer b  in
-        Format.kfprintf
-          (function fmt ->
-            Format.pp_print_flush fmt ();
-            let content = Buffer.contents b in
-            ignore (status_context#push content))
-          bfmt
-          fmt
+      let b = match buffer with
+        | None -> Buffer.create 80
+        | Some b -> b
+      in
+      let bfmt = Format.formatter_of_buffer b  in
+      Format.kfprintf
+        (function fmt ->
+           Format.pp_print_flush fmt ();
+           let content = Buffer.contents b in
+           ignore (status_context#push content))
+        bfmt
+        fmt
 
     method push_info fmt = self#push_info_buffer fmt
 
@@ -1321,12 +1320,12 @@ class main_window () : main_window_extension_points =
       let bfmt = Format.formatter_of_buffer buffer  in
       Format.kfprintf
         (function _ ->
-          ignore (w#event#connect#leave_notify
-                    (fun _ -> self#pop_info ();true));
-          ignore (w#event#connect#enter_notify
-                    (fun _ ->
-                       Format.pp_print_flush bfmt ();
-                       self#push_info_buffer ~buffer "" ;false)))
+           ignore (w#event#connect#leave_notify
+                     (fun _ -> self#pop_info ();true));
+           ignore (w#event#connect#enter_notify
+                     (fun _ ->
+                        Format.pp_print_flush bfmt ();
+                        self#push_info_buffer ~buffer "" ;false)))
         bfmt
         fmt
 
@@ -1390,31 +1389,31 @@ class main_window () : main_window_extension_points =
           | Some _ as iters -> iters
           | None ->
             let title = "Find " ^ where in
-              (* try to wrap search if user wishes *)
-              if GToolbox.question_box ~title
-                  (Printf.sprintf "No more occurrences for: %s\n\
-                                   Search from beginning?" text)
-                  ~buttons:["Yes"; "No"] = 1 (*yes*) then
-                let cursor_iter = buffer#get_iter `START in
-                (* note: may end up searching twice some parts of the buffer *)
-                cursor_iter#forward_search
-                  ~flags:[]
-                  text
-              else
-                (notify_not_found := false; None)
+            (* try to wrap search if user wishes *)
+            if GToolbox.question_box ~title
+                (Printf.sprintf "No more occurrences for: %s\n\
+                                 Search from beginning?" text)
+                ~buttons:["Yes"; "No"] = 1 (*yes*) then
+              let cursor_iter = buffer#get_iter `START in
+              (* note: may end up searching twice some parts of the buffer *)
+              cursor_iter#forward_search
+                ~flags:[]
+                text
+            else
+              (notify_not_found := false; None)
         in
         match found_iters with
         | Some (i1,i2) ->
-            buffer#place_cursor i1;
-            buffer#select_range i1 i2;
-            ignore (scroll_to_iter i1
-                      ~use_align:false
-                      ~within_margin:0.025
-                   );
-            last_find_text <- text
+          buffer#place_cursor i1;
+          buffer#select_range i1 i2;
+          ignore (scroll_to_iter i1
+                    ~use_align:false
+                    ~within_margin:0.025
+                 );
+          last_find_text <- text
         | None -> if !notify_not_found then
-              GToolbox.message_box ~title:("Not found " ^ where)
-                (Printf.sprintf "Not found %s: %s" where text)
+            GToolbox.message_box ~title:("Not found " ^ where)
+              (Printf.sprintf "Not found %s: %s" where text)
       in
       let focused_widget = GtkWindow.Window.get_focus main_window#as_window in
       let focused_name = Gobject.Property.get focused_widget GtkBase.Widget.P.name
@@ -1443,8 +1442,8 @@ class main_window () : main_window_extension_points =
               | None -> GToolbox.message_box ~title:"Global not found"
                           (Printf.sprintf "Global not found: %s" text)
               | Some g ->
-                  last_find_text <- text;
-                  self#select_or_display_global g
+                last_find_text <- text;
+                self#select_or_display_global g
             else ();
             None (* indicates that we are done processing the command *)
           end
@@ -1458,10 +1457,10 @@ class main_window () : main_window_extension_points =
               let console_view_focused =
                 match !console_view with
                 | Some v ->
-                    if Gobject.Property.get v#as_widget GtkBase.Widget.P.has_focus then
-                      Some ("in Console",`GTextViewer v)
-                    else
-                      None
+                  if Gobject.Property.get v#as_widget GtkBase.Widget.P.has_focus then
+                    Some ("in Console",`GTextViewer v)
+                  else
+                    None
                 | None -> None
               in
               if console_view_focused <> None then console_view_focused
@@ -1473,16 +1472,16 @@ class main_window () : main_window_extension_points =
       match opt_where_view with
       | None -> (* no searchable focused element, or already processed *) ()
       | Some (where,viewer) ->
-          let text =
-            if use_dialog then
-              Extlib.opt_conv ""
-                (Gtk_helper.input_string
-                   ~parent:main_window
-                   ~title:("Find " ^ where) ~ok:"Find" ~cancel:"Cancel"
-                   ("Find text (" ^ where ^ "):") ~text:last_find_text)
-            else last_find_text
-          in
-          if text <> "" then find_text_in_viewer ~where viewer text else ()
+        let text =
+          if use_dialog then
+            Extlib.opt_conv ""
+              (Gtk_helper.input_string
+                 ~parent:main_window
+                 ~title:("Find " ^ where) ~ok:"Find" ~cancel:"Cancel"
+                 ("Find text (" ^ where ^ "):") ~text:last_find_text)
+          else last_find_text
+        in
+        if text <> "" then find_text_in_viewer ~where viewer text else ()
 
     initializer
       self#set_reset self#reset;
@@ -1563,12 +1562,12 @@ class main_window () : main_window_extension_points =
                         )
                       in
                       Gdk.Rectangle.(Gui_parameters.debug ~dkey:dkey_scroll
-                        "my  rect is %d (+%d) %d (+%d)@\n\
-                         vis rect is  %d (+%d) %d (+%d)@\n\
-                         my rect is visible: %B@."
-                        (x my_rect) (width my_rect) (y my_rect) (height my_rect)
-                        (x visible_rect) (width visible_rect) (y visible_rect)
-                        (height visible_rect) res);
+                                       "my  rect is %d (+%d) %d (+%d)@\n\
+                                        vis rect is  %d (+%d) %d (+%d)@\n\
+                                        my rect is visible: %B@."
+                                       (x my_rect) (width my_rect) (y my_rect) (height my_rect)
+                                       (x visible_rect) (width visible_rect) (y visible_rect)
+                                       (height visible_rect) res);
                       has_stabilized := res;
                       (* when added as an idle procedure below, check will
                          be removed whenever it returns false. *)
@@ -1595,7 +1594,7 @@ class main_window () : main_window_extension_points =
                     done;
                     Glib.Timeout.remove alarm;
                     self#view_stmt stmt;
-                 with Not_found -> ()
+                  with Not_found -> ()
                 end;
               false)
       in
@@ -1712,9 +1711,9 @@ class main_window () : main_window_extension_points =
       History.set_display_elt_callback
         (function
           | History.Global g ->
-              self#select_or_display_global g
+            self#select_or_display_global g
           | History.Localizable l ->
-              self#scroll l
+            self#scroll l
         );
 
       register_reset_extension (fun _ -> display_warnings ());
@@ -1730,11 +1729,11 @@ class main_window () : main_window_extension_points =
             match typ with
             | TNamed (ti, _) -> Some (Logic_typing.Typedef, ti.torig_name)
             | TComp (ci, _, _) ->
-                let tag = if ci.cstruct then Logic_typing.Struct
-                  else Logic_typing.Union
-                in
-                let name = if ci.corig_name <> "" then ci.corig_name else ci.cname in
-                Some (tag, name)
+              let tag = if ci.cstruct then Logic_typing.Struct
+                else Logic_typing.Union
+              in
+              let name = if ci.corig_name <> "" then ci.corig_name else ci.cname in
+              Some (tag, name)
             | TEnum (ei, _) ->
               let name = if ei.eorig_name <> "" then ei.eorig_name else ei.ename in
               Some (Logic_typing.Enum, name)
@@ -1743,9 +1742,9 @@ class main_window () : main_window_extension_points =
           match opt_tag_name with
           | None -> ()
           | Some (tag, name) ->
-              let g = Globals.Types.global tag name in
-              let loc = Cil_datatype.Global.loc g in
-              Format.fprintf pp ", defined at %a" Printer.pp_location loc
+            let g = Globals.Types.global tag name in
+            let loc = Cil_datatype.Global.loc g in
+            Format.fprintf pp ", defined at %a" Printer.pp_location loc
         with
         | Not_found -> ()
       in
@@ -1761,15 +1760,15 @@ class main_window () : main_window_extension_points =
                match History.selected_localizable () with
                | None -> ()
                | Some loc ->
-                   let kfopt = Pretty_source.kf_of_localizable loc in
-                   let ki = Pretty_source.ki_of_localizable loc in
-                   let var_localizable =
-                     Pretty_source.PLval (kfopt, ki, (Var vi, NoOffset))
-                   in
-                   let button = GdkEvent.Button.button button in
-                   if button = 1 then self#pretty_information "@.";
-                   selector_localizable self#toplevel
-                     InformationPanel ~button var_localizable
+                 let kfopt = Pretty_source.kf_of_localizable loc in
+                 let ki = Pretty_source.ki_of_localizable loc in
+                 let var_localizable =
+                   Pretty_source.PLval (kfopt, ki, (Var vi, NoOffset))
+                 in
+                 let button = GdkEvent.Button.button button in
+                 if button = 1 then self#pretty_information "@.";
+                 selector_localizable self#toplevel
+                   InformationPanel ~button var_localizable
              with Gui_printers.NoMatch -> ()
            end;
            begin
@@ -1778,15 +1777,15 @@ class main_window () : main_window_extension_points =
                let typ = Gui_printers.typ_of_link s in
                match typ with
                | TComp _ | TEnum _ | TPtr _ | TArray _ | TNamed _ ->
-                   let base_type = Gui_printers.get_type_specifier typ in
-                   let sizeof_str =
-                     try Format.sprintf "sizeof %d" (Cil.bytesSizeOf base_type)
-                     with Cil.SizeOfError (b, _) -> "unknown size: " ^ b
-                   in
-                   self#pretty_information ~scroll:true
-                     "@.Type information for `%a':@.(%s%a)@. @[%a@]"
-                     Printer.pp_typ base_type sizeof_str pp_def_loc typ
-                     Gui_printers.pp_typ_unfolded base_type
+                 let base_type = Gui_printers.get_type_specifier typ in
+                 let sizeof_str =
+                   try Format.sprintf "sizeof %d" (Cil.bytesSizeOf base_type)
+                   with Cil.SizeOfError (b, _) -> "unknown size: " ^ b
+                 in
+                 self#pretty_information ~scroll:true
+                   "@.Type information for `%a':@.(%s%a)@. @[%a@]"
+                   Printer.pp_typ base_type sizeof_str pp_def_loc typ
+                   Gui_printers.pp_typ_unfolded base_type
                | _ -> () (* avoid printing anything for basic types;
                             also, function types are not supported *)
              with Gui_printers.NoMatch -> ()
@@ -1864,11 +1863,13 @@ let toplevel play =
             Task.on_idle :=
               (fun f -> ignore (Glib.Timeout.add ~ms:50 ~callback:f));
             let project_name = Gui_parameters.Project_name.get () in
-            if project_name <> "" then
+            if project_name = "" then
+              Project.set_current_as_last_created ()
+            else
               Project.set_current (Project.from_unique_name project_name);
             Ast.compute ()
           with e -> (* An error occurred: we need to enforce the splash screen
-                       		      realization before we create the error dialog widget.*)
+                       realization before we create the error dialog widget.*)
             force_s (); raise e);
          init_crashed := false);
     if Ast.is_computed () then

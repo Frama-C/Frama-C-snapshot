@@ -1,10 +1,8 @@
-/* run.config
+/* run.config_ci
    COMMENT: test option -e-acsl-no-valid
+   DONTRUN:
    LOG: gen_@PTEST_NAME@.c
-   OPT: -e-acsl-prepare -val -value-verbose 0 -machdep gcc_x86_64 -then -check -e-acsl-valid -e-acsl -then-last -load-script tests/print.cmxs -print -ocode tests/special/result/gen_@PTEST_NAME@.c -kernel-verbose 0 -value-verbose 0
-   EXECNOW: ./scripts/testrun.sh @PTEST_NAME@ special "" "--frama-c=@frama-c@"
-   LOG: gen_@PTEST_NAME@2.c
-   OPT: -e-acsl-prepare -val -value-verbose 0 -machdep gcc_x86_64 -then -check -e-acsl-no-valid -e-acsl -then-last -load-script tests/print.cmxs -print -ocode tests/special/result/gen_@PTEST_NAME@2.c -kernel-verbose 0 -value-verbose 0
+   STDOPT: #"-e-acsl-prepare -e-acsl-share ./share/e-acsl -eva -eva-verbose 0 -then -e-acsl-no-valid"
 */
 
 #include <stdlib.h>

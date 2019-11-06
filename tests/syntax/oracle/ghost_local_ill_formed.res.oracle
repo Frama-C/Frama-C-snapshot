@@ -1,0 +1,8 @@
+[kernel] Parsing tests/syntax/ghost_local_ill_formed.i (no preprocessing)
+[kernel] tests/syntax/ghost_local_ill_formed.i:5: User Error: 
+  redefinition of 'c' in the same scope.
+  Previous declaration was at tests/syntax/ghost_local_ill_formed.i:2
+[kernel] tests/syntax/ghost_local_ill_formed.i:17: User Error: 
+  Variable c is a ghost symbol. It cannot be used in non-ghost context. Did you forget a /*@ ghost ... /?
+[kernel] User Error: stopping on file "tests/syntax/ghost_local_ill_formed.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

@@ -68,3 +68,12 @@ int *AA(void);
 //@ logic set<integer> Sadd_elem_1(set<integer> s, integer e) = \union(s,e) ;
 //@ logic set<integer> Sadd_elem_2(set<integer> s, integer e) = \union(s,{e}) ;
 
+//@ predicate rejected_Smember_and(set<integer> s, integer v1, integer v2) = v1 & v2 \in s ;
+//@ predicate rejected_Smember_or (set<integer> s, integer v1, integer v2) = v1 | v2 \in s ;
+//@ predicate rejected_Smember_and_or (set<integer> s, integer v1, integer v2) = v1 & v2 \in s && v1 | v2 \in s ;
+
+//@ predicate Smember_and(set<integer> s, integer v1, integer v2) = (v1 & v2) \in s ;
+//@ predicate Smember_or (set<integer> s, integer v1, integer v2) = (v1 | v2) \in s ;
+//@ predicate Smember_and_or (set<integer> s, integer v1, integer v2) = (v1 & v2) \in s && (v1 | v2) \in s ;
+
+//@ logic set<integer> Scomprehension(set<integer> s, integer mask ) = { (k | 1) | int k ; (k | mask) \in s };

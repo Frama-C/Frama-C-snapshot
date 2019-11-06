@@ -1,10 +1,10 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/arith.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 24 goals scheduled
-[wp] [Alt-Ergo] Goal typed_lemma_ASSOC_land_qed_ok : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ASSOC_land_qed_ok : Valid
 [wp] [Qed] Goal typed_lemma_L01_lnot_qed_ok : Valid
 [wp] [Qed] Goal typed_lemma_L10_land_neutral_qed_ok : Valid
 [wp] [Qed] Goal typed_lemma_L11_land_absorbant_qed_ok : Valid
@@ -26,16 +26,16 @@
 [wp] [Qed] Goal typed_lemma_ucN1_qed_ok : Valid
 [wp] [Qed] Goal typed_lemma_ucN2_qed_ok : Valid
 [wp] [Qed] Goal typed_cast_sgn_usgn_ensures_qed_ok_nat : Valid
-[wp] [Alt-Ergo] Goal typed_uchar_range_assert_qed_ok_A1 : Valid
-[wp] [Alt-Ergo] Goal typed_uchar_range_assert_qed_ok_A2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_uchar_range_assert_qed_ok_A1 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_uchar_range_assert_qed_ok_A2 : Valid
 [wp] Proved goals:   24 / 24
-  Qed:            21 
-  Alt-Ergo:        3
+  Qed:              21 
+  Alt-Ergo 2.0.0:    3
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/arith.0.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/arith.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
-Lemma               20      1 (1..8)        21       100%
+Lemma               20      1 (8..20)       21       100%
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 cast_sgn_usgn        1     -                 1       100%

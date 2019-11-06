@@ -27,69 +27,72 @@ Require BuiltIn.
 Require bool.Bool.
 Require int.Int.
 Require int.Abs.
+Require int.EuclideanDivision.
 Require int.ComputerDivision.
+Require int.ComputerOfEuclideanDivision.
 Require real.Real.
 Require real.RealInfix.
 Require real.FromInt.
 
 (* Why3 goal *)
-Definition match_bool: forall {a:Type} {a_WT:WhyType a}, bool -> a -> a -> a.
-exact (fun _ _ b x y => if b then x else y).
+Definition match_bool {a:Type} {a_WT:WhyType a} : bool -> a -> a -> a.
+exact (fun b x y => if b then x else y).
 Defined.
 
 (* Why3 goal *)
-Lemma match_bool1 : forall {a:Type} {a_WT:WhyType a}, forall (p:bool) (x:a)
-  (y:a), ((p = true) /\ ((match_bool p x y) = x)) \/ ((p = false) /\
-  ((match_bool p x y) = y)).
+Lemma match_bool1 {a:Type} {a_WT:WhyType a} :
+  forall (p:bool) (x:a) (y:a),
+  ((p = true) /\ ((match_bool p x y) = x)) \/
+  ((p = false) /\ ((match_bool p x y) = y)).
 Proof.
-  intros a a_WT p x y.
+  intros p x y.
   destruct p; intuition.
 Qed.
 
 (* Why3 goal *)
-Definition eqb: forall {a:Type} {a_WT:WhyType a}, a -> a -> bool.
-exact (fun a a_WT x y => if why_decidable_eq x y then true else false).
+Definition eqb {a:Type} {a_WT:WhyType a} : a -> a -> bool.
+exact (fun x y => if why_decidable_eq x y then true else false).
 Defined.
 
 (* Why3 goal *)
-Lemma eqb1 : forall {a:Type} {a_WT:WhyType a}, forall (x:a) (y:a), ((eqb x
-  y) = true) <-> (x = y).
+Lemma eqb1 {a:Type} {a_WT:WhyType a} :
+  forall (x:a) (y:a), ((eqb x y) = true) <-> (x = y).
 Proof.
-  intros a a_WT x y.
+  intros x y.
   destruct a_WT.
   compute;destruct (why_decidable_eq x y);intuition discriminate.
 Qed.
 
 (* Why3 goal *)
-Lemma eqb_false : forall {a:Type} {a_WT:WhyType a}, forall (x:a) (y:a),
-  ((eqb x y) = false) <-> ~ (x = y).
+Lemma eqb_false {a:Type} {a_WT:WhyType a} :
+  forall (x:a) (y:a), ((eqb x y) = false) <-> ~ (x = y).
 Proof.
-  intros a a_WT x y.
+  intros x y.
   destruct a_WT.
   compute;destruct (why_decidable_eq x y);intuition discriminate.
 Qed.
 
 (* Why3 goal *)
-Definition neqb: forall {a:Type} {a_WT:WhyType a}, a -> a -> bool.
-exact (fun a a_WT x y => if why_decidable_eq x y then false else true).
+Definition neqb {a:Type} {a_WT:WhyType a} : a -> a -> bool.
+exact (fun x y => if why_decidable_eq x y then false else true).
 Defined.
 
 (* Why3 goal *)
-Lemma neqb1 : forall {a:Type} {a_WT:WhyType a}, forall (x:a) (y:a), ((neqb x
-  y) = true) <-> ~ (x = y).
+Lemma neqb1 {a:Type} {a_WT:WhyType a} :
+  forall (x:a) (y:a), ((neqb x y) = true) <-> ~ (x = y).
 Proof.
-  intros a a_WT x y.
+  intros x y.
   destruct a_WT.
   compute;destruct (why_decidable_eq x y);intuition discriminate.
 Qed.
 
 (* Why3 goal *)
-Definition zlt: Z -> Z -> bool.
+Definition zlt : Z -> Z -> bool.
 exact(Zlt_bool).
 Defined.
 
 (* Why3 goal *)
-Definition zleq: Z -> Z -> bool.
+Definition zleq : Z -> Z -> bool.
 exact(Zle_bool).
 Defined.
 
@@ -110,12 +113,12 @@ Proof.
 Qed.
 
 (* Why3 goal *)
-Definition rlt: R -> R -> bool.
+Definition rlt : R -> R -> bool.
 exact (fun x y => if Rlt_dec x y then true else false).
 Defined.
 
 (* Why3 goal *)
-Definition rleq: R -> R -> bool.
+Definition rleq : R -> R -> bool.
 exact (fun x y => if Rle_dec x y then true else false).
 Defined.
 
@@ -134,23 +137,7 @@ Proof.
 Qed.
 
 (* Why3 assumption *)
-Definition real_of_int (x:Z): R := (BuiltIn.IZR x).
-
-(* Why3 comment *)
-(* pdiv is replaced with (ZArith.BinInt.Z.quot x x1) by the coq driver *)
-
-(* Why3 comment *)
-(* pmod is replaced with (ZArith.BinInt.Z.rem x x1) by the coq driver *)
-
-(* Why3 goal *)
-Lemma c_euclidian : forall (n:Z) (d:Z), (~ (d = 0%Z)) ->
-  (n = (((ZArith.BinInt.Z.quot n d) * d)%Z + (ZArith.BinInt.Z.rem n d))%Z).
-Proof.
-  intros n d.
-  intros H.
-  rewrite Int.Comm1.
-  exact (ComputerDivision.Div_mod n d H).
-Qed.
+Definition real_of_int (x:Z) : R := (BuiltIn.IZR x).
 
 Lemma lt_is_not_eqb1: forall x y, (x < y -> Z.eqb x y = false)%Z.
 Proof.
@@ -168,59 +155,31 @@ Proof.
   reflexivity.
 Qed.
 
-
 (* Why3 goal *)
-Lemma cdiv_cases : forall (n:Z) (d:Z), ((0%Z <= n)%Z -> ((0%Z < d)%Z ->
-  ((ZArith.BinInt.Z.quot n d) = (ZArith.BinInt.Z.quot n d)))) /\
-  (((n <= 0%Z)%Z -> ((0%Z < d)%Z ->
-  ((ZArith.BinInt.Z.quot n d) = (-(ZArith.BinInt.Z.quot (-n)%Z d))%Z))) /\
-  (((0%Z <= n)%Z -> ((d < 0%Z)%Z ->
-  ((ZArith.BinInt.Z.quot n d) = (-(ZArith.BinInt.Z.quot n (-d)%Z))%Z))) /\
-  ((n <= 0%Z)%Z -> ((d < 0%Z)%Z ->
-  ((ZArith.BinInt.Z.quot n d) = (ZArith.BinInt.Z.quot (-n)%Z (-d)%Z)))))).
+Lemma c_euclidian :
+  forall (n:Z) (d:Z), ~ (d = 0%Z) ->
+  (n = (((ZArith.BinInt.Z.quot n d) * d)%Z + (ZArith.BinInt.Z.rem n d))%Z).
 Proof.
   intros n d.
-  rewrite Zquot.Zquot_opp_l.
-  rewrite Zquot.Zquot_opp_r.
-  rewrite Zquot.Zquot_opp_l.
-  rewrite Zquot.Zquot_opp_r.
-  rewrite Z.opp_involutive.
-  assert (lem1 := lt_is_not_eqb1 d 0).
-  assert (lem2 := lt_is_not_eqb2 d 0).
-  intuition (rewrite H1;reflexivity).
+  intros H.
+  rewrite Int.Comm1.
+  exact (ComputerDivision.Div_mod n d H).
 Qed.
 
 (* Why3 goal *)
-Lemma cmod_cases : forall (n:Z) (d:Z), ((0%Z <= n)%Z -> ((0%Z < d)%Z ->
-  ((ZArith.BinInt.Z.rem n d) = (ZArith.BinInt.Z.rem n d)))) /\
-  (((n <= 0%Z)%Z -> ((0%Z < d)%Z ->
-  ((ZArith.BinInt.Z.rem n d) = (-(ZArith.BinInt.Z.rem (-n)%Z d))%Z))) /\
-  (((0%Z <= n)%Z -> ((d < 0%Z)%Z ->
-  ((ZArith.BinInt.Z.rem n d) = (ZArith.BinInt.Z.rem n (-d)%Z)))) /\
-  ((n <= 0%Z)%Z -> ((d < 0%Z)%Z ->
-  ((ZArith.BinInt.Z.rem n d) = (-(ZArith.BinInt.Z.rem (-n)%Z (-d)%Z))%Z))))).
-Proof.
-  intros n d.
-  rewrite Zquot.Zrem_opp_l.
-  rewrite Zquot.Zrem_opp_r.
-  rewrite Zquot.Zrem_opp_l.
-  rewrite Zquot.Zrem_opp_r.
-  rewrite Z.opp_involutive.
-  assert (lem1 := lt_is_not_eqb1 d 0).
-  assert (lem2 := lt_is_not_eqb2 d 0).
-  intuition (rewrite H1;reflexivity).
-Qed.
-
-(* Why3 goal *)
-Lemma cmod_remainder : forall (n:Z) (d:Z), ((0%Z <= n)%Z -> ((0%Z < d)%Z ->
-  ((0%Z <= (ZArith.BinInt.Z.rem n d))%Z /\
-  ((ZArith.BinInt.Z.rem n d) < d)%Z))) /\ (((n <= 0%Z)%Z -> ((0%Z < d)%Z ->
-  (((-d)%Z < (ZArith.BinInt.Z.rem n d))%Z /\
-  ((ZArith.BinInt.Z.rem n d) <= 0%Z)%Z))) /\ (((0%Z <= n)%Z ->
-  ((d < 0%Z)%Z -> ((0%Z <= (ZArith.BinInt.Z.rem n d))%Z /\
-  ((ZArith.BinInt.Z.rem n d) < (-d)%Z)%Z))) /\ ((n <= 0%Z)%Z ->
-  ((d < 0%Z)%Z -> ((d < (ZArith.BinInt.Z.rem n d))%Z /\
-  ((ZArith.BinInt.Z.rem n d) <= 0%Z)%Z))))).
+Lemma cmod_remainder :
+  forall (n:Z) (d:Z),
+  ((0%Z <= n)%Z -> (0%Z < d)%Z ->
+   (0%Z <= (ZArith.BinInt.Z.rem n d))%Z /\ ((ZArith.BinInt.Z.rem n d) < d)%Z) /\
+  (((n <= 0%Z)%Z -> (0%Z < d)%Z ->
+    ((-d)%Z < (ZArith.BinInt.Z.rem n d))%Z /\
+    ((ZArith.BinInt.Z.rem n d) <= 0%Z)%Z) /\
+   (((0%Z <= n)%Z -> (d < 0%Z)%Z ->
+     (0%Z <= (ZArith.BinInt.Z.rem n d))%Z /\
+     ((ZArith.BinInt.Z.rem n d) < (-d)%Z)%Z) /\
+    ((n <= 0%Z)%Z -> (d < 0%Z)%Z ->
+     (d < (ZArith.BinInt.Z.rem n d))%Z /\
+     ((ZArith.BinInt.Z.rem n d) <= 0%Z)%Z))).
 Proof.
   intros n d.
   (split;[|split;[|split]]);intros;
@@ -238,8 +197,8 @@ Proof.
 Qed.
 
 (* Why3 goal *)
-Lemma cdiv_inv : forall (a:Z), (~ (a = 0%Z)) ->
-  ((ZArith.BinInt.Z.quot a a) = 1%Z).
+Lemma cdiv_inv :
+  forall (a:Z), ~ (a = 0%Z) -> ((ZArith.BinInt.Z.quot a a) = 1%Z).
 Proof.
   intros a h1.
   exact (Z.quot_same a h1).

@@ -319,6 +319,9 @@ val reinterpret_as_int: size:Integer.t -> signed:bool -> t -> t
 (** Bitwise reinterpretation of the given value, of size [size], as an integer
     of the given signedness (and size). *)
 
+val complement_int_under: size:int -> signed:bool -> t -> t Bottom.or_bottom
+(** Returns an under-approximation of the integers of the given size and
+    signedness that are *not* represented by the given ival. *)
 
 val pretty_debug : Format.formatter -> t -> unit
 

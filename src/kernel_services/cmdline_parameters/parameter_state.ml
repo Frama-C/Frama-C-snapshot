@@ -31,7 +31,7 @@ let collections: State.Set.t ref = ref State.Set.empty
 let get_selection_gen ?(is_set=true) selection =
   let l =
     if is_set then
-      List.map fst selection
+      List.rev (List.rev_map fst selection)
     else
       List.fold_left
         (fun acc (x, b) -> if b then acc else x :: acc)

@@ -142,6 +142,10 @@ val set_keep_current: bool -> unit
       of the current {!on}) iff [b] is [true].
       @since Aluminium-20160501 *)
 
+(**/**)
+val set_current_as_last_created: unit -> unit
+(**/**)
+
 val copy: ?selection:State_selection.t -> ?src:t -> t -> unit
   (** Copy a project into another one. Default project for [src] is [current
       ()]. Replace the destination by [src].

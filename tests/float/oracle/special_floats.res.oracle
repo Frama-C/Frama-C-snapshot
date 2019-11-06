@@ -1,16 +1,87 @@
-[kernel] Parsing tests/float/special_floats.i (no preprocessing)
+[kernel] Parsing tests/float/special_floats.c (with preprocessing)
 [eva] Analyzing a complete application starting at main
 [eva] Computing initial state
 [eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   rand ∈ [--..--]
+  any_double ∈ [--..--]
+  global_infinity ∈ {inf}
+  global_nan ∈ NaN
 [eva] computing for function nan_comparisons <- main.
-  Called from tests/float/special_floats.i:24.
+  Called from tests/float/special_floats.c:94.
 [eva] Recording results for nan_comparisons
 [eva] Done for function nan_comparisons
+[eva] computing for function is_infinite <- main.
+  Called from tests/float/special_floats.c:95.
+[eva] tests/float/special_floats.c:29: check 'true' got status valid.
+[eva:alarm] tests/float/special_floats.c:30: Warning: 
+  check 'false' got status invalid.
+[eva:alarm] tests/float/special_floats.c:31: Warning: 
+  check 'false' got status invalid.
+[eva:alarm] tests/float/special_floats.c:32: Warning: 
+  check 'false' got status invalid.
+[eva:alarm] tests/float/special_floats.c:34: Warning: 
+  check 'false' got status invalid.
+[eva] tests/float/special_floats.c:35: check 'true' got status valid.
+[eva] tests/float/special_floats.c:36: check 'true' got status valid.
+[eva:alarm] tests/float/special_floats.c:37: Warning: 
+  check 'false' got status invalid.
+[eva:alarm] tests/float/special_floats.c:39: Warning: 
+  check 'false' got status invalid.
+[eva] tests/float/special_floats.c:40: check 'true' got status valid.
+[eva:alarm] tests/float/special_floats.c:41: Warning: 
+  check 'false' got status invalid.
+[eva:alarm] tests/float/special_floats.c:42: Warning: 
+  check 'false' got status invalid.
+[eva:alarm] tests/float/special_floats.c:46: Warning: 
+  assertion got status unknown.
+[eva] tests/float/special_floats.c:47: Frama_C_show_each_pos_infinity: {inf}
+[eva:alarm] tests/float/special_floats.c:50: Warning: 
+  assertion got status unknown.
+[eva] tests/float/special_floats.c:51: Frama_C_show_each_neg_infinity: {-inf}
+[eva:alarm] tests/float/special_floats.c:54: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/float/special_floats.c:55: Warning: 
+  assertion got status unknown.
+[eva] tests/float/special_floats.c:56: 
+  Frama_C_show_each_finite_nan:
+  [-1.79769313486e+308 .. 1.79769313486e+308] ∪ {NaN}
+[eva:alarm] tests/float/special_floats.c:59: Warning: 
+  assertion got status unknown.
+[eva] tests/float/special_floats.c:60: 
+  Frama_C_show_each_top: [-inf .. inf] ∪ {NaN}
+[eva:alarm] tests/float/special_floats.c:63: Warning: 
+  assertion got status unknown.
+[eva] tests/float/special_floats.c:64: Frama_C_show_each_pos_infinity: {inf;NaN}
+[eva] Recording results for is_infinite
+[eva] Done for function is_infinite
+[eva] computing for function macro_infinity <- main.
+  Called from tests/float/special_floats.c:96.
+[eva] tests/float/special_floats.c:74: Frama_C_show_each_infinity: {inf}
+[eva] tests/float/special_floats.c:75: assertion got status valid.
+[eva] Recording results for macro_infinity
+[eva] Done for function macro_infinity
+[eva] computing for function macro_nan <- main.
+  Called from tests/float/special_floats.c:97.
+[eva] tests/float/special_floats.c:84: Frama_C_show_each_nan: NaN
+[eva] tests/float/special_floats.c:85: assertion got status valid.
+[eva] tests/float/special_floats.c:86: assertion got status valid.
+[eva] tests/float/special_floats.c:87: assertion got status valid.
+[eva] Recording results for macro_nan
+[eva] Done for function macro_nan
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function is_infinite:
+  zero ∈ {-0.}
+  inf ∈ {inf}
+  nan_0 ∈ NaN
+  d ∈ [-inf .. inf] ∪ {NaN}
+[eva:final-states] Values at end of function macro_infinity:
+  infinity_f ∈ {inf}
+  infinity_d ∈ {inf}
+[eva:final-states] Values at end of function macro_nan:
+  nan_f ∈ NaN
 [eva:final-states] Values at end of function nan_comparisons:
   n ∈ NaN
   d ∈ [-10. .. 10.]

@@ -47,14 +47,14 @@ module Make
     val set_state : state -> unit (** Update local state. *)
     val clr_state : state -> unit (** Clear local state. *)
 
+    val in_state : state -> ('a -> 'b) -> 'a -> 'b
+    (** execute in a particular state. *)
+
+    val rebuild_in_state : state -> ?cache:term Tmap.t -> term -> term * term Tmap.t
+    (** rebuild a term in the given state *)
+
     (** Register a constant in the global state. *)
     val constant : term -> term
-
-    (** {2 Registered Checks} *)
-
-    val check : repr -> term -> term
-    val check_unit : qed:term -> raw:term -> term
-    val iter_checks : (qed:term -> raw:term -> unit) -> unit
 
     (** {2 Context Release} *)
 

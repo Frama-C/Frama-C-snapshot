@@ -9,7 +9,7 @@
   assigns ghost_loctable;
 
  */
-void acquire_lock(int m) { ghost_loctable[m]++; }
+void acquire_lock(int m) { /*@ ghost ghost_loctable[m]++; */ }
 
 // The specification above should be accepted
 /*@
@@ -18,7 +18,7 @@ void acquire_lock(int m) { ghost_loctable[m]++; }
   ensures !ghost_loctable[m];
   assigns ghost_loctable[..];
  */
-void release_lock(int m) { ghost_loctable[m]--; }
+void release_lock(int m) { /*@ ghost ghost_loctable[m]--; */ }
 
 
 

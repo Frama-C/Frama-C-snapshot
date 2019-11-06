@@ -1,0 +1,18 @@
+Only in tests/float/oracle: absorb.res.oracle
+Only in tests/float/oracle: absorb_sav.err
+Only in tests/float/oracle: absorb_sav.res
+Only in tests/float/oracle: absorb_sav2.err
+Only in tests/float/oracle: absorb_sav2.res
+Only in tests/float/oracle: fval_test.res.oracle
+diff tests/float/oracle/nonlin.1.res.oracle tests/float/oracle_octagons/nonlin.1.res.oracle
+253a254,255
+> [eva:nonlin] tests/float/nonlin.c:101: non-linear 'f + f', lv 'f'
+> [eva:nonlin] tests/float/nonlin.c:101: subdividing on f
+257d258
+< [eva:nonlin] tests/float/nonlin.c:101: subdividing on f
+diff tests/float/oracle/nonlin.3.res.oracle tests/float/oracle_octagons/nonlin.3.res.oracle
+253a254,255
+> [eva:nonlin] tests/float/nonlin.c:101: non-linear 'f + f', lv 'f'
+> [eva:nonlin] tests/float/nonlin.c:101: subdividing on f
+257d258
+< [eva:nonlin] tests/float/nonlin.c:101: subdividing on f

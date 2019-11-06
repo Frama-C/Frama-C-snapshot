@@ -322,7 +322,7 @@ and loc_to_exp ~result {term_node = lnode ; term_type = ltype; term_loc = loc} =
   | Tbase_addr _
   | Toffset _
   | Tblock_length _
-  | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
+  | TUpdate _ | Ttypeof _ | Ttype _
   | TLogic_coerce _
     -> error_lval ()
 
@@ -346,7 +346,7 @@ let rec loc_to_lval ~result t =
   | TSizeOfE _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TSizeOfStr _
   | TConst _ | TCastE _ | TAlignOf _ | TSizeOf _ | Tapp _ | Tif _
   | Tat _ | Toffset _ | Tbase_addr _ | Tblock_length _ | Tnull | Trange _
-  | TCoerce _ | TCoerceE _ | TDataCons _ | TUpdate _ | Tlambda _
+  | TDataCons _ | TUpdate _ | Tlambda _
   | Ttypeof _ | Ttype _ | Tlet _ | TLogic_coerce _ ->
       error_lval ()
 
@@ -369,7 +369,7 @@ let loc_to_offset ~result loc =
       | TSizeOfE _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TSizeOfStr _
       | TConst _ | TCastE _ | TAlignOf _ | TSizeOf _ | Tapp _ | Tif _
       | Toffset _ | Tbase_addr _ | Tblock_length _ | Tnull
-      | TCoerce _ | TCoerceE _ | TDataCons _ | TUpdate _ | Tlambda _
+      | TDataCons _ | TUpdate _ | Tlambda _
       | Ttypeof _ | Ttype _ | Tcomprehension _ | Tinter _ | Tlet _
       | TLogic_coerce _ 
           -> error_lval ()
@@ -803,7 +803,7 @@ to function contracts."
       | Pvalid_function _ ->
           DoChildren
 
-      | Papp _ | Pallocable _ | Pfreeable _ | Pfresh _ | Psubtype _
+      | Papp _ | Pallocable _ | Pfreeable _ | Pfresh _
         -> fail ()
 
       method private do_term_lval t =

@@ -27,7 +27,7 @@
 [kernel:annot:missing-spec] tests/value/leaf_spec.i:22: Warning: 
   Neither code nor specification for function k, generating default assigns from the prototype
 [eva] using specification for function k
-[eva] tests/value/leaf_spec.i:22: Warning: 
+[eva:invalid-assigns] tests/value/leaf_spec.i:22: 
   Completely invalid destination for assigns clause *l. Ignoring.
 [eva] Done for function k
 [eva] computing for function k0 <- main.

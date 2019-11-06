@@ -1,0 +1,5 @@
+[kernel] Parsing tests/misc/interpreted_automata_dataflow.i (no preprocessing)
+[kernel] Results at the end of function main:
+  x -> 3
+  y -> 6
+  z -> 7

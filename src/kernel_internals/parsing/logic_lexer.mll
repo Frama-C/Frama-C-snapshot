@@ -368,8 +368,6 @@ rule token = parse
   | "]"                     { pop_state(); RSQUARE }
   | "[|"                    { Stack.push Normal state_stack; LSQUAREPIPE }
   | "|]"                    { pop_state(); RSQUAREPIPE }
-  | "<:"                    { LTCOLON }
-  | ":>"                    { COLONGT }
   | "<<"                    { LTLT }
   | ">>"                    { GTGT }
   | utf8_char as c          { find_utf8 c }

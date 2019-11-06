@@ -205,8 +205,8 @@ struct sigaction *__fc_p_sigaction = __fc_sigaction;
   requires valid_oldact_or_null: oldact == \null || \valid(oldact);
   requires valid_read_act_or_null: act == \null || \valid_read(act);
   requires separation:separated_acts: \separated(act, oldact);
-  assigns oldact == \null ? \empty : *oldact \from __fc_p_sigaction;
-  assigns act == \null ? \empty : __fc_p_sigaction[signum] \from *act;
+  assigns *oldact \from __fc_p_sigaction;
+  assigns __fc_p_sigaction[signum] \from *act;
   assigns \result \from indirect:signum, indirect:act, indirect:*act,
                         indirect:oldact, indirect:*oldact;
   ensures act_changed: act == \null || \subset(__fc_p_sigaction[signum], *act);
@@ -225,8 +225,7 @@ extern int sigaction(int signum, const struct sigaction *restrict act,
   requires separation: (set == oldset == \null) ||
                        \separated(set, oldset);
   assigns \result \from indirect:how, indirect:set, indirect:oldset;
-  assigns oldset == \null ? \empty : *oldset
-          \from indirect:how, indirect:oldset;
+  assigns *oldset \from indirect:how, indirect:oldset;
   ensures result_ok_or_error: \result == 0 || \result == -1;
   ensures initialization:oldset_initialized:
     oldset != \null && \result == 0 ==> \initialized(oldset);

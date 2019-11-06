@@ -168,16 +168,13 @@ struct
 
   let node = Node.create
 
-  let identify subst ~src ~tgt =
+  let identify sigma ~src ~tgt =
     S.iter2
       (fun _chunk u v ->
          match u,v with
-         | Some x , Some y ->
-             subst := F.Tmap.add (F.e_var x) (F.e_var y) !subst
+         | Some x , Some y -> F.Subst.add sigma (F.e_var x) (F.e_var y)
          | _ -> ())
       src tgt
-
-  let assoc m e = F.Tmap.find e m
 
   module E = struct
     type t = S.t sequence * F.pred
@@ -186,10 +183,10 @@ struct
     let create seq p = seq,p
 
     let relocate tgt (src,p) =
-      let subst = ref F.Tmap.empty in
-      identify subst ~src:src.pre ~tgt:tgt.pre ;
-      identify subst ~src:src.post ~tgt:tgt.post ;
-      tgt , F.p_subst (assoc !subst) p
+      let sigma = Lang.sigma () in
+      identify sigma ~src:src.pre ~tgt:tgt.pre ;
+      identify sigma ~src:src.post ~tgt:tgt.post ;
+      tgt , F.p_subst sigma p
 
     let reads (seq,_) = S.domain seq.pre
     let writes (seq,_) = S.writes seq
@@ -200,14 +197,14 @@ struct
     let get = snd
     let create seq p = seq,p
     let relocate tgt (src,p) =
-      let subst = ref F.Tmap.empty in
-      identify subst ~src ~tgt ;
-      tgt , F.p_subst (assoc !subst) p
+      let sigma = Lang.sigma () in
+      identify sigma ~src ~tgt ;
+      tgt , F.p_subst sigma p
     let reads (src,_) = S.domain src
     let equal (s1,p1) (s2,p2) =
-      let subst = ref F.Tmap.empty in
-      identify subst ~src:s1 ~tgt:s2 ;
-      F.eqp (F.p_subst (assoc !subst) p1) p2
+      let sigma = Lang.sigma () in
+      identify sigma ~src:s1 ~tgt:s2 ;
+      F.eqp (F.p_subst sigma p1) p2
   end
 
   module P = struct
@@ -219,17 +216,17 @@ struct
     let create smap p = smap,p
 
     let relocate tgt (src,p) =
-      let subst = ref F.Tmap.empty in
+      let sigma = Lang.sigma () in
       Node.Map.iter2
         (fun n src tgt ->
            match src,tgt with
-           | Some src , Some tgt -> identify subst ~src ~tgt
+           | Some src , Some tgt -> identify sigma ~src ~tgt
            | Some _, None ->
                invalid_arg (Format.asprintf "P.relocate: tgt is smaller than src at %a" Node.pp n)
            | _ -> ())
         src tgt ;
       let tgt = Node.Map.inter (fun _ _ tgt -> tgt) src tgt in
-      tgt , F.p_subst (assoc !subst) p
+      tgt , F.p_subst sigma p
 
     let reads (smap,_) = Node.Map.map (fun _ s -> S.domain s) smap
     let nodes (smap,_) = Node.Map.fold (fun k _ acc -> Node.Set.add k acc) smap Node.Set.empty
@@ -257,16 +254,16 @@ struct
     let reads (smap,_) = Node.Map.map (fun _ s -> S.domain s) smap
 
     let relocate tgt (src,p) =
-      let subst = ref F.Tmap.empty in
+      let sigma = Lang.sigma () in
       Node.Map.iter2
         (fun _ src tgt ->
            match src,tgt with
-           | Some src , Some tgt -> identify subst ~src ~tgt
+           | Some src , Some tgt -> identify sigma ~src ~tgt
            | Some _, None -> invalid_arg "T.relocate: tgt is smaller than src"
            | _ -> ())
         src tgt ;
       let tgt = Node.Map.inter (fun _ _ tgt -> tgt) src tgt in
-      tgt , F.e_subst (assoc !subst) p
+      tgt , F.e_subst sigma p
 
     let init node_set f =
       let node_map = Node.Set.fold (fun x m ->
@@ -336,16 +333,16 @@ struct
 
   let succs : type a b. (a,b) env -> Node.t -> Node.t list =
     fun cfg n ->
-      match Node.Map.find n cfg.succs with
-      | exception Not_found -> []
-      | Goto n2 | Effect(_,n2) | Havoc(_,n2)
-      | Branch(_,Some n2,None)
-      | Branch(_,None,Some n2) -> [n2]
-      | Binding (_,n2) -> [n2]
-      | Branch(_,Some n1,Some n2) -> [n1;n2]
-      | Branch(_,None,None) -> []
-      | Either l -> l
-      | Implies l -> List.map snd l
+    match Node.Map.find n cfg.succs with
+    | exception Not_found -> []
+    | Goto n2 | Effect(_,n2) | Havoc(_,n2)
+    | Branch(_,Some n2,None)
+    | Branch(_,None,Some n2) -> [n2]
+    | Binding (_,n2) -> [n2]
+    | Branch(_,Some n1,Some n2) -> [n1;n2]
+    | Branch(_,None,None) -> []
+    | Either l -> l
+    | Implies l -> List.map snd l
 
   let pretty_edge : type a. Format.formatter -> (_,a) edge -> unit = fun fmt edge ->
     match edge with
@@ -369,42 +366,42 @@ struct
 
   let pretty_env : type a. Format.formatter -> (_,a) env -> unit =
     fun fmt env ->
-      Context.bind Lang.F.context_pp (Lang.F.env Lang.F.Vars.empty) (fun () ->
-          Format.fprintf fmt
-            "@[<v>@[<3>@[succs:@]@ %a@]@,@[<3>@[datas:@]@ %a@]@,@[<3>@[assumes:@]@ %a@]@]@."
-            (Pretty_utils.pp_iter2 ~between:"->@," ~sep:",@ " Node.Map.iter Node.pp pretty_edge) env.succs
-            (Pretty_utils.pp_iter2 ~between:"->@," ~sep:",@ " Node.Map.iter Node.pp
-               (Pretty_utils.pp_iter Bag.iter pretty_data)) env.datas
-            (Pretty_utils.pp_iter ~sep:",@ " Bag.iter P.pretty) env.assumes
-        ) ()
+    Context.bind Lang.F.context_pp (Lang.F.env Lang.F.Vars.empty) (fun () ->
+        Format.fprintf fmt
+          "@[<v>@[<3>@[succs:@]@ %a@]@,@[<3>@[datas:@]@ %a@]@,@[<3>@[assumes:@]@ %a@]@]@."
+          (Pretty_utils.pp_iter2 ~between:"->@," ~sep:",@ " Node.Map.iter Node.pp pretty_edge) env.succs
+          (Pretty_utils.pp_iter2 ~between:"->@," ~sep:",@ " Node.Map.iter Node.pp
+             (Pretty_utils.pp_iter Bag.iter pretty_data)) env.datas
+          (Pretty_utils.pp_iter ~sep:",@ " Bag.iter P.pretty) env.assumes
+      ) ()
 
   let dump_edge : type a. node -> Format.formatter -> (_, a) edge -> unit =
     fun n fmt edge ->
-      let pp_edge ?(label="") n' =
-        Format.fprintf fmt " %a -> %a [ label=\"%s\" ] ;@." Node.pp n Node.pp n' label
-      in
-      begin match edge with
-        | Goto n1 -> pp_edge n1
-        | Branch (_, n1, n2)->
-            Extlib.may pp_edge n1;
-            Extlib.may pp_edge n2
-        | Either ns -> List.iter pp_edge ns
-        | Implies ns -> List.iter (fun (_,a) -> pp_edge a) ns
-        | Effect (e, n') ->
-            pp_edge ~label:(Format.asprintf "%a" E.pretty e) n'
-        | Havoc (_, n') -> pp_edge ~label:"havoc" n'
-        | Binding (_,n') -> pp_edge ~label:"binding" n'
-      end
+    let pp_edge ?(label="") n' =
+      Format.fprintf fmt " %a -> %a [ label=\"%s\" ] ;@." Node.pp n Node.pp n' label
+    in
+    begin match edge with
+      | Goto n1 -> pp_edge n1
+      | Branch (_, n1, n2)->
+          Extlib.may pp_edge n1;
+          Extlib.may pp_edge n2
+      | Either ns -> List.iter pp_edge ns
+      | Implies ns -> List.iter (fun (_,a) -> pp_edge a) ns
+      | Effect (e, n') ->
+          pp_edge ~label:(Format.asprintf "%a" E.pretty e) n'
+      | Havoc (_, n') -> pp_edge ~label:"havoc" n'
+      | Binding (_,n') -> pp_edge ~label:"binding" n'
+    end
 
   let dump_node : data Bag.t -> Format.formatter -> node -> unit =
     fun datas fmt n ->
-      Format.fprintf fmt "  %a [ label=\"%a\n%a\" ] ;@."
-        Node.pp n Node.pp n (Pretty_utils.pp_iter ~sep:"\n" Bag.iter pretty_data) datas
+    Format.fprintf fmt "  %a [ label=\"%a\n%a\" ] ;@."
+      Node.pp n Node.pp n (Pretty_utils.pp_iter ~sep:"\n" Bag.iter pretty_data) datas
 
   let dump_succ : type a. (_, a) env -> Format.formatter -> node -> (_, a) edge -> unit =
     fun env fmt n e ->
-      let datas = try Node.Map.find n env.datas with Not_found -> Bag.empty in
-      Format.fprintf fmt "%a\n%a@\n" (dump_node datas) n (dump_edge n) e
+    let datas = try Node.Map.find n env.datas with Not_found -> Bag.empty in
+    Format.fprintf fmt "%a\n%a@\n" (dump_node datas) n (dump_edge n) e
 
   let dump_assume : Format.formatter -> P.t -> unit =
     let count = ref 0 in
@@ -423,72 +420,72 @@ struct
 
   let output_dot : type a b. out_channel -> ?checks:_ -> (a,b) env -> unit =
     fun cout ?(checks=Bag.empty) env ->
-      let count = let c = ref max_int in fun () -> decr c; !c in
-      let module E = struct
-        type t = Graph.Graphviz.DotAttributes.edge list
-        let default = []
-        let compare x y = assert (x == y); 0
-      end
-      in
-      let module V = struct
-        type t =
-          | Node of Node.t
-          | Assume of int * Lang.F.pred
-          | Check of int * Lang.F.pred
-          (* todo better saner comparison *)
-        let tag = function | Node i -> Node.tag i | Assume (i,_) -> i | Check (i,_) -> i
-        let pp fmt = function | Node i -> Node.pp fmt i | Assume (i,_) -> Format.fprintf fmt "ass%i" i
-                              | Check (i,_) -> Format.fprintf fmt "chk%i" i
-        let equal x y = (tag x) = (tag y)
-        let compare x y = Transitioning.Stdlib.compare (tag x) (tag y)
-        let hash x = tag x
-      end in
-      let module G = Graph.Imperative.Digraph.ConcreteBidirectionalLabeled (V)(E) in
-      let module Dot = Graph.Graphviz.Dot(struct
-          let graph_attributes _g = [`Fontname "fixed"]
-          let default_vertex_attributes _g = (* [`Shape `Point] *) [`Shape `Circle]
-          let vertex_name v = Format.asprintf "cp%a" V.pp  v
-          let vertex_attributes  = function
-            | V.Node n -> [`Label (escape "%a" Node.pp n)]
-            | V.Assume (_,p) -> [`Style `Dashed; `Label (escape "%a" Lang.F.pp_pred p)]
-            | V.Check (_,p) -> [`Style `Dotted; `Label (escape "%a" Lang.F.pp_pred p)]
-          let get_subgraph _ = None
-          let default_edge_attributes _g = []
-          let edge_attributes ((_,e,_):G.E.t) : Graph.Graphviz.DotAttributes.edge list = e
-          include G
-        end) in
-      let g = G.create () in
-      let add_edge n1 l n2 =  G.add_edge_e g (V.Node n1,l,V.Node n2) in
-      let add_edges : type a b. Node.t -> (a,b) edge -> unit = fun n1 -> function
-        | Goto n2 -> add_edge n1 [] n2
-        | Branch((_,c),n2,n2') ->
-            let aux s = function
-              | None -> ()
-              | Some n -> add_edge n1 [`Label (escape "%s%a" s Lang.F.pp_pred c)] n
-            in
-            aux "" n2; aux "!" n2'
-        | Either l -> List.iter (add_edge n1 []) l
-        | Implies l ->
-            List.iter (fun (c,n) -> add_edge n1 [`Label (escape "%a" Lang.F.pp_pred (C.get c))] n) l
-        | Effect ((_,e),n2) ->
-            add_edge n1 [`Label (escape "%a" Lang.F.pp_pred e)] n2
-        | Havoc (_,n2) -> add_edge n1 [`Label (escape "havoc")] n2
-        | Binding (_,n2) -> add_edge n1 [`Label (escape "binding")] n2
-      in
-      Node.Map.iter add_edges env.succs;
-      (** assumes *)
-      Bag.iter (fun (m,p) ->
-          let n1 = V.Assume(count (), p) in
-          let assume_label = [`Style `Dashed ] in
-          Node.Map.iter (fun n2 _ -> G.add_edge_e g (n1,assume_label,V.Node n2)) m
-        ) env.assumes;
-      (** checks *)
-      Bag.iter (fun (m,p) ->
-          let n1 = V.Check(count (), p) in
-          let label = [`Style `Dotted ] in
-          Node.Map.iter (fun n2 _ -> G.add_edge_e g (V.Node n2,label,n1)) m
-        ) checks;
-      Dot.output_graph cout g
+    let count = let c = ref max_int in fun () -> decr c; !c in
+    let module E = struct
+      type t = Graph.Graphviz.DotAttributes.edge list
+      let default = []
+      let compare x y = assert (x == y); 0
+    end
+    in
+    let module V = struct
+      type t =
+        | Node of Node.t
+        | Assume of int * Lang.F.pred
+        | Check of int * Lang.F.pred
+        (* todo better saner comparison *)
+      let tag = function | Node i -> Node.tag i | Assume (i,_) -> i | Check (i,_) -> i
+      let pp fmt = function | Node i -> Node.pp fmt i | Assume (i,_) -> Format.fprintf fmt "ass%i" i
+                            | Check (i,_) -> Format.fprintf fmt "chk%i" i
+      let equal x y = (tag x) = (tag y)
+      let compare x y = Transitioning.Stdlib.compare (tag x) (tag y)
+      let hash x = tag x
+    end in
+    let module G = Graph.Imperative.Digraph.ConcreteBidirectionalLabeled (V)(E) in
+    let module Dot = Graph.Graphviz.Dot(struct
+        let graph_attributes _g = [`Fontname "fixed"]
+        let default_vertex_attributes _g = (* [`Shape `Point] *) [`Shape `Circle]
+        let vertex_name v = Format.asprintf "cp%a" V.pp  v
+        let vertex_attributes  = function
+          | V.Node n -> [`Label (escape "%a" Node.pp n)]
+          | V.Assume (_,p) -> [`Style `Dashed; `Label (escape "%a" Lang.F.pp_pred p)]
+          | V.Check (_,p) -> [`Style `Dotted; `Label (escape "%a" Lang.F.pp_pred p)]
+        let get_subgraph _ = None
+        let default_edge_attributes _g = []
+        let edge_attributes ((_,e,_):G.E.t) : Graph.Graphviz.DotAttributes.edge list = e
+        include G
+      end) in
+    let g = G.create () in
+    let add_edge n1 l n2 =  G.add_edge_e g (V.Node n1,l,V.Node n2) in
+    let add_edges : type a b. Node.t -> (a,b) edge -> unit = fun n1 -> function
+      | Goto n2 -> add_edge n1 [] n2
+      | Branch((_,c),n2,n2') ->
+          let aux s = function
+            | None -> ()
+            | Some n -> add_edge n1 [`Label (escape "%s%a" s Lang.F.pp_pred c)] n
+          in
+          aux "" n2; aux "!" n2'
+      | Either l -> List.iter (add_edge n1 []) l
+      | Implies l ->
+          List.iter (fun (c,n) -> add_edge n1 [`Label (escape "%a" Lang.F.pp_pred (C.get c))] n) l
+      | Effect ((_,e),n2) ->
+          add_edge n1 [`Label (escape "%a" Lang.F.pp_pred e)] n2
+      | Havoc (_,n2) -> add_edge n1 [`Label (escape "havoc")] n2
+      | Binding (_,n2) -> add_edge n1 [`Label (escape "binding")] n2
+    in
+    Node.Map.iter add_edges env.succs;
+    (** assumes *)
+    Bag.iter (fun (m,p) ->
+        let n1 = V.Assume(count (), p) in
+        let assume_label = [`Style `Dashed ] in
+        Node.Map.iter (fun n2 _ -> G.add_edge_e g (n1,assume_label,V.Node n2)) m
+      ) env.assumes;
+    (** checks *)
+    Bag.iter (fun (m,p) ->
+        let n1 = V.Check(count (), p) in
+        let label = [`Style `Dotted ] in
+        Node.Map.iter (fun n2 _ -> G.add_edge_e g (V.Node n2,label,n1)) m
+      ) checks;
+    Dot.output_graph cout g
 
   let dump_env : type a. name:string -> (_, a) env -> unit = fun ~name env ->
     let file = (Filename.get_temp_dir_name ()) ^ "/cfg_" ^ name in
@@ -599,37 +596,37 @@ struct
   (** return None when post is not accessible from this node *)
   let rec effects : type a.  (_,a) env -> node -> node -> S.domain option =
     fun env post node ->
-      if node = post
-      then Some S.empty
-      else
-        match Node.Map.find node env.succs with
-        | exception Not_found -> None
-        | Goto (node2) ->
-            effects env post node2
-        | Branch (_, node2, node3) ->
-            union_opt_or S.union
-              (option_bind ~f:(effects env post) node2)
-              (option_bind ~f:(effects env post) node3)
-        | Either (l) ->
-            (List.fold_left
-               (fun acc node2 -> union_opt_or S.union
-                   acc (effects env post node2))
-               None l)
-        | Implies (l) ->
-            (List.fold_left
-               (fun acc (_,node2) -> union_opt_or S.union
-                   acc (effects env post node2))
-               None l)
-        | Effect (effect , node2) ->
-            add_only_if_alive S.union
-              (E.writes effect)
-              (effects env post node2)
-        | Havoc (m, node2) ->
-            union_opt_and S.union
-              (effects env m.post m.pre)
-              (effects env post node2)
-        | Binding (_,node2) ->
-            effects env post node2
+    if node = post
+    then Some S.empty
+    else
+      match Node.Map.find node env.succs with
+      | exception Not_found -> None
+      | Goto (node2) ->
+          effects env post node2
+      | Branch (_, node2, node3) ->
+          union_opt_or S.union
+            (option_bind ~f:(effects env post) node2)
+            (option_bind ~f:(effects env post) node3)
+      | Either (l) ->
+          (List.fold_left
+             (fun acc node2 -> union_opt_or S.union
+                 acc (effects env post node2))
+             None l)
+      | Implies (l) ->
+          (List.fold_left
+             (fun acc (_,node2) -> union_opt_or S.union
+                 acc (effects env post node2))
+             None l)
+      | Effect (effect , node2) ->
+          add_only_if_alive S.union
+            (E.writes effect)
+            (effects env post node2)
+      | Havoc (m, node2) ->
+          union_opt_and S.union
+            (effects env m.post m.pre)
+            (effects env post node2)
+      | Binding (_,node2) ->
+          effects env post node2
 
   (** restrict a cfg to the nodes accessible from the pre post given,
       and compute havoc effect *)
@@ -1372,85 +1369,85 @@ struct
   let compile : ?name:string -> ?mode:mode -> node -> Node.Set.t -> S.domain Node.Map.t ->
     cfg -> F.pred Node.Map.t * S.t Node.Map.t * Conditions.sequence =
     fun ?(name="cfg") ?(mode=`Bool_Forward) pre posts user_reads env ->
+    if Wp_parameters.has_dkey dkey then
+      Format.printf "@[0) pre:%a post:%a@]@."
+        Node.pp pre (Pretty_utils.pp_iter ~sep:"@ " Node.Set.iter Node.pp) posts;
+    if Wp_parameters.has_dkey dkey then
+      Format.printf "@[1) %a@]@." pretty_env env;
+    (** restrict environment to useful node and compute havoc effects *)
+    let env = restrict env pre posts in
+    if Wp_parameters.has_dkey dkey then
+      Format.printf "@[2) %a@]@." pretty_env env;
+    if Node.Map.is_empty env.succs then
+      Node.Map.empty,Node.Map.empty,
+      Conditions.sequence [Conditions.step (Conditions.Have(F.p_false))]
+    else
+      (** Simplify *)
+      let subst,env =
+        if true
+        then remove_dumb_gotos env
+        else Node.Map.empty, env
+      in
+      let pre = find_def ~def:pre pre subst in
+      (** Substitute in user_reads *)
+      let user_reads =
+        Node.Map.fold
+          (fun n n' acc ->
+             match Node.Map.find n user_reads with
+             | exception Not_found -> acc
+             | domain ->
+                 let domain' =
+                   try
+                     S.union (Node.Map.find n' acc) domain
+                   with Not_found -> domain
+                 in
+                 Node.Map.add n' domain' acc)
+          subst user_reads
+      in
+      (** For each node what must be read for assumes *)
+      let reads =
+        Bag.fold_left (fun acc e ->
+            Node.Map.union
+              (fun _ -> S.union) acc
+              (P.reads e))
+          user_reads env.assumes in
+      (** compute sigmas and relocate them *)
+      let env, sigmas = domains env reads pre in
       if Wp_parameters.has_dkey dkey then
-        Format.printf "@[0) pre:%a post:%a@]@."
-          Node.pp pre (Pretty_utils.pp_iter ~sep:"@ " Node.Set.iter Node.pp) posts;
-      if Wp_parameters.has_dkey dkey then
-        Format.printf "@[1) %a@]@." pretty_env env;
-      (** restrict environment to useful node and compute havoc effects *)
-      let env = restrict env pre posts in
-      if Wp_parameters.has_dkey dkey then
-        Format.printf "@[2) %a@]@." pretty_env env;
-      if Node.Map.is_empty env.succs then
-        Node.Map.empty,Node.Map.empty,
-        Conditions.sequence [Conditions.step (Conditions.Have(F.p_false))]
-      else
-        (** Simplify *)
-        let subst,env =
-          if true
-          then remove_dumb_gotos env
-          else Node.Map.empty, env
-        in
-        let pre = find_def ~def:pre pre subst in
-        (** Substitute in user_reads *)
-        let user_reads =
-          Node.Map.fold
-            (fun n n' acc ->
-               match Node.Map.find n user_reads with
-               | exception Not_found -> acc
-               | domain ->
-                   let domain' =
-                     try
-                       S.union (Node.Map.find n' acc) domain
-                     with Not_found -> domain
-                   in
-                   Node.Map.add n' domain' acc)
-            subst user_reads
-        in
-        (** For each node what must be read for assumes *)
-        let reads =
-          Bag.fold_left (fun acc e ->
-              Node.Map.union
-                (fun _ -> S.union) acc
-                (P.reads e))
-            user_reads env.assumes in
-        (** compute sigmas and relocate them *)
-        let env, sigmas = domains env reads pre in
-        if Wp_parameters.has_dkey dkey then
-          Format.printf "@[3) %a@]@." pretty_env env;
-        if Wp_parameters.has_dkey dumpkey then
-          dump_env ~name env;
-        let f, preds =
-          match mode with
-          | `Tree ->
-              (** Add a unique post node *)
-              let final_node = node () in
-              let env =
-                Node.Set.fold (fun p cfg ->
-                    let s = {pre=S.create();post=S.create()} in
-                    let e =  s,Lang.F.p_true in
-                    let goto = effect p e final_node in
-                    concat goto cfg
-                  ) posts env
-              in
-              To_tree.to_sequence_tree pre posts env
-          | (`Bool_Backward | `Bool_Forward) as mode ->
-              to_sequence_bool ~mode pre posts env in
-        let predssigmas =
-          Node.Map.merge
-            (fun _ p s -> Some (Extlib.opt_conv F.p_false p, Extlib.opt_conv (S.create ()) s))
-            preds sigmas in
-        (** readd simplified nodes *)
-        let predssigmas =
-          Node.Map.fold (fun n n' acc -> Node.Map.add n (Node.Map.find n' predssigmas) acc )
-            subst predssigmas
-        in
-        let preds =
-          Node.Map.map(fun _ (x,_) -> x) predssigmas
-        in
-        let sigmas =
-          Node.Map.map(fun _ (_,x) -> x) predssigmas
-        in
-        preds,sigmas,f
+        Format.printf "@[3) %a@]@." pretty_env env;
+      if Wp_parameters.has_dkey dumpkey then
+        dump_env ~name env;
+      let f, preds =
+        match mode with
+        | `Tree ->
+            (** Add a unique post node *)
+            let final_node = node () in
+            let env =
+              Node.Set.fold (fun p cfg ->
+                  let s = {pre=S.create();post=S.create()} in
+                  let e =  s,Lang.F.p_true in
+                  let goto = effect p e final_node in
+                  concat goto cfg
+                ) posts env
+            in
+            To_tree.to_sequence_tree pre posts env
+        | (`Bool_Backward | `Bool_Forward) as mode ->
+            to_sequence_bool ~mode pre posts env in
+      let predssigmas =
+        Node.Map.merge
+          (fun _ p s -> Some (Extlib.opt_conv F.p_false p, Extlib.opt_conv (S.create ()) s))
+          preds sigmas in
+      (** readd simplified nodes *)
+      let predssigmas =
+        Node.Map.fold (fun n n' acc -> Node.Map.add n (Node.Map.find n' predssigmas) acc )
+          subst predssigmas
+      in
+      let preds =
+        Node.Map.map(fun _ (x,_) -> x) predssigmas
+      in
+      let sigmas =
+        Node.Map.map(fun _ (_,x) -> x) predssigmas
+      in
+      preds,sigmas,f
 
 end

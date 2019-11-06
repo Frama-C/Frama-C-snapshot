@@ -28,8 +28,8 @@ module type Results = sig
   type value
   type location
 
-  val get_stmt_state : stmt -> state or_bottom
-  val get_kinstr_state: kinstr -> state or_bottom
+  val get_stmt_state : after:bool -> stmt -> state or_bottom
+  val get_kinstr_state: after:bool -> kinstr -> state or_bottom
   val get_stmt_state_by_callstack:
     after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t or_top_or_bottom
   val get_initial_state_by_callstack:
@@ -67,15 +67,15 @@ module Make (Abstract: Abstractions.S) = struct
   include Abstract
   include Compute_functions.Make (Abstract)
 
-  let get_stmt_state stmt =
+  let get_stmt_state ~after stmt =
     let fundec = Kernel_function.(get_definition (find_englobing_kf stmt)) in
     if Mark_noresults.should_memorize_function fundec && Db.Value.is_computed ()
-    then Abstract.Dom.Store.get_stmt_state stmt
+    then Abstract.Dom.Store.get_stmt_state ~after stmt
     else `Value Abstract.Dom.top
 
-  let get_kinstr_state = function
+  let get_kinstr_state ~after = function
     | Kglobal -> Abstract.Dom.Store.get_global_state ()
-    | Kstmt stmt -> get_stmt_state stmt
+    | Kstmt stmt -> get_stmt_state ~after stmt
 
   let get_stmt_state_by_callstack =
     Abstract.Dom.Store.get_stmt_state_by_callstack
@@ -102,7 +102,7 @@ module Legacy = Make (Abstractions.Legacy)
 
 module Default =
   (val
-    (if Abstractions.default_config = Abstractions.legacy_config
+    (if Abstractions.Config.(equal default legacy)
      then (module Legacy)
      else (module Make (Abstractions.Default)))
     : Analyzer)
@@ -112,7 +112,7 @@ module Default =
    the parameters of Eva regarding the abstractions used in the analysis) and
    the current Analyzer module. *)
 let ref_analyzer =
-  ref (Abstractions.default_config, (module Default : Analyzer))
+  ref (Abstractions.Config.default, (module Default : Analyzer))
 
 (* Returns the current Analyzer module. *)
 let current_analyzer () = (module (val (snd !ref_analyzer)): S)
@@ -133,14 +133,14 @@ let set_current_analyzer config (analyzer: (module Analyzer)) =
 let cvalue_initial_state () =
   let module A = (val snd !ref_analyzer) in
   let _, lib_entry = Globals.entry_point () in
-  Cvalue_domain.extract A.Dom.get (A.initial_state ~lib_entry)
+  A.Dom.get_cvalue_or_bottom (A.initial_state ~lib_entry)
 
 (* Builds the Analyzer module corresponding to a given configuration,
    and sets it as the current analyzer. *)
 let make_analyzer config =
   let analyzer =
-    if config = Abstractions.legacy_config then (module Legacy: Analyzer)
-    else if config = Abstractions.default_config then (module Default)
+    if Abstractions.Config.(equal config legacy) then (module Legacy: Analyzer)
+    else if Abstractions.Config.(equal config default) then (module Default)
     else
       let module Abstract = (val Abstractions.make config) in
       let module Analyzer = Make (Abstract) in
@@ -153,7 +153,7 @@ let reset_analyzer () =
   let config = Abstractions.configure () in
   (* If the configuration has not changed, do not reset the Analyzer but uses
      the reference instead. *)
-  if config <> fst !ref_analyzer
+  if not (Abstractions.Config.equal config (fst !ref_analyzer))
   then make_analyzer config
 
 (* Builds the analyzer if needed, and run the analysis. *)

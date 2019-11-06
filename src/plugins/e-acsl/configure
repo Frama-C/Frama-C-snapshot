@@ -619,9 +619,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='OCAMLVERSION
-MAY_RUN_TESTS
-OPTIMIZED_RTL
+ac_subst_vars='MAY_RUN_TESTS
 LTLIBOBJS
 LIBOBJS
 HAVE_DOT
@@ -2075,6 +2073,10 @@ $as_echo "$as_me: $banner" >&6;}
 # (even if there is no plug-in using it)
 
 
+# 1st param: actual name of the ocamlfind package (often lowercase)
+# 2nd param: warning to display if problem
+
+
 # 1st param: uppercase name of the program
 # 2nd param: program which must exist. See comment on configure_library()
 # on how to deal with multiple choices for a given program.
@@ -2083,7 +2085,12 @@ $as_echo "$as_me: $banner" >&6;}
 # (even if there is no plug-in using it)
 
 
+
 EXTERNAL_PLUGINS=
+
+
+
+
 
 
 
@@ -2479,10 +2486,6 @@ $as_echo "$as_me: WARNING: e_acsl disabled because unsupported system $HOST_OS" 
 ;;
 esac
 
-# perform additional checks when not compiled
-# directly with main Frama-C distribution
-
-
 
 
 # First, initialize some variables
@@ -2497,46 +2500,6 @@ done
 # main call
 compute_dependency
 
-
-# Check Frama-C version
-#######################
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Frama-C version" >&5
-$as_echo_n "checking for Frama-C version... " >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $FRAMAC_VERSION" >&5
-$as_echo "$FRAMAC_VERSION" >&6; }
-
-VERSION_NUMBER=`echo $FRAMAC_VERSION | sed -n -e 's/[a-zA-Z]\+-\([0-9]\+\).*/\1/p'`
-EXTRA_VERSION_NUMBER=`echo $FRAMAC_VERSION | sed -n -e 's/[a-zA-Z]\+-[0-9]\+-\(.*\)/\1/p'`
-REQUIRED_NUMBER=20161101
-REQUIRED_NAME=Silicon
-
-case $FRAMAC_VERSION in
-  $REQUIRED_NAME-$REQUIRED_NUMBER+dev*)
-    # at the time being, must use the Frama-C development version
-    ;;
-#   $REQUIRED_NAME-$REQUIRED_NUMBER*)
-#     if test -n "$EXTRA_VERSION_NUMBER"; then
-#       AC_MSG_WARN(no guarantee of compatibility with your Frama-C custom \
-# version of $REQUIRED_NAME)
-#     fi;;
-  *)
-    if test $VERSION_NUMBER -lt $REQUIRED_NUMBER; then
-      as_fn_error $? "Frama-C version must be at least \
-$REQUIRED_NAME-$REQUIRED_NUMBER." "$LINENO" 5
-    else
-      if test $VERSION_NUMBER -gt $REQUIRED_NUMBER; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Frama-C version is more recent than $REQUIRED_NAME: \
-use it at your own risk" >&5
-$as_echo "$as_me: WARNING: Frama-C version is more recent than $REQUIRED_NAME: \
-use it at your own risk" >&2;}
-      fi
-    fi;;
-esac
- # end of configuration specific to external compilation mode
-
-# no need to continue checking other features if E-ACSL is disabled
-if test "$ENABLE_E_ACSL" != "no"; then
 
 ###############################
 # C specific stuff for E-ACSL #
@@ -5016,8 +4979,6 @@ fi
 
 
 
-
-
         ac_config_files="$ac_config_files ./Makefile"
 
 
@@ -6222,5 +6183,3 @@ fi
 
 
 
-
-fi

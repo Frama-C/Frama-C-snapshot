@@ -141,7 +141,14 @@ let hacks = Hashtbl.create 8
 let hack name phi = Hashtbl.replace hacks name phi
 
 let lookup name kinds =
-  try HACK (Hashtbl.find hacks name)
+  try
+    let hack = Hashtbl.find hacks name in
+    let compute es =
+      try hack es with Not_found ->
+      match lookup_driver name kinds with
+      | ACSLDEF | HACK _ -> Warning.error "No fallback for hacked '%s'" name
+      | LFUN p -> F.e_fun p es
+    in HACK compute
   with Not_found -> lookup_driver name kinds
 
 let register ?source name kinds link =
@@ -264,7 +271,7 @@ let add_option ~driver_dir group name ~library value =
 let find_lib file =
   if Sys.file_exists file then file else
     let rec lookup file = function
-      | [] -> Wp_parameters.abort "File '%s' not found (see -wp-include)" file
+      | [] -> Wp_parameters.abort "File '%s' not found" file
       | dir::dirs ->
           let path = Printf.sprintf "%s/%s" dir file in
           if Sys.file_exists path then path else lookup file dirs
@@ -285,11 +292,11 @@ let builtin_driver = {
 }
 
 let add_builtin name kinds lfun =
-  begin
-    Context.set driver builtin_driver;
-    register name kinds (LFUN lfun);
-    Context.clear driver;
-  end
+  let phi = LFUN lfun in
+  if Context.defined driver then
+    register name kinds phi
+  else
+    Context.bind driver builtin_driver (register name kinds) phi
 
 let create ~id ?(descr=id) ?(includes=[]) () =
   {
@@ -303,3 +310,5 @@ let create ~id ?(descr=id) ?(includes=[]) () =
 
 let init ~id ?descr ?includes () =
   Context.set driver (create ~id ?descr ?includes ())
+
+(* -------------------------------------------------------------------------- *)

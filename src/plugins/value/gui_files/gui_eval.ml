@@ -40,15 +40,14 @@ let term_c_type t =
 let classify_pre_post kf ip =
   let open Property in
   match ip with
-  | IPPredicate (PKEnsures (_, Normal),_,_,_) ->
-    Some (GL_Post kf)
-  | IPPredicate (PKEnsures _,_,_,_) | IPAxiom _ | IPAxiomatic _ | IPLemma _
+  | IPPredicate {ip_kind = PKEnsures (_, Normal)} -> Some (GL_Post kf)
+  | IPPredicate {ip_kind=PKEnsures _} | IPAxiom _ | IPAxiomatic _ | IPLemma _
   | IPTypeInvariant _ | IPGlobalInvariant _
   | IPOther _ | IPCodeAnnot _ | IPAllocation _ | IPReachable _
   | IPExtended _
   | IPBehavior _ -> None
-  | IPPropertyInstance (kf, stmt, _, _ip) -> Some (GL_Stmt (kf, stmt))
-  | IPPredicate (PKRequires _,_,_,_ | PKAssumes _,_,_,_ | PKTerminates ,_,_,_)
+  | IPPropertyInstance {ii_kf; ii_stmt} -> Some (GL_Stmt (ii_kf, ii_stmt))
+  | IPPredicate {ip_kind=PKRequires _ | PKAssumes _ | PKTerminates}
   | IPComplete _ | IPDisjoint _  | IPAssigns _ | IPFrom _ | IPDecrease _ ->
     Some (GL_Pre kf)
 
@@ -144,13 +143,8 @@ module Make (X: Analysis.S) = struct
 
   module Analysis = X
 
-  let get_cvalue_state =
-    match X.Dom.get Cvalue_domain.key with
-    | None -> fun _ -> Cvalue.Model.top
-    | Some get -> fun state -> get state
-
   let get_precise_loc =
-    match X.Loc.get Main_locations.ploc_key with
+    match X.Loc.get Main_locations.PLoc.key with
     | None -> fun _ -> Precise_locs.loc_top
     | Some get -> fun loc -> get loc
 
@@ -211,7 +205,7 @@ module Make (X: Analysis.S) = struct
   let lval_to_offsetmap state lv =
     let loc, alarms = X.eval_lval_to_loc state lv in
     let ok = Alarmset.is_empty alarms in
-    let state = get_cvalue_state state in
+    let state = X.Dom.get_cvalue_or_top state in
     let aux loc (acc_res, acc_ok) =
       let res, ok =
         match lv with (* catch simplest pattern *)
@@ -274,7 +268,7 @@ module Make (X: Analysis.S) = struct
     }
 
   let null_to_offsetmap state (_:unit) =
-    let state = get_cvalue_state state in
+    let state = X.Dom.get_cvalue_or_top state in
     match Cvalue.Model.find_base_or_default Base.null state with
     | `Bottom -> GO_InvalidLoc, false, false
     | `Top -> GO_Top, false, false
@@ -336,17 +330,17 @@ module Make (X: Analysis.S) = struct
 
   let env_here kf here callstack =
     let pre = pre_kf kf callstack in
-    let here = get_cvalue_state here in
+    let here = X.Dom.get_cvalue_or_top here in
     let c_labels = Eval_annots.c_labels kf callstack in
     Eval_terms.env_annot ~c_labels ~pre ~here ()
 
   let env_pre _kf here _callstack =
-    let here = get_cvalue_state here in
+    let here = X.Dom.get_cvalue_or_top here in
     Eval_terms.env_pre_f ~pre:here ()
 
   let env_post kf post callstack =
     let pre = pre_kf kf callstack in
-    let post = get_cvalue_state post in
+    let post = X.Dom.get_cvalue_or_top post in
     let result =
       if !Db.Value.use_spec_instead_of_definition kf then
         None

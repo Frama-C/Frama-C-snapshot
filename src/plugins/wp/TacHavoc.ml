@@ -35,7 +35,7 @@ let lookup_havoc e =
   | L.Aget( m , p ) ->
       begin
         match F.repr m with
-        | L.Fun( f , [mr;m0;a;n] ) when f == MemTyped.f_havoc ->
+        | L.Fun( f , [mr;m0;a;n] ) when f == MemMemory.f_havoc ->
             Some( mr , m0 , a , n , p )
         | _ -> None
       end
@@ -55,7 +55,7 @@ class havoc =
       | None -> Not_applicable
       | Some(mr,m0,a,n,p) ->
           let separated =
-            F.p_call MemTyped.p_separated
+            F.p_call MemMemory.p_separated
               [ p ; F.e_int 1 ; a ; n ] in
           let process = Tactical.rewrite ?at [
               "Unassigned" , separated , e , F.e_get m0 p ;
@@ -70,11 +70,11 @@ class havoc =
 
 let separated ?at property =
   match F.e_expr property with
-  | L.Fun( f , [p;n;q;m] ) when f == MemTyped.p_separated ->
-      let base_p = MemTyped.a_base p in
-      let ofs_p = MemTyped.a_offset p in
-      let base_q = MemTyped.a_base q in
-      let ofs_q = MemTyped.a_offset q in
+  | L.Fun( f , [p;n;q;m] ) when f == MemMemory.p_separated ->
+      let base_p = MemMemory.a_base p in
+      let ofs_p = MemMemory.a_offset p in
+      let base_q = MemMemory.a_base q in
+      let ofs_q = MemMemory.a_offset q in
       let eq_base = F.p_equal base_p base_q in
       let on_left = F.p_leq (F.e_add ofs_p n) ofs_q in
       let on_right = F.p_leq (F.e_add ofs_q m) ofs_p in
@@ -110,8 +110,8 @@ class separated =
 (* -------------------------------------------------------------------------- *)
 
 let invalid m p n =
-  let base = MemTyped.a_base p in
-  let offset = MemTyped.a_offset p in
+  let base = MemMemory.a_base p in
+  let offset = MemMemory.a_offset p in
   let malloc = F.e_get m base in
   "Invalid",
   F.p_imply
@@ -121,8 +121,8 @@ let invalid m p n =
        (F.p_leq (F.e_add offset n) F.e_zero))
 
 let valid_rd m p n =
-  let base = MemTyped.a_base p in
-  let offset = MemTyped.a_offset p in
+  let base = MemMemory.a_base p in
+  let offset = MemMemory.a_offset p in
   let malloc = F.e_get m base in
   "Valid (Read)",
   F.p_imply
@@ -132,8 +132,8 @@ let valid_rd m p n =
        (F.p_leq (F.e_add offset n) malloc))
 
 let valid_rw m p n =
-  let base = MemTyped.a_base p in
-  let offset = MemTyped.a_offset p in
+  let base = MemMemory.a_base p in
+  let offset = MemMemory.a_offset p in
   let malloc = F.e_get m base in
   "Valid (Read & Write)",
   F.p_imply
@@ -145,10 +145,10 @@ let valid_rw m p n =
       ])
 
 let included p a q b =
-  let p_base = MemTyped.a_base p in
-  let q_base = MemTyped.a_base q in
-  let p_offset = MemTyped.a_offset p in
-  let q_offset = MemTyped.a_offset q in
+  let p_base = MemMemory.a_base p in
+  let q_base = MemMemory.a_base q in
+  let p_offset = MemMemory.a_offset p in
+  let q_offset = MemMemory.a_offset q in
   "Included",
   F.p_imply
     (F.p_lt F.e_zero a)
@@ -161,10 +161,10 @@ let included p a q b =
          ]))
 
 let lookup f = function
-  | [p;a;q;b] when f == MemTyped.p_included -> included p a q b
-  | [m;p;n] when f == MemTyped.p_invalid -> invalid m p n
-  | [m;p;n] when f == MemTyped.p_valid_rd -> valid_rd m p n
-  | [m;p;n] when f == MemTyped.p_valid_rw -> valid_rw m p n
+  | [p;a;q;b] when f == MemMemory.p_included -> included p a q b
+  | [m;p;n] when f == MemMemory.p_invalid -> invalid m p n
+  | [m;p;n] when f == MemMemory.p_valid_rd -> valid_rd m p n
+  | [m;p;n] when f == MemMemory.p_valid_rw -> valid_rw m p n
   | _ -> raise Not_found
 
 let unfold ?at e f es =

@@ -22,10 +22,13 @@
 
 library qed:
 coq.file += "coqwp/BuiltIn.v";
+coq.file += "coqwp:bool/Bool.v";
 coq.file += "coqwp/HighOrd.v";
 coq.file += "coqwp:int/Int.v";
 coq.file += "coqwp:int/Abs.v";
 coq.file += "coqwp:int/ComputerDivision.v";
+coq.file += "coqwp:int/EuclideanDivision.v";
+coq.file += "coqwp:int/ComputerOfEuclideanDivision.v";
 coq.file += "coqwp:real/Real.v";
 coq.file += "coqwp:real/RealInfix.v";
 coq.file += "coqwp:real/FromInt.v";
@@ -34,10 +37,11 @@ coq.file += "coqwp:bool/Bool.v";
 coq.file += "coqwp/Qedlib.v";
 coq.file += "coqwp/Qed.v";
 why3.import += "int.Abs:IAbs";
-why3.file += "why3/Qed.why";
+why3.import += "frama_c_wp.qed.Qed";
 altergo.file += "ergo/int.Int.mlw";
 altergo.file += "ergo/int.Abs.mlw";
 altergo.file += "ergo/int.ComputerDivision.mlw";
+altergo.file += "ergo/int.ComputerOfEuclideanDivision.mlw";
 altergo.file += "ergo/real.Real.mlw";
 altergo.file += "ergo/real.RealInfix.mlw";
 altergo.file += "ergo/real.FromInt.mlw";
@@ -77,17 +81,19 @@ library cint:
 coq.file += "coqwp/Bits.v";
 coq.file += "coqwp/Zbits.v";
 coq.file += "coqwp/Cint.v";
-why3.file += "why3/Cint.why";
+why3.import += "frama_c_wp.cint.Cint";
 altergo.file += "ergo/Cint.mlw";
 
 library cbits: cint
+logic boolean "bit_test"(integer,integer) := \bit_test_stdlib;
 coq.file += "coqwp/Cbits.v";
 altergo.file += "ergo/Cbits.mlw";
-why3.file += "why3/Cbits.why";
+why3.import += "frama_c_wp.cbits.Cbits";
 
 library cfloat: cmath sqrt
+coq.file += "coqwp:real/Abs.v";
 coq.file += "coqwp/Cfloat.v";
-why3.file += "why3/Cfloat.why";
+why3.import += "frama_c_wp.cfloat.Cfloat";
 altergo.file += "ergo/Cfloat.mlw";
 type "rounding_mode"   = "rounding_mode";
 ctor "\\Up"()            = "Up";
@@ -111,29 +117,29 @@ logic bool "\\round_double"(rounding_mode,real) = "round_double";
 library vset:
 type set = "set";
 coq.file := "coqwp/Vset.v";
-why3.file := "why3/Vset.why";
+why3.import := "vset.Vset";
 altergo.file := "ergo/Vset.mlw";
 
 library vlist:
 coq.file := "coqwp/Vlist.v";
-why3.file := "why3/Vlist.why";
+why3.import := "frama_c_wp.vlist.Vlist";
 altergo.file := "ergo/Vlist.mlw";
 
 library memory:
 coq.file := "coqwp/Memory.v";
-why3.file := "why3/Memory.why";
+why3.import := "frama_c_wp.memory.Memory";
 altergo.file := "ergo/Memory.mlw";
 
 library sqrt: cmath
 why3.import += "real.Square";
 coq.file += "coqwp/Square.v";
-why3.file += "why3/Square.why";
+why3.import += "frama_c_wp.cmath.Square";
 altergo.file += "ergo/real.Square.mlw";
 altergo.file += "ergo/Square.mlw";
 
 library exponential: qed
 why3.import += "real.ExpLog" ;
-why3.file += "why3/ExpLog.why" ;
+why3.import += "frama_c_wp.cmath.ExpLog" ;
 coq.file += "coqwp:real/ExpLog.v" ;
 coq.file += "coqwp/Exp.v" ;
 altergo.file += "ergo/real.ExpLog.mlw" ;
@@ -141,7 +147,10 @@ altergo.file += "ergo/ExpLog.mlw" ;
 
 library power: exponential sqrt
 why3.import += "real.PowerReal" ;
+coq.file += "coqwp:int/Exponentiation.v" ;
+coq.file += "coqwp:int/Power.v" ;
 coq.file += "coqwp:real/PowerReal.v" ;
+altergo.file += "ergo/int.Power.mlw" ;
 altergo.file += "ergo/real.PowerReal.mlw" ;
 
 library truncate: qed
@@ -150,7 +159,7 @@ altergo.file += "ergo/real.Truncate.mlw" ;
 
 library cmath: qed
 why3.import += "real.Abs:RAbs" ;
-why3.file += "why3/Cmath.why";
+why3.import += "frama_c_wp.cmath.Cmath";
 coq.file += "coqwp:real/Abs.v" ;
 coq.file += "coqwp:real/Square.v";
 coq.file += "coqwp/Cmath.v";
@@ -163,7 +172,7 @@ coq.file += "coqwp:real/Trigonometry.v";
 altergo.file += "ergo/real.Trigonometry.mlw";
 
 library arctrigo: trigonometry
-why3.file += "why3/ArcTrigo.why";
+why3.import += "frama_c_wp.cmath.ArcTrigo";
 coq.file += "coqwp/ArcTrigo.v";
 altergo.file += "ergo/ArcTrigo.mlw";
 

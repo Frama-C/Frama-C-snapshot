@@ -27,8 +27,6 @@ type clobbered_set = {
   mutable clob: Base.SetLattice.t
 }
 
-let key = Structure.Key_Domain.create_key "clobbered_set"
-
 let structural_descr =
   let open Structural_descr in
   t_record [| Base.SetLattice.packed_descr |]

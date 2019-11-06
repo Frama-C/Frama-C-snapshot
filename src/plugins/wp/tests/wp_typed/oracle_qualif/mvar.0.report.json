@@ -1,0 +1,10 @@
+{ "wp:global": { "why3:Alt-Ergo,2.0.0": { "total": 1, "valid": 1 },
+                 "wp:main": { "total": 1, "valid": 1 } },
+  "wp:functions": { "Job": { "Job_ensures": { "why3:Alt-Ergo,2.0.0": 
+                                                { "total": 1, "valid": 1 },
+                                              "wp:main": { "total": 1,
+                                                           "valid": 1 } },
+                             "wp:section": { "why3:Alt-Ergo,2.0.0": { "total": 1,
+                                                                    "valid": 1 },
+                                             "wp:main": { "total": 1,
+                                                          "valid": 1 } } } } }

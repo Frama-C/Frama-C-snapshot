@@ -171,6 +171,21 @@ __BEGIN_DECLS
   @ }
   @*/
 
+/*@ axiomatic WMemChr {
+  @ logic 𝔹 wmemchr{L}(wchar_t *s, wchar_t c, ℤ n)
+  @   reads s[0..n - 1];
+  @ // Returns [true] iff wide char array [s] contains wide character [c]
+  @
+  @ logic ℤ wmemchr_off{L}(wchar_t *s, wchar_t c, ℤ n)
+  @   reads s[0..n - 1];
+  @ // Returns the offset at which [c] appears in [s].
+  @
+  @ axiom wmemchr_def{L}:
+  @   \forall wchar_t *s; \forall wchar_t c; \forall ℤ n;
+  @      wmemchr(s,c,n) <==> \exists int i; 0 <= i < n && s[i] == c;
+  @ }
+  @*/
+
 /*@ axiomatic WcsLen {
   @ logic ℤ wcslen{L}(wchar_t *s)
   @   reads s[0..];

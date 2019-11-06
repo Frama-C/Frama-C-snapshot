@@ -1,5 +1,5 @@
 // invalid flexible array member (two incomplete fields in same field group)
-struct {
+struct s {
   int len;
   char data[], more_data[];
-} s;
+} ss;

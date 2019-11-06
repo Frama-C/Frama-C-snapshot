@@ -39,8 +39,8 @@ Proof.
 Qed.
 
 (* Why3 goal *)
-Lemma sqrt_lin0 : forall (x:R), ((0%R < x)%R /\ (x < 1%R)%R) ->
-  (x < (Reals.R_sqrt.sqrt x))%R.
+Lemma sqrt_lin0 :
+  forall (x:R), ((0%R < x)%R /\ (x < 1%R)%R) -> (x < (Reals.R_sqrt.sqrt x))%R.
 Proof.
   intros x (h1,h2).
   exact (Reals.R_sqrt.sqrt_more x h1 h2).

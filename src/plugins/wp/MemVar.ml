@@ -1016,14 +1016,15 @@ struct
             let eqk = p_forall (y::ys) (p_imply ek (p_equal ak bk)) in
             assigned_path (eqk :: hs) xs ys ae be ofs
 
-  let assigned_descr s xs mem x ofs p =
+  let assigned_genset s xs mem x ofs p =
     let valid = valid_offset_path s.post Sigs.RW mem x ofs in
     let a = get_term s.pre x in
     let b = get_term s.post x in
     let a_ofs = access a ofs in
     let b_ofs = access b ofs in
     let p_sloc = p_forall xs (p_hyps [valid;p_not p] (p_equal a_ofs b_ofs)) in
-    assigned_path [p_sloc] xs [] a b ofs
+    let conds = assigned_path [p_sloc] xs [] a b ofs in
+    List.map (fun p -> Assert p) conds
 
   (* -------------------------------------------------------------------------- *)
   (* ---  Assigned                                                          --- *)
@@ -1034,8 +1035,7 @@ struct
     | Val((CVAL|CREF),_,[]) -> [] (* full update *)
     | Val((CVAL|CREF),_,_) as vloc ->
         let v = Lang.freshvar ~basename:"v" (Lang.tau_of_object obj) in
-        let eqs = stored seq obj vloc (e_var v) in
-        List.map Cvalues.equation eqs
+        stored seq obj vloc (e_var v)
     | Val((HEAP|CTXT|CARR) as m,x,ofs) ->
         M.assigned (mseq_of_seq seq) obj (Sloc (mloc_of_path m x ofs))
     | Loc l ->
@@ -1048,8 +1048,7 @@ struct
     | Val((CVAL|CREF),_,_) as vloc ->
         let te = Lang.tau_of_object elt in
         let v = Lang.freshvar ~basename:"v" Qed.Logic.(Array(Int,te)) in
-        let eqs = stored seq obj vloc (e_var v) in
-        List.map Cvalues.equation eqs
+        stored seq obj vloc (e_var v)
     | Val((HEAP|CTXT|CARR) as m,x,ofs) ->
         let l = mloc_of_path m x ofs in
         M.assigned (mseq_of_seq seq) obj (Sarray(l,elt,n))
@@ -1067,7 +1066,7 @@ struct
         let k = Lang.freshvar ~basename:"k" Qed.Logic.Int in
         let p = Vset.in_range (e_var k) a b in
         let ofs = ofs_shift elt (e_var k) ofs in
-        assigned_descr seq [k] m x ofs p
+        assigned_genset seq [k] m x ofs p
 
   let assigned_descr seq obj xs l p =
     match l with
@@ -1077,7 +1076,7 @@ struct
     | Val((HEAP|CTXT|CARR) as m,x,ofs) ->
         M.assigned (mseq_of_seq seq) obj (Sdescr(xs,mloc_of_path m x ofs,p))
     | Val((CVAL|CREF) as m,x,ofs) ->
-        assigned_descr seq xs m x ofs p
+        assigned_genset seq xs m x ofs p
 
   let assigned seq obj = function
     | Sloc l -> assigned_loc seq obj l

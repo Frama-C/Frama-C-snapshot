@@ -361,6 +361,9 @@ let journalized_set_current =
 let set_current ?(on=false) ?(selection=State_selection.full) p =
   if not (equal p (current ())) then journalized_set_current on selection p
 
+let set_current_as_last_created () =
+  Extlib.may (fun p -> set_current p) !last_created_by_copy_ref
+
 (** Indicates if we should keep [p] as the current project when calling {!on p}. *)
 let keep_current: bool ref = ref false
 
@@ -376,12 +379,12 @@ let on ?selection p f x =
   if old_current == p then f x
   else
     let set p = set_current ~on:true ?selection p in
-    let set_to_old () =
+    let rec set_to_old old =
       if not !keep_current then
         try
           (* if someone asks for keeping [p] as current during the execution of
              [f], do not restore [old_current] at the end. *)
-          set old_current
+          set old
         with Invalid_argument _ ->
           (* the old current project has been remove: replace it by the previous
              one, if any *)
@@ -390,16 +393,16 @@ let on ?selection p f x =
               old_current.unique_name
               (current ()).unique_name
           else
-            Q.move_at_top (Q.nth 1 projects) projects
+            set_to_old (Q.nth 1 projects)
     in
     let go () =
       set p;
       let r = f x in
-      set_to_old ();
+      set_to_old old_current;
       r
     in
     if debug_atleast 1 then go ()
-    else begin try go () with e -> set_to_old (); raise e end
+    else begin try go () with e -> set_to_old old_current; raise e end
 
 (* [set_current] must never be called internally. *)
 module Hide_set_current = struct let set_current () = assert false end

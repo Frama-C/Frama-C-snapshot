@@ -1,16 +1,16 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/init_const.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 4 goals scheduled
-[wp] [Alt-Ergo] Goal typed_fA_ensures_KO : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_fA_ensures_KO : Unsuccess
 [wp] [Qed] Goal typed_fB_ensures_OK : Valid
-[wp] [Alt-Ergo] Goal typed_fC_ensures_KO : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_fC_ensures_KO : Unsuccess
 [wp] [Qed] Goal typed_fD_ensures_OK : Valid
 [wp] Proved goals:    2 / 4
-  Qed:             2 
-  Alt-Ergo:        0  (unsuccess: 2)
+  Qed:               2 
+  Alt-Ergo 2.0.0:    0  (unsuccess: 2)
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/init_const.0.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/init_const.0.report.json'
 -------------------------------------------------------------

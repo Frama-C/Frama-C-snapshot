@@ -25,7 +25,7 @@
 .\" using pandoc 2.0 or newer. To modify this file, edit the Markdown file
 .\" and run `make man/frama-c.1`.
 
-.TH FRAMA-C 1 2018-01-17
+.TH FRAMA-C 1 2019-07-29
 .SH NAME
 .PP
 frama\-c[.byte] \- a static analyzer for C programs
@@ -403,6 +403,11 @@ see \f[B]\-remove\-unused\-specified\-functions\f[].
 .RS
 .RE
 .TP
+.B \-keep\-unused\-types
+see \f[B]\-remove\-unused\-types\f[].
+.RS
+.RE
+.TP
 .B \-kernel\-log \f[I]kind:file\f[]
 copies log messages from the Frama\-C's kernel to file.
 \f[I]kind\f[] specifies which kinds of messages to be copied (e.g.
@@ -584,6 +589,14 @@ keeps function prototypes that have an ACSL specification but are not
 used in the code.
 This is the default.
 Functions having the attribute \f[B]FRAMAC_BUILTIN\f[] are always kept.
+.RS
+.RE
+.TP
+.B \-remove\-unused\-types
+remove types and struct/union/enum declarations that are not referenced
+anywhere else in the code.
+This is the default.
+Use \f[B]\-keep\-unused\-types\f[] to keep these definitions.
 .RS
 .RE
 .TP

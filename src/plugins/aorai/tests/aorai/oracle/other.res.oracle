@@ -17,181 +17,187 @@ int x = 0;
 /*@ ghost int init = 1; */
 /*@ ghost int last = 0; */
 /*@ ghost int step1 = 0; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_f;
-    assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
-    
-    behavior buch_state_init_in:
-      assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
-      ensures 1 ≡ init;
-    
-    behavior buch_state_init_out:
-      assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
-      ensures 0 ≡ init;
-    
-    behavior buch_state_last_in:
-      assumes
-        (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
-      ensures 1 ≡ last;
-    
-    behavior buch_state_last_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
-        (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
-      ensures 0 ≡ last;
-    
-    behavior buch_state_step1_in:
-      assumes
-        (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
-        (1 ≡ init ∧ x ≡ 3);
-      ensures 1 ≡ step1;
-    
-    behavior buch_state_step1_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
-        (0 ≡ init ∨ ¬(x ≡ 3));
-      ensures 0 ≡ step1;
- */
-void f_pre_func(void)
-{
-  /*@ ghost int init_tmp; */
-  /*@ ghost int last_tmp; */
-  /*@ ghost int step1_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_f;
-  init_tmp = init;
-  last_tmp = last;
-  step1_tmp = step1;
-  if (init == 1) {
-    if (x == 3) step1_tmp = 1; else goto _LAND_0;
-  }
-  else {
-    _LAND_0: ;
-    if (last == 1) {
-      if (x == 3) step1_tmp = 1; else goto _LAND;
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_f;
+     assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+     
+     behavior buch_state_init_in:
+       assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
+       ensures 1 ≡ init;
+     
+     behavior buch_state_init_out:
+       assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
+       ensures 0 ≡ init;
+     
+     behavior buch_state_last_in:
+       assumes
+         (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
+       ensures 1 ≡ last;
+     
+     behavior buch_state_last_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
+         (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
+       ensures 0 ≡ last;
+     
+     behavior buch_state_step1_in:
+       assumes
+         (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
+         (1 ≡ init ∧ x ≡ 3);
+       ensures 1 ≡ step1;
+     
+     behavior buch_state_step1_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
+         (0 ≡ init ∨ ¬(x ≡ 3));
+       ensures 0 ≡ step1;
+   @/
+  void f_pre_func(void)
+  {
+    int init_tmp;
+    int last_tmp;
+    int step1_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_f;
+    init_tmp = init;
+    last_tmp = last;
+    step1_tmp = step1;
+    if (init == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND_0;
     }
     else {
-      _LAND: ;
+      _LAND_0: ;
+      if (last == 1) {
+        if (x == 3) step1_tmp = 1; else goto _LAND;
+      }
+      else {
+        _LAND: ;
+        if (step1 == 1) 
+          if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+        else step1_tmp = 0;
+      }
+    }
+    if (last == 1) {
+      if (x != 4) {
+        if (x != 3) last_tmp = 1; else goto _LAND_1;
+      }
+      else goto _LAND_1;
+    }
+    else {
+      _LAND_1: ;
       if (step1 == 1) 
-        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
-      else step1_tmp = 0;
+        if (x == 4) last_tmp = 1; else last_tmp = 0;
+      else last_tmp = 0;
     }
-  }
-  if (last == 1) {
-    if (x != 4) {
-      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    if (init == 1) {
+      if (x != 3) init_tmp = 1; else goto _LAND_2;
     }
-    else goto _LAND_1;
+    else {
+      _LAND_2: ;
+      if (last == 1) 
+        if (x == 4) init_tmp = 1; else init_tmp = 0;
+      else init_tmp = 0;
+    }
+    init = init_tmp;
+    last = last_tmp;
+    step1 = step1_tmp;
+    return;
   }
-  else {
-    _LAND_1: ;
-    if (step1 == 1) 
-      if (x == 4) last_tmp = 1; else last_tmp = 0;
-    else last_tmp = 0;
-  }
-  if (init == 1) {
-    if (x != 3) init_tmp = 1; else goto _LAND_2;
-  }
-  else {
-    _LAND_2: ;
-    if (last == 1) 
-      if (x == 4) init_tmp = 1; else init_tmp = 0;
-    else init_tmp = 0;
-  }
-  init = init_tmp;
-  last = last_tmp;
-  step1 = step1_tmp;
-  return;
-}
 
-/*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
-    requires 1 ≡ last ⇒ x ≡ 3 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 4;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_f;
-    assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
-    
-    behavior buch_state_init_in:
-      assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
-      ensures 1 ≡ init;
-    
-    behavior buch_state_init_out:
-      assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
-      ensures 0 ≡ init;
-    
-    behavior buch_state_last_in:
-      assumes
-        (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
-      ensures 1 ≡ last;
-    
-    behavior buch_state_last_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
-        (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
-      ensures 0 ≡ last;
-    
-    behavior buch_state_step1_in:
-      assumes
-        (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
-        (1 ≡ init ∧ x ≡ 3);
-      ensures 1 ≡ step1;
-    
-    behavior buch_state_step1_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
-        (0 ≡ init ∨ ¬(x ≡ 3));
-      ensures 0 ≡ step1;
- */
-void f_post_func(void)
-{
-  /*@ ghost int init_tmp; */
-  /*@ ghost int last_tmp; */
-  /*@ ghost int step1_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_f;
-  init_tmp = init;
-  last_tmp = last;
-  step1_tmp = step1;
-  if (init == 1) {
-    if (x == 3) step1_tmp = 1; else goto _LAND_0;
-  }
-  else {
-    _LAND_0: ;
-    if (last == 1) {
-      if (x == 3) step1_tmp = 1; else goto _LAND;
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
+     requires 1 ≡ last ⇒ x ≡ 3 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 4;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_f;
+     assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+     
+     behavior buch_state_init_in:
+       assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
+       ensures 1 ≡ init;
+     
+     behavior buch_state_init_out:
+       assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
+       ensures 0 ≡ init;
+     
+     behavior buch_state_last_in:
+       assumes
+         (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
+       ensures 1 ≡ last;
+     
+     behavior buch_state_last_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
+         (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
+       ensures 0 ≡ last;
+     
+     behavior buch_state_step1_in:
+       assumes
+         (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
+         (1 ≡ init ∧ x ≡ 3);
+       ensures 1 ≡ step1;
+     
+     behavior buch_state_step1_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
+         (0 ≡ init ∨ ¬(x ≡ 3));
+       ensures 0 ≡ step1;
+   @/
+  void f_post_func(void)
+  {
+    int init_tmp;
+    int last_tmp;
+    int step1_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_f;
+    init_tmp = init;
+    last_tmp = last;
+    step1_tmp = step1;
+    if (init == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND_0;
     }
     else {
-      _LAND: ;
+      _LAND_0: ;
+      if (last == 1) {
+        if (x == 3) step1_tmp = 1; else goto _LAND;
+      }
+      else {
+        _LAND: ;
+        if (step1 == 1) 
+          if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+        else step1_tmp = 0;
+      }
+    }
+    if (last == 1) {
+      if (x != 4) {
+        if (x != 3) last_tmp = 1; else goto _LAND_1;
+      }
+      else goto _LAND_1;
+    }
+    else {
+      _LAND_1: ;
       if (step1 == 1) 
-        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
-      else step1_tmp = 0;
+        if (x == 4) last_tmp = 1; else last_tmp = 0;
+      else last_tmp = 0;
     }
-  }
-  if (last == 1) {
-    if (x != 4) {
-      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    if (init == 1) {
+      if (x != 3) init_tmp = 1; else goto _LAND_2;
     }
-    else goto _LAND_1;
+    else {
+      _LAND_2: ;
+      if (last == 1) 
+        if (x == 4) init_tmp = 1; else init_tmp = 0;
+      else init_tmp = 0;
+    }
+    init = init_tmp;
+    last = last_tmp;
+    step1 = step1_tmp;
+    return;
   }
-  else {
-    _LAND_1: ;
-    if (step1 == 1) 
-      if (x == 4) last_tmp = 1; else last_tmp = 0;
-    else last_tmp = 0;
-  }
-  if (init == 1) {
-    if (x != 3) init_tmp = 1; else goto _LAND_2;
-  }
-  else {
-    _LAND_2: ;
-    if (last == 1) 
-      if (x == 4) init_tmp = 1; else init_tmp = 0;
-    else init_tmp = 0;
-  }
-  init = init_tmp;
-  last = last_tmp;
-  step1 = step1_tmp;
-  return;
-}
+
+*/
 
 /*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
     requires 1 ≡ last ⇒ x ≡ 3 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 4;
@@ -251,187 +257,193 @@ void f_post_func(void)
  */
 void f(void)
 {
-  f_pre_func();
+  /*@ ghost f_pre_func(); */
   x = 3;
-  f_post_func();
+  /*@ ghost f_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_g;
-    assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
-    
-    behavior buch_state_init_in:
-      assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
-      ensures 1 ≡ init;
-    
-    behavior buch_state_init_out:
-      assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
-      ensures 0 ≡ init;
-    
-    behavior buch_state_last_in:
-      assumes
-        (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
-      ensures 1 ≡ last;
-    
-    behavior buch_state_last_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
-        (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
-      ensures 0 ≡ last;
-    
-    behavior buch_state_step1_in:
-      assumes
-        (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
-        (1 ≡ init ∧ x ≡ 3);
-      ensures 1 ≡ step1;
-    
-    behavior buch_state_step1_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
-        (0 ≡ init ∨ ¬(x ≡ 3));
-      ensures 0 ≡ step1;
- */
-void g_pre_func(void)
-{
-  /*@ ghost int init_tmp; */
-  /*@ ghost int last_tmp; */
-  /*@ ghost int step1_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_g;
-  init_tmp = init;
-  last_tmp = last;
-  step1_tmp = step1;
-  if (init == 1) {
-    if (x == 3) step1_tmp = 1; else goto _LAND_0;
-  }
-  else {
-    _LAND_0: ;
-    if (last == 1) {
-      if (x == 3) step1_tmp = 1; else goto _LAND;
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_g;
+     assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+     
+     behavior buch_state_init_in:
+       assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
+       ensures 1 ≡ init;
+     
+     behavior buch_state_init_out:
+       assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
+       ensures 0 ≡ init;
+     
+     behavior buch_state_last_in:
+       assumes
+         (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
+       ensures 1 ≡ last;
+     
+     behavior buch_state_last_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
+         (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
+       ensures 0 ≡ last;
+     
+     behavior buch_state_step1_in:
+       assumes
+         (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
+         (1 ≡ init ∧ x ≡ 3);
+       ensures 1 ≡ step1;
+     
+     behavior buch_state_step1_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
+         (0 ≡ init ∨ ¬(x ≡ 3));
+       ensures 0 ≡ step1;
+   @/
+  void g_pre_func(void)
+  {
+    int init_tmp;
+    int last_tmp;
+    int step1_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_g;
+    init_tmp = init;
+    last_tmp = last;
+    step1_tmp = step1;
+    if (init == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND_0;
     }
     else {
-      _LAND: ;
+      _LAND_0: ;
+      if (last == 1) {
+        if (x == 3) step1_tmp = 1; else goto _LAND;
+      }
+      else {
+        _LAND: ;
+        if (step1 == 1) 
+          if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+        else step1_tmp = 0;
+      }
+    }
+    if (last == 1) {
+      if (x != 4) {
+        if (x != 3) last_tmp = 1; else goto _LAND_1;
+      }
+      else goto _LAND_1;
+    }
+    else {
+      _LAND_1: ;
       if (step1 == 1) 
-        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
-      else step1_tmp = 0;
+        if (x == 4) last_tmp = 1; else last_tmp = 0;
+      else last_tmp = 0;
     }
-  }
-  if (last == 1) {
-    if (x != 4) {
-      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    if (init == 1) {
+      if (x != 3) init_tmp = 1; else goto _LAND_2;
     }
-    else goto _LAND_1;
+    else {
+      _LAND_2: ;
+      if (last == 1) 
+        if (x == 4) init_tmp = 1; else init_tmp = 0;
+      else init_tmp = 0;
+    }
+    init = init_tmp;
+    last = last_tmp;
+    step1 = step1_tmp;
+    return;
   }
-  else {
-    _LAND_1: ;
-    if (step1 == 1) 
-      if (x == 4) last_tmp = 1; else last_tmp = 0;
-    else last_tmp = 0;
-  }
-  if (init == 1) {
-    if (x != 3) init_tmp = 1; else goto _LAND_2;
-  }
-  else {
-    _LAND_2: ;
-    if (last == 1) 
-      if (x == 4) init_tmp = 1; else init_tmp = 0;
-    else init_tmp = 0;
-  }
-  init = init_tmp;
-  last = last_tmp;
-  step1 = step1_tmp;
-  return;
-}
 
-/*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
-    requires 1 ≡ last ⇒ x ≡ 3 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 4;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_g;
-    assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
-    
-    behavior buch_state_init_in:
-      assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
-      ensures 1 ≡ init;
-    
-    behavior buch_state_init_out:
-      assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
-      ensures 0 ≡ init;
-    
-    behavior buch_state_last_in:
-      assumes
-        (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
-      ensures 1 ≡ last;
-    
-    behavior buch_state_last_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
-        (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
-      ensures 0 ≡ last;
-    
-    behavior buch_state_step1_in:
-      assumes
-        (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
-        (1 ≡ init ∧ x ≡ 3);
-      ensures 1 ≡ step1;
-    
-    behavior buch_state_step1_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
-        (0 ≡ init ∨ ¬(x ≡ 3));
-      ensures 0 ≡ step1;
- */
-void g_post_func(void)
-{
-  /*@ ghost int init_tmp; */
-  /*@ ghost int last_tmp; */
-  /*@ ghost int step1_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_g;
-  init_tmp = init;
-  last_tmp = last;
-  step1_tmp = step1;
-  if (init == 1) {
-    if (x == 3) step1_tmp = 1; else goto _LAND_0;
-  }
-  else {
-    _LAND_0: ;
-    if (last == 1) {
-      if (x == 3) step1_tmp = 1; else goto _LAND;
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
+     requires 1 ≡ last ⇒ x ≡ 3 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 4;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_g;
+     assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+     
+     behavior buch_state_init_in:
+       assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
+       ensures 1 ≡ init;
+     
+     behavior buch_state_init_out:
+       assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
+       ensures 0 ≡ init;
+     
+     behavior buch_state_last_in:
+       assumes
+         (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
+       ensures 1 ≡ last;
+     
+     behavior buch_state_last_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
+         (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
+       ensures 0 ≡ last;
+     
+     behavior buch_state_step1_in:
+       assumes
+         (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
+         (1 ≡ init ∧ x ≡ 3);
+       ensures 1 ≡ step1;
+     
+     behavior buch_state_step1_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
+         (0 ≡ init ∨ ¬(x ≡ 3));
+       ensures 0 ≡ step1;
+   @/
+  void g_post_func(void)
+  {
+    int init_tmp;
+    int last_tmp;
+    int step1_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_g;
+    init_tmp = init;
+    last_tmp = last;
+    step1_tmp = step1;
+    if (init == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND_0;
     }
     else {
-      _LAND: ;
+      _LAND_0: ;
+      if (last == 1) {
+        if (x == 3) step1_tmp = 1; else goto _LAND;
+      }
+      else {
+        _LAND: ;
+        if (step1 == 1) 
+          if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+        else step1_tmp = 0;
+      }
+    }
+    if (last == 1) {
+      if (x != 4) {
+        if (x != 3) last_tmp = 1; else goto _LAND_1;
+      }
+      else goto _LAND_1;
+    }
+    else {
+      _LAND_1: ;
       if (step1 == 1) 
-        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
-      else step1_tmp = 0;
+        if (x == 4) last_tmp = 1; else last_tmp = 0;
+      else last_tmp = 0;
     }
-  }
-  if (last == 1) {
-    if (x != 4) {
-      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    if (init == 1) {
+      if (x != 3) init_tmp = 1; else goto _LAND_2;
     }
-    else goto _LAND_1;
+    else {
+      _LAND_2: ;
+      if (last == 1) 
+        if (x == 4) init_tmp = 1; else init_tmp = 0;
+      else init_tmp = 0;
+    }
+    init = init_tmp;
+    last = last_tmp;
+    step1 = step1_tmp;
+    return;
   }
-  else {
-    _LAND_1: ;
-    if (step1 == 1) 
-      if (x == 4) last_tmp = 1; else last_tmp = 0;
-    else last_tmp = 0;
-  }
-  if (init == 1) {
-    if (x != 3) init_tmp = 1; else goto _LAND_2;
-  }
-  else {
-    _LAND_2: ;
-    if (last == 1) 
-      if (x == 4) init_tmp = 1; else init_tmp = 0;
-    else init_tmp = 0;
-  }
-  init = init_tmp;
-  last = last_tmp;
-  step1 = step1_tmp;
-  return;
-}
+
+*/
 
 /*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
     requires 1 ≡ last ⇒ x ≡ 3 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 4;
@@ -491,139 +503,145 @@ void g_post_func(void)
  */
 void g(void)
 {
-  g_pre_func();
+  /*@ ghost g_pre_func(); */
   x = 4;
-  g_post_func();
+  /*@ ghost g_post_func(); */
   return;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
-    
-    behavior buch_state_init_in:
-      assumes 1 ≡ init ∧ x ≢ 3;
-      ensures 1 ≡ init;
-    
-    behavior buch_state_init_out:
-      assumes 0 ≡ init ∨ ¬(x ≢ 3);
-      ensures 0 ≡ init;
-    
-    behavior buch_state_last_out:
-      ensures 0 ≡ last;
-    
-    behavior buch_state_step1_out:
-      ensures 0 ≡ step1;
- */
-void main_pre_func(void)
-{
-  /*@ ghost int init_tmp; */
-  /*@ ghost int last_tmp; */
-  /*@ ghost int step1_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  init_tmp = init;
-  last_tmp = last;
-  step1_tmp = step1;
-  step1_tmp = 0;
-  last_tmp = 0;
-  if (init == 1) 
-    if (x != 3) init_tmp = 1; else init_tmp = 0;
-  else init_tmp = 0;
-  init = init_tmp;
-  last = last_tmp;
-  step1 = step1_tmp;
-  return;
-}
-
-/*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
-    requires 1 ≡ last ⇒ x ≡ 3 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 4;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
-    
-    behavior buch_state_init_in:
-      assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
-      ensures 1 ≡ init;
-    
-    behavior buch_state_init_out:
-      assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
-      ensures 0 ≡ init;
-    
-    behavior buch_state_last_in:
-      assumes
-        (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
-      ensures 1 ≡ last;
-    
-    behavior buch_state_last_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
-        (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
-      ensures 0 ≡ last;
-    
-    behavior buch_state_step1_in:
-      assumes
-        (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
-        (1 ≡ init ∧ x ≡ 3);
-      ensures 1 ≡ step1;
-    
-    behavior buch_state_step1_out:
-      assumes
-        (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
-        (0 ≡ init ∨ ¬(x ≡ 3));
-      ensures 0 ≡ step1;
- */
-void main_post_func(int res)
-{
-  /*@ ghost int init_tmp; */
-  /*@ ghost int last_tmp; */
-  /*@ ghost int step1_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  init_tmp = init;
-  last_tmp = last;
-  step1_tmp = step1;
-  if (init == 1) {
-    if (x == 3) step1_tmp = 1; else goto _LAND_0;
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+     
+     behavior buch_state_init_in:
+       assumes 1 ≡ init ∧ x ≢ 3;
+       ensures 1 ≡ init;
+     
+     behavior buch_state_init_out:
+       assumes 0 ≡ init ∨ ¬(x ≢ 3);
+       ensures 0 ≡ init;
+     
+     behavior buch_state_last_out:
+       ensures 0 ≡ last;
+     
+     behavior buch_state_step1_out:
+       ensures 0 ≡ step1;
+   @/
+  void main_pre_func(void)
+  {
+    int init_tmp;
+    int last_tmp;
+    int step1_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    init_tmp = init;
+    last_tmp = last;
+    step1_tmp = step1;
+    step1_tmp = 0;
+    last_tmp = 0;
+    if (init == 1) 
+      if (x != 3) init_tmp = 1; else init_tmp = 0;
+    else init_tmp = 0;
+    init = init_tmp;
+    last = last_tmp;
+    step1 = step1_tmp;
+    return;
   }
-  else {
-    _LAND_0: ;
-    if (last == 1) {
-      if (x == 3) step1_tmp = 1; else goto _LAND;
+
+*/
+
+/*@ ghost
+  /@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
+     requires 1 ≡ last ⇒ x ≡ 3 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 4;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+     
+     behavior buch_state_init_in:
+       assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
+       ensures 1 ≡ init;
+     
+     behavior buch_state_init_out:
+       assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
+       ensures 0 ≡ init;
+     
+     behavior buch_state_last_in:
+       assumes
+         (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
+       ensures 1 ≡ last;
+     
+     behavior buch_state_last_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧
+         (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
+       ensures 0 ≡ last;
+     
+     behavior buch_state_step1_in:
+       assumes
+         (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨
+         (1 ≡ init ∧ x ≡ 3);
+       ensures 1 ≡ step1;
+     
+     behavior buch_state_step1_out:
+       assumes
+         (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
+         (0 ≡ init ∨ ¬(x ≡ 3));
+       ensures 0 ≡ step1;
+   @/
+  void main_post_func(int res)
+  {
+    int init_tmp;
+    int last_tmp;
+    int step1_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    init_tmp = init;
+    last_tmp = last;
+    step1_tmp = step1;
+    if (init == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND_0;
     }
     else {
-      _LAND: ;
+      _LAND_0: ;
+      if (last == 1) {
+        if (x == 3) step1_tmp = 1; else goto _LAND;
+      }
+      else {
+        _LAND: ;
+        if (step1 == 1) 
+          if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+        else step1_tmp = 0;
+      }
+    }
+    if (last == 1) {
+      if (x != 4) {
+        if (x != 3) last_tmp = 1; else goto _LAND_1;
+      }
+      else goto _LAND_1;
+    }
+    else {
+      _LAND_1: ;
       if (step1 == 1) 
-        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
-      else step1_tmp = 0;
+        if (x == 4) last_tmp = 1; else last_tmp = 0;
+      else last_tmp = 0;
     }
-  }
-  if (last == 1) {
-    if (x != 4) {
-      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    if (init == 1) {
+      if (x != 3) init_tmp = 1; else goto _LAND_2;
     }
-    else goto _LAND_1;
+    else {
+      _LAND_2: ;
+      if (last == 1) 
+        if (x == 4) init_tmp = 1; else init_tmp = 0;
+      else init_tmp = 0;
+    }
+    init = init_tmp;
+    last = last_tmp;
+    step1 = step1_tmp;
+    return;
   }
-  else {
-    _LAND_1: ;
-    if (step1 == 1) 
-      if (x == 4) last_tmp = 1; else last_tmp = 0;
-    else last_tmp = 0;
-  }
-  if (init == 1) {
-    if (x != 3) init_tmp = 1; else goto _LAND_2;
-  }
-  else {
-    _LAND_2: ;
-    if (last == 1) 
-      if (x == 4) init_tmp = 1; else init_tmp = 0;
-    else init_tmp = 0;
-  }
-  init = init_tmp;
-  last = last_tmp;
-  step1 = step1_tmp;
-  return;
-}
+
+*/
 
 /*@ requires 1 ≡ init ∧ 0 ≡ last ∧ 0 ≡ step1;
     requires 1 ≡ init ⇒ x ≢ 3;
@@ -644,12 +662,12 @@ void main_post_func(int res)
  */
 int main(void)
 {
-  main_pre_func();
+  /*@ ghost main_pre_func(); */
   f();
   g();
   f();
   g();
-  main_post_func(x);
+  /*@ ghost main_post_func(x); */
   return x;
 }
 

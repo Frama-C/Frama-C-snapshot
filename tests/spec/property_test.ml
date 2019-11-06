@@ -20,7 +20,7 @@ class visit prj =
             From [ Logic_const.new_identified_term (Logic_const.tvar x);
                    Logic_const.new_identified_term (Logic_const.tvar c)]
           ];
-        let nkf = Cil.get_kernel_function self#behavior kf in
+        let nkf = Visitor_behavior.Get.kernel_function self#behavior kf in
         let keep_empty = true in
         let post b =
           Queue.add

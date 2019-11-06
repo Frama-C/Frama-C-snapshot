@@ -24,6 +24,7 @@
 (* Beware! Only edit allowed sections below    *)
 Require Import BuiltIn.
 Require BuiltIn.
+Require HighOrd.
 Require bool.Bool.
 Require int.Int.
 Require map.Map.
@@ -38,56 +39,58 @@ Axiom addr_WhyType : WhyType addr.
 Existing Instance addr_WhyType.
 
 (* Why3 assumption *)
-Definition offset (v:addr): Z := match v with
-  | (mk_addr x x1) => x1
-  end.
+Definition offset (v:addr) : Z := match v with
+                                  | mk_addr x x1 => x1
+                                  end.
 
 (* Why3 assumption *)
-Definition base (v:addr): Z := match v with
-  | (mk_addr x x1) => x
-  end.
+Definition base (v:addr) : Z := match v with
+                                | mk_addr x x1 => x
+                                end.
 
 (* Why3 goal *)
-Definition addr_le: addr -> addr -> Prop.
+Definition addr_le : addr -> addr -> Prop.
   exact (fun (p q : addr) => ((base p = base q) /\ (offset p <= offset q)%Z)).
 Defined.
 
 (* Why3 goal *)
-Definition addr_lt: addr -> addr -> Prop.
+Definition addr_lt : addr -> addr -> Prop.
   exact (fun (p q : addr) => (base p = base q) /\ (offset p < offset q)%Z).
 Defined.
 
 (* Why3 goal *)
-Definition addr_le_bool: addr -> addr -> bool.
+Definition addr_le_bool : addr -> addr -> bool.
   exact (fun (p q : addr) =>
            andb (Zeq_bool (base p) (base q)) (Zle_bool (offset p) (offset q))).
 Defined.
 
 (* Why3 goal *)
-Definition addr_lt_bool: addr -> addr -> bool.
+Definition addr_lt_bool : addr -> addr -> bool.
   exact (fun (p q : addr) =>
            andb (Zeq_bool (base p) (base q)) (Zlt_bool (offset p) (offset q))).
 Defined.
 
 (* Why3 goal *)
-Lemma addr_le_def : forall (p:addr) (q:addr), ((base p) = (base q)) ->
-  ((addr_le p q) <-> ((offset p) <= (offset q))%Z).
+Lemma addr_le_def :
+  forall (p:addr) (q:addr), ((base p) = (base q)) ->
+  (addr_le p q) <-> ((offset p) <= (offset q))%Z.
 Proof.
   unfold addr_le.
   intuition.
 Qed.
 
 (* Why3 goal *)
-Lemma addr_lt_def : forall (p:addr) (q:addr), ((base p) = (base q)) ->
-  ((addr_lt p q) <-> ((offset p) < (offset q))%Z).
+Lemma addr_lt_def :
+  forall (p:addr) (q:addr), ((base p) = (base q)) ->
+  (addr_lt p q) <-> ((offset p) < (offset q))%Z.
 Proof.
   unfold addr_lt.
   intuition.
 Qed.
 
 (* Why3 goal *)
-Lemma addr_le_bool_def : forall (p:addr) (q:addr), (addr_le p q) <->
-  ((addr_le_bool p q) = true).
+Lemma addr_le_bool_def :
+  forall (p:addr) (q:addr), (addr_le p q) <-> ((addr_le_bool p q) = true).
 Proof.
   unfold addr_le. unfold addr_le_bool.
   intros. split; intro H.
@@ -103,8 +106,8 @@ Proof.
 Qed.
 
 (* Why3 goal *)
-Lemma addr_lt_bool_def : forall (p:addr) (q:addr), (addr_lt p q) <->
-  ((addr_lt_bool p q) = true).
+Lemma addr_lt_bool_def :
+  forall (p:addr) (q:addr), (addr_lt p q) <-> ((addr_lt_bool p q) = true).
 Proof.
   unfold addr_lt. unfold addr_lt_bool.
   intros. split; intro H.
@@ -120,61 +123,68 @@ Proof.
 Qed.
 
 (* Why3 assumption *)
-Definition null: addr := (mk_addr 0%Z 0%Z).
+Definition null : addr := mk_addr 0%Z 0%Z.
 
 (* Why3 assumption *)
-Definition global (b:Z): addr := (mk_addr b 0%Z).
+Definition global (b:Z) : addr := mk_addr b 0%Z.
 
 (* Why3 assumption *)
-Definition shift (p:addr) (k:Z): addr := (mk_addr (base p)
-  ((offset p) + k)%Z).
+Definition shift (p:addr) (k:Z) : addr :=
+  mk_addr (base p) ((offset p) + k)%Z.
 
 (* Why3 assumption *)
-Definition included (p:addr) (a:Z) (q:addr) (b:Z): Prop := (0%Z < a)%Z ->
-  ((0%Z <= b)%Z /\ (((base p) = (base q)) /\ (((offset q) <= (offset p))%Z /\
-  (((offset p) + a)%Z <= ((offset q) + b)%Z)%Z))).
+Definition included (p:addr) (a:Z) (q:addr) (b:Z) : Prop :=
+  (0%Z < a)%Z ->
+  (0%Z <= b)%Z /\
+  (((base p) = (base q)) /\
+   (((offset q) <= (offset p))%Z /\
+    (((offset p) + a)%Z <= ((offset q) + b)%Z)%Z)).
 
 (* Why3 assumption *)
-Definition separated (p:addr) (a:Z) (q:addr) (b:Z): Prop := (a <= 0%Z)%Z \/
-  ((b <= 0%Z)%Z \/ ((~ ((base p) = (base q))) \/
-  ((((offset q) + b)%Z <= (offset p))%Z \/
-  (((offset p) + a)%Z <= (offset q))%Z))).
+Definition separated (p:addr) (a:Z) (q:addr) (b:Z) : Prop :=
+  (a <= 0%Z)%Z \/
+  ((b <= 0%Z)%Z \/
+   (~ ((base p) = (base q)) \/
+    ((((offset q) + b)%Z <= (offset p))%Z \/
+     (((offset p) + a)%Z <= (offset q))%Z))).
 
 (* Why3 assumption *)
-Definition eqmem {a:Type} {a_WT:WhyType a} (m1:(map.Map.map addr a))
-  (m2:(map.Map.map addr a)) (p:addr) (a1:Z): Prop := forall (q:addr),
-  (included q 1%Z p a1) -> ((m1 q) = (m2 q)).
+Definition eqmem {a:Type} {a_WT:WhyType a} (m1:addr -> a) (m2:addr -> a)
+    (p:addr) (a1:Z) : Prop :=
+  forall (q:addr), (included q 1%Z p a1) -> ((m1 q) = (m2 q)).
 
 (* Why3 goal *)
-Definition havoc: forall {a:Type} {a_WT:WhyType a}, (map.Map.map addr a) ->
-  (map.Map.map addr a) -> addr -> Z -> (map.Map.map addr a).
-Admitted.
+Variable havoc: forall {a:Type} {a_WT:WhyType a}, (addr -> a) ->
+  (addr -> a) -> addr -> Z -> addr -> a.
 
 Definition fhavoc {A : Type}
   (m : farray addr A)
   (w : farray addr A) (p:addr) (n:Z) : (farray addr A) :=
   {| whytype1 := whytype1 m;
      whytype2 := whytype2 m;
-     access := @havoc _ (whytype2 m) m w p n |}.
+     access := @havoc _ (whytype2 m) (access m) (access w) p n |}.
 
 (* Why3 assumption *)
-Definition valid_rw (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
-  (0%Z < n)%Z -> ((0%Z < (base p))%Z /\ ((0%Z <= (offset p))%Z /\
-  (((offset p) + n)%Z <= (m (base p)))%Z)).
+Definition valid_rw (m:Z -> Z) (p:addr) (n:Z) : Prop :=
+  (0%Z < n)%Z ->
+  (0%Z < (base p))%Z /\
+  ((0%Z <= (offset p))%Z /\ (((offset p) + n)%Z <= (m (base p)))%Z).
 
 (* Why3 assumption *)
-Definition valid_rd (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
-  (0%Z < n)%Z -> ((~ (0%Z = (base p))) /\ ((0%Z <= (offset p))%Z /\
-  (((offset p) + n)%Z <= (m (base p)))%Z)).
+Definition valid_rd (m:Z -> Z) (p:addr) (n:Z) : Prop :=
+  (0%Z < n)%Z ->
+  ~ (0%Z = (base p)) /\
+  ((0%Z <= (offset p))%Z /\ (((offset p) + n)%Z <= (m (base p)))%Z).
 
 (* Why3 assumption *)
-Definition invalid (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
-  (0%Z < n)%Z -> (((m (base p)) <= (offset p))%Z \/
-  (((offset p) + n)%Z <= 0%Z)%Z).
+Definition invalid (m:Z -> Z) (p:addr) (n:Z) : Prop :=
+  (0%Z < n)%Z ->
+  ((m (base p)) <= (offset p))%Z \/ (((offset p) + n)%Z <= 0%Z)%Z.
 
 (* Why3 goal *)
-Lemma valid_rw_rd : forall (m:(map.Map.map Z Z)), forall (p:addr),
-  forall (n:Z), (valid_rw m p n) -> (valid_rd m p n).
+Lemma valid_rw_rd :
+  forall (m:Z -> Z), forall (p:addr), forall (n:Z), (valid_rw m p n) ->
+  valid_rd m p n.
 Proof.
   intros m p n.
   unfold valid_rw. unfold valid_rd.
@@ -182,10 +192,10 @@ Proof.
 Qed.
 
 (* Why3 goal *)
-Lemma valid_string : forall (m:(map.Map.map Z Z)), forall (p:addr),
-  ((base p) < 0%Z)%Z -> (((0%Z <= (offset p))%Z /\
-  ((offset p) < (m (base p)))%Z) -> ((valid_rd m p 1%Z) /\
-  ~ (valid_rw m p 1%Z))).
+Lemma valid_string :
+  forall (m:Z -> Z), forall (p:addr), ((base p) < 0%Z)%Z ->
+  ((0%Z <= (offset p))%Z /\ ((offset p) < (m (base p)))%Z) ->
+  (valid_rd m p 1%Z) /\ ~ (valid_rw m p 1%Z).
 Proof.
   intros m p.
   unfold valid_rd. unfold valid_rw.
@@ -230,33 +240,34 @@ Proof.
 Qed.
 
 (* Why3 goal *)
-Lemma separated_1 : forall (p:addr) (q:addr), forall (a:Z) (b:Z) (i:Z) (j:Z),
-  (separated p a q b) -> ((((offset p) <= i)%Z /\
-  (i < ((offset p) + a)%Z)%Z) -> ((((offset q) <= j)%Z /\
-  (j < ((offset q) + b)%Z)%Z) -> ~ ((mk_addr (base p) i) = (mk_addr (base q)
-  j)))).
+Lemma separated_1 :
+  forall (p:addr) (q:addr), forall (a:Z) (b:Z) (i:Z) (j:Z),
+  (separated p a q b) ->
+  (((offset p) <= i)%Z /\ (i < ((offset p) + a)%Z)%Z) ->
+  (((offset q) <= j)%Z /\ (j < ((offset q) + b)%Z)%Z) ->
+  ~ ((mk_addr (base p) i) = (mk_addr (base q) j)).
 Admitted.
 
 (* Why3 goal *)
-Definition region: Z -> Z.
+Definition region : Z -> Z.
 Admitted.
 
 (* Why3 goal *)
-Definition linked: (map.Map.map Z Z) -> Prop.
+Definition linked : (Z -> Z) -> Prop.
 Admitted.
 
 (* Why3 goal *)
-Definition sconst: (map.Map.map addr Z) -> Prop.
+Definition sconst : (addr -> Z) -> Prop.
 Admitted.
 
 (* Why3 assumption *)
-Definition framed (m:(map.Map.map addr addr)): Prop := forall (p:addr),
-  ((region (base (m p))) <= 0%Z)%Z.
+Definition framed (m:addr -> addr) : Prop :=
+  forall (p:addr), ((region (base (m p))) <= 0%Z)%Z.
 
 (* Why3 goal *)
-Lemma separated_included : forall (p:addr) (q:addr), forall (a:Z) (b:Z),
-  (0%Z < a)%Z -> ((0%Z < b)%Z -> ((separated p a q b) -> ~ (included p a q
-  b))).
+Lemma separated_included :
+  forall (p:addr) (q:addr), forall (a:Z) (b:Z), (0%Z < a)%Z -> (0%Z < b)%Z ->
+  (separated p a q b) -> ~ (included p a q b).
 Proof.
 intros p q a b h1 h2 h3.
   unfold separated. unfold included. unfold not.
@@ -276,22 +287,25 @@ Qed.
 *)
 
 (* Why3 goal *)
-Lemma included_trans : forall (p:addr) (q:addr) (r:addr), forall (a:Z) (b:Z)
-  (c:Z), (included p a q b) -> ((included q b r c) -> (included p a r c)).
+Lemma included_trans :
+  forall (p:addr) (q:addr) (r:addr), forall (a:Z) (b:Z) (c:Z),
+  (included p a q b) -> (included q b r c) -> included p a r c.
 Proof.
   intros p a q b r c.
   unfold included. intuition.
 Qed.
 
 (* Why3 goal *)
-Lemma separated_trans : forall (p:addr) (q:addr) (r:addr), forall (a:Z) (b:Z)
-  (c:Z), (included p a q b) -> ((separated q b r c) -> (separated p a r c)).
+Lemma separated_trans :
+  forall (p:addr) (q:addr) (r:addr), forall (a:Z) (b:Z) (c:Z),
+  (included p a q b) -> (separated q b r c) -> separated p a r c.
 Proof.
   intros p a q b r c.
 Admitted.
 
 (* Why3 goal *)
-Lemma separated_sym : forall (p:addr) (q:addr), forall (a:Z) (b:Z),
+Lemma separated_sym :
+  forall (p:addr) (q:addr), forall (a:Z) (b:Z),
   (separated p a q b) <-> (separated q b p a).
 Proof.
   intros p q a b.
@@ -299,38 +313,38 @@ Proof.
 Qed.
 
 (* Why3 goal *)
-Lemma eqmem_included : forall {a:Type} {a_WT:WhyType a},
-  forall (m1:(map.Map.map addr a)) (m2:(map.Map.map addr a)), forall (p:addr)
-  (q:addr), forall (a1:Z) (b:Z), (included p a1 q b) -> ((eqmem m1 m2 q b) ->
-  (eqmem m1 m2 p a1)).
+Lemma eqmem_included {a:Type} {a_WT:WhyType a} :
+  forall (m1:addr -> a) (m2:addr -> a), forall (p:addr) (q:addr),
+  forall (a1:Z) (b:Z), (included p a1 q b) -> (eqmem m1 m2 q b) ->
+  eqmem m1 m2 p a1.
 Proof.
-  intros a a_WT m1 m2 p q a1 b h1 h2.
+  intros m1 m2 p q a1 b h1 h2.
 Admitted.
 
 (* Why3 goal *)
-Lemma eqmem_sym : forall {a:Type} {a_WT:WhyType a}, forall (m1:(map.Map.map
-  addr a)) (m2:(map.Map.map addr a)), forall (p:addr), forall (a1:Z), (eqmem
-  m1 m2 p a1) -> (eqmem m2 m1 p a1).
+Lemma eqmem_sym {a:Type} {a_WT:WhyType a} :
+  forall (m1:addr -> a) (m2:addr -> a), forall (p:addr), forall (a1:Z),
+  (eqmem m1 m2 p a1) -> eqmem m2 m1 p a1.
 Proof.
-  intros A m1 m2 p a. unfold eqmem.
+  intros m1 m2 p a1. unfold eqmem.
 Admitted.
 
 (* Why3 goal *)
-Lemma havoc_access : forall {a:Type} {a_WT:WhyType a},
-  forall (m0:(map.Map.map addr a)) (m1:(map.Map.map addr a)), forall (q:addr)
-  (p:addr), forall (a1:Z), ((separated q 1%Z p a1) -> (((havoc m0
-  m1 p a1) q) = (m1 q))) /\ ((~ (separated q 1%Z p a1)) ->
-  (((havoc m0 m1 p a1) q) = (m0 q))).
+Lemma havoc_access {a:Type} {a_WT:WhyType a} :
+  forall (m0:addr -> a) (m1:addr -> a), forall (q:addr) (p:addr),
+  forall (a1:Z),
+  ((separated q 1%Z p a1) -> (((havoc m0 m1 p a1) q) = (m1 q))) /\
+  (~ (separated q 1%Z p a1) -> (((havoc m0 m1 p a1) q) = (m0 q))).
 Proof.
-  intros a a_WT m0 m1 q p a1.
+  intros m0 m1 q p a1.
 Admitted.
 
 (* Why3 goal *)
-Definition int_of_addr: addr -> Z.
+Definition int_of_addr : addr -> Z.
 Admitted.
 
 (* Why3 goal *)
-Definition addr_of_int: Z -> addr.
+Definition addr_of_int : Z -> addr.
 Admitted.
 
 (* Why3 goal *)
@@ -347,8 +361,8 @@ Lemma int_of_addr_bijection : forall (a:Z),
 Admitted.
 
 (* Why3 goal *)
-Lemma addr_of_int_bijection : forall (p:addr),
-  ((addr_of_int (int_of_addr p)) = p).
+Lemma addr_of_int_bijection :
+  forall (p:addr), ((addr_of_int (int_of_addr p)) = p).
 Admitted.
 
 (* Why3 goal *)

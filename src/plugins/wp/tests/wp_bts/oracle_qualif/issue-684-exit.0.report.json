@@ -1,0 +1,22 @@
+{ "wp:global": { "qed": { "total": 4, "valid": 4 },
+                 "wp:main": { "total": 4, "valid": 4 } },
+  "wp:functions": { "inconditional_exit": { "inconditional_exit_assigns": 
+                                              { "qed": { "total": 2,
+                                                         "valid": 2 },
+                                                "wp:main": { "total": 2,
+                                                             "valid": 2 } },
+                                            "inconditional_exit_ensures": 
+                                              { "qed": { "total": 1,
+                                                         "valid": 1 },
+                                                "wp:main": { "total": 1,
+                                                             "valid": 1 } },
+                                            "inconditional_exit_exits": 
+                                              { "qed": { "total": 1,
+                                                         "valid": 1 },
+                                                "wp:main": { "total": 1,
+                                                             "valid": 1 } },
+                                            "wp:section": { "qed": { "total": 4,
+                                                                    "valid": 4 },
+                                                            "wp:main": 
+                                                              { "total": 4,
+                                                                "valid": 4 } } } } }

@@ -30,6 +30,7 @@ __BEGIN_DECLS
 #include "../__fc_define_suseconds_t.h"
 #include "../__fc_define_fd_set_t.h"
 #include "../__fc_define_timespec.h"
+#include "../__fc_string_axiomatic.h"
 struct timeval {
   time_t         tv_sec;
   suseconds_t    tv_usec;
@@ -44,7 +45,12 @@ struct timezone {
 //@ ghost volatile unsigned int __fc_time __attribute__((FRAMA_C_MODEL));
 //@ ghost extern int __fc_tz __attribute__((FRAMA_C_MODEL));
 
-/*@ assigns \result \from path[0..],times[0..1]; */
+/*@
+  requires valid_path: valid_read_string(path);
+  requires valid_times_or_null: \valid_read(times+(0..1)) || times == \null;
+  assigns \result \from indirect:path[0..strlen(path)],
+    indirect:times, indirect:times[0..1];
+*/
 extern int utimes(const char *path, const struct timeval times[2]);
 
 /*@ assigns tv->tv_sec, tv->tv_usec \from __fc_time;
@@ -83,10 +89,14 @@ extern int utimes(const char *path, const struct timeval times[2]);
   @*/
 extern int gettimeofday(struct timeval * restrict tv, void * restrict tz);
 
-/*@ assigns \result,__fc_time,__fc_tz 
-  @            \from      tv->tv_sec, tv->tv_usec,
-  @                       tz->tz_dsttime, tz->tz_minuteswest; 
-  @*/
+/*@
+  requires valid_tv_or_null: \valid_read(tv) || tv == \null;
+  requires valid_tz_or_null: \valid_read(tz) || tz == \null;
+  assigns __fc_time, __fc_tz \from tv->tv_sec, tv->tv_usec,
+                                   tz->tz_dsttime, tz->tz_minuteswest;
+  assigns \result \from indirect:*tv, indirect:*tz;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int settimeofday(const struct timeval *tv, const struct timezone *tz);
 
 #if (defined _POSIX_C_SOURCE && (_POSIX_C_SOURCE) >= 200112L) ||        \
@@ -151,16 +161,16 @@ extern int getitimer(int which, struct itimerval *curr_value);
 /*@
   requires valid_new_value: \valid_read(new_value);
   requires old_value_null_or_valid: old_value == \null || \valid(old_value);
-  assigns old_value != \null ? *old_value : \empty \from
-    indirect:which, indirect:old_value, indirect:new_value,
-    __fc_itimer_real, __fc_itimer_virtual, __fc_itimer_prof;
+  assigns *old_value \from indirect:which, indirect:old_value,
+                           indirect:new_value, __fc_itimer_real,
+                           __fc_itimer_virtual, __fc_itimer_prof;
   assigns \result \from indirect:which, indirect:new_value, indirect:*new_value;
   ensures result_ok_or_error: \result == 0 || \result == -1;
   behavior real:
     assumes itimer_real_and_valid:
       which == ITIMER_REAL && __VALID_ITIMERVAL(new_value);
     assigns \result \from \nothing;
-    assigns old_value != \null ? *old_value : \empty \from __fc_itimer_real;
+    assigns *old_value \from __fc_itimer_real;
     assigns __fc_itimer_real \from *new_value;
     ensures result_ok: \result == 0;
     ensures initialization:old_value: \initialized(old_value);
@@ -168,14 +178,14 @@ extern int getitimer(int which, struct itimerval *curr_value);
     assumes itimer_virtual_and_valid:
       which == ITIMER_VIRTUAL && __VALID_ITIMERVAL(new_value);
     assigns \result \from \nothing;
-    assigns old_value != \null ? *old_value : \empty  \from __fc_itimer_virtual;
+    assigns *old_value \from __fc_itimer_virtual;
     ensures result_ok: \result == 0;
     ensures initialization:old_value: \initialized(old_value);
   behavior prof:
     assumes itimer_prof_and_valid:
       which == ITIMER_PROF && __VALID_ITIMERVAL(new_value);
     assigns \result \from \nothing;
-    assigns old_value != \null ? *old_value : \empty  \from __fc_itimer_prof;
+    assigns *old_value \from __fc_itimer_prof;
     ensures result_ok: \result == 0;
     ensures initialization:old_value: \initialized(old_value);
   behavior invalid:
@@ -204,6 +214,11 @@ extern int timerisset(struct timeval *tvp);
 
 #define timercmp(a, b, _CMP) _timercmp(a, b)
 extern int _timercmp(struct timeval *a, struct timeval *b);
+
+// From POSIX, and for better compatibility with existing code bases:
+// "Inclusion of the <sys/time.h> header may make visible all symbols
+// from the <sys/select.h> header."
+#include "select.h"
 
 __END_DECLS
 __POP_FC_STDLIB

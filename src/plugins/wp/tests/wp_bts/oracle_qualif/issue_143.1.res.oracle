@@ -1,25 +1,18 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_bts/issue_143.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
+[wp] Warning: native support for coq is deprecated, use tip instead
 [wp] 2 goals scheduled
-[wp] [Coq] Goal typed_lemma_ok_because_inconsistent : Default tactic
-[wp] [Failed] Goal typed_lemma_ok_because_inconsistent
-  Alt-Ergo (why3): Failed Command './tests/inexistant-prover' not found
-       Coq: Failed Command './tests/inexistant-prover' not found
-  Alt-Ergo: Failed Command './tests/inexistant-prover' not found
-[wp] [Failed] Goal typed_lemma_ok_because_consistent
-  Alt-Ergo (why3): Failed Command './tests/inexistant-prover' not found
-       Coq: Failed Command './tests/inexistant-prover' not found
-  Alt-Ergo: Failed Command './tests/inexistant-prover' not found
-[wp] Proved goals:    0 / 2
-  Alt-Ergo:           0  (failed: 2)
-  Coq:                0  (failed: 2)
-  Alt-Ergo (why3):    0  (failed: 2)
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ok_because_inconsistent : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_lemma_ok_because_consistent : Valid
+[wp] Proved goals:    2 / 2
+  Qed:               0 
+  Alt-Ergo 2.0.0:    2
 [wp] Report in:  'tests/wp_bts/oracle_qualif/issue_143.1.report.json'
 [wp] Report out: 'tests/wp_bts/result_qualif/issue_143.1.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
-Axiomatic A         -      -                 1       0.0%
-Axiomatic B         -      -                 1       0.0%
+Axiomatic A         -       1 (1..12)        1       100%
+Axiomatic B         -       1 (1..12)        1       100%
 -------------------------------------------------------------

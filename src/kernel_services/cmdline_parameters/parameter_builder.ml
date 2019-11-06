@@ -443,6 +443,91 @@ struct
     String(struct include X let default = empty_string end)
 
   (* ************************************************************************ *)
+  (** {3 Filepath} *)
+  (* ************************************************************************ *)
+
+  module Fc_Filepath = Filepath
+
+  module Filepath
+      (X: sig
+         include Parameter_sig.Input_with_arg
+         val existence : Parameter_sig.existence
+       end) =
+  struct
+
+    exception No_file
+    exception File_exists
+
+    include Build
+        (struct
+          include Datatype.Filepath
+          include X
+          let default () = Filepath.Normalized.unknown
+          let functor_name = "Filepath"
+        end)
+
+    let check_existence existence fp =
+      match existence with
+      | Parameter_sig.Indifferent -> ()
+      | Parameter_sig.Must_exist ->
+        if not (Sys.file_exists (Filepath.Normalized.to_pretty_string fp)) then
+          raise No_file
+      | Parameter_sig.Must_not_exist ->
+        if Sys.file_exists (Filepath.Normalized.to_pretty_string fp) then
+          raise File_exists
+
+    let existence = X.existence
+
+    let convert f oldstr newstr =
+      let oldfp = Filepath.Normalized.to_pretty_string oldstr in
+      let newfp = Filepath.Normalized.to_pretty_string newstr in
+      f oldfp newfp
+
+    let set fp = check_existence existence fp ; set fp
+
+    let set_str s = set (Filepath.Normalized.of_string s)
+
+    let add_option name =
+      Cmdline.add_option
+        name
+        ~argname:X.arg_name
+        ~help:X.help
+        ~visible:is_visible
+        ~ext_help:!Parameter_customize.optional_help_ref
+        ~plugin:P.shortname
+        ~group
+        stage
+        (Cmdline.String set_str)
+
+    let parameter_get fp = Filepath.Normalized.to_pretty_string (get fp)
+    let parameter_add_set_hook f = add_set_hook (convert f)
+    let parameter_add_update_hook f = add_update_hook (convert f)
+
+    let parameter =
+      let accessor =
+        Typed_parameter.String
+          ({ Typed_parameter.get = parameter_get;
+             set = set_str;
+             add_set_hook = parameter_add_set_hook;
+             add_update_hook = parameter_add_update_hook },
+           fun () -> [])
+      in
+      let p =
+	Typed_parameter.create ~name ~help:X.help ~accessor ~is_set
+      in
+      add_parameter !Parameter_customize.group_ref stage p;
+      add_option X.option_name;
+      Parameter_customize.reset ();
+      if is_dynamic then
+	let plugin = empty_string in
+	Dynamic.register
+          ~plugin X.option_name Typed_parameter.ty ~journalize:false p
+      else
+	p
+
+  end
+
+  (* ************************************************************************ *)
   (** {3 Collections} *)
   (* ************************************************************************ *)
 

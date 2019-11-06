@@ -1,14 +1,14 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_bts/issue-364.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_main_assert_ZERO : Valid
-[wp] [Alt-Ergo] Goal typed_main_assert_OVER : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_main_assert_ZERO : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_main_assert_OVER : Valid
 [wp] Proved goals:    2 / 2
-  Qed:             0 
-  Alt-Ergo:        2
+  Qed:               0 
+  Alt-Ergo 2.0.0:    2
 [wp] Report in:  'tests/wp_bts/oracle_qualif/issue-364.0.report.json'
 [wp] Report out: 'tests/wp_bts/result_qualif/issue-364.0.report.json'
 -------------------------------------------------------------

@@ -33,9 +33,11 @@ let definition f es =
   let d = find_symbol f in
   match d.d_definition with
   | Function(_,_,u) ->
-      Subst.(e_apply (sigma d.d_params es) u)
+      let sigma = Lang.subst d.d_params es in
+      F.e_subst sigma u
   | Predicate(_,p) ->
-      F.e_prop (Subst.(p_apply (sigma d.d_params es) p))
+      let sigma = Lang.subst d.d_params es in
+      F.e_prop (F.p_subst sigma p)
   | _ ->
       raise Not_found
 

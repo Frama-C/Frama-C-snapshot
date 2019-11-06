@@ -3,6 +3,7 @@
 int main(void)
 {
   int __retres;
+  char a[1] = {(char)0};
   int i = 36;
   int j = 36;
   __retres = 0;

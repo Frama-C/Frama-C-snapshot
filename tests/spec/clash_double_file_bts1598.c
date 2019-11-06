@@ -11,7 +11,7 @@ OPT: @PTEST_FILE@ -cpp-extra-args " -Ishare/libc -nostdinc" -print -then -ocode 
 #include "errno.h"
 //#include "fenv.h"
 #include "float.h"
-#include "getopt.h"
+//#include "getopt.h"
 #include "inttypes.h"
 #include "iso646.h"
 #include "limits.h"

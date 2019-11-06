@@ -99,6 +99,10 @@
 /* POSIX */
 #define __SSIZE_T int
 #define __SSIZE_MAX __FC_INT_MAX
+/* stdio.h */
+#ifndef __FC_L_tmpnam
+#define __FC_L_tmpnam 1024
+#endif
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_INT_MIN
 #define __FC_PTRDIFF_MAX __FC_INT_MAX
@@ -195,6 +199,10 @@
 /* POSIX */
 #define __SSIZE_T signed long
 #define __SSIZE_MAX __FC_LONG_MAX
+/* stdio.h */
+#ifndef __FC_L_tmpnam
+#define __FC_L_tmpnam 1024
+#endif
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_LONG_MIN
 #define __FC_PTRDIFF_MAX __FC_LONG_MAX
@@ -293,6 +301,10 @@
 /* POSIX */
 #define __SSIZE_T signed long
 #define __SSIZE_MAX __FC_LONG_MAX
+/* stdio.h */
+#ifndef __FC_L_tmpnam
+#define __FC_L_tmpnam 1024
+#endif
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_LONG_MIN
 #define __FC_PTRDIFF_MAX __FC_LONG_MAX
@@ -388,6 +400,10 @@
 /* POSIX */
 #define __SSIZE_T int
 #define __SSIZE_MAX __FC_INT_MAX
+/* stdio.h */
+#ifndef __FC_L_tmpnam
+#define __FC_L_tmpnam 1024
+#endif
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_INT_MIN
 #define __FC_PTRDIFF_MAX __FC_INT_MAX
@@ -558,6 +574,10 @@
 
 /* POSIX */
 #define __SSIZE_T signed long long
+/* stdio.h */
+#ifndef __FC_L_tmpnam
+#define __FC_L_tmpnam 20
+#endif
 /* stdint.h */
 #define __FC_WCHAR_MIN 0
 #define __FC_WCHAR_MAX __FC_USHRT_MAX

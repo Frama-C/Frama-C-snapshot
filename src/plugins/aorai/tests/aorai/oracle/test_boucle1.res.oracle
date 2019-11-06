@@ -24,112 +24,118 @@ int status = 0;
 /*@ ghost int accept_S3 = 0; */
 /*@ ghost int accept_S4 = 0; */
 /*@ ghost int accept_init = 1; */
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_commit_trans;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
-            accept_S3, accept_S4, accept_init;
-    
-    behavior buch_state_accept_S1_out:
-      ensures 0 ≡ accept_S1;
-    
-    behavior buch_state_accept_S2_in:
-      assumes 1 ≡ accept_S4;
-      ensures 1 ≡ accept_S2;
-    
-    behavior buch_state_accept_S2_out:
-      assumes 0 ≡ accept_S4;
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void commit_trans_pre_func(void)
-{
-  /*@ ghost int accept_S1_tmp; */
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_commit_trans;
-  accept_S1_tmp = accept_S1;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  if (accept_S4 == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
-  accept_S1_tmp = 0;
-  accept_S1 = accept_S1_tmp;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_commit_trans;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
+             accept_S3, accept_S4, accept_init;
+     
+     behavior buch_state_accept_S1_out:
+       ensures 0 ≡ accept_S1;
+     
+     behavior buch_state_accept_S2_in:
+       assumes 1 ≡ accept_S4;
+       ensures 1 ≡ accept_S2;
+     
+     behavior buch_state_accept_S2_out:
+       assumes 0 ≡ accept_S4;
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void commit_trans_pre_func(void)
+  {
+    int accept_S1_tmp;
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_commit_trans;
+    accept_S1_tmp = accept_S1;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    if (accept_S4 == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
+    accept_S1_tmp = 0;
+    accept_S1 = accept_S1_tmp;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
 
-/*@ requires
-      1 ≡ accept_S2 ∧ 0 ≡ accept_S1 ∧ 0 ≡ accept_S3 ∧
-      0 ≡ accept_S4 ∧ 0 ≡ accept_init;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_commit_trans;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
-            accept_S3, accept_S4, accept_init;
-    
-    behavior buch_state_accept_S1_out:
-      ensures 0 ≡ accept_S1;
-    
-    behavior buch_state_accept_S2_in:
-      assumes 1 ≡ accept_S2;
-      ensures 1 ≡ accept_S2;
-    
-    behavior buch_state_accept_S2_out:
-      assumes 0 ≡ accept_S2;
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void commit_trans_post_func(int res)
-{
-  /*@ ghost int accept_S1_tmp; */
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_commit_trans;
-  accept_S1_tmp = accept_S1;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  if (accept_S2 == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
-  accept_S1_tmp = 0;
-  accept_S1 = accept_S1_tmp;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       1 ≡ accept_S2 ∧ 0 ≡ accept_S1 ∧ 0 ≡ accept_S3 ∧
+       0 ≡ accept_S4 ∧ 0 ≡ accept_init;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_commit_trans;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
+             accept_S3, accept_S4, accept_init;
+     
+     behavior buch_state_accept_S1_out:
+       ensures 0 ≡ accept_S1;
+     
+     behavior buch_state_accept_S2_in:
+       assumes 1 ≡ accept_S2;
+       ensures 1 ≡ accept_S2;
+     
+     behavior buch_state_accept_S2_out:
+       assumes 0 ≡ accept_S2;
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void commit_trans_post_func(int res)
+  {
+    int accept_S1_tmp;
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_commit_trans;
+    accept_S1_tmp = accept_S1;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    if (accept_S2 == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
+    accept_S1_tmp = 0;
+    accept_S1 = accept_S1_tmp;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       1 ≡ accept_S4 ∧ 0 ≡ accept_S1 ∧ 0 ≡ accept_S2 ∧
@@ -148,128 +154,134 @@ void commit_trans_post_func(int res)
 int commit_trans(void)
 {
   int __retres;
-  commit_trans_pre_func();
+  /*@ ghost commit_trans_pre_func(); */
   __retres = 1;
-  commit_trans_post_func(__retres);
+  /*@ ghost commit_trans_post_func(__retres); */
   return __retres;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_init_trans;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
-            accept_S3, accept_S4, accept_init;
-    
-    behavior buch_state_accept_S1_out:
-      ensures 0 ≡ accept_S1;
-    
-    behavior buch_state_accept_S2_in:
-      assumes 1 ≡ accept_S2;
-      ensures 1 ≡ accept_S2;
-    
-    behavior buch_state_accept_S2_out:
-      assumes 0 ≡ accept_S2;
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void init_trans_pre_func(void)
-{
-  /*@ ghost int accept_S1_tmp; */
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_init_trans;
-  accept_S1_tmp = accept_S1;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  if (accept_S2 == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
-  accept_S1_tmp = 0;
-  accept_S1 = accept_S1_tmp;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_init_trans;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
+             accept_S3, accept_S4, accept_init;
+     
+     behavior buch_state_accept_S1_out:
+       ensures 0 ≡ accept_S1;
+     
+     behavior buch_state_accept_S2_in:
+       assumes 1 ≡ accept_S2;
+       ensures 1 ≡ accept_S2;
+     
+     behavior buch_state_accept_S2_out:
+       assumes 0 ≡ accept_S2;
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void init_trans_pre_func(void)
+  {
+    int accept_S1_tmp;
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_init_trans;
+    accept_S1_tmp = accept_S1;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    if (accept_S2 == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
+    accept_S1_tmp = 0;
+    accept_S1 = accept_S1_tmp;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
 
-/*@ requires
-      1 ≡ accept_S2 ∧ 0 ≡ accept_S1 ∧ 0 ≡ accept_S3 ∧
-      0 ≡ accept_S4 ∧ 0 ≡ accept_init;
-    requires 1 ≡ accept_S2 ⇒ status ≢ 0 ∨ status ≡ 0;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_init_trans;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
-            accept_S3, accept_S4, accept_init;
-    
-    behavior buch_state_accept_S1_out:
-      ensures 0 ≡ accept_S1;
-    
-    behavior buch_state_accept_S2_in:
-      assumes 1 ≡ accept_S2 ∧ status ≡ 0;
-      ensures 1 ≡ accept_S2;
-    
-    behavior buch_state_accept_S2_out:
-      assumes 0 ≡ accept_S2 ∨ ¬(status ≡ 0);
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_in:
-      assumes 1 ≡ accept_S2 ∧ status ≢ 0;
-      ensures 1 ≡ accept_S4;
-    
-    behavior buch_state_accept_S4_out:
-      assumes 0 ≡ accept_S2 ∨ status ≡ 0;
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void init_trans_post_func(int res)
-{
-  /*@ ghost int accept_S1_tmp; */
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_init_trans;
-  accept_S1_tmp = accept_S1;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  if (accept_S2 == 1) 
-    if (status != 0) accept_S4_tmp = 1; else accept_S4_tmp = 0;
-  else accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  if (accept_S2 == 1) 
-    if (status == 0) accept_S2_tmp = 1; else accept_S2_tmp = 0;
-  else accept_S2_tmp = 0;
-  accept_S1_tmp = 0;
-  accept_S1 = accept_S1_tmp;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       1 ≡ accept_S2 ∧ 0 ≡ accept_S1 ∧ 0 ≡ accept_S3 ∧
+       0 ≡ accept_S4 ∧ 0 ≡ accept_init;
+     requires 1 ≡ accept_S2 ⇒ status ≢ 0 ∨ status ≡ 0;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_init_trans;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
+             accept_S3, accept_S4, accept_init;
+     
+     behavior buch_state_accept_S1_out:
+       ensures 0 ≡ accept_S1;
+     
+     behavior buch_state_accept_S2_in:
+       assumes 1 ≡ accept_S2 ∧ status ≡ 0;
+       ensures 1 ≡ accept_S2;
+     
+     behavior buch_state_accept_S2_out:
+       assumes 0 ≡ accept_S2 ∨ ¬(status ≡ 0);
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_in:
+       assumes 1 ≡ accept_S2 ∧ status ≢ 0;
+       ensures 1 ≡ accept_S4;
+     
+     behavior buch_state_accept_S4_out:
+       assumes 0 ≡ accept_S2 ∨ status ≡ 0;
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void init_trans_post_func(int res)
+  {
+    int accept_S1_tmp;
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_init_trans;
+    accept_S1_tmp = accept_S1;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    if (accept_S2 == 1) 
+      if (status != 0) accept_S4_tmp = 1; else accept_S4_tmp = 0;
+    else accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    if (accept_S2 == 1) 
+      if (status == 0) accept_S2_tmp = 1; else accept_S2_tmp = 0;
+    else accept_S2_tmp = 0;
+    accept_S1_tmp = 0;
+    accept_S1 = accept_S1_tmp;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       1 ≡ accept_S2 ∧ 0 ≡ accept_S1 ∧ 0 ≡ accept_S3 ∧
@@ -291,128 +303,134 @@ void init_trans_post_func(int res)
 int init_trans(void)
 {
   int __retres;
-  init_trans_pre_func();
+  /*@ ghost init_trans_pre_func(); */
   __retres = 1;
-  init_trans_post_func(__retres);
+  /*@ ghost init_trans_post_func(__retres); */
   return __retres;
 }
 
-/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
-            accept_S3, accept_S4, accept_init;
-    
-    behavior buch_state_accept_S1_out:
-      ensures 0 ≡ accept_S1;
-    
-    behavior buch_state_accept_S2_in:
-      assumes 1 ≡ accept_init;
-      ensures 1 ≡ accept_S2;
-    
-    behavior buch_state_accept_S2_out:
-      assumes 0 ≡ accept_init;
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_out:
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void main_pre_func(void)
-{
-  /*@ ghost int accept_S1_tmp; */
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Called;
-  aorai_CurOperation = op_main;
-  accept_S1_tmp = accept_S1;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_S4_tmp = 0;
-  accept_S3_tmp = 0;
-  if (accept_init == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
-  accept_S1_tmp = 0;
-  accept_S1 = accept_S1_tmp;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+/*@ ghost
+  /@ ensures aorai_CurOpStatus ≡ aorai_Called;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
+             accept_S3, accept_S4, accept_init;
+     
+     behavior buch_state_accept_S1_out:
+       ensures 0 ≡ accept_S1;
+     
+     behavior buch_state_accept_S2_in:
+       assumes 1 ≡ accept_init;
+       ensures 1 ≡ accept_S2;
+     
+     behavior buch_state_accept_S2_out:
+       assumes 0 ≡ accept_init;
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_out:
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void main_pre_func(void)
+  {
+    int accept_S1_tmp;
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Called;
+    aorai_CurOperation = op_main;
+    accept_S1_tmp = accept_S1;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_S4_tmp = 0;
+    accept_S3_tmp = 0;
+    if (accept_init == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
+    accept_S1_tmp = 0;
+    accept_S1 = accept_S1_tmp;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
 
-/*@ requires
-      1 ≡ accept_S2 ∧ 0 ≡ accept_S1 ∧ 0 ≡ accept_S3 ∧
-      0 ≡ accept_S4 ∧ 0 ≡ accept_init;
-    ensures aorai_CurOpStatus ≡ aorai_Terminated;
-    ensures aorai_CurOperation ≡ op_main;
-    assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
-            accept_S3, accept_S4, accept_init;
-    
-    behavior buch_state_accept_S1_in:
-      assumes 1 ≡ accept_S2;
-      ensures 1 ≡ accept_S1;
-    
-    behavior buch_state_accept_S1_out:
-      assumes 0 ≡ accept_S2;
-      ensures 0 ≡ accept_S1;
-    
-    behavior buch_state_accept_S2_in:
-      assumes 1 ≡ accept_S2;
-      ensures 1 ≡ accept_S2;
-    
-    behavior buch_state_accept_S2_out:
-      assumes 0 ≡ accept_S2;
-      ensures 0 ≡ accept_S2;
-    
-    behavior buch_state_accept_S3_in:
-      assumes 1 ≡ accept_S2;
-      ensures 1 ≡ accept_S3;
-    
-    behavior buch_state_accept_S3_out:
-      assumes 0 ≡ accept_S2;
-      ensures 0 ≡ accept_S3;
-    
-    behavior buch_state_accept_S4_out:
-      ensures 0 ≡ accept_S4;
-    
-    behavior buch_state_accept_init_out:
-      ensures 0 ≡ accept_init;
- */
-void main_post_func(int res)
-{
-  /*@ ghost int accept_S1_tmp; */
-  /*@ ghost int accept_S2_tmp; */
-  /*@ ghost int accept_S3_tmp; */
-  /*@ ghost int accept_S4_tmp; */
-  /*@ ghost int accept_init_tmp; */
-  aorai_CurOpStatus = aorai_Terminated;
-  aorai_CurOperation = op_main;
-  accept_S1_tmp = accept_S1;
-  accept_S2_tmp = accept_S2;
-  accept_S3_tmp = accept_S3;
-  accept_S4_tmp = accept_S4;
-  accept_init_tmp = accept_init;
-  accept_init_tmp = 0;
-  accept_S4_tmp = 0;
-  if (accept_S2 == 1) accept_S3_tmp = 1; else accept_S3_tmp = 0;
-  if (accept_S2 == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
-  if (accept_S2 == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
-  accept_S1 = accept_S1_tmp;
-  accept_S2 = accept_S2_tmp;
-  accept_S3 = accept_S3_tmp;
-  accept_S4 = accept_S4_tmp;
-  accept_init = accept_init_tmp;
-  return;
-}
+*/
+
+/*@ ghost
+  /@ requires
+       1 ≡ accept_S2 ∧ 0 ≡ accept_S1 ∧ 0 ≡ accept_S3 ∧
+       0 ≡ accept_S4 ∧ 0 ≡ accept_init;
+     ensures aorai_CurOpStatus ≡ aorai_Terminated;
+     ensures aorai_CurOperation ≡ op_main;
+     assigns aorai_CurOpStatus, aorai_CurOperation, accept_S1, accept_S2,
+             accept_S3, accept_S4, accept_init;
+     
+     behavior buch_state_accept_S1_in:
+       assumes 1 ≡ accept_S2;
+       ensures 1 ≡ accept_S1;
+     
+     behavior buch_state_accept_S1_out:
+       assumes 0 ≡ accept_S2;
+       ensures 0 ≡ accept_S1;
+     
+     behavior buch_state_accept_S2_in:
+       assumes 1 ≡ accept_S2;
+       ensures 1 ≡ accept_S2;
+     
+     behavior buch_state_accept_S2_out:
+       assumes 0 ≡ accept_S2;
+       ensures 0 ≡ accept_S2;
+     
+     behavior buch_state_accept_S3_in:
+       assumes 1 ≡ accept_S2;
+       ensures 1 ≡ accept_S3;
+     
+     behavior buch_state_accept_S3_out:
+       assumes 0 ≡ accept_S2;
+       ensures 0 ≡ accept_S3;
+     
+     behavior buch_state_accept_S4_out:
+       ensures 0 ≡ accept_S4;
+     
+     behavior buch_state_accept_init_out:
+       ensures 0 ≡ accept_init;
+   @/
+  void main_post_func(int res)
+  {
+    int accept_S1_tmp;
+    int accept_S2_tmp;
+    int accept_S3_tmp;
+    int accept_S4_tmp;
+    int accept_init_tmp;
+    aorai_CurOpStatus = aorai_Terminated;
+    aorai_CurOperation = op_main;
+    accept_S1_tmp = accept_S1;
+    accept_S2_tmp = accept_S2;
+    accept_S3_tmp = accept_S3;
+    accept_S4_tmp = accept_S4;
+    accept_init_tmp = accept_init;
+    accept_init_tmp = 0;
+    accept_S4_tmp = 0;
+    if (accept_S2 == 1) accept_S3_tmp = 1; else accept_S3_tmp = 0;
+    if (accept_S2 == 1) accept_S2_tmp = 1; else accept_S2_tmp = 0;
+    if (accept_S2 == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
+    accept_S1 = accept_S1_tmp;
+    accept_S2 = accept_S2_tmp;
+    accept_S3 = accept_S3_tmp;
+    accept_S4 = accept_S4_tmp;
+    accept_init = accept_init_tmp;
+    return;
+  }
+
+*/
 
 /*@ requires
       1 ≡ accept_init ∧ 0 ≡ accept_S1 ∧ 0 ≡ accept_S2 ∧
@@ -436,9 +454,9 @@ void main_post_func(int res)
  */
 int main(void)
 {
-  int aorai_Loop_Init_7;
+  /*@ ghost int aorai_Loop_Init_7; */
   int __retres;
-  main_pre_func();
+  /*@ ghost main_pre_func(); */
   cpt = 3;
   status = 0;
   /*@ ghost aorai_Loop_Init_7 = 1; */
@@ -466,7 +484,7 @@ int main(void)
   goto return_label;
   label_ok: __retres = 1;
   return_label: {
-                  main_post_func(__retres);
+                  /*@ ghost main_post_func(__retres); */
                   return __retres;
                 }
 }

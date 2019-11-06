@@ -47,7 +47,7 @@ let pretty = STR.pretty
 let cluster () =
   Definitions.cluster ~id:"cstring" ~title:"String Literals" ()
 
-module LIT = Model.Generator(STR)
+module LIT = WpContext.Generator(STR)
     (struct
       type key = cst
       type data = int * F.term

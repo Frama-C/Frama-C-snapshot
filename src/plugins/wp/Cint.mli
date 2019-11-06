@@ -71,9 +71,8 @@ val f_lxor : lfun
 val f_lor  : lfun
 val f_lsl  : lfun
 val f_lsr  : lfun
-val f_bit  : lfun
 
-val f_bitwised : lfun list (** All except f_bit *)
+val f_bitwised : lfun list (** All except f_bit_positive *)
 
 (** Simplifiers *)
 

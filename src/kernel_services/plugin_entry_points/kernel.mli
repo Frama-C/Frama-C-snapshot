@@ -299,7 +299,7 @@ module BigIntsHex: Parameter_sig.Int
 module SaveState: Parameter_sig.String
   (** Behavior of option "-save" *)
 
-module LoadState: Parameter_sig.String
+module LoadState: Parameter_sig.Filepath
   (** Behavior of option "-load" *)
 
 module LoadModule: Parameter_sig.String_list
@@ -396,7 +396,10 @@ module KeepSwitch: Parameter_sig.Bool
   (** Behavior of option "-keep-switch" *)
 
 module Keep_unused_specified_functions: Parameter_sig.Bool
-(** Behavior of option "-keep-unused-specified-function". *)
+(** Behavior of option "-keep-unused-specified-functions". *)
+
+module Keep_unused_types: Parameter_sig.Bool
+(** Behavior of option "-keep-unused-types". *)
 
 module SimplifyTrivialLoops: Parameter_sig.Bool
 (** Behavior of option "-simplify-trivial-loops". *)

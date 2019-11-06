@@ -1,0 +1,4 @@
+[kernel] Parsing tests/wp_region/fb_ADD.i (no preprocessing)
+[wp] Region Graph: tests/wp_region/result/fb_ADD/region/job.dot
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards

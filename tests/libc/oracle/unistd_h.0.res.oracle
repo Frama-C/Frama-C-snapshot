@@ -1,12 +1,15 @@
 [kernel] Parsing tests/libc/unistd_h.c (with preprocessing)
 [eva] Splitting return states on:
   \return(access) == 0 (auto)
+  \return(chdir) == 0 (auto)
+  \return(chroot) == 0 (auto)
   \return(chown) == 0 (auto)
   \return(dup) == -1 (auto)
   \return(getcwd) == 0 (auto)
   \return(gethostname) == 0 (auto)
   \return(getpgrp) == 0 (auto)
   \return(isatty) == 0 (auto)
+  \return(pipe) == 0 (auto)
   \return(setegid) == 0 (auto)
   \return(seteuid) == 0 (auto)
   \return(setgid) == 0 (auto)
@@ -79,428 +82,482 @@
   Called from tests/libc/unistd_h.c:22.
 [eva] Done for function dup
 [eva] tests/libc/unistd_h.c:23: assertion got status valid.
+[eva] computing for function lseek <- main.
+  Called from tests/libc/unistd_h.c:27.
+[eva] using specification for function lseek
+[eva] tests/libc/unistd_h.c:27: 
+  function lseek: precondition 'valid_fd' got status valid.
+[eva] tests/libc/unistd_h.c:27: 
+  function lseek: precondition 'valid_whence' got status valid.
+[eva] Done for function lseek
+[eva] computing for function lseek <- main.
+  Called from tests/libc/unistd_h.c:27.
+[eva] Done for function lseek
 [eva] computing for function dup2 <- main.
-  Called from tests/libc/unistd_h.c:26.
+  Called from tests/libc/unistd_h.c:30.
 [eva] using specification for function dup2
-[eva] tests/libc/unistd_h.c:26: 
+[eva] tests/libc/unistd_h.c:30: 
   function dup2: precondition 'valid_fildes' got status valid.
-[eva] tests/libc/unistd_h.c:26: 
+[eva] tests/libc/unistd_h.c:30: 
   function dup2: precondition 'valid_fildes2' got status valid.
 [eva] Done for function dup2
 [eva] computing for function dup2 <- main.
-  Called from tests/libc/unistd_h.c:26.
+  Called from tests/libc/unistd_h.c:30.
 [eva] Done for function dup2
 [eva] computing for function dup2 <- main.
-  Called from tests/libc/unistd_h.c:28.
-[eva] tests/libc/unistd_h.c:28: 
+  Called from tests/libc/unistd_h.c:32.
+[eva] tests/libc/unistd_h.c:32: 
   function dup2: precondition 'valid_fildes' got status valid.
-[eva:alarm] tests/libc/unistd_h.c:28: Warning: 
+[eva:alarm] tests/libc/unistd_h.c:32: Warning: 
   function dup2: precondition 'valid_fildes2' got status invalid.
 [eva] Done for function dup2
 [eva] computing for function dup2 <- main.
-  Called from tests/libc/unistd_h.c:28.
+  Called from tests/libc/unistd_h.c:32.
 [eva] Done for function dup2
 [eva] computing for function dup2 <- main.
-  Called from tests/libc/unistd_h.c:28.
+  Called from tests/libc/unistd_h.c:32.
 [eva] Done for function dup2
 [eva] computing for function dup2 <- main.
-  Called from tests/libc/unistd_h.c:28.
+  Called from tests/libc/unistd_h.c:32.
 [eva] Done for function dup2
 [eva] computing for function fork <- main.
-  Called from tests/libc/unistd_h.c:32.
+  Called from tests/libc/unistd_h.c:36.
 [eva] using specification for function fork
 [eva] Done for function fork
 [eva] computing for function fork <- main.
-  Called from tests/libc/unistd_h.c:32.
+  Called from tests/libc/unistd_h.c:36.
 [eva] Done for function fork
 [eva] computing for function fork <- main.
-  Called from tests/libc/unistd_h.c:32.
+  Called from tests/libc/unistd_h.c:36.
 [eva] Done for function fork
 [eva] computing for function fork <- main.
-  Called from tests/libc/unistd_h.c:32.
+  Called from tests/libc/unistd_h.c:36.
 [eva] Done for function fork
-[eva] tests/libc/unistd_h.c:33: assertion got status valid.
+[eva] tests/libc/unistd_h.c:37: assertion got status valid.
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] using specification for function setsid
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function setsid <- main.
-  Called from tests/libc/unistd_h.c:35.
+  Called from tests/libc/unistd_h.c:39.
 [eva] Done for function setsid
 [eva] computing for function sync <- main.
-  Called from tests/libc/unistd_h.c:37.
+  Called from tests/libc/unistd_h.c:41.
 [eva] using specification for function sync
 [eva] Done for function sync
 [eva] computing for function sysconf <- main.
-  Called from tests/libc/unistd_h.c:39.
+  Called from tests/libc/unistd_h.c:43.
 [eva] using specification for function sysconf
 [eva] Done for function sysconf
 [eva] computing for function getcwd <- main.
-  Called from tests/libc/unistd_h.c:42.
+  Called from tests/libc/unistd_h.c:46.
 [eva] using specification for function getcwd
-[eva] tests/libc/unistd_h.c:42: 
+[eva] tests/libc/unistd_h.c:46: 
   function getcwd: precondition 'valid_buf' got status valid.
 [eva] Done for function getcwd
-[eva] tests/libc/unistd_h.c:44: assertion got status valid.
-[eva:alarm] tests/libc/unistd_h.c:45: Warning: assertion got status unknown.
+[eva] tests/libc/unistd_h.c:48: assertion got status valid.
+[eva:alarm] tests/libc/unistd_h.c:49: Warning: assertion got status unknown.
 [eva] computing for function pathconf <- main.
-  Called from tests/libc/unistd_h.c:48.
+  Called from tests/libc/unistd_h.c:52.
 [eva] using specification for function pathconf
-[eva] tests/libc/unistd_h.c:48: 
+[eva] tests/libc/unistd_h.c:52: 
   function pathconf: precondition 'valid_path' got status valid.
 [eva] Done for function pathconf
 [eva] computing for function pathconf <- main.
-  Called from tests/libc/unistd_h.c:48.
+  Called from tests/libc/unistd_h.c:52.
 [eva] Done for function pathconf
 [eva] computing for function getresuid <- main.
-  Called from tests/libc/unistd_h.c:51.
+  Called from tests/libc/unistd_h.c:55.
 [eva] using specification for function getresuid
-[eva] tests/libc/unistd_h.c:51: 
+[eva] tests/libc/unistd_h.c:55: 
   function getresuid: precondition 'valid_ruid' got status valid.
-[eva] tests/libc/unistd_h.c:51: 
+[eva] tests/libc/unistd_h.c:55: 
   function getresuid: precondition 'valid_euid' got status valid.
-[eva] tests/libc/unistd_h.c:51: 
+[eva] tests/libc/unistd_h.c:55: 
   function getresuid: precondition 'valid_suid' got status valid.
 [eva] Done for function getresuid
 [eva] computing for function getresuid <- main.
-  Called from tests/libc/unistd_h.c:51.
+  Called from tests/libc/unistd_h.c:55.
 [eva] Done for function getresuid
 [eva] computing for function setresuid <- main.
-  Called from tests/libc/unistd_h.c:53.
+  Called from tests/libc/unistd_h.c:57.
 [eva] using specification for function setresuid
 [eva] Done for function setresuid
 [eva] computing for function setresuid <- main.
-  Called from tests/libc/unistd_h.c:53.
-[eva] Done for function setresuid
-[eva] tests/libc/unistd_h.c:54: assertion got status valid.
-[eva] computing for function getresgid <- main.
   Called from tests/libc/unistd_h.c:57.
+[eva] Done for function setresuid
+[eva] tests/libc/unistd_h.c:58: assertion got status valid.
+[eva] computing for function getresgid <- main.
+  Called from tests/libc/unistd_h.c:61.
 [eva] using specification for function getresgid
-[eva] tests/libc/unistd_h.c:57: 
+[eva] tests/libc/unistd_h.c:61: 
   function getresgid: precondition 'valid_rgid' got status valid.
-[eva] tests/libc/unistd_h.c:57: 
+[eva] tests/libc/unistd_h.c:61: 
   function getresgid: precondition 'valid_egid' got status valid.
-[eva] tests/libc/unistd_h.c:57: 
+[eva] tests/libc/unistd_h.c:61: 
   function getresgid: precondition 'valid_sgid' got status valid.
 [eva] Done for function getresgid
 [eva] computing for function getresgid <- main.
-  Called from tests/libc/unistd_h.c:57.
+  Called from tests/libc/unistd_h.c:61.
 [eva] Done for function getresgid
 [eva] computing for function getresgid <- main.
-  Called from tests/libc/unistd_h.c:57.
+  Called from tests/libc/unistd_h.c:61.
 [eva] Done for function getresgid
 [eva] computing for function getresgid <- main.
-  Called from tests/libc/unistd_h.c:57.
+  Called from tests/libc/unistd_h.c:61.
 [eva] Done for function getresgid
 [eva] computing for function setresgid <- main.
-  Called from tests/libc/unistd_h.c:59.
+  Called from tests/libc/unistd_h.c:63.
 [eva] using specification for function setresgid
 [eva] Done for function setresgid
 [eva] computing for function setresgid <- main.
-  Called from tests/libc/unistd_h.c:59.
+  Called from tests/libc/unistd_h.c:63.
 [eva] Done for function setresgid
-[eva] tests/libc/unistd_h.c:60: assertion got status valid.
+[eva] tests/libc/unistd_h.c:64: assertion got status valid.
 [eva] computing for function getpid <- main.
-  Called from tests/libc/unistd_h.c:62.
+  Called from tests/libc/unistd_h.c:66.
 [eva] using specification for function getpid
 [eva] Done for function getpid
 [eva] computing for function getpid <- main.
-  Called from tests/libc/unistd_h.c:62.
+  Called from tests/libc/unistd_h.c:66.
 [eva] Done for function getpid
 [eva] computing for function getpid <- main.
-  Called from tests/libc/unistd_h.c:62.
+  Called from tests/libc/unistd_h.c:66.
 [eva] Done for function getpid
 [eva] computing for function getpid <- main.
-  Called from tests/libc/unistd_h.c:62.
+  Called from tests/libc/unistd_h.c:66.
 [eva] Done for function getpid
 [eva] computing for function getppid <- main.
-  Called from tests/libc/unistd_h.c:63.
+  Called from tests/libc/unistd_h.c:67.
 [eva] using specification for function getppid
 [eva] Done for function getppid
 [eva] computing for function getppid <- main.
-  Called from tests/libc/unistd_h.c:63.
+  Called from tests/libc/unistd_h.c:67.
 [eva] Done for function getppid
 [eva] computing for function getppid <- main.
-  Called from tests/libc/unistd_h.c:63.
+  Called from tests/libc/unistd_h.c:67.
 [eva] Done for function getppid
 [eva] computing for function getppid <- main.
-  Called from tests/libc/unistd_h.c:63.
+  Called from tests/libc/unistd_h.c:67.
 [eva] Done for function getppid
 [eva] computing for function getsid <- main.
-  Called from tests/libc/unistd_h.c:64.
+  Called from tests/libc/unistd_h.c:68.
 [eva] using specification for function getsid
 [eva] Done for function getsid
 [eva] computing for function getsid <- main.
-  Called from tests/libc/unistd_h.c:64.
+  Called from tests/libc/unistd_h.c:68.
 [eva] Done for function getsid
 [eva] computing for function getsid <- main.
-  Called from tests/libc/unistd_h.c:64.
+  Called from tests/libc/unistd_h.c:68.
 [eva] Done for function getsid
 [eva] computing for function getsid <- main.
-  Called from tests/libc/unistd_h.c:64.
+  Called from tests/libc/unistd_h.c:68.
 [eva] Done for function getsid
 [eva] computing for function getuid <- main.
-  Called from tests/libc/unistd_h.c:65.
+  Called from tests/libc/unistd_h.c:69.
 [eva] using specification for function getuid
 [eva] Done for function getuid
 [eva] computing for function getuid <- main.
-  Called from tests/libc/unistd_h.c:65.
+  Called from tests/libc/unistd_h.c:69.
 [eva] Done for function getuid
 [eva] computing for function getuid <- main.
-  Called from tests/libc/unistd_h.c:65.
+  Called from tests/libc/unistd_h.c:69.
 [eva] Done for function getuid
 [eva] computing for function getuid <- main.
-  Called from tests/libc/unistd_h.c:65.
+  Called from tests/libc/unistd_h.c:69.
 [eva] Done for function getuid
 [eva] computing for function getgid <- main.
-  Called from tests/libc/unistd_h.c:66.
+  Called from tests/libc/unistd_h.c:70.
 [eva] using specification for function getgid
 [eva] Done for function getgid
 [eva] computing for function getgid <- main.
-  Called from tests/libc/unistd_h.c:66.
+  Called from tests/libc/unistd_h.c:70.
 [eva] Done for function getgid
 [eva] computing for function getgid <- main.
-  Called from tests/libc/unistd_h.c:66.
+  Called from tests/libc/unistd_h.c:70.
 [eva] Done for function getgid
 [eva] computing for function getgid <- main.
-  Called from tests/libc/unistd_h.c:66.
+  Called from tests/libc/unistd_h.c:70.
 [eva] Done for function getgid
 [eva] computing for function geteuid <- main.
-  Called from tests/libc/unistd_h.c:67.
+  Called from tests/libc/unistd_h.c:71.
 [eva] using specification for function geteuid
 [eva] Done for function geteuid
 [eva] computing for function geteuid <- main.
-  Called from tests/libc/unistd_h.c:67.
+  Called from tests/libc/unistd_h.c:71.
 [eva] Done for function geteuid
 [eva] computing for function geteuid <- main.
-  Called from tests/libc/unistd_h.c:67.
+  Called from tests/libc/unistd_h.c:71.
 [eva] Done for function geteuid
 [eva] computing for function geteuid <- main.
-  Called from tests/libc/unistd_h.c:67.
+  Called from tests/libc/unistd_h.c:71.
 [eva] Done for function geteuid
 [eva] computing for function getegid <- main.
-  Called from tests/libc/unistd_h.c:68.
+  Called from tests/libc/unistd_h.c:72.
 [eva] using specification for function getegid
 [eva] Done for function getegid
 [eva] computing for function getegid <- main.
-  Called from tests/libc/unistd_h.c:68.
+  Called from tests/libc/unistd_h.c:72.
 [eva] Done for function getegid
 [eva] computing for function getegid <- main.
-  Called from tests/libc/unistd_h.c:68.
+  Called from tests/libc/unistd_h.c:72.
 [eva] Done for function getegid
 [eva] computing for function getegid <- main.
-  Called from tests/libc/unistd_h.c:68.
+  Called from tests/libc/unistd_h.c:72.
 [eva] Done for function getegid
 [eva] computing for function setegid <- main.
-  Called from tests/libc/unistd_h.c:69.
+  Called from tests/libc/unistd_h.c:73.
 [eva] using specification for function setegid
 [eva] Done for function setegid
 [eva] computing for function setegid <- main.
-  Called from tests/libc/unistd_h.c:69.
+  Called from tests/libc/unistd_h.c:73.
 [eva] Done for function setegid
 [eva] computing for function setegid <- main.
-  Called from tests/libc/unistd_h.c:69.
+  Called from tests/libc/unistd_h.c:73.
 [eva] Done for function setegid
 [eva] computing for function setegid <- main.
-  Called from tests/libc/unistd_h.c:69.
+  Called from tests/libc/unistd_h.c:73.
 [eva] Done for function setegid
 [eva] computing for function seteuid <- main.
-  Called from tests/libc/unistd_h.c:70.
+  Called from tests/libc/unistd_h.c:74.
 [eva] using specification for function seteuid
 [eva] Done for function seteuid
 [eva] computing for function seteuid <- main.
-  Called from tests/libc/unistd_h.c:70.
+  Called from tests/libc/unistd_h.c:74.
 [eva] Done for function seteuid
 [eva] computing for function seteuid <- main.
-  Called from tests/libc/unistd_h.c:70.
+  Called from tests/libc/unistd_h.c:74.
 [eva] Done for function seteuid
 [eva] computing for function seteuid <- main.
-  Called from tests/libc/unistd_h.c:70.
+  Called from tests/libc/unistd_h.c:74.
 [eva] Done for function seteuid
 [eva] computing for function setgid <- main.
-  Called from tests/libc/unistd_h.c:71.
+  Called from tests/libc/unistd_h.c:75.
 [eva] using specification for function setgid
 [eva] Done for function setgid
 [eva] computing for function setgid <- main.
-  Called from tests/libc/unistd_h.c:71.
+  Called from tests/libc/unistd_h.c:75.
 [eva] Done for function setgid
 [eva] computing for function setgid <- main.
-  Called from tests/libc/unistd_h.c:71.
+  Called from tests/libc/unistd_h.c:75.
 [eva] Done for function setgid
 [eva] computing for function setgid <- main.
-  Called from tests/libc/unistd_h.c:71.
+  Called from tests/libc/unistd_h.c:75.
 [eva] Done for function setgid
 [eva] computing for function setuid <- main.
-  Called from tests/libc/unistd_h.c:72.
+  Called from tests/libc/unistd_h.c:76.
 [eva] using specification for function setuid
 [eva] Done for function setuid
 [eva] computing for function setuid <- main.
-  Called from tests/libc/unistd_h.c:72.
+  Called from tests/libc/unistd_h.c:76.
 [eva] Done for function setuid
 [eva] computing for function setuid <- main.
-  Called from tests/libc/unistd_h.c:72.
+  Called from tests/libc/unistd_h.c:76.
 [eva] Done for function setuid
 [eva] computing for function setuid <- main.
-  Called from tests/libc/unistd_h.c:72.
+  Called from tests/libc/unistd_h.c:76.
 [eva] Done for function setuid
 [eva] computing for function setregid <- main.
-  Called from tests/libc/unistd_h.c:73.
+  Called from tests/libc/unistd_h.c:77.
 [eva] using specification for function setregid
 [eva] Done for function setregid
 [eva] computing for function setregid <- main.
-  Called from tests/libc/unistd_h.c:73.
+  Called from tests/libc/unistd_h.c:77.
 [eva] Done for function setregid
 [eva] computing for function setregid <- main.
-  Called from tests/libc/unistd_h.c:73.
+  Called from tests/libc/unistd_h.c:77.
 [eva] Done for function setregid
 [eva] computing for function setregid <- main.
-  Called from tests/libc/unistd_h.c:73.
+  Called from tests/libc/unistd_h.c:77.
 [eva] Done for function setregid
 [eva] computing for function setreuid <- main.
-  Called from tests/libc/unistd_h.c:74.
+  Called from tests/libc/unistd_h.c:78.
 [eva] using specification for function setreuid
 [eva] Done for function setreuid
 [eva] computing for function setreuid <- main.
-  Called from tests/libc/unistd_h.c:74.
+  Called from tests/libc/unistd_h.c:78.
 [eva] Done for function setreuid
 [eva] computing for function setreuid <- main.
-  Called from tests/libc/unistd_h.c:74.
+  Called from tests/libc/unistd_h.c:78.
 [eva] Done for function setreuid
 [eva] computing for function setreuid <- main.
-  Called from tests/libc/unistd_h.c:74.
+  Called from tests/libc/unistd_h.c:78.
 [eva] Done for function setreuid
 [eva] computing for function getpgid <- main.
-  Called from tests/libc/unistd_h.c:75.
+  Called from tests/libc/unistd_h.c:79.
 [eva] using specification for function getpgid
 [eva] Done for function getpgid
 [eva] computing for function getpgid <- main.
-  Called from tests/libc/unistd_h.c:75.
+  Called from tests/libc/unistd_h.c:79.
 [eva] Done for function getpgid
 [eva] computing for function getpgid <- main.
-  Called from tests/libc/unistd_h.c:75.
+  Called from tests/libc/unistd_h.c:79.
 [eva] Done for function getpgid
 [eva] computing for function getpgid <- main.
-  Called from tests/libc/unistd_h.c:75.
+  Called from tests/libc/unistd_h.c:79.
 [eva] Done for function getpgid
 [eva] computing for function setpgid <- main.
-  Called from tests/libc/unistd_h.c:75.
+  Called from tests/libc/unistd_h.c:79.
 [eva] using specification for function setpgid
 [eva] Done for function setpgid
 [eva] computing for function setpgid <- main.
-  Called from tests/libc/unistd_h.c:75.
+  Called from tests/libc/unistd_h.c:79.
 [eva] Done for function setpgid
 [eva] computing for function setpgid <- main.
-  Called from tests/libc/unistd_h.c:75.
+  Called from tests/libc/unistd_h.c:79.
 [eva] Done for function setpgid
 [eva] computing for function setpgid <- main.
-  Called from tests/libc/unistd_h.c:75.
+  Called from tests/libc/unistd_h.c:79.
 [eva] Done for function setpgid
 [eva] computing for function getpgrp <- main.
-  Called from tests/libc/unistd_h.c:76.
+  Called from tests/libc/unistd_h.c:80.
 [eva] using specification for function getpgrp
 [eva] Done for function getpgrp
 [eva] computing for function getpgrp <- main.
-  Called from tests/libc/unistd_h.c:76.
+  Called from tests/libc/unistd_h.c:80.
 [eva] Done for function getpgrp
 [eva] computing for function getpgrp <- main.
-  Called from tests/libc/unistd_h.c:76.
+  Called from tests/libc/unistd_h.c:80.
 [eva] Done for function getpgrp
 [eva] computing for function getpgrp <- main.
-  Called from tests/libc/unistd_h.c:76.
+  Called from tests/libc/unistd_h.c:80.
 [eva] Done for function getpgrp
 [eva] computing for function unlink <- main.
-  Called from tests/libc/unistd_h.c:78.
+  Called from tests/libc/unistd_h.c:82.
 [eva] using specification for function unlink
-[eva] tests/libc/unistd_h.c:78: 
+[eva] tests/libc/unistd_h.c:82: 
   function unlink: precondition 'valid_string_path' got status valid.
 [eva] Done for function unlink
 [eva] computing for function unlink <- main.
-  Called from tests/libc/unistd_h.c:78.
+  Called from tests/libc/unistd_h.c:82.
 [eva] Done for function unlink
 [eva] computing for function isatty <- main.
-  Called from tests/libc/unistd_h.c:80.
+  Called from tests/libc/unistd_h.c:84.
 [eva] using specification for function isatty
 [eva] Done for function isatty
 [eva] computing for function isatty <- main.
-  Called from tests/libc/unistd_h.c:80.
+  Called from tests/libc/unistd_h.c:84.
 [eva] Done for function isatty
 [eva] computing for function isatty <- main.
-  Called from tests/libc/unistd_h.c:80.
+  Called from tests/libc/unistd_h.c:84.
 [eva] Done for function isatty
 [eva] computing for function isatty <- main.
-  Called from tests/libc/unistd_h.c:80.
+  Called from tests/libc/unistd_h.c:84.
 [eva] Done for function isatty
-[eva] tests/libc/unistd_h.c:81: assertion got status valid.
+[eva] tests/libc/unistd_h.c:85: assertion got status valid.
 [eva] computing for function ttyname <- main.
-  Called from tests/libc/unistd_h.c:82.
+  Called from tests/libc/unistd_h.c:86.
 [eva] using specification for function ttyname
+[eva] tests/libc/unistd_h.c:86: 
+  function ttyname: precondition 'valid_fildes' got status valid.
 [eva] Done for function ttyname
 [eva] computing for function ttyname <- main.
-  Called from tests/libc/unistd_h.c:82.
+  Called from tests/libc/unistd_h.c:86.
 [eva] Done for function ttyname
 [eva] computing for function ttyname <- main.
-  Called from tests/libc/unistd_h.c:82.
+  Called from tests/libc/unistd_h.c:86.
 [eva] Done for function ttyname
 [eva] computing for function ttyname <- main.
-  Called from tests/libc/unistd_h.c:82.
+  Called from tests/libc/unistd_h.c:86.
 [eva] Done for function ttyname
 [eva] computing for function chown <- main.
-  Called from tests/libc/unistd_h.c:84.
+  Called from tests/libc/unistd_h.c:88.
 [eva] using specification for function chown
-[eva] tests/libc/unistd_h.c:84: 
+[eva] tests/libc/unistd_h.c:88: 
   function chown: precondition 'valid_string_path' got status valid.
 [eva] Done for function chown
 [eva] computing for function chown <- main.
-  Called from tests/libc/unistd_h.c:84.
+  Called from tests/libc/unistd_h.c:88.
 [eva] Done for function chown
 [eva] computing for function chown <- main.
-  Called from tests/libc/unistd_h.c:84.
+  Called from tests/libc/unistd_h.c:88.
 [eva] Done for function chown
 [eva] computing for function chown <- main.
-  Called from tests/libc/unistd_h.c:84.
+  Called from tests/libc/unistd_h.c:88.
 [eva] Done for function chown
 [eva] computing for function chown <- main.
-  Called from tests/libc/unistd_h.c:84.
+  Called from tests/libc/unistd_h.c:88.
 [eva] Done for function chown
 [eva] computing for function chown <- main.
-  Called from tests/libc/unistd_h.c:84.
+  Called from tests/libc/unistd_h.c:88.
 [eva] Done for function chown
 [eva] computing for function chown <- main.
-  Called from tests/libc/unistd_h.c:84.
+  Called from tests/libc/unistd_h.c:88.
 [eva] Done for function chown
 [eva] computing for function chown <- main.
-  Called from tests/libc/unistd_h.c:84.
+  Called from tests/libc/unistd_h.c:88.
 [eva] Done for function chown
+[eva] computing for function chdir <- main.
+  Called from tests/libc/unistd_h.c:90.
+[eva] using specification for function chdir
+[eva] tests/libc/unistd_h.c:90: 
+  function chdir: precondition 'valid_string_path' got status valid.
+[eva] Done for function chdir
+[eva] computing for function chroot <- main.
+  Called from tests/libc/unistd_h.c:92.
+[eva] using specification for function chroot
+[eva] tests/libc/unistd_h.c:92: 
+  function chroot: precondition 'valid_string_path' got status valid.
+[eva] Done for function chroot
+[eva] computing for function chroot <- main.
+  Called from tests/libc/unistd_h.c:92.
+[eva] Done for function chroot
+[eva] computing for function pipe <- main.
+  Called from tests/libc/unistd_h.c:95.
+[eva] using specification for function pipe
+[eva:alarm] tests/libc/unistd_h.c:95: Warning: 
+  function pipe: precondition 'valid_pipefd' got status invalid.
+[eva] Done for function pipe
+[eva] computing for function pipe <- main.
+  Called from tests/libc/unistd_h.c:95.
+[eva] Done for function pipe
+[eva] computing for function pipe <- main.
+  Called from tests/libc/unistd_h.c:100.
+[eva:alarm] tests/libc/unistd_h.c:100: Warning: 
+  function pipe: precondition 'valid_pipefd' got status invalid.
+[eva] Done for function pipe
+[eva] computing for function pipe <- main.
+  Called from tests/libc/unistd_h.c:100.
+[eva] Done for function pipe
+[eva] computing for function pipe <- main.
+  Called from tests/libc/unistd_h.c:104.
+[eva] tests/libc/unistd_h.c:104: 
+  function pipe: precondition 'valid_pipefd' got status valid.
+[eva] Done for function pipe
+[eva] computing for function pipe <- main.
+  Called from tests/libc/unistd_h.c:104.
+[eva] Done for function pipe
+[eva] tests/libc/unistd_h.c:105: check 'ok' got status valid.
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
@@ -511,6 +568,7 @@
   r ∈ {-1; 0}
   hostname[0..255] ∈ [--..--] or UNINITIALIZED
   fd ∈ [-1..1023]
+  offset ∈ [-1..2147483647]
   fd2 ∈ [-1..1023]
   pid ∈ [-1..2147483647]
   l ∈ [--..--]
@@ -525,4 +583,6 @@
   sgid ∈ [--..--] or UNINITIALIZED
   p ∈ [--..--]
   tty ∈ {{ NULL ; &__fc_ttyname[0] }}
+  halfpipe ∈ UNINITIALIZED
+  pipefd[0..1] ∈ [0..1023] or UNINITIALIZED
   __retres ∈ {0; 1}

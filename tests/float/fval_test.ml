@@ -1,6 +1,18 @@
 (* Programmatic tests of the interval semantics of floating-point values in
    Fval. Run by fval_test.i. *)
 
+module Stdlib = struct
+  let sqrt = sqrt
+  let log = log
+  let log10 = log10
+  let exp = exp
+  let floor = floor
+  let ceil = ceil
+  let cos = cos
+  let sin = sin
+  let atan2 = atan2
+end
+
 open Fval
 
 (* If true, prints each operation performed for the tests. Otherwise, only
@@ -205,16 +217,16 @@ let test_forward_unop () =
     List.iter (fun fkind -> test_unop ?exact fkind op fval_op str_op) fkinds
   in
   test_unop ( ~-. ) (fun _ -> neg) "-.";
-  test_unop Pervasives.sqrt sqrt "sqrt";
-  test_unop Pervasives.log log "log";
-  test_unop Pervasives.log10 log10 "log10";
-  test_unop Pervasives.exp exp "exp";
-  test_unop Pervasives.floor floor "floor";
-  test_unop Pervasives.ceil ceil "ceil";
+  test_unop Stdlib.sqrt sqrt "sqrt";
+  test_unop Stdlib.log log "log";
+  test_unop Stdlib.log10 log10 "log10";
+  test_unop Stdlib.exp exp "exp";
+  test_unop Stdlib.floor floor "floor";
+  test_unop Stdlib.ceil ceil "ceil";
   (* TODO: use interesting floating-point values for trigonometry. *)
-  test_unop ~fkinds:[Double] Pervasives.cos cos "cos";
+  test_unop ~fkinds:[Double] Stdlib.cos cos "cos";
   test_unop ~fkinds:[Single] Floating_point.cosf cos "cos";
-  test_unop ~fkinds:[Double] Pervasives.sin sin "sin";
+  test_unop ~fkinds:[Double] Stdlib.sin sin "sin";
   test_unop ~fkinds:[Single] Floating_point.sinf sin "sin";
   test_unop ~exact:false ~fkinds:[Single; Double]
     (fun f -> f) reinterpret "reinterpret";
@@ -238,7 +250,7 @@ let test_forward_binop () =
   test_binop ~pow:false [Single; Double] mod_float fmod "mod";
   test_binop ~pow:true [Double] ( ** ) pow "pow";
   test_binop ~pow:true [Single] Floating_point.powf pow "pow";
-  test_binop ~pow:false [Double] Pervasives.atan2 atan2 "atan2";
+  test_binop ~pow:false [Double] Stdlib.atan2 atan2 "atan2";
   test_binop ~pow:false [Single] Floating_point.atan2f atan2 "atan2"
 
 let interesting_for_comp =

@@ -28,6 +28,7 @@ open Lang.F
 
 type cluster
 
+val dummy : unit -> cluster
 val cluster : id:string -> ?title:string -> ?position:Filepath.position -> unit -> cluster
 val axiomatic : axiomatic -> cluster
 val section : logic_section -> cluster
@@ -88,7 +89,7 @@ val compile_lemma  : (logic_lemma -> dlemma) -> logic_lemma -> unit
 val define_lemma  : dlemma -> unit
 val define_type   : cluster -> logic_type_info -> unit
 
-val call_fun : lfun -> (lfun -> dfun) -> term list -> term
+val call_fun : result:tau -> lfun -> (lfun -> dfun) -> term list -> term
 val call_pred : lfun -> (lfun -> dfun) -> term list -> pred
 
 type axioms = cluster * logic_lemma list

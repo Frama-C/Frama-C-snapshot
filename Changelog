@@ -13,6 +13,64 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 
+##################################
+Open Source Release <next-release>
+##################################
+
+####################################
+Open Source Release 20.0 (Calcium)
+####################################
+
+-!  Kernel    [2019/10/31] More stringent verifications on the use of ghost
+              variable in non ghost-code. Fixes #2421
+-   MdR       [2019/10/31] New plug-in Markdown-Report (MdR) for markdown and
+              SARIF outputs
+-   Eva       [2019/10/23] New option -eva-auto-loop-unroll N to unroll all
+              loops whose number of iterations can be easily bounded by <N>.
+-   Eva       [2019/10/21] New octagon domain inferring relations of the form
+              l ≤ ±X±Y ≤ e between pairs of integer variables X and Y. Enabled
+              with option -eva-octagon-domain. Only infers relations between
+              pairs of scalar variables occuring in a same instruction.
+              Intra-procedural by default; octagons can be propagated through
+              function calls with option -eva-octagon-through-calls.
+-   ACSL      [2019/10/04] Support for ghost parameters
+-   Eva       [2019/10/04] Evaluates ACSL predicates \is_plus_infinity and
+              \is_minus_infinity.
+-   Kernel    [2019/10/04] Supports macro INFINITY and NAN.
+o   Config    [2019/09/27] ocp-indent 1.7.0 is now used for indentation
+o   Eva       [2019/09/16] Dynamic registration of abstract values and domains:
+              developers of new domains no longer need to modify Eva's engine.
+-*  Kernel    [2019/09/13] Fixes Hptmap on keys with id greater than 2^28.
+-*  Makefile  [2019/09/12] Fixes #2378 - bytecode only compilation (patch
+              contributed by madroach) and use -thread where needed.
+-*  Eva       [2019/08/21] Fixes the reduction by the negation of \initialized
+              and \dangling predicates on imprecise lvalues.
+-*  Kernel    [2019/08/20] Fixes a rare but critical bug which occured when
+              Frama-C internally switched the current project in presence of >2
+              projects and destroyed the old current project at about the same
+              time: the Frama-C internal state became inconsistent and lead to
+              unsound computations and crashes. It may be revealed to the
+              end-user when using a long sequence of -then-replace (at least 3
+              of them).
+-*  Kernel    [2019/08/20] Fixed sequence of -removed-projects and -then
+              options.
+o   Ptests    [2019/08/05] Add new MODULE directive for compiling and loading
+              an auxiliary OCaml module for a test
+-   Kernel    [2019/08/05] Add -keep-unused-types normalization option
+-   Libc      [2019/08/05] Remove obsolete (and forcing cpp error) builtins.h
+o!  Kernel    [2019/08/02] Functions over visitor's behaviors have been moved
+              from Cil into a new module Visitor_behavior. Apply the migration
+              script potassium2calcium.sh to update your plug-ins automatically.
+o!  Sparecode [2019/07/26] Removed from Db. Use proper Sparecode API instead.
+-!  Kernel    [2019/07/24] OCaml version greater than or equal to 4.05.0 required.
+-   Kernel    [2019/07/24] Improve placeholders handling in -cpp-command
+o!  Kernel    [2019/07/23] Types in Properties are now records and not tuples
+-   Eva       [2019/07/09] Supports ACSL floating-point comparison operators
+              eq_float, le_float, eq_double, le_double, etc.
+o!  Kernel    [2019/06/28] removes AST constructors TCoerce, TCoerceE,
+              PLCoercion, PLCoercionE, Psubtype and PLsubtype
+-*  Kernel    [2019/06/20] fixes dangling ref when removing unused static local
+
 ####################################
 Open Source Release 19.0 (Potassium)
 ####################################
@@ -696,7 +754,7 @@ o* Kernel     [2016/05/18] Fixes merging of contract when using
               expressions such as x*x+y*y, or t[i*i].
 -  Eva        [2016/04/01] Support for options -warn-signed-downcast and
               -warn-unsigned-downcast.
--! Kernel     [2016/03/31] OCaml version greater or equal than 4.02.3 required.
+-! Kernel     [2016/03/31] OCaml version greater than or equal to 4.02.3 required.
 o  Makefile   [2016/03/31] Warnings and warn-error are activated only if a file
               .for_devel is present along side the Makefile (also for plugins)
 o! Kernel     [2016/03/29] Functions Integer.pgcd and Integer.ppcm are now

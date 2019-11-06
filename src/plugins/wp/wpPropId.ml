@@ -448,32 +448,33 @@ let code_annot_names ca = match ca.annot_content with
   | AAssert (_, Assert, named_pred)  -> "@assert"::(ident_names named_pred.pred_name)
   | AInvariant (_,_,named_pred) -> "@invariant"::(ident_names named_pred.pred_name)
   | AVariant (term, _) -> "@variant"::(ident_names term.term_name)
-  | AExtended(_,_,(_,name,_,_,_)) -> [Printf.sprintf "@%s" name]
+  | AExtended(_,_,{ext_name}) -> [Printf.sprintf "@%s" ext_name]
   | _ -> [] (* TODO : add some more names ? *)
 
 (** This is used to give the name of the property that the user can give
  * to select it from the command line (-wp-prop option) *)
-let user_prop_names p = match p with
-  | Property.IPPredicate (kind,_,_,idp) ->
-      Format.asprintf  "@@%a" Property.pretty_predicate_kind kind ::
-      idp.ip_content.pred_name
-  | Property.IPExtended(_,(_,name,_,_,_)) -> [ Printf.sprintf "@%s" name ]
-  | Property.IPCodeAnnot (_,_, ca) -> code_annot_names ca
-  | Property.IPComplete (_, _,_,lb) ->
+let user_prop_names p =
+  let open Property in match p with
+  | IPPredicate {ip_kind; ip_pred} ->
+      Format.asprintf  "@@%a" Property.pretty_predicate_kind ip_kind ::
+      ip_pred.ip_content.pred_name
+  | IPExtended {ie_ext={ext_name}} -> [ Printf.sprintf "@%s" ext_name ]
+  | IPCodeAnnot {ica_ca} -> code_annot_names ica_ca
+  | IPComplete {ic_bhvs} ->
       let kind_name = "@complete_behaviors" in
-      let name = Format.asprintf "complete_behaviors%a" pp_names lb
+      let name = Format.asprintf "complete_behaviors%a" pp_names ic_bhvs
       in kind_name::[name]
-  | Property.IPDisjoint (_, _,_, lb) ->
+  | IPDisjoint {ic_bhvs} ->
       let kind_name = "@disjoint_behaviors" in
-      let name = Format.asprintf "disjoint_behaviors%a" pp_names lb
+      let name = Format.asprintf "disjoint_behaviors%a" pp_names ic_bhvs
       in kind_name::[name]
-  | Property.IPAssigns (_, _, _, l) ->
+  | IPAssigns {ias_froms} ->
       List.fold_left
         (fun acc (t,_) -> (ident_names t.it_content.term_name) @ acc)
-        ["@assigns"] l
-  | Property.IPDecrease (_,_, Some ca,_) -> "@decreases"::code_annot_names ca
-  | Property.IPDecrease _ -> [ "@decreases" ]
-  | Property.IPLemma (a,_,_,l,_) ->
+        ["@assigns"] ias_froms
+  | IPDecrease {id_ca=Some ca} -> "@decreases"::code_annot_names ca
+  | IPDecrease _ -> [ "@decreases" ]
+  | IPLemma {il_name = a; il_pred = l} ->
       let names = "@lemma"::a::(ident_names l.pred_name)
       in begin
         match LogicUsage.section_of_lemma a with
@@ -481,16 +482,16 @@ let user_prop_names p = match p with
         | LogicUsage.Axiomatic ax -> ax.LogicUsage.ax_name::names
       end
   (* TODO *)
-  | Property.IPFrom _
-  | Property.IPAllocation _
-  | Property.IPAxiomatic _
-  | Property.IPAxiom _
-  | Property.IPBehavior _
-  | Property.IPReachable _
-  | Property.IPPropertyInstance _
-  | Property.IPTypeInvariant _
-  | Property.IPGlobalInvariant _
-  | Property.IPOther _ -> []
+  | IPFrom _
+  | IPAllocation _
+  | IPAxiomatic _
+  | IPAxiom _
+  | IPBehavior _
+  | IPReachable _
+  | IPPropertyInstance _
+  | IPTypeInvariant _
+  | IPGlobalInvariant _
+  | IPOther _ -> []
 
 let string_of_termination_kind = function
     Normal -> "post"
@@ -566,7 +567,7 @@ let stmt_hints hs s =
        match label with
        | Label(a,_,src) -> if src then add_hint hs a
        | Default _ -> add_hint hs "default"
-       | Case(e,_) -> match Ctypes.get_int e with
+       | Case(e,_) -> match Ctypes.get_int64 e with
          | Some k -> add_hint hs ("case-" ^ Int64.to_string k)
          | None -> ()
     ) s.labels
@@ -576,10 +577,13 @@ let kinstr_hints hs = function
   | Kglobal -> ()
 
 let propid_hints hs p =
+  let open Property in
   match p.p_kind , p.p_prop with
   | PKCheck , _ -> ()
-  | PKProp , Property.IPAssigns (_ , Kstmt _, _, _) -> add_required hs "stmt-assigns"
-  | PKProp , Property.IPAssigns (_ , Kglobal, _, _) -> add_required hs "fct-assigns"
+  | PKProp , IPAssigns {ias_kinstr=Kstmt _} ->
+      add_required hs "stmt-assigns"
+  | PKProp , IPAssigns {ias_kinstr=Kglobal} ->
+      add_required hs "fct-assigns"
   | PKPropLoop , Property.IPAssigns _ -> add_required hs "loop-assigns"
   | PKPropLoop , _ -> add_required hs "invariant"
   | PKProp , _ -> add_required hs "property"
@@ -622,21 +626,23 @@ let annot_hints hs = function
   | AAllocation _ | AAssigns(_,WritesAny) | AStmtSpec _
   | AVariant _ | APragma _ | AExtended _ -> ()
 
-let property_hints hs = function
-  | Property.IPAxiom (s,_,_,p,_)
-  | Property.IPLemma (s,_,_,p,_) -> List.iter (add_required hs) (s::p.pred_name)
-  | Property.IPBehavior _ -> ()
-  | Property.IPComplete(_,_,_,ps) | Property.IPDisjoint(_,_,_,ps) ->
-      List.iter (add_required hs) ps
-  | Property.IPPredicate(_,_,_,ipred) ->
-      List.iter (add_hint hs) ipred.ip_content.pred_name
-  | Property.IPExtended(_,(_,name,_,_,_)) -> List.iter (add_hint hs) [name]
-  | Property.IPCodeAnnot(_,_,ca) -> annot_hints hs ca.annot_content
-  | Property.IPAssigns(_,_,_,froms) -> assigns_hints hs froms
-  | Property.IPAllocation _ (* TODO *)
-  | Property.IPFrom _ | Property.IPDecrease _  | Property.IPPropertyInstance _
-  | Property.IPReachable _ | Property.IPAxiomatic _ | Property.IPOther _
-  | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ -> ()
+let property_hints hs =
+  let open Property in function
+    | IPAxiom  {il_name; il_pred}
+    | IPLemma  {il_name; il_pred} ->
+        List.iter (add_required hs) (il_name::il_pred.pred_name)
+    | IPBehavior _ -> ()
+    | IPComplete {ic_bhvs} | IPDisjoint {ic_bhvs} ->
+        List.iter (add_required hs) ic_bhvs
+    | IPPredicate {ip_pred} ->
+        List.iter (add_hint hs) ip_pred.ip_content.pred_name
+    | IPExtended {ie_ext={ext_name}} -> List.iter (add_hint hs) [ext_name]
+    | IPCodeAnnot {ica_ca} -> annot_hints hs ica_ca.annot_content
+    | IPAssigns {ias_froms} -> assigns_hints hs ias_froms
+    | IPAllocation _ (* TODO *)
+    | IPFrom _ | Property.IPDecrease _  | Property.IPPropertyInstance _
+    | IPReachable _ | Property.IPAxiomatic _ | Property.IPOther _
+    | IPTypeInvariant _ | Property.IPGlobalInvariant _ -> ()
 
 let prop_id_keys p =
   begin
@@ -704,9 +710,10 @@ let is_assigns p =
   | Property.IPAssigns _ -> true
   | _ -> false
 
-let is_requires = function
-  | Property.IPPredicate (Property.PKRequires _,_,_,_) -> true
-  | _ -> false
+let is_requires =
+  let open Property in function
+    | IPPredicate {ip_kind = PKRequires _} -> true
+    | _ -> false
 
 let is_loop_preservation p =
   match p.p_kind with
@@ -998,11 +1005,11 @@ let get_loop_stmt kf stmt =
 (** Quite don't understand what is going on here... what is it supposed to do ?
  * [2011-07-07-Anne] *)
 let get_induction p =
-  let get_stmt = function
-    | Property.IPDecrease(kf,Kstmt stmt,_,_) -> Some (kf, stmt)
-    | Property.IPCodeAnnot(kf,stmt,_) -> Some (kf, stmt)
-    | Property.IPAssigns(kf,Kstmt stmt,_,_) -> Some (kf, stmt)
-    | _ -> None
+  let get_stmt = let open Property in function
+      | IPDecrease {id_kf;id_kinstr=Kstmt stmt} -> Some (id_kf, stmt)
+      | IPCodeAnnot {ica_kf;ica_stmt} -> Some (ica_kf, ica_stmt)
+      | IPAssigns {ias_kf; ias_kinstr=Kstmt stmt} -> Some (ias_kf, stmt)
+      | _ -> None
   in match p.p_kind with
   | PKCheck | PKAFctOut|PKAFctExit|PKPre _ | PKTactic -> None
   | PKProp ->
@@ -1011,13 +1018,13 @@ let get_induction p =
         | Some (kf, s) -> get_loop_stmt kf s
       in loop_stmt_opt
   | PKPropLoop ->
+      let open Property in
       let loop_stmt_opt = match property_of_id p with
-        | Property.IPCodeAnnot(kf,stmt,
-                               {annot_content = AInvariant(_, loop, _)})
-          ->
-            if loop then (*loop invariant *) Some stmt
-            else (* invariant inside loop *) get_loop_stmt kf stmt
-        | Property.IPAssigns (_, Kstmt stmt, Property.Id_loop _, _) ->
+        | IPCodeAnnot {ica_kf; ica_stmt;
+                       ica_ca = {annot_content = AInvariant(_, loop, _)}} ->
+            if loop then (*loop invariant *) Some ica_stmt
+            else (* invariant inside loop *) get_loop_stmt ica_kf ica_stmt
+        | IPAssigns {ias_kinstr=Kstmt stmt; ias_bhv = Id_loop _} ->
             (* loop assigns *) Some stmt
         | _ -> None (* assert false ??? *)
       in loop_stmt_opt

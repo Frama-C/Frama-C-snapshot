@@ -7,7 +7,7 @@
   Function foo
 ------------------------------------------------------------
 
-Goal Assertion 'qed_ok,S' (file tests/wp_plugin/trig.i, line 39):
+Goal Assertion 'qed_ok,S' (file tests/wp_plugin/trig.i, line 42):
 Let x = c.F1_MSG_size.
 Let a_1 = c.F1_MSG_text.
 Assume {
@@ -23,7 +23,7 @@ Prove: x = 10.
 
 ------------------------------------------------------------
 
-Goal Assertion 'qed_ok,A' (file tests/wp_plugin/trig.i, line 40):
+Goal Assertion 'qed_ok,A' (file tests/wp_plugin/trig.i, line 43):
 Let a_1 = (a.F1_MSG_text)[2].
 Let a_2 = c.F1_MSG_text.
 Let a_3 = a_2[2].
@@ -41,7 +41,7 @@ Prove: a_3 = a_1.
 
 ------------------------------------------------------------
 
-Goal Assertion 'qed_ok,B' (file tests/wp_plugin/trig.i, line 41):
+Goal Assertion 'qed_ok,B' (file tests/wp_plugin/trig.i, line 44):
 Let a_1 = c.F1_MSG_text.
 Let a_2 = a_1[2].
 Let a_3 = (a.F1_MSG_text)[2].
@@ -63,7 +63,7 @@ Prove: a_5 = a_4.
 
 ------------------------------------------------------------
 
-Goal Instance of 'Pre-condition 'qed_ok' in 'fconcat'' in 'foo' at initialization of 'c' (file tests/wp_plugin/trig.i, line 38)
+Goal Instance of 'Pre-condition 'qed_ok' in 'fconcat'' in 'foo' at initialization of 'c' (file tests/wp_plugin/trig.i, line 41)
 :
 Prove: true.
 

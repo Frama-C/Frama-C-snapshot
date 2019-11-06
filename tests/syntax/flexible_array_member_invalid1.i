@@ -1,4 +1,4 @@
 // invalid flexible array member (empty struct otherwise)
-struct {
+struct s1 {
   char data[];
-} s1;
+} ss1;

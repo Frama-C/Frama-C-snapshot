@@ -1,9 +1,6 @@
 /* run.config
    OPT: -wp-gen -wp-print
 */
-/* run.config_qualif
-   OPT: -wp-qed-checks="e_imply"
-*/
 
 //@ axiomatic P { predicate P(integer x); }
 //@ axiomatic T { predicate T = \true ; }

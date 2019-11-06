@@ -33,8 +33,8 @@ struct
 
   let stage = function
     | Prover( Qed , { verdict = Valid } ) -> 0
-    | Prover( (AltErgo | Why3 _) , { verdict = Valid } ) -> 1
-    | Prover( Coq , { verdict = Valid } ) -> 2
+    | Prover( (NativeAltErgo | Why3 _) , { verdict = Valid } ) -> 1
+    | Prover( NativeCoq , { verdict = Valid } ) -> 2
     | Tactic _ -> 3
     | Prover _ -> 4
     | Error _ -> 5
@@ -65,7 +65,7 @@ let jconfigure (console : #Tactical.feedback) jtactic goal =
   | Some(tactical,selection) ->
       console#set_title "%s" tactical#title ;
       let verdict =
-        try tactical#select console selection
+        try Lang.local ~pool:console#pool (tactical#select console) selection
         with Not_found | Exit -> Not_applicable
       in
       begin
@@ -84,8 +84,8 @@ let jfork tree ?node jtactic =
   try
     let anchor = ProofEngine.anchor tree ?node () in
     let goal = ProofEngine.goal anchor in
-    let model = ProofEngine.node_model anchor in
-    match Model.with_model model (jconfigure console jtactic) goal with
+    let ctxt = ProofEngine.node_context anchor in
+    match WpContext.on_context ctxt (jconfigure console jtactic) goal with
     | None -> None
     | Some (script,process) ->
         Some (ProofEngine.fork tree ~anchor script process)
@@ -439,7 +439,6 @@ let spawn
               ~valid ~failed ~provers
               ~depth ~width ~backtrack ~auto
               ~start ~progress ~result ~success wpo)
-
 
 let search
     ?(depth = 0) ?(width = 0) ?(backtrack = 0) ?(auto = []) ?(provers = [])

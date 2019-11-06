@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/overassign.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -8,25 +8,25 @@
 [wp] [Qed] Goal typed_f1_ok_assigns_normal : Valid
 [wp] [Qed] Goal typed_f2_ok_assigns_exit : Valid
 [wp] [Qed] Goal typed_f2_ok_assigns_normal : Valid
-[wp] [Alt-Ergo] Goal typed_f3_ok_assigns_exit : Valid
-[wp] [Alt-Ergo] Goal typed_f3_ok_assigns_normal : Valid
-[wp] [Alt-Ergo] Goal typed_f4_ok_assigns_exit : Valid
-[wp] [Alt-Ergo] Goal typed_f4_ok_assigns_normal : Valid
-[wp] [Alt-Ergo] Goal typed_f5_ko_assigns_exit : Unsuccess
-[wp] [Alt-Ergo] Goal typed_f5_ko_assigns_normal : Unsuccess
-[wp] [Alt-Ergo] Goal typed_f6_ko_assigns_exit : Unsuccess
-[wp] [Alt-Ergo] Goal typed_f6_ko_assigns_normal : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_f3_ok_assigns_exit : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f3_ok_assigns_normal : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f4_ok_assigns_exit : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f4_ok_assigns_normal : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_f5_ko_assigns_exit : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_f5_ko_assigns_normal : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_f6_ko_assigns_exit : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_f6_ko_assigns_normal : Unsuccess
 [wp] Proved goals:    8 / 12
-  Qed:             4 
-  Alt-Ergo:        4  (unsuccess: 4)
+  Qed:               4 
+  Alt-Ergo 2.0.0:    4  (unsuccess: 4)
 [wp] Report in:  'tests/wp_plugin/oracle_qualif/overassign.0.report.json'
 [wp] Report out: 'tests/wp_plugin/result_qualif/overassign.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f1_ok                2     -                 2       100%
 f2_ok                2     -                 2       100%
-f3_ok               -       2 (20..32)       2       100%
-f4_ok               -       2 (16..28)       2       100%
+f3_ok               -       2 (16..28)       2       100%
+f4_ok               -       2 (8..20)        2       100%
 f5_ko               -      -                 2       0.0%
 f6_ko               -      -                 2       0.0%
 -------------------------------------------------------------

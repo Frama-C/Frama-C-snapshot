@@ -3,12 +3,18 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
-[wp] tests/wp_acsl/pointer.i:50: Warning: Uncomparable locations p_0 and mem:t
-[wp] tests/wp_acsl/pointer.i:49: Warning: Uncomparable locations p_0 and mem:t
-[wp] tests/wp_acsl/pointer.i:48: Warning: Uncomparable locations p_0 and mem:t
-[wp] tests/wp_acsl/pointer.i:47: Warning: Uncomparable locations p_0 and mem:t
-[wp] tests/wp_acsl/pointer.i:46: Warning: Uncomparable locations p_0 and mem:t
-[wp] tests/wp_acsl/pointer.i:45: Warning: Uncomparable locations p_0 and mem:t
+[wp] tests/wp_acsl/pointer.i:50: Warning: 
+  Uncomparable locations p_0 and mem:t.(0)
+[wp] tests/wp_acsl/pointer.i:49: Warning: 
+  Uncomparable locations p_0 and mem:t.(0)
+[wp] tests/wp_acsl/pointer.i:48: Warning: 
+  Uncomparable locations p_0 and mem:t.(0)
+[wp] tests/wp_acsl/pointer.i:47: Warning: 
+  Uncomparable locations p_0 and mem:t.(0)
+[wp] tests/wp_acsl/pointer.i:46: Warning: 
+  Uncomparable locations p_0 and mem:t.(0)
+[wp] tests/wp_acsl/pointer.i:45: Warning: 
+  Uncomparable locations p_0 and mem:t.(0)
 ------------------------------------------------------------
   Function absurd
 ------------------------------------------------------------
@@ -111,7 +117,7 @@ Prove: q = p.
 Goal Post-condition 'qed_ok,Lt' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:45: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations p_0 and mem:t
+   Reason: Uncomparable locations p_0 and mem:t.(0)
 Assume {
   (* Goal *)
   When: 0 < w.
@@ -127,7 +133,7 @@ Prove: addr_lt(shift_sint32(global(G_t_19), 0), p).
 Goal Post-condition 'qed_ok,Le' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:46: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations p_0 and mem:t
+   Reason: Uncomparable locations p_0 and mem:t.(0)
 Assume {
   (* Goal *)
   When: 0 <= w.
@@ -143,7 +149,7 @@ Prove: addr_le(shift_sint32(global(G_t_19), 0), p).
 Goal Post-condition 'qed_ok,Eq' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:47: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations p_0 and mem:t
+   Reason: Uncomparable locations p_0 and mem:t.(0)
 Assume {
   (* Heap *)
   Have: region(G_t_19) <= 0.
@@ -157,7 +163,7 @@ Prove: shift_sint32(global(G_t_19), 0) = p.
 Goal Post-condition 'qed_ok,Ne' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:48: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations p_0 and mem:t
+   Reason: Uncomparable locations p_0 and mem:t.(0)
 Assume {
   (* Goal *)
   When: w != 0.
@@ -173,7 +179,7 @@ Prove: shift_sint32(global(G_t_19), 0) != p.
 Goal Post-condition 'qed_ko,Le_oracle_ko' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:49: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations p_0 and mem:t
+   Reason: Uncomparable locations p_0 and mem:t.(0)
 Assume {
   (* Goal *)
   When: 0 <= w.
@@ -189,7 +195,7 @@ Prove: addr_lt(shift_sint32(global(G_t_19), 0), p).
 Goal Post-condition 'qed_ko,Lt_oracle_ko' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:50: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations p_0 and mem:t
+   Reason: Uncomparable locations p_0 and mem:t.(0)
 Assume {
   (* Goal *)
   When: 0 < w.
@@ -270,8 +276,8 @@ Prove: false.
 
 ------------------------------------------------------------
 [wp] Warning: Memory model hypotheses for function 'compare':
-  /*@ behavior typed: requires \separated(&p,q); */
+  /*@ behavior typed: requires \separated(&p,q+(..)); */
   void compare(int *q);
 [wp] Warning: Memory model hypotheses for function 'absurd':
-  /*@ behavior typed: requires \separated(&p,q); */
+  /*@ behavior typed: requires \separated(&p,q+(..)); */
   void absurd(int *q);

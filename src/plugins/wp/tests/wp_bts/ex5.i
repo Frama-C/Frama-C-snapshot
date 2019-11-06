@@ -15,6 +15,10 @@ void dummy()
     predicate P(integer x) reads \nothing;
     predicate Q(integer x) reads \nothing ;
     logic integer f(integer x) reads \nothing;
+
+    predicate B(boolean x) reads \nothing;
+    predicate C(boolean x,boolean y) reads \nothing ;
+    logic boolean c(boolean x) reads \nothing;
     }
 */
 
@@ -36,6 +40,11 @@ void dummy()
     ensures p1:  \exists integer x; P(x) && Q(x) &&        x == 1;
     ensures p2:  \exists integer x; P(x) && Q(x) &&      1+x == b;
     ensures p3:  \exists integer x; P(x) && Q(x) && 1+x+f(a) == b+f(b);
+
+    ensures ok41: \exists boolean x; x && c(x) == c(\true);
+    ensures ok42: \exists boolean x; !x && c(x) == c(\false);
+    ensures ok43: \exists boolean x; \exists boolean y; !x && y && (C(x,y) <==> C(\false,\true)) ;
+    ensures ko43: \exists boolean x; \exists boolean y; !x && y && C(x,y) ;
  */
 void exists (int a, int b) {
 }

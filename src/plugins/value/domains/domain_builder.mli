@@ -24,34 +24,34 @@
     simplified interfaces. *)
 
 module type InputDomain = sig
-  include Abstract_domain.S_with_Structure
+  include Abstract_domain.S
   val storage: unit -> bool
 end
 
 module Complete
     (Domain: InputDomain)
-  : Abstract_domain.Internal with type state = Domain.state
-                              and type value = Domain.value
-                              and type location = Domain.location
+  : Abstract_domain.Leaf with type state = Domain.state
+                          and type value = Domain.value
+                          and type location = Domain.location
 
 module Complete_Minimal
     (Value: Abstract_value.S)
     (Location: Abstract_location.S)
     (Domain: Simpler_domains.Minimal)
-  : Abstract_domain.Internal with type value = Value.t
-                              and type location = Location.location
-                              and type state = Domain.t
+  : Abstract_domain.Leaf with type value = Value.t
+                          and type location = Location.location
+                          and type state = Domain.t
 
 module Complete_Minimal_with_datatype
     (Value: Abstract_value.S)
     (Location: Abstract_location.S)
     (Domain: Simpler_domains.Minimal_with_datatype)
-  : Abstract_domain.Internal with type value = Value.t
-                              and type location = Location.location
-                              and type state = Domain.t
+  : Abstract_domain.Leaf with type value = Value.t
+                          and type location = Location.location
+                          and type state = Domain.t
 
 module Complete_Simple_Cvalue
     (Domain: Simpler_domains.Simple_Cvalue)
-  : Abstract_domain.Internal with type value = Cvalue.V.t
-                              and type location = Precise_locs.precise_location
-                              and type state = Domain.t
+  : Abstract_domain.Leaf with type value = Cvalue.V.t
+                          and type location = Precise_locs.precise_location
+                          and type state = Domain.t

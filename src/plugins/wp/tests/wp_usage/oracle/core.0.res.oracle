@@ -18,16 +18,20 @@
 Goal Post-condition (file tests/wp_usage/core.i, line 12) in 'f':
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\ is_sint32(x) /\
-      is_sint32(x_1) /\ is_sint32(x_2) /\ is_sint32(x_3).
+      is_sint32(x_1) /\ is_sint32(x_2) /\ is_sint32(x_3) /\ is_sint32(x_4).
   If a != 0
-  Then { Have: x_3 = x. }
-  Else { Have: x_3 = x. }
+  Then { Have: x_4 = x. }
+  Else { Have: x_4 = x. }
   If b != 0
-  Then { Have: x_3 = x_2. }
-  Else { Have: x_3 = x_2. }
+  Then { Have: x_4 = x_3. }
+  Else { Have: x_4 = x_3. }
   If c != 0
-  Then { Have: (1 + x_2) = x_1. }
-  Else { Have: (1 + x_2) = x_1. }
+  Then {
+    Let x_5 = 1 + x_3.
+    Have: x_5 = x_1.
+    Have: (x_2 = x_1) /\ (x_5 = x_2).
+  }
+  Else { Have: x_5 = x_1. }
 }
 Prove: P_OBS(x, x_1).
 

@@ -26,15 +26,15 @@ let ko_status = `Share "theme/default/unknown.png"
 let wg_status = `Share "theme/default/invalid.png"
 
 let filter = function
-  | VCS.Qed | VCS.Tactical | VCS.Coq -> false
-  | VCS.Why3 _ | VCS.AltErgo -> true
+  | VCS.Qed | VCS.Tactical | VCS.NativeCoq -> false
+  | VCS.Why3 _ | VCS.NativeAltErgo -> true
 
 (* -------------------------------------------------------------------------- *)
 (* --- Palette Tool                                                       --- *)
 (* -------------------------------------------------------------------------- *)
 
 let timeout_for = function
-  | VCS.AltErgo | VCS.Why3 _ ->
+  | VCS.NativeAltErgo | VCS.Why3 _ ->
       let value = Wp_parameters.Timeout.get () in
       let spin = new Widget.spinner
         ~tooltip:"Prover Timeout (0 for none)"
@@ -43,19 +43,10 @@ let timeout_for = function
   | _ -> None
 
 let stepout_for = function
-  | VCS.AltErgo ->
+  | VCS.NativeAltErgo ->
       let value = Wp_parameters.Steps.get () in
       let spin = new Widget.spinner
         ~tooltip:"Prover Step Limit (0 for none)"
-        ~min:0 ~step:100 ~value () in
-      Some spin
-  | _ -> None
-
-let depth_for = function
-  | VCS.AltErgo ->
-      let value = Wp_parameters.Depth.get () in
-      let spin = new Widget.spinner
-        ~tooltip:"Search Depth (-age-bound, 0 for prover default)"
         ~min:0 ~step:100 ~value () in
       Some spin
   | _ -> None
@@ -66,7 +57,6 @@ class prover ~(console:Wtext.text) ~prover =
   let result = new Widget.label ~style:`Code ~align:`Center ~text:"No Result" () in
   let timeout = timeout_for prover in
   let stepout = stepout_for prover in
-  let depth = depth_for prover in
   object(self)
     inherit Wpalette.tool ~tooltip ~content:content#widget ()
     initializer
@@ -75,7 +65,6 @@ class prover ~(console:Wtext.text) ~prover =
         content#add_row ~xpadding:6 ~ypadding:4 result#coerce ;
         Wutil.on timeout (fun spin -> content#add_field ~label:"Timeout" spin#coerce) ;
         Wutil.on stepout (fun spin -> content#add_field ~label:"Steps" spin#coerce) ;
-        Wutil.on depth (fun spin -> content#add_field ~label:"Depth" spin#coerce) ;
       end
 
     method prover = prover
@@ -101,7 +90,6 @@ class prover ~(console:Wtext.text) ~prover =
           VCS.valid = false ;
           VCS.timeout = spinner timeout ;
           VCS.stepout = spinner stepout ;
-          VCS.depth = spinner depth ;
         } in
         let result wpo _prv _res = self#update wpo in
         let task = Prover.prove ~config ~result wpo prover in

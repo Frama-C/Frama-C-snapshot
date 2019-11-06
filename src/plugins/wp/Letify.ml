@@ -120,18 +120,17 @@ struct
     | _ ->
         clause env h
 
-  let lookup mu e = Tmap.find e mu
   let subst mu =
-    let sigma = F.sigma () in
-    F.p_subst ~sigma (lookup mu)
+    let sigma = Lang.sigma () in
+    F.Subst.add_map sigma mu ; F.p_subst sigma
 
   let e_apply env =
-    let sigma = F.sigma () in
-    F.e_subst ~sigma (lookup env.domain)
+    let sigma = Lang.sigma () in
+    F.Subst.add_map sigma env.domain ; F.e_subst sigma
 
   let p_apply env =
-    let sigma = F.sigma () in
-    F.p_subst ~sigma (lookup env.domain)
+    let sigma = Lang.sigma () in
+    F.Subst.add_map sigma env.domain ; F.p_subst sigma
 
   [@@@ warning "-32"]
   let pp_sigma fmt s =
@@ -147,7 +146,7 @@ struct
   let pretty fmt env = pp_sigma fmt env.domain
 
   let assume env p =
-    let p = F.p_subst (lookup env.domain) p in
+    let p = p_apply env p in
     walk env (F.e_prop p) ; p
 
   let top () = { ground = Tmap.empty ; domain = Tmap.empty }
@@ -238,7 +237,7 @@ struct
     def : term Vmap.t ; (* Definitions *)
     ceq : Ceq.t ; (* Variable Classes *)
     cst : term Tmap.t ; (* Constants *)
-    mutable mem : term Tmap.t array ; (* Memoization *)
+    mutable cache : F.sigma option ;
   }
 
   let empty = {
@@ -248,7 +247,7 @@ struct
     ceq = Ceq.empty ;
     def = Vmap.empty ;
     cst = Tmap.empty ;
-    mem = Array.make 5 Tmap.empty ;
+    cache = None ;
   }
 
   let equal s1 s2 =
@@ -258,35 +257,26 @@ struct
   let find x sigma = Vmap.find x sigma.def
   let iter f sigma = Vmap.iter f sigma.def
 
-  let rec m_apply sigma n (e:term) =
+  let lookup def (e:term) =
     match F.repr e with
-    | Fvar x ->
-        begin
-          try Vmap.find x sigma.def
-          with Not_found -> e
-        end
-    | _ ->
-        let ys = F.vars e in
-        if not (Vars.is_empty ys || Vars.intersect ys sigma.dall)
-        then e (* no subst *)
-        else if n < 5 then
-          begin
-            (* memoization *)
-            try Tmap.find e sigma.mem.(n)
-            with Not_found ->
-              let r =
-                try
-                  if n > 0 then raise Not_found ;
-                  Tmap.find e sigma.cst
-                with Not_found ->
-                  F.QED.f_map (m_apply sigma) n e
-              in
-              sigma.mem.(n) <- Tmap.add e r sigma.mem.(n) ; r
-          end
-        else F.QED.f_map (m_apply sigma) n e
+    | Fvar x -> Vmap.find x def
+    | _ -> raise Not_found
 
-  let e_apply sigma e = m_apply sigma 0 e
-  let p_apply sigma p = F.p_bool (e_apply sigma (F.e_prop p))
+  let filter domain (e:term) =
+    Vars.intersect (F.vars e) domain
+
+  let subst sigma =
+    match sigma.cache with
+    | Some s -> s
+    | None ->
+        let s = Lang.sigma () in
+        F.Subst.add_fun s (lookup sigma.def) ;
+        F.Subst.add_map s sigma.cst ;
+        F.Subst.add_filter s (filter sigma.dall) ;
+        sigma.cache <- Some s ; s
+
+  let e_apply sigma e = F.e_subst (subst sigma) e
+  let p_apply sigma p = F.p_subst (subst sigma) p
 
   (* Returns true if [x:=a] applied to [y:=b] raises a circularity *)
   let occur_check sigma x a =
@@ -310,7 +300,7 @@ struct
       def = Vmap.add x e Vmap.empty ;
       ceq = add_ceq x e Ceq.empty ;
       cst = Tmap.empty ;
-      mem = [| Tmap.empty |] ;
+      cache = None ;
     }
 
   let add x e sigma =
@@ -326,16 +316,14 @@ struct
           (fun e c cst ->
              if vmem x e then Tmap.add (e_apply sx e) c cst else cst)
           cst0 sigma.cst in
-      let cache = Array.make (Array.length sigma.mem) Tmap.empty in
-      cache.(0) <- cst1 ;
       {
-        mem = cache ;
         cst = cst1 ;
         def = def ;
         ceq = add_ceq x e sigma.ceq ;
         dvar = Vars.add x sigma.dvar ;
         dall = Vars.add x sigma.dall ;
         dcod = Vars.union (F.vars e) sigma.dcod ;
+        cache = None ;
       }
 
   let domain sigma = sigma.dvar
@@ -352,20 +340,18 @@ struct
     with Not_found ->
       let cst = Tmap.add e c sigma.cst in
       let all = Vars.union (F.vars e) sigma.dall in
-      let cache = Array.make (Array.length sigma.mem) Tmap.empty in
-      cache.(0) <- cst ;
       {
-        mem = cache ;
         cst = cst ;
         dall = all ;
         dvar = sigma.dvar ;
         dcod = sigma.dcod ;
         def = sigma.def ;
         ceq = sigma.ceq ;
+        cache = None ;
       }
 
   let mem_lit l sigma =
-    try Tmap.find l sigma.mem.(0) == e_true
+    try F.Subst.get (subst sigma) l == e_true
     with Not_found -> false
 
   let add_lit l sigma =
@@ -438,7 +424,7 @@ struct
               let rec aux sigma i =
                 if Integer.lt cstb i then sigma
                 else begin
-                  let eq = F.QED.lc_open_term (e_zint i) fb in
+                  let eq = F.QED.e_apply p [e_zint i] in
                   (** qed should be able to simplify it directly *)
                   let sigma = add_pred sigma eq in
                   aux sigma (Integer.succ i)
@@ -465,14 +451,11 @@ struct
            Format.fprintf fmt "@ @[%a := %a ;@]"
              F.pp_term (F.e_var x) F.pp_term e
         ) def ;
-      Array.iteri
-        (fun i w ->
-           Tmap.iter
-             (fun e m ->
-                Format.fprintf fmt "@ C%d: @[%a := %a ;@]" i
-                  F.pp_term e F.pp_term m
-             ) w
-        ) sigma.mem ;
+      Tmap.iter
+        (fun e m ->
+           Format.fprintf fmt "@ C @[%a := %a ;@]"
+             F.pp_term e F.pp_term m
+        ) sigma.cst ;
       Format.fprintf fmt "@ @]}@]" ;
     end
 

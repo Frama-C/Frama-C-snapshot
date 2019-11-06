@@ -79,76 +79,76 @@ axiom rleq2 :
 
 function real_of_int(x: int) : real = from_int(x)
 
-axiom c_euclidian :
-  (forall n:int. forall d:int [comp_div(n,d), comp_mod(n,d)].
-  ((not (d = 0)) -> (n = ((comp_div(n,d) * d) + comp_mod(n,d)))))
-
 axiom cdiv_cases :
-  (forall n:int. forall d:int [comp_div(n,d)]. ((0 <= n) -> ((0 <  d) ->
-  (comp_div(n,d) = (n / d)))))
+  (forall n:int. forall d:int [div(n, d)]. ((0 <= n) -> ((0 <  d) -> (div(n,
+  d) = (n / d)))))
 
 axiom cdiv_cases1 :
-  (forall n:int. forall d:int [comp_div(n,d)]. ((n <= 0) -> ((0 <  d) ->
-  (comp_div(n,d) = (-((-n) / d))))))
+  (forall n:int. forall d:int [div(n, d)]. ((n <= 0) -> ((0 <  d) -> (div(n,
+  d) = (-((-n) / d))))))
 
 axiom cdiv_cases2 :
-  (forall n:int. forall d:int [comp_div(n,d)]. ((0 <= n) -> ((d <  0) ->
-  (comp_div(n,d) = (-(n / (-d)))))))
+  (forall n:int. forall d:int [div(n, d)]. ((0 <= n) -> ((d <  0) -> (div(n,
+  d) = (-(n / (-d)))))))
 
 axiom cdiv_cases3 :
-  (forall n:int. forall d:int [comp_div(n,d)]. ((n <= 0) -> ((d <  0) ->
-  (comp_div(n,d) = ((-n) / (-d))))))
+  (forall n:int. forall d:int [div(n, d)]. ((n <= 0) -> ((d <  0) -> (div(n,
+  d) = ((-n) / (-d))))))
 
 axiom cmod_cases :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
-  (comp_mod(n,d) = (n % d)))))
+  (forall n:int. forall d:int [mod(n, d)]. ((0 <= n) -> ((0 <  d) -> (mod(n,
+  d) = (n % d)))))
 
 axiom cmod_cases1 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
-  (comp_mod(n,d) = (-((-n) % d))))))
+  (forall n:int. forall d:int [mod(n, d)]. ((n <= 0) -> ((0 <  d) -> (mod(n,
+  d) = (-((-n) % d))))))
 
 axiom cmod_cases2 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
-  (comp_mod(n,d) = (n % (-d))))))
+  (forall n:int. forall d:int [mod(n, d)]. ((0 <= n) -> ((d <  0) -> (mod(n,
+  d) = (n % (-d))))))
 
 axiom cmod_cases3 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
-  (comp_mod(n,d) = (-((-n) % (-d)))))))
+  (forall n:int. forall d:int [mod(n, d)]. ((n <= 0) -> ((d <  0) -> (mod(n,
+  d) = (-((-n) % (-d)))))))
+
+axiom c_euclidian :
+  (forall n:int. forall d:int [div(n, d), mod(n, d)]. ((not (d = 0)) ->
+  (n = ((div(n, d) * d) + mod(n, d)))))
 
 axiom cmod_remainder :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
-  (0 <= comp_mod(n,d)))))
+  (forall n:int. forall d:int [mod(n, d)]. ((0 <= n) -> ((0 <  d) ->
+  (0 <= mod(n, d)))))
 
 axiom cmod_remainder1 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
-  (comp_mod(n,d) <  d))))
+  (forall n:int. forall d:int [mod(n, d)]. ((0 <= n) -> ((0 <  d) -> (mod(n,
+  d) <  d))))
 
 axiom cmod_remainder2 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
-  ((-d) <  comp_mod(n,d)))))
+  (forall n:int. forall d:int [mod(n, d)]. ((n <= 0) -> ((0 <  d) ->
+  ((-d) <  mod(n, d)))))
 
 axiom cmod_remainder3 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
-  (comp_mod(n,d) <= 0))))
+  (forall n:int. forall d:int [mod(n, d)]. ((n <= 0) -> ((0 <  d) -> (mod(n,
+  d) <= 0))))
 
 axiom cmod_remainder4 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
-  (0 <= comp_mod(n,d)))))
+  (forall n:int. forall d:int [mod(n, d)]. ((0 <= n) -> ((d <  0) ->
+  (0 <= mod(n, d)))))
 
 axiom cmod_remainder5 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
-  (comp_mod(n,d) <  (-d)))))
+  (forall n:int. forall d:int [mod(n, d)]. ((0 <= n) -> ((d <  0) -> (mod(n,
+  d) <  (-d)))))
 
 axiom cmod_remainder6 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
-  (d <  comp_mod(n,d)))))
+  (forall n:int. forall d:int [mod(n, d)]. ((n <= 0) -> ((d <  0) ->
+  (d <  mod(n, d)))))
 
 axiom cmod_remainder7 :
-  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
-  (comp_mod(n,d) <= 0))))
+  (forall n:int. forall d:int [mod(n, d)]. ((n <= 0) -> ((d <  0) -> (mod(n,
+  d) <= 0))))
 
-axiom cdiv_neutral : (forall a:int [comp_div(a,1)]. (comp_div(a,1) = a))
+axiom cdiv_neutral : (forall a:int [div(a, 1)]. (div(a, 1) = a))
 
 axiom cdiv_inv :
-  (forall a:int [comp_div(a,a)]. ((not (a = 0)) -> (comp_div(a,a) = 1)))
+  (forall a:int [div(a, a)]. ((not (a = 0)) -> (div(a, a) = 1)))
 

@@ -377,10 +377,10 @@ Prove: true.
   /*@ behavior typed: requires \separated(&X,p); */
   void guarded_call(struct S *p);
 [wp] Warning: Memory model hypotheses for function 'behavior':
-  /*@ behavior typed: requires \separated(&X1,p); */
+  /*@ behavior typed: requires \separated(&X1,p+(..)); */
   int behavior(int (*p)(void));
 [wp] Warning: Memory model hypotheses for function 'some_behaviors':
-  /*@ behavior typed: requires \separated(&X1,p); */
+  /*@ behavior typed: requires \separated(&X1,p+(..)); */
   int some_behaviors(int (*p)(void));
 [wp] Warning: Memory model hypotheses for function 'missing_context':
   /*@ behavior typed: requires \separated(&X1,p); */

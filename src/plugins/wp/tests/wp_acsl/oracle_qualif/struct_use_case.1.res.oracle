@@ -1,13 +1,13 @@
-# frama-c -wp -wp-model 'Typed (Caveat)' -wp-timeout 90 -wp-steps 50 [...]
+# frama-c -wp -wp-model 'Typed (Caveat)' -wp-steps 50 [...]
 [kernel] Parsing tests/wp_acsl/struct_use_case.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_caveat_f_ensures_ko : Unsuccess
-[wp] [Alt-Ergo] Goal typed_caveat_g_ensures_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_f_ensures_ko : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_caveat_g_ensures_ko : Unsuccess
 [wp] Proved goals:    0 / 2
-  Alt-Ergo:        0  (unsuccess: 2)
+  Alt-Ergo 2.0.0:    0  (unsuccess: 2)
 [wp] Report in:  'tests/wp_acsl/oracle_qualif/struct_use_case.1.report.json'
 [wp] Report out: 'tests/wp_acsl/result_qualif/struct_use_case.1.report.json'
 -------------------------------------------------------------

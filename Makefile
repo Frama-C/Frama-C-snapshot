@@ -85,6 +85,7 @@ PLUGIN_BIN_DOC_LIST:=
 PLUGIN_DIST_EXTERNAL_LIST:=
 PLUGIN_DIST_TESTS_LIST:=
 PLUGIN_DISTRIBUTED_NAME_LIST:=
+MERLIN_PACKAGES:=
 
 PLUGIN_HEADER_SPEC_LIST :=
 PLUGIN_HEADER_DIRS_LIST :=
@@ -139,7 +140,7 @@ OFLAGS	= $(PACKAGES) $(FLAGS) $(DEBUG) $(INCLUDES) -compact \
 BLINKFLAGS += -linkpkg $(BFLAGS) -linkall -custom
 OLINKFLAGS += -linkpkg $(OFLAGS) -linkall
 
-DOC_FLAGS= -colorize-code -stars -m A $(PACKAGES) $(INCLUDES) $(GUI_INCLUDES)
+DOC_FLAGS= -charset utf8 -colorize-code -stars -m A $(PACKAGES) $(INCLUDES) $(GUI_INCLUDES)
 
 ifneq ($(VERBOSEMAKE),yes)
 DOC_FLAGS+= -hide-warnings
@@ -265,6 +266,7 @@ DISTRIB_FILES:=\
       share/analysis-scripts/frama_c_results.py                         \
       share/analysis-scripts/git_utils.py                               \
       share/analysis-scripts/list_files.py                              \
+      share/analysis-scripts/make_template.py                           \
       share/analysis-scripts/make_wrapper.py                            \
       share/analysis-scripts/parse-coverage.sh                          \
       share/analysis-scripts/README.md                                  \
@@ -273,6 +275,10 @@ DISTRIB_FILES:=\
       share/analysis-scripts/template.mk                                \
       $(wildcard share/emacs/*.el) share/autocomplete_frama-c           \
       share/_frama-c                                                    \
+      share/compliance/c11_functions.json                               \
+      share/compliance/glibc_functions.json                             \
+      share/compliance/nonstandard_identifiers.json                     \
+      share/compliance/posix_identifiers.json                           \
       share/configure.ac                                                \
       share/Makefile.config.in share/Makefile.common                    \
       share/Makefile.generic						\
@@ -455,10 +461,11 @@ LIB_CMO =\
 	src/libraries/utils/rgmap \
 	src/libraries/utils/bitvector \
 	src/libraries/utils/qstack \
-	src/libraries/utils/leftistheap \
 	src/libraries/stdlib/integer \
 	src/libraries/utils/json \
-	src/libraries/utils/rich_text
+	src/libraries/utils/markdown \
+	src/libraries/utils/rich_text \
+	src/libraries/utils/dotgraph
 
 NON_OPAQUE_DEPS+=\
   src/libraries/datatype/unmarshal_z \
@@ -527,6 +534,7 @@ KERNEL_CMO=\
 	src/kernel_services/ast_queries/cil_const.cmo                \
 	src/kernel_services/ast_queries/logic_env.cmo                \
 	src/kernel_services/ast_queries/logic_const.cmo              \
+	src/kernel_services/visitors/visitor_behavior.cmo		\
 	src/kernel_services/ast_queries/cil.cmo                      \
 	src/kernel_internals/parsing/errorloc.cmo                      \
 	src/kernel_services/ast_printing/cil_printer.cmo                \
@@ -814,70 +822,48 @@ PLUGIN_ENABLE:=$(ENABLE_EVA)
 PLUGIN_NAME:=Eva
 PLUGIN_DIR:=src/plugins/value
 PLUGIN_EXTRA_DIRS:=engine values domains domains/cvalue domains/apron \
-	domains/gauges domains/equality legacy slevel utils gui_files \
+	domains/gauges domains/equality legacy partitioning utils gui_files \
 	values/numerors domains/numerors
+PLUGIN_TESTS_DIRS+=value/traces
 
 # Files for the binding to Apron domains. Only available if Apron is available.
 ifeq ($(HAS_APRON),yes)
 PLUGIN_REQUIRES+= apron.octMPQ apron.boxMPQ apron.polkaMPQ apron.apron gmp
-src/plugins/value/domains/apron/apron_domain.ml: \
-		src/plugins/value/domains/apron/apron_domain.ok.ml \
-		share/Makefile.config
-	$(CP_IF_DIFF) $< $@
-	$(CHMOD_RO) $@
+APRON_CMO:= domains/apron/apron_domain
 else
-src/plugins/value/domains/apron/apron_domain.ml: \
-		src/plugins/value/domains/apron/apron_domain.ko.ml \
-		share/Makefile.config
-	$(CP_IF_DIFF) $< $@
-	$(CHMOD_RO) $@
-endif
-PLUGIN_GENERATED+= src/plugins/value/domains/apron/apron_domain.ml
+APRON_CMO:=
 PLUGIN_DISTRIB_EXTERNAL+= \
-	domains/apron/apron_domain.ok.ml domains/apron/apron_domain.ko.ml
+	domains/apron/apron_domain.ml domains/apron/apron_domain.mli
+endif
 
 # Files for the numerors domain. Only available is MPFR is available.
 NUMERORS_FILES:= \
 	values/numerors/numerors_utils values/numerors/numerors_float \
 	values/numerors/numerors_interval values/numerors/numerors_arithmetics \
-	values/numerors/numerors_value
+	values/numerors/numerors_value domains/numerors/numerors_domain
 
 ifeq ($(HAS_MPFR),yes)
 PLUGIN_REQUIRES+= gmp
 PLUGIN_TESTS_DIRS+=value/numerors
 NUMERORS_CMO:= $(NUMERORS_FILES)
-src/plugins/value/domains/numerors/numerors_domain.ml: \
-		src/plugins/value/domains/numerors/numerors_domain.ok.ml \
-		share/Makefile.config
-	$(CP_IF_DIFF) $< $@
-	$(CHMOD_RO) $@
 else
 # Do not compile numerors files, but include them in the distributed files.
 NUMERORS_CMO:=
 PLUGIN_DISTRIB_EXTERNAL+= $(addsuffix .ml,$(NUMERORS_FILES))
 PLUGIN_DISTRIB_EXTERNAL+= $(addsuffix .mli,$(NUMERORS_FILES))
-src/plugins/value/domains/numerors/numerors_domain.ml: \
-		src/plugins/value/domains/numerors/numerors_domain.ko.ml \
-		share/Makefile.config
-	$(CP_IF_DIFF) $< $@
-	$(CHMOD_RO) $@
 endif
-PLUGIN_GENERATED+= src/plugins/value/domains/numerors/numerors_domain.ml
-PLUGIN_DISTRIB_EXTERNAL+= \
-	domains/numerors/numerors_domain.ok.ml \
-	domains/numerors/numerors_domain.ko.ml
 
 # General rules for ordering files within PLUGIN_CMO:
 # - try to keep the legacy Value before Eva
-PLUGIN_CMO:= slevel/split_strategy value_parameters \
+PLUGIN_CMO:= partitioning/split_strategy value_parameters \
 	utils/value_perf utils/value_util utils/red_statuses \
 	utils/mark_noresults \
 	utils/widen_hints_ext utils/widen utils/partitioning_annots \
-	engine/split_return \
-	slevel/per_stmt_slevel \
+	partitioning/split_return \
+	partitioning/per_stmt_slevel \
 	utils/library_functions \
 	utils/eval_typ utils/backward_formals \
-	alarmset eval utils/structure \
+	alarmset eval utils/structure utils/abstract \
 	values/value_product values/location_lift \
 	values/cvalue_forward values/cvalue_backward \
 	values/main_values values/main_locations \
@@ -886,15 +872,15 @@ PLUGIN_CMO:= slevel/split_strategy value_parameters \
 	domains/domain_store domains/domain_builder \
 	domains/domain_product domains/domain_lift domains/unit_domain \
 	domains/printer_domain \
+	domains/traces_domain \
 	domains/simple_memory \
+	domains/octagons \
 	domains/gauges/gauges_domain \
-	domains/apron/apron_domain \
 	domains/hcexprs \
 	domains/equality/equality domains/equality/equality_domain \
 	domains/offsm_domain \
 	domains/symbolic_locs \
 	domains/sign_domain \
-	$(NUMERORS_CMO) domains/numerors/numerors_domain \
 	domains/cvalue/warn domains/cvalue/locals_scoping \
 	domains/cvalue/cvalue_offsetmap \
 	utils/value_results \
@@ -912,11 +898,12 @@ PLUGIN_CMO:= slevel/split_strategy value_parameters \
 	domains/cvalue/cvalue_domain \
 	engine/subdivided_evaluation engine/evaluation engine/abstractions \
 	engine/recursion engine/transfer_stmt engine/transfer_specification \
-	engine/partitioning_index engine/mem_exec \
-	engine/partition engine/partitioning_parameters engine/trace_partitioning \
-	engine/iterator \
-	engine/initialization \
-	engine/compute_functions engine/analysis register
+	partitioning/auto_loop_unroll \
+	partitioning/partition partitioning/partitioning_parameters \
+	partitioning/partitioning_index partitioning/trace_partitioning \
+	engine/mem_exec engine/iterator engine/initialization \
+	engine/compute_functions engine/analysis register \
+	$(APRON_CMO) $(NUMERORS_CMO)
 PLUGIN_CMI:= values/abstract_value values/abstract_location \
 	domains/abstract_domain domains/simpler_domains
 PLUGIN_DEPENDENCIES:=Callgraph LoopAnalysis RteGen
@@ -1170,7 +1157,7 @@ PLUGIN_TESTS_LIB:= tests/slicing/libSelect.ml tests/slicing/libAnim.ml \
 	tests/slicing/adpcm.ml
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
-PLUGIN_DEPENDENCIES:=Pdg Callgraph Eva
+PLUGIN_DEPENDENCIES:=Pdg Callgraph Eva Sparecode
 
 $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 
@@ -1242,12 +1229,15 @@ bin/toplevel.opt$(EXE): $(ALL_BATCH_CMX) $(GEN_OPT_LIBS) \
 LIB_KERNEL_CMO= $(filter-out src/kernel_internals/runtime/gui_init.cmo, $(CMO))
 LIB_KERNEL_CMX= $(filter-out src/kernel_internals/runtime/gui_init.cmx, $(CMX))
 
-lib/fc/frama-c.cma: $(LIB_KERNEL_CMO) $(GEN_OPT_LIBS) $(LIB_KERNEL_CMX) lib/fc/META.frama-c
-	$(PRINT_LINKING) $@ and lib/fc/frama-c.cmxa
+lib/fc/frama-c.cma: $(LIB_KERNEL_CMO) $(GEN_BYTE_LIBS) lib/fc/META.frama-c
+	$(PRINT_LINKING) $@
 	$(MKDIR) $(FRAMAC_LIB)
-	$(OCAMLMKLIB) -o lib/fc/frama-c $(OPT_LIBS) $(LIB_KERNEL_CMO) $(LIB_KERNEL_CMX)
+	$(OCAMLMKLIB) -o lib/fc/frama-c $(BYTE_LIBS) $(LIB_KERNEL_CMO)
 
-lib/fc/frama-c.cmxa: lib/fc/frama-c.cma
+lib/fc/frama-c.cmxa: lib/fc/frama-c.cma $(GEN_OPT_LIBS) $(LIB_KERNEL_CMX)
+	$(MKDIR) $(FRAMAC_LIB)
+	$(PRINT_LINKING) $@
+	$(OCAMLMKLIB) -o lib/fc/frama-c $(OPT_LIBS) $(LIB_KERNEL_CMX)
 
 ####################
 # (Ocaml) Toplevel #
@@ -1295,14 +1285,6 @@ gui: gui-$(OCAMLBEST)
 
 ALL_GUI_CMO= $(ALL_CMO) $(GRAPH_GUICMO) $(GUICMO)
 ALL_GUI_CMX= $(patsubst %.cma,%.cmxa,$(ALL_GUI_CMO:.cmo=.cmx))
-
-ifeq ($(LABLGTK_VERSION),3)
-ifeq ($(NATIVE_THREADS),yes)
-THREAD=-thread
-else
-THREAD=-vmthread
-endif
-endif
 
 bin/viewer.byte$(EXE): BYTE_LIBS+= $(GRAPH_GUICMO)
 bin/viewer.byte$(EXE): $(filter-out $(GRAPH_GUICMO),$(ALL_GUI_CMO)) \
@@ -1374,7 +1356,7 @@ include Makefile.generating
 # Tests #
 #########
 
-ifeq ($(PTESTSBEST),opt)
+ifeq ($(OCAMLBEST),opt)
 PTESTS_FILES=ptests_config.cmi ptests_config.cmx ptests_config.o
 else
 PTESTS_FILES=ptests_config.cmi ptests_config.cmo
@@ -1396,9 +1378,9 @@ update_external_tests: external_tests
 
 oracles: byte opt ptests
 	$(PRINT_MAKING) oracles
-	./bin/ptests.$(PTESTSBEST)$(EXE) -make "$(MAKE)" $(PLUGIN_TESTS_LIST) \
+	./bin/ptests.$(OCAMLBEST)$(EXE) -make "$(MAKE)" $(PLUGIN_TESTS_LIST) \
 		> /dev/null 2>&1
-	./bin/ptests.$(PTESTSBEST)$(EXE) -make "$(MAKE)" -update \
+	./bin/ptests.$(OCAMLBEST)$(EXE) -make "$(MAKE)" -update \
 		$(PLUGIN_TESTS_LIST)
 
 btests: byte ./bin/ptests.byte$(EXE)
@@ -1408,13 +1390,13 @@ btests: byte ./bin/ptests.byte$(EXE)
 
 tests_dist: dist ptests
 	$(PRINT_EXEC) ptests
-	time -p ./bin/ptests.$(PTESTSBEST)$(EXE) -make "$(MAKE)" \
+	time -p ./bin/ptests.$(OCAMLBEST)$(EXE) -make "$(MAKE)" \
 		$(PLUGIN_TESTS_LIST)
 
 # test only one test suite : make suite_tests
 %_tests: opt ptests
 	$(PRINT_EXEC) ptests
-	./bin/ptests.$(PTESTSBEST)$(EXE) -make "$(MAKE)" $($*_TESTS_OPTS) $*
+	./bin/ptests.$(OCAMLBEST)$(EXE) -make "$(MAKE)" $($*_TESTS_OPTS) $*
 
 # full test suite
 wp_TESTS_OPTS=-j 1
@@ -1425,7 +1407,7 @@ acsl_tests: byte
 	find doc/speclang -name \*.c -exec ./bin/toplevel.byte$(EXE) {} \; > /dev/null
 
 LONELY_TESTS_ML_FILES:=\
-  $(shell find $(TEST_DIRS_AS_PLUGIN:%=tests/%) -name '*.ml')
+  $(sort $(shell find $(TEST_DIRS_AS_PLUGIN:%=tests/%) -not -path '*/\.*' -name '*.ml'))
 $(foreach file,$(LONELY_TESTS_ML_FILES),\
   $(eval $(file:%.ml=%.cmo): BFLAGS+=-I $(dir $(file))))
 $(foreach file,$(LONELY_TESTS_ML_FILES),\
@@ -1517,6 +1499,28 @@ plugins-doc:
 	     $(addsuffix _DOC,$(PLUGIN_DISTRIBUTED_NAME_LIST)),\
 	     $(PLUGIN_DOC_LIST)))
 
+.PHONY: server-doc-md server-doc-html server-doc
+
+server-doc-md: byte
+	$(PRINT) 'Generating Markdown server documentation'
+	@rm -fr doc/server
+	@mkdir -p doc/server
+	./bin/frama-c.byte -server-doc doc/server
+
+server-doc-html: server-doc-md
+	$(PRINT) 'Generating HTML server documentation'
+	@find doc/server -name "*.md" -print -exec pandoc \
+			--standalone --toc --toc-depth=2 --to html \
+			--template doc/pandoc/template.html \
+			--metadata-file {}.json \
+			--lua-filter doc/pandoc/href.lua \
+			{} -o {}.html \;
+	@cp -f doc/pandoc/style.css doc/server/
+	$(PRINT) 'HTML server documentation ready:'
+	$(PRINT) '  open doc/server/readme.md.html'
+
+server-doc: server-doc-html
+
 # to make the documentation for one plugin only,
 # the name of the plugin should begin with a capital letter :
 # Example for the pdg doc : make Pdg_DOC
@@ -1544,11 +1548,8 @@ STDLIB_FILES:=\
 	stack \
 	string \
 	sys \
-        weak
-
-ifeq ($(HAS_OCAML403),yes)
-  STDLIB_FILES+=ephemeron
-endif
+	weak \
+	ephemeron
 
 ifeq ($(HAS_OCAML407),no)
   STDLIB_FILES+=pervasives
@@ -1768,8 +1769,8 @@ check-ocp-indent-version:
 	if command -v ocp-indent >/dev/null; then \
 		$(eval ocp_version_major := $(shell ocp-indent --version | $(SED) -E "s/^([0-9]+)\.[0-9]+\..*/\1/")) \
 		$(eval ocp_version_minor := $(shell ocp-indent --version | $(SED) -E "s/^[0-9]+\.([0-9]+)\..*/\1/")) \
-		if [ "$(ocp_version_major)" -gt 1 -o "$(ocp_version_minor)" -gt 7 ]; then \
-			echo "error: ocp-indent <1.7.0 required for linting (got $(ocp_version_major).$(ocp_version_minor))"; \
+		if [ "$(ocp_version_major)" -lt 1 -o "$(ocp_version_minor)" -lt 7 ]; then \
+			echo "error: ocp-indent >=1.7.0 required for linting (got $(ocp_version_major).$(ocp_version_minor))"; \
 			exit 1; \
 		fi; \
 	else \
@@ -1871,11 +1872,15 @@ clean-install:
 	$(PRINT_RM) "Installation directory"
 	$(RM) -r $(FRAMAC_LIBDIR)
 
-install-lib: clean-install
+install-lib-byte: clean-install
 	$(PRINT_INSTALL) kernel API
 	$(MKDIR) $(FRAMAC_LIBDIR)
-	$(CP) $(LIB_BYTE_TO_INSTALL) $(LIB_OPT_TO_INSTALL) $(FRAMAC_LIBDIR)
-	$(CP) $(addprefix lib/fc/,dllframa-c.so libframa-c.a frama-c.cma frama-c.a frama-c.cmxa META.frama-c)  $(FRAMAC_LIBDIR)
+	$(CP) $(LIB_BYTE_TO_INSTALL) $(FRAMAC_LIBDIR)
+	$(CP) $(addprefix lib/fc/,dllframa-c.so libframa-c.a frama-c.cma META.frama-c) $(FRAMAC_LIBDIR)
+
+install-lib-opt: install-lib-byte
+	$(CP) $(LIB_OPT_TO_INSTALL) $(FRAMAC_LIBDIR)
+	$(CP) $(addprefix lib/fc/,frama-c.a frama-c.cmxa) $(FRAMAC_LIBDIR)
 
 install-doc-code:
 	$(PRINT_INSTALL) API documentation
@@ -1887,7 +1892,7 @@ install-doc-code:
 		| (cd $(FRAMAC_DATADIR)/doc ; tar xf -))
 
 .PHONY: install
-install:: install-lib
+install:: install-lib-$(OCAMLBEST)
 	$(PRINT_MAKING) destination directories
 	$(MKDIR) $(BINDIR)
 	$(MKDIR) $(MANDIR)/man1
@@ -1919,6 +1924,7 @@ install:: install-lib
 	  share/analysis-scripts/frama_c_results.py \
 	  share/analysis-scripts/git_utils.py \
 	  share/analysis-scripts/list_files.py \
+	  share/analysis-scripts/make_template.py \
 	  share/analysis-scripts/make_wrapper.py \
 	  share/analysis-scripts/parse-coverage.sh \
 	  share/analysis-scripts/README.md \
@@ -1929,6 +1935,12 @@ install:: install-lib
 	$(MKDIR) $(FRAMAC_DATADIR)/analysis-scripts/examples
 	$(CP) share/analysis-scripts/examples/* \
 	  $(FRAMAC_DATADIR)/analysis-scripts/examples
+	$(MKDIR) $(FRAMAC_DATADIR)/compliance
+	$(CP) share/compliance/c11_functions.json \
+	  share/compliance/glibc_functions.json \
+	  share/compliance/nonstandard_identifiers.json \
+	  share/compliance/posix_identifiers.json \
+	  $(FRAMAC_DATADIR)/compliance
 	$(MKDIR) $(FRAMAC_DATADIR)/emacs
 	$(CP) $(wildcard share/emacs/*.el) $(FRAMAC_DATADIR)/emacs
 	$(CP) share/frama-c.rc $(ICONS) $(FRAMAC_DATADIR)
@@ -1959,8 +1971,8 @@ install:: install-lib
 	if [ -x bin/viewer.byte$(EXE) ] ; then \
 	  $(CP) bin/viewer.byte$(EXE) $(BINDIR)/frama-c-gui.byte$(EXE); \
 	fi
-	$(CP) bin/ptests.$(PTESTSBEST)$(EXE) \
-	      $(BINDIR)/ptests.$(PTESTSBEST)$(EXE)
+	$(CP) bin/ptests.$(OCAMLBEST)$(EXE) \
+	      $(BINDIR)/ptests.$(OCAMLBEST)$(EXE)
 	if [ -x bin/fc-config$(EXE) ] ; then \
 		$(CP) bin/fc-config$(EXE) $(BINDIR)/frama-c-config$(EXE); \
 	fi
@@ -1997,7 +2009,7 @@ install:: install-lib
 .PHONY: uninstall
 uninstall::
 	$(PRINT_RM) installed binaries
-	$(RM) $(BINDIR)/frama-c* $(BINDIR)/ptests.$(PTESTSBEST)$(EXE)
+	$(RM) $(BINDIR)/frama-c* $(BINDIR)/ptests.$(OCAMLBEST)$(EXE)
 	$(PRINT_RM) installed shared files
 	$(RM) -R $(FRAMAC_DATADIR)
 	$(PRINT_RM) installed libraries
@@ -2194,15 +2206,6 @@ clean-doc:: $(PLUGIN_LIST:=_CLEAN_DOC)
 	if [ -f doc/developer/Makefile ]; then \
 	  $(MAKE) --silent -C doc/developer clean; \
 	fi
-	if [ -f doc/architecture/Makefile ]; then \
-	  $(MAKE) --silent -C doc/architecture clean; \
-	fi
-	if [ -f doc/speclang/Makefile ]; then \
-	  $(MAKE)  --silent -C doc/speclang clean; \
-	fi
-	if [ -f doc/www/src/Makefile ]; then \
-	  $(MAKE) --silent -C doc/www/src clean; \
-	fi
 
 clean-gui::
 	$(PRINT_RM) gui
@@ -2312,22 +2315,16 @@ PTESTS_SRC=ptests/ptests_config.ml ptests/ptests.ml
 # that does not contain a 'tests' dir
 PTESTS_CONFIG:= $(shell if test -d tests; then echo tests/ptests_config; fi)
 
-ifeq ($(NATIVE_THREADS),yes)
-PTEST_THREAD=-thread
-ptests: bin/ptests.$(PTESTSBEST)$(EXE) $(PTESTS_CONFIG)
-else
-PTEST_THREAD=-vmthread
-ptests: bin/ptests.byte$(EXE) $(PTESTS_CONFIG)
-endif
+ptests: bin/ptests.$(OCAMLBEST)$(EXE) $(PTESTS_CONFIG)
 
 bin/ptests.byte$(EXE): $(PTESTS_SRC)
 	$(PRINT_LINKING) $@
-	$(OCAMLC) -I ptests -dtypes $(PTEST_THREAD) -g -o $@ \
+	$(OCAMLC) -I ptests -dtypes -thread -g -o $@ \
 	    unix.cma threads.cma str.cma dynlink.cma $^
 
 bin/ptests.opt$(EXE): $(PTESTS_SRC)
 	$(PRINT_LINKING) $@
-	$(OCAMLOPT) -I ptests -dtypes $(PTEST_THREAD) -o $@ \
+	$(OCAMLOPT) -I ptests -dtypes -thread -o $@ \
 	    unix.cmxa threads.cmxa str.cmxa dynlink.cmxa $^
 
 GENERATED+=ptests/ptests_config.ml tests/ptests_config

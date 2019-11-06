@@ -33,7 +33,7 @@ see [INSTALL.md](INSTALL.md).
 
 Frama-C is available through [OPAM](http://opam.ocaml.org/), the
 OCaml Package Manager. This is the preferred installation method. Be sure
-to install opam v1.2 or higher. Then the following sequence of commands
+to install opam v2.0 or higher. Then the following sequence of commands
 should install frama-c and its gui:
 
     opam init

@@ -27,10 +27,10 @@
 module Caml_hashtbl = Hashtbl
 open Emitter
 
-module Emitted = struct 
-  type t = True | False_if_reachable | False_and_reachable | Dont_know 
+module Emitted = struct
+  type t = True | False_if_reachable | False_and_reachable | Dont_know
 end
-type emitted_status = Emitted.t = 
+type emitted_status = Emitted.t =
     True | False_if_reachable | False_and_reachable | Dont_know
 
 module Emitted_status =
@@ -41,21 +41,21 @@ module Emitted_status =
       let name = "Property_status.emitted_status"
       let reprs = [ True; False_if_reachable; False_and_reachable; Dont_know ]
       let mem_project = Datatype.never_any_project
-      let pretty fmt s = 
-	Format.fprintf fmt "%s"
-	  (match s with
-	  | True -> "VALID"
-	  | False_if_reachable | False_and_reachable -> "**NOT** VALID"
-	  | Dont_know -> "unknown")
+      let pretty fmt s =
+        Format.fprintf fmt "%s"
+          (match s with
+           | True -> "VALID"
+           | False_if_reachable | False_and_reachable -> "**NOT** VALID"
+           | Dont_know -> "unknown")
       let compare (s1:t) s2 = Transitioning.Stdlib.compare s1 s2
       let equal (s1:t) s2 = s1 = s2
       let hash (s:t) = Caml_hashtbl.hash s
-     end)
+    end)
 
-type emitter_with_properties = 
-    { emitter: Usable_emitter.t; 
-      mutable properties: Property.t list;
-      logical_consequence: bool }
+type emitter_with_properties =
+  { emitter: Usable_emitter.t;
+    mutable properties: Property.t list;
+    logical_consequence: bool }
 
 module Emitter_with_properties =
   Datatype.Make_with_collections
@@ -64,31 +64,31 @@ module Emitter_with_properties =
       let name = "Property_status.emitter"
       let rehash = Datatype.identity
       let structural_descr = Structural_descr.t_abstract
-      let reprs = 
-	List.fold_left
-	  (fun acc e -> 
-	    { emitter = e; 
-	      properties = Property.reprs; 
-	      logical_consequence = false } 
-	    :: acc) 
-	  [] 
-	  Usable_emitter.reprs
-	  
+      let reprs =
+        List.fold_left
+          (fun acc e ->
+             { emitter = e;
+               properties = Property.reprs;
+               logical_consequence = false }
+             :: acc)
+          []
+          Usable_emitter.reprs
+
       let equal x y = Usable_emitter.equal x.emitter y.emitter
       let compare x y = Usable_emitter.compare x.emitter y.emitter
       let hash x = Caml_hashtbl.hash x.emitter
-	
+
       let copy = Datatype.undefined
       let pretty fmt e = Usable_emitter.pretty fmt e.emitter
       let internal_pretty_code = Datatype.undefined
       let varname _ = assert false (* unused while [internal_pretty_code]
-				      unimplemented *)
+                                      unimplemented *)
       let mem_project = Datatype.never_any_project
-     end)
+    end)
 
 type inconsistent =
-    { valid: emitter_with_properties list; 
-      invalid: emitter_with_properties list }
+  { valid: emitter_with_properties list;
+    invalid: emitter_with_properties list }
 
 module Local = struct
   type t =
@@ -98,52 +98,52 @@ module Local = struct
 end
 
 type status = Local.t =
-	      | Never_tried
-	      | Best of emitted_status * emitter_with_properties list
-	      | Inconsistent of inconsistent
+  | Never_tried
+  | Best of emitted_status * emitter_with_properties list
+  | Inconsistent of inconsistent
 
 module L = Datatype.Make
-  (struct
-    type t = status
-    include Datatype.Serializable_undefined
-    let name = "Property_status.t"
-    let reprs = 
-      let l = Emitter_with_properties.reprs in
-      [ Never_tried; Best(True, []); Inconsistent { valid = l; invalid = l } ]
-    let mem_project = Datatype.never_any_project
-    let pretty fmt s = 
-      let pp_emitters fmt l =
-        Pretty_utils.pp_list ~sep:",@ " ~last:" and "
-	  Emitter_with_properties.pretty fmt l
-      in
-      match s with
-      | Never_tried -> Format.fprintf fmt "no verification attempted"
-      | Best(Dont_know as s, l) ->
-        Format.fprintf fmt "@[%a@ @[(tried by %a)@]@]"
-	  Emitted_status.pretty s
-	  pp_emitters l
-      | Best(True | False_if_reachable | False_and_reachable as s, l) ->
-        Format.fprintf fmt "@[%a according to %a%s@]"
-	  Emitted_status.pretty s 
-	  pp_emitters l
-	  (match l with
-	  | [] -> assert false
-	  | { properties = [] } :: _ -> ""
-	  | { properties = _ :: _ } :: _ -> " (under hypotheses)")
-      | Inconsistent i ->
-	Format.fprintf fmt "@[<hv 2>inconsistent status:@ \
-@[%a according to %a@]@ \
-@[but %a according to %a@]"
-	  Emitted_status.pretty True pp_emitters i.valid
-	  Emitted_status.pretty False_if_reachable pp_emitters i.invalid
-   end)
+    (struct
+      type t = status
+      include Datatype.Serializable_undefined
+      let name = "Property_status.t"
+      let reprs =
+        let l = Emitter_with_properties.reprs in
+        [ Never_tried; Best(True, []); Inconsistent { valid = l; invalid = l } ]
+      let mem_project = Datatype.never_any_project
+      let pretty fmt s =
+        let pp_emitters fmt l =
+          Pretty_utils.pp_list ~sep:",@ " ~last:" and "
+            Emitter_with_properties.pretty fmt l
+        in
+        match s with
+        | Never_tried -> Format.fprintf fmt "no verification attempted"
+        | Best(Dont_know as s, l) ->
+          Format.fprintf fmt "@[%a@ @[(tried by %a)@]@]"
+            Emitted_status.pretty s
+            pp_emitters l
+        | Best(True | False_if_reachable | False_and_reachable as s, l) ->
+          Format.fprintf fmt "@[%a according to %a%s@]"
+            Emitted_status.pretty s
+            pp_emitters l
+            (match l with
+             | [] -> assert false
+             | { properties = [] } :: _ -> ""
+             | { properties = _ :: _ } :: _ -> " (under hypotheses)")
+        | Inconsistent i ->
+          Format.fprintf fmt "@[<hv 2>inconsistent status:@ \
+                              @[%a according to %a@]@ \
+                              @[but %a according to %a@]"
+            Emitted_status.pretty True pp_emitters i.valid
+            Emitted_status.pretty False_if_reachable pp_emitters i.invalid
+    end)
 include L
-    
+
 (**************************************************************************)
 (** {3 Projectified tables} *)
 (**************************************************************************)
 
-let register_as_kernel_logical_consequence_ref = 
+let register_as_kernel_logical_consequence_ref =
   Extlib.mk_fun "register_as_kernel_logical_consequence_ref"
 
 (* property -> emitter -> emitted_status *)
@@ -154,18 +154,18 @@ module Status =
     (struct
       include Emitter_with_properties
       let local_clear p h =
-	Hashtbl.clear h;
-	!register_as_kernel_logical_consequence_ref p
+        Hashtbl.clear h;
+        !register_as_kernel_logical_consequence_ref p
       let usable_get e = e.emitter
       let get e = Emitter.Usable_emitter.get e.emitter
-     end)
+    end)
     (Emitted_status)
-    (struct 
-      let name = "Property_status.Status" 
+    (struct
+      let name = "Property_status.Status"
       let dependencies = [ Ast.self ]
       let kinds = [ Emitter.Property_status ]
       let size = 97
-     end)
+    end)
 
 let self = Status.self
 
@@ -198,20 +198,20 @@ module Hypotheses =
       let name = "Property_status.Hypotheses"
       let dependencies = [ self ]
       let size = 97
-     end)
+    end)
 
 let () =
   Status.add_hook_on_remove
     (fun e ppt _ ->
-      (* remove the properties from the hypotheses table *)
-      let remove h =
-	try
-	  let l = Hypotheses.find h in
-	  l := List.filter (fun (ppt', _) -> not (Property.equal ppt ppt')) !l
-	with Not_found ->
-	  ()
-      in
-      List.iter remove e.properties)
+       (* remove the properties from the hypotheses table *)
+       let remove h =
+         try
+           let l = Hypotheses.find h in
+           l := List.filter (fun (ppt', _) -> not (Property.equal ppt ppt')) !l
+         with Not_found ->
+           ()
+       in
+       List.iter remove e.properties)
 
 
 module Valid_cycles : sig
@@ -228,7 +228,7 @@ end = struct
         let size = 7
         let dependencies = [ self ]
         let name = "Property_status.Valid_cycles"
-       end)
+      end)
 
   let self = S.self
 
@@ -263,15 +263,15 @@ exception Inconsistent_emitted_status of emitted_status * emitted_status
    @raise Inconsistent_emitted_status if the check fails *)
 let check_strongest_emitted x y = match x, y with
   | True, (False_if_reachable | False_and_reachable)
-  | (False_if_reachable | False_and_reachable), True -> 
-     raise (Inconsistent_emitted_status (x, y))
+  | (False_if_reachable | False_and_reachable), True ->
+    raise (Inconsistent_emitted_status (x, y))
   | Dont_know, (True | False_if_reachable | False_and_reachable | Dont_know)
-  | True, True 
+  | True, True
   | False_if_reachable, (False_and_reachable | False_if_reachable)
   | False_and_reachable, False_and_reachable
     -> false
-  | (True | False_if_reachable | False_and_reachable), Dont_know 
-  | False_and_reachable, False_if_reachable 
+  | (True | False_if_reachable | False_and_reachable), Dont_know
+  | False_and_reachable, False_if_reachable
     -> true
 
 (* [strengthen emitter emitted_status status] gets [status] and updates it
@@ -279,51 +279,51 @@ let check_strongest_emitted x y = match x, y with
    the strongest status between them, or an inconsistency if any. *)
 let strengthen emitter emitted_status status =
   match status, emitted_status with
-  | Never_tried, (True | False_if_reachable | False_and_reachable | Dont_know) 
-    -> 
+  | Never_tried, (True | False_if_reachable | False_and_reachable | Dont_know)
+    ->
     (* was not tried, but now we have tried :) *)
     Best(emitted_status, [ emitter ])
-  | Best(s, l), s2 when s = s2 -> 
+  | Best(s, l), s2 when s = s2 ->
     (* status are equal: update the emitters *)
     Best(s, emitter :: l)
   | Best(s, l), s2 (* when s <> emitted_status *) ->
     (try
        let first = check_strongest_emitted s s2 in
        if first then
-	 (* the old one is the strongest, keep it *)
-	 status
-       else 
-	 (* the new one is the strongest, replace the old one *)
-	 Best(emitted_status, [ emitter ]) 
+         (* the old one is the strongest, keep it *)
+         status
+       else
+         (* the new one is the strongest, replace the old one *)
+         Best(emitted_status, [ emitter ])
      with Inconsistent_emitted_status _ ->
        (* inconsistency detected *)
        (match s with
-       | True -> 
-	 assert (emitted_status = False_if_reachable
-		|| emitted_status = False_and_reachable);
-	 (* the old one is valid, but the new one is invalid *)
-	 Inconsistent { valid = l; invalid = [ emitter ] }
-       | False_if_reachable | False_and_reachable ->
-	 assert (emitted_status = True);
-	 (* the old one is invalid, but the new one is valid *)
-	 Inconsistent { valid = [ emitter ]; invalid = l }
-       | Dont_know -> assert false))
-  | Inconsistent i, True -> 
-    (* was already inconsistent and the new one is valid: update the valid 
+        | True ->
+          assert (emitted_status = False_if_reachable
+                  || emitted_status = False_and_reachable);
+          (* the old one is valid, but the new one is invalid *)
+          Inconsistent { valid = l; invalid = [ emitter ] }
+        | False_if_reachable | False_and_reachable ->
+          assert (emitted_status = True);
+          (* the old one is invalid, but the new one is valid *)
+          Inconsistent { valid = [ emitter ]; invalid = l }
+        | Dont_know -> assert false))
+  | Inconsistent i, True ->
+    (* was already inconsistent and the new one is valid: update the valid
        field *)
     Inconsistent { i with valid = emitter :: i.valid }
-  | Inconsistent i, (False_if_reachable | False_and_reachable) -> 
-    (* was already inconsistent and the new one is invalid: update the invalid 
+  | Inconsistent i, (False_if_reachable | False_and_reachable) ->
+    (* was already inconsistent and the new one is invalid: update the invalid
        field *)
     Inconsistent { i with invalid = emitter :: i.invalid }
-  | Inconsistent _, Dont_know -> 
+  | Inconsistent _, Dont_know ->
     (* was already inconsistent, but the new one gets no new info: ignore it *)
     status
-    
+
 exception Unmergeable
 
-(* @return [true] if one must keep the status of the first parameter. 
-   [false] otherwise. In case of equality, return [false]. 
+(* @return [true] if one must keep the status of the first parameter.
+   [false] otherwise. In case of equality, return [false].
    @raise Unmergeable *)
 let merge_distinct_emitted x y = match x, y with
   | False_and_reachable, (True | Dont_know | False_if_reachable)
@@ -347,7 +347,7 @@ let rec register ppt =
     Project.pretty (Project.current ());
   if Status.mem ppt then
     Kernel.fatal "trying to register twice property `%a'.\n\
-That is forbidden (kernel invariant broken)."
+                  That is forbidden (kernel invariant broken)."
       Property.pretty ppt;
   let h = Emitter_with_properties.Hashtbl.create 7 in
   Status.add ppt h;
@@ -355,61 +355,69 @@ That is forbidden (kernel invariant broken)."
   register_as_kernel_logical_consequence ppt
 
 (* the functions below and this one MUST be synchronized *)
-and register_as_kernel_logical_consequence ppt = match ppt with
-  | Property.IPAxiom _ 
-  | Property.IPPredicate(Property.PKAssumes _, _, _, _) ->
+and register_as_kernel_logical_consequence ppt =
+  let open Property in match ppt with
+  | IPAxiom _
+  | IPPredicate {ip_kind = PKAssumes _} ->
     (* always valid, but must be verifiable by the end-user,
        see [is_not_verifiable_but_valid] *)
     ()
-  | Property.IPAxiomatic(_, l) -> logical_consequence Emitter.kernel ppt l
-  | Property.IPBehavior(kf, ki, active, b) ->
-    let active = Datatype.String.Set.elements active in
+  | IPAxiomatic {iax_props} -> logical_consequence Emitter.kernel ppt iax_props
+  | IPBehavior {ib_kf; ib_kinstr; ib_active; ib_bhv} ->
+    let active = Datatype.String.Set.elements ib_active in
     (* logical consequence of its postconditions *)
     logical_consequence
-      Emitter.kernel ppt (Property.ip_post_cond_of_behavior kf ki active b)
-  | Property.IPReachable(None, Cil_types.Kglobal, Property.Before) ->
-      (* valid: global properties are always reachable *)
+      Emitter.kernel ppt (ip_post_cond_of_behavior ib_kf ib_kinstr active ib_bhv)
+  | IPReachable {ir_kf = None; ir_kinstr = Cil_types.Kglobal;
+                 ir_program_point = Before} ->
+    (* valid: global properties are always reachable *)
     emit_valid ppt
-  | Property.IPReachable(None, Cil_types.Kglobal, Property.After) -> 
+  | IPReachable {ir_kf = None; ir_kinstr = Cil_types.Kglobal;
+                 ir_program_point = After} ->
     assert false
-  | Property.IPReachable(None, Cil_types.Kstmt _, _) ->
+  | IPReachable {ir_kf = None; ir_kinstr = Cil_types.Kstmt _} ->
     Kernel.fatal "reachability of a stmt without function"
-  | Property.IPReachable(Some kf, Cil_types.Kglobal, Property.Before) ->
+  | IPReachable {ir_kf = Some kf; ir_kinstr = Cil_types.Kglobal;
+                 ir_program_point = Before} ->
     let f = kf.Cil_types.fundec in
     if Ast_info.Function.get_name f = Kernel.MainFunction.get_plain_string ()
-      (* main is always reachable *)
+    (* main is always reachable *)
     then emit_valid ppt
-  | Property.IPOther _  | Property.IPReachable _
-  | Property.IPExtended _
-  | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
-  | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
-  | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPLemma _
-  | Property.IPPropertyInstance _
-  | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ ->
+  | IPOther _  | IPReachable _
+  | IPExtended _
+  | IPPredicate _ | IPCodeAnnot _ | IPComplete _
+  | IPDisjoint _ | IPAssigns _ | IPFrom _
+  | IPAllocation _ | IPDecrease _ | IPLemma _
+  | IPPropertyInstance _
+  | IPTypeInvariant _ | IPGlobalInvariant _ ->
     ()
 
 (* the functions above and below MUST be synchronized *)
-and is_kernel_logical_consequence ppt = match ppt with
-  | Property.IPPredicate(Property.PKAssumes _, _, _, _)
-  | Property.IPBehavior(_, _, _, _)
-  | Property.IPReachable(None, Cil_types.Kglobal, Property.Before) ->
+and is_kernel_logical_consequence ppt =
+  let open Property in match ppt with
+  | IPPredicate {ip_kind = PKAssumes _}
+  | IPBehavior _
+  | IPReachable {ir_kf = None; ir_kinstr = Cil_types.Kglobal;
+                 ir_program_point = Before} ->
     true
-  | Property.IPReachable(None, Cil_types.Kglobal, Property.After) ->
+  | IPReachable {ir_kf = None; ir_kinstr = Cil_types.Kglobal;
+                 ir_program_point = After} ->
     assert false
-  | Property.IPReachable(None, Cil_types.Kstmt _, _) ->
+  | IPReachable {ir_kf = None; ir_kinstr = Cil_types.Kstmt _} ->
     Kernel.fatal "reachability of a stmt without function"
-  | Property.IPReachable(Some kf, Cil_types.Kglobal, Property.Before) ->
+  | IPReachable {ir_kf = Some kf; ir_kinstr = Cil_types.Kglobal;
+                 ir_program_point = Before} ->
     let f = kf.Cil_types.fundec in (* main is always reachable *)
     Ast_info.Function.get_name f = Kernel.MainFunction.get_plain_string ()
-  | Property.IPAxiom _
-  | Property.IPExtended _
-  | Property.IPAxiomatic _
-  | Property.IPOther _  | Property.IPReachable _
-  | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _
-  | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
-  | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPLemma _
-  | Property.IPPropertyInstance _
-  | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ ->
+  | IPAxiom _
+  | IPExtended _
+  | IPAxiomatic _
+  | IPOther _  | IPReachable _
+  | IPPredicate _ | IPCodeAnnot _ | IPComplete _
+  | IPDisjoint _ | IPAssigns _ | IPFrom _
+  | IPAllocation _ | IPDecrease _ | IPLemma _
+  | IPPropertyInstance _
+  | IPTypeInvariant _ | IPGlobalInvariant _ ->
     false
 
 and unsafe_emit_and_get e ~hyps ~auto ppt ?(distinct=false) s =
@@ -421,12 +429,12 @@ and unsafe_emit_and_get e ~hyps ~auto ppt ?(distinct=false) s =
     (List.length hyps);
   try
     let by_emitter = Status.find ppt in
-    let emitter = 
-      { emitter = Emitter.get e; 
-	properties = hyps; 
-	logical_consequence = auto }
+    let emitter =
+      { emitter = Emitter.get e;
+        properties = hyps;
+        logical_consequence = auto }
     in
-    let emit s = 
+    let emit s =
       (* first remove from the hypotheses table, each binding [(previous
          hypothesis of e, ppt)]. These hypotheses are stored together with the
          associated emitter as a key of [by_emitter]. Since there is no way to
@@ -436,11 +444,11 @@ and unsafe_emit_and_get e ~hyps ~auto ppt ?(distinct=false) s =
       (try
          Emitter_with_properties.Hashtbl.iter
            (fun e' _ ->
-             if Usable_emitter.equal (Emitter.get e) e'.emitter then begin
-               (* the status [Dont_know] is unused by the call below *)
-               Status.apply_hooks_on_remove e' ppt Dont_know;
-               raise Exit
-             end)
+              if Usable_emitter.equal (Emitter.get e) e'.emitter then begin
+                (* the status [Dont_know] is unused by the call below *)
+                Status.apply_hooks_on_remove e' ppt Dont_know;
+                raise Exit
+              end)
            by_emitter
        with Exit ->
          ());
@@ -450,103 +458,103 @@ and unsafe_emit_and_get e ~hyps ~auto ppt ?(distinct=false) s =
       let selection = State_selection.diff selection linked_to_self in
       Project.clear ~selection ();
       (* finally, replace the old emitter by the new one *)
-      let add e s = 
-	Emitter_with_properties.Hashtbl.replace by_emitter e s;
-	List.iter
-	  (function 
-	  | Property.IPOther _ -> ()
-	  | h ->
-	    let pair = ppt, e in
-	    try
-	      let l = Hypotheses.find h in
-	      l := pair :: !l
-	    with Not_found ->
-	      Hypotheses.add h (ref [ pair ]))
-	  e.properties
+      let add e s =
+        Emitter_with_properties.Hashtbl.replace by_emitter e s;
+        List.iter
+          (function
+            | Property.IPOther _ -> ()
+            | h ->
+              let pair = ppt, e in
+              try
+                let l = Hypotheses.find h in
+                l := pair :: !l
+              with Not_found ->
+                Hypotheses.add h (ref [ pair ]))
+          e.properties
       in
       (match s with
-      | True -> add emitter s
-      | Dont_know ->
-	add emitter s
-      | False_and_reachable ->
-	(match hyps with
-	| [] -> add emitter s
-	| _ :: _ -> Kernel.fatal "Emitter %a proves invalidity of %a under \
-hypotheses: unsound!" Emitter.pretty e Property.pretty ppt)
-      | False_if_reachable ->
-	(match ppt with
-	| Property.IPReachable _ ->
-	  Kernel.fatal "Emitter %a proves %a by using itself: unsound!" 
-	    Emitter.pretty e Property.pretty ppt
-	| _ -> ());
-	(match hyps with
-	| [] ->
-	  let reach_ppt = Property.ip_reachable_ppt ppt in
-	  if is_kernel_logical_consequence reach_ppt then emit_valid reach_ppt;
-	  add { emitter with properties = [ reach_ppt ] } s
-	| _ :: _ -> Kernel.fatal "Emitter %a proves invalidity of %a under \
-hypotheses: unsound!" Emitter.pretty e Property.pretty ppt));
+       | True -> add emitter s
+       | Dont_know ->
+         add emitter s
+       | False_and_reachable ->
+         (match hyps with
+          | [] -> add emitter s
+          | _ :: _ -> Kernel.fatal "Emitter %a proves invalidity of %a under \
+                                    hypotheses: unsound!" Emitter.pretty e Property.pretty ppt)
+       | False_if_reachable ->
+         (match ppt with
+          | Property.IPReachable _ ->
+            Kernel.fatal "Emitter %a proves %a by using itself: unsound!"
+              Emitter.pretty e Property.pretty ppt
+          | _ -> ());
+         (match hyps with
+          | [] ->
+            let reach_ppt = Property.ip_reachable_ppt ppt in
+            if is_kernel_logical_consequence reach_ppt then emit_valid reach_ppt;
+            add { emitter with properties = [ reach_ppt ] } s
+          | _ :: _ -> Kernel.fatal "Emitter %a proves invalidity of %a under \
+                                    hypotheses: unsound!" Emitter.pretty e Property.pretty ppt));
       s
     in
     (try
-       if auto then 
-	 (* registering again a logical consequence because dependencies change,
-	    thus erase the previous (now erroneous) calculus *)
-	 emit s
+       if auto then
+         (* registering again a logical consequence because dependencies change,
+            thus erase the previous (now erroneous) calculus *)
+         emit s
        else
-	 let old_s = Emitter_with_properties.Hashtbl.find by_emitter emitter in
-	 try 
-	   let first = 
-	     (if distinct then merge_distinct_emitted 
-	      else check_strongest_emitted)
-	       s 
-	       old_s 
-	   in
-	   if first then emit s else old_s
-	 with Unmergeable -> emit Dont_know
+         let old_s = Emitter_with_properties.Hashtbl.find by_emitter emitter in
+         try
+           let first =
+             (if distinct then merge_distinct_emitted
+              else check_strongest_emitted)
+               s
+               old_s
+           in
+           if first then emit s else old_s
+         with Unmergeable -> emit Dont_know
      with Not_found ->
        emit s)
   with Not_found ->
-    (* assume that all ACSL properties are registered, except non-ACSL and
-       conjunctions ones (but conjunctions are automatically computed and so
-       already registered) *)
-    match ppt with
-    | Property.IPOther _ | Property.IPReachable _
-    | Property.IPPropertyInstance _ ->
-      register ppt; 
-      unsafe_emit_and_get e ~hyps ~auto ppt ~distinct s
-    | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
-    | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
-    | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPBehavior _
-    | Property.IPAxiom _ | Property.IPAxiomatic _ | Property.IPLemma _
-    | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ | Property.IPExtended _ ->
-      Kernel.fatal "unregistered property %a" Property.pretty ppt
+  (* assume that all ACSL properties are registered, except non-ACSL and
+     conjunctions ones (but conjunctions are automatically computed and so
+     already registered) *)
+  match ppt with
+  | Property.IPOther _ | Property.IPReachable _
+  | Property.IPPropertyInstance _ ->
+    register ppt;
+    unsafe_emit_and_get e ~hyps ~auto ppt ~distinct s
+  | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _
+  | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _
+  | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPBehavior _
+  | Property.IPAxiom _ | Property.IPAxiomatic _ | Property.IPLemma _
+  | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ | Property.IPExtended _ ->
+    Kernel.fatal "unregistered property %a" Property.pretty ppt
 
-and logical_consequence e ppt hyps = 
+and logical_consequence e ppt hyps =
   ignore (unsafe_emit_and_get e ~hyps ~auto:true ppt Dont_know)
 
 and emit_valid ppt =
   ignore (unsafe_emit_and_get Emitter.kernel ~hyps:[] ~auto:true ppt True)
 
-let () = 
+let () =
   register_as_kernel_logical_consequence_ref :=
     register_as_kernel_logical_consequence
 
 let emit_and_get e ~hyps ppt ?distinct s =
-  begin match ppt with
-  | Property.IPBehavior _ | Property.IPAxiom _ | Property.IPAxiomatic _
-  | Property.IPPredicate (Property.PKAssumes _, _, _, _) ->
-    Kernel.fatal
-      "only the kernel should set the status of property %a"
-      Property.pretty
-      ppt
-  | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
-  | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
-  | Property.IPDecrease _ | Property.IPLemma _ | Property.IPReachable _
-  | Property.IPAllocation _ | Property.IPOther _
-  | Property.IPPropertyInstance _
-  | Property.IPExtended _
-  | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ -> ()
+  let open Property in begin match ppt with
+    | IPBehavior _ | IPAxiom _ | IPAxiomatic _
+    | IPPredicate {ip_kind = PKAssumes _} ->
+      Kernel.fatal
+        "only the kernel should set the status of property %a"
+        pretty
+        ppt
+    | IPPredicate _ | IPCodeAnnot _ | IPComplete _
+    | IPDisjoint _ | IPAssigns _ | IPFrom _
+    | IPDecrease _ | IPLemma _ | IPReachable _
+    | IPAllocation _ | IPOther _
+    | IPPropertyInstance _
+    | IPExtended _
+    | IPTypeInvariant _ | IPGlobalInvariant _ -> ()
   end;
   unsafe_emit_and_get e ~hyps ~auto:false ppt ?distinct s
 
@@ -558,11 +566,11 @@ let remove_when_used_as_hypothesis hyp =
     let l = Hypotheses.find hyp in
     let remove (ppt, e) =
       if e.logical_consequence then
-	(* only remove [hyp] from hypotheses without killing the status *)
-	e.properties <- List.filter (fun ppt' -> ppt' != hyp) e.properties
+        (* only remove [hyp] from hypotheses without killing the status *)
+        e.properties <- List.filter (fun ppt' -> ppt' != hyp) e.properties
       else
-	let by_emitter = try Status.find ppt with Not_found -> assert false in
-	Emitter_with_properties.Hashtbl.remove by_emitter e
+        let by_emitter = try Status.find ppt with Not_found -> assert false in
+        Emitter_with_properties.Hashtbl.remove by_emitter e
     in
     List.iter remove !l
   with Not_found ->
@@ -583,7 +591,7 @@ module Remove_hook = Hook.Build(struct type t = Property.t end)
 let register_property_remove_hook = Remove_hook.extend
 
 let remove ppt =
-  Kernel.debug ~dkey:Kernel.dkey_prop_status_reg "REMOVING %a in %a" 
+  Kernel.debug ~dkey:Kernel.dkey_prop_status_reg "REMOVING %a in %a"
     Property.pretty ppt
     Project.pretty (Project.current ());
   remove_when_used_as_hypothesis ppt;
@@ -593,7 +601,7 @@ let remove ppt =
 
 let merge ~old l =
   let dkey = Kernel.dkey_prop_status_merge in
-  let property_id fmt p = 
+  let property_id fmt p =
     Format.fprintf fmt "%a(%d)" Property.pretty p (Property.hash p)
   in
   Kernel.feedback ~dkey
@@ -603,23 +611,23 @@ let merge ~old l =
   let old_h = Property.Hashtbl.create 17 in
   List.iter
     (fun p ->
-      if not (Status.mem p) then
-        Kernel.fatal "Unknown property %a" property_id p;
-      Property.Hashtbl.add old_h p ()) 
+       if not (Status.mem p) then
+         Kernel.fatal "Unknown property %a" property_id p;
+       Property.Hashtbl.add old_h p ())
     old;
-  List.iter 
-    (fun p -> 
-      if Property.Hashtbl.mem old_h p then begin
-        (* [p] belongs to both lists *)
-	Kernel.feedback ~dkey "UNCHANGED %a" Property.pretty p;
-        Property.Hashtbl.remove old_h p;
-	(* if [p] was a logical consequence, its dependencies may change *)
-	register_as_kernel_logical_consequence p
-      end else begin
-        (* [p] belongs only to the new list *)
-	Kernel.feedback ~dkey "ADD %a" Property.pretty p;
-        register p
-      end)
+  List.iter
+    (fun p ->
+       if Property.Hashtbl.mem old_h p then begin
+         (* [p] belongs to both lists *)
+         Kernel.feedback ~dkey "UNCHANGED %a" Property.pretty p;
+         Property.Hashtbl.remove old_h p;
+         (* if [p] was a logical consequence, its dependencies may change *)
+         register_as_kernel_logical_consequence p
+       end else begin
+         (* [p] belongs only to the new list *)
+         Kernel.feedback ~dkey "ADD %a" Property.pretty p;
+         register p
+       end)
     l;
   (* remove the properties which are not in the new list *)
   Property.Hashtbl.iter
@@ -638,33 +646,32 @@ let conjunction s1 s2 = match s1, s2 with
 let is_not_verifiable_but_valid ppt status = match status with
   | Never_tried ->
     (match ppt with
-    | Property.IPOther _ -> 
-      (* Non-ACSL properties are not verifiable *) 
-      false
-    | Property.IPReachable _ -> false
-    | Property.IPAxiom _ | Property.IPAxiomatic _ -> true
-    | _ ->
-      match Property.get_kf ppt with
-      | None -> false
-      | Some kf ->
-	(* cannot use module [Kernel_function] nor [Globals] here *)
-	let f = kf.Cil_types.fundec in
-	if Ast_info.Function.is_definition f then
-	  false
-	else
-	  (* postconditions of functions without code are not verifiable *)
-	  match ppt with
-	  | Property.IPPredicate
-	      ((Property.PKEnsures _ | Property.PKTerminates), _, _, _)
-	  | Property.IPAssigns _ | Property.IPAllocation _ 
-	  | Property.IPFrom _ -> true
-	  | _ -> false)
+     | Property.IPOther _ ->
+       (* Non-ACSL properties are not verifiable *)
+       false
+     | Property.IPReachable _ -> false
+     | Property.IPAxiom _ | Property.IPAxiomatic _ -> true
+     | _ ->
+       match Property.get_kf ppt with
+       | None -> false
+       | Some kf ->
+         (* cannot use module [Kernel_function] nor [Globals] here *)
+         let f = kf.Cil_types.fundec in
+         if Ast_info.Function.is_definition f then
+           false
+         else
+           (* postconditions of functions without code are not verifiable *)
+           let open Property in match ppt with
+           | IPPredicate {ip_kind = PKEnsures _ | PKTerminates}
+           | IPAssigns _ | IPAllocation _
+           | IPFrom _ -> true
+           | _ -> false)
   | Best((True | False_if_reachable | False_and_reachable | Dont_know), _)
   | Inconsistent _ ->
     false
 
-let rec compute_automatic_status _e properties = 
-  let local_get p = 
+let rec compute_automatic_status _e properties =
+  let local_get p =
     let status = get_status p in
     let emitted_status = match status with
       | Never_tried | Inconsistent _ -> Dont_know
@@ -674,80 +681,80 @@ let rec compute_automatic_status _e properties =
   in
   List.fold_left (fun s p -> conjunction s (local_get p)) True properties
 
-and get_status ?(must_register=true) ppt = 
+and get_status ?(must_register=true) ppt =
   try
     let by_emitter = Status.find ppt in
-    Emitter_with_properties.Hashtbl.fold 
-      (fun e s acc -> 
-	let s, tried = 
-	  if e.logical_consequence && Emitted_status.equal s Dont_know then
-	    let ppts = 
-	      List.filter
-		(function Property.IPReachable _ -> false | _ -> true)
-		e.properties 
-	    in
-	    let new_s = compute_automatic_status e ppts in
-	    match new_s with
-	    | True | False_if_reachable | False_and_reachable -> 
-	      (* the status is now known: register it *)
-	      Emitter_with_properties.Hashtbl.replace by_emitter e new_s;
-	      new_s, true
-	    | Dont_know -> 
-	      (* no change *)
-	      new_s, 
-	      (* there is a status for this logical consequence iff 
-		 there is a status for one of its hypotheses *)
-	      List.exists (fun p -> get_status p <> Never_tried) ppts
-	  else
-	    s, true
-	in
-	if tried then strengthen e s acc else acc)
-      by_emitter 
+    Emitter_with_properties.Hashtbl.fold
+      (fun e s acc ->
+         let s, tried =
+           if e.logical_consequence && Emitted_status.equal s Dont_know then
+             let ppts =
+               List.filter
+                 (function Property.IPReachable _ -> false | _ -> true)
+                 e.properties
+             in
+             let new_s = compute_automatic_status e ppts in
+             match new_s with
+             | True | False_if_reachable | False_and_reachable ->
+               (* the status is now known: register it *)
+               Emitter_with_properties.Hashtbl.replace by_emitter e new_s;
+               new_s, true
+             | Dont_know ->
+               (* no change *)
+               new_s,
+               (* there is a status for this logical consequence iff
+                  there is a status for one of its hypotheses *)
+               List.exists (fun p -> get_status p <> Never_tried) ppts
+           else
+             s, true
+         in
+         if tried then strengthen e s acc else acc)
+      by_emitter
       Never_tried
   with Not_found ->
-    (* assume that all ACSL properties are registered, except non-ACSL ones *)
-    match ppt with
-    | Property.IPOther _ | Property.IPReachable _
-    | Property.IPPropertyInstance _ ->
-      if must_register then begin
-	register ppt; 
-	if is_kernel_logical_consequence ppt then get_status ppt 
-	else Never_tried
-      end else
-	Never_tried
-    | Property.IPBehavior _ 
-    | Property.IPExtended _
-    | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
-    | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
-    | Property.IPDecrease _ | Property.IPAllocation _ 
-    | Property.IPAxiom _ | Property.IPAxiomatic _ | Property.IPLemma _
-    | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ ->
-      Kernel.fatal "trying to get status of unregistered property `%a'.\n\
-That is forbidden (kernel invariant broken)." 
-	Property.pretty ppt
+  (* assume that all ACSL properties are registered, except non-ACSL ones *)
+  match ppt with
+  | Property.IPOther _ | Property.IPReachable _
+  | Property.IPPropertyInstance _ ->
+    if must_register then begin
+      register ppt;
+      if is_kernel_logical_consequence ppt then get_status ppt
+      else Never_tried
+    end else
+      Never_tried
+  | Property.IPBehavior _
+  | Property.IPExtended _
+  | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _
+  | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _
+  | Property.IPDecrease _ | Property.IPAllocation _
+  | Property.IPAxiom _ | Property.IPAxiomatic _ | Property.IPLemma _
+  | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ ->
+    Kernel.fatal "trying to get status of unregistered property `%a'.\n\
+                  That is forbidden (kernel invariant broken)."
+      Property.pretty ppt
 
 (* local alias: too much local definitions of get implies name clashes *)
 let get ppt = get_status ppt
 
 let automatically_proven ppt =
-  is_kernel_logical_consequence ppt 
+  is_kernel_logical_consequence ppt
   &&
-    (* nobody else tried to prove it *)
+  (* nobody else tried to prove it *)
+  try
+    let by_emitter = Status.find ppt in
     try
-      let by_emitter = Status.find ppt in
-      try 
-	Emitter_with_properties.Hashtbl.iter
-	  (fun e _ -> 
-	    if not (Emitter.equal
-		      (Emitter.Usable_emitter.get e.emitter)
-		      Emitter.kernel) 
-	    then raise Exit)
-	  by_emitter;
-	true
-      with Exit ->
-	false
-    with Not_found ->
+      Emitter_with_properties.Hashtbl.iter
+        (fun e _ ->
+           if not (Emitter.equal
+                     (Emitter.Usable_emitter.get e.emitter)
+                     Emitter.kernel)
+           then raise Exit)
+        by_emitter;
       true
+    with Exit ->
+      false
+  with Not_found ->
+    true
 
 
 (**************************************************************************)
@@ -757,7 +764,7 @@ let automatically_proven ppt =
 module Consolidation = struct
 
   type pending =
-      Property.Set.t Usable_emitter.Map.t Usable_emitter.Map.t
+    Property.Set.t Usable_emitter.Map.t Usable_emitter.Map.t
 
   type consolidated_status =
     | Never_tried
@@ -773,76 +780,76 @@ module Consolidation = struct
     | Inconsistent of string
 
   module D = Datatype.Make
-    (struct
-      type t = consolidated_status
-      include Datatype.Serializable_undefined
-      let name = "Property_status.consolidated_status"
-      let reprs = 
-	[ Never_tried;
-	  Considered_valid;
-	  Valid Usable_emitter.Set.empty; 
-	  Valid_under_hyp Usable_emitter.Map.empty;
-	  Unknown Usable_emitter.Map.empty;
-	  Invalid Usable_emitter.Set.empty; 
-	  Invalid_under_hyp Usable_emitter.Map.empty; 
-	  Invalid_but_dead Usable_emitter.Map.empty; 
-	  Valid_but_dead Usable_emitter.Map.empty; 
-	  Unknown_but_dead Usable_emitter.Map.empty; 
-	  Inconsistent "" ]
+      (struct
+        type t = consolidated_status
+        include Datatype.Serializable_undefined
+        let name = "Property_status.consolidated_status"
+        let reprs =
+          [ Never_tried;
+            Considered_valid;
+            Valid Usable_emitter.Set.empty;
+            Valid_under_hyp Usable_emitter.Map.empty;
+            Unknown Usable_emitter.Map.empty;
+            Invalid Usable_emitter.Set.empty;
+            Invalid_under_hyp Usable_emitter.Map.empty;
+            Invalid_but_dead Usable_emitter.Map.empty;
+            Valid_but_dead Usable_emitter.Map.empty;
+            Unknown_but_dead Usable_emitter.Map.empty;
+            Inconsistent "" ]
 
-      let mem_project = Datatype.never_any_project
-      let pretty fmt s = 
-	let pp_emitters f fmt l =
-          Pretty_utils.pp_list ~sep:",@ " ~last:" and " f fmt l
-	in
-	match s with
-	| Never_tried -> Format.fprintf fmt "no verification attempted"
-	| Considered_valid -> 
-	  Format.fprintf fmt
-	    "unverifiable but considered %a; requires external review"
-	    Emitted_status.pretty Emitted.True
-	| Valid set | Invalid set ->
-          Format.fprintf fmt "@[%a according to %a@]"
-	    Emitted_status.pretty
-	    (match s with
-	    | Valid _ -> Emitted.True
-	    | Invalid _ -> Emitted.False_and_reachable
-	    | _ -> assert false)
-	    (pp_emitters Usable_emitter.pretty)
-	    (Usable_emitter.Set.elements set)
-	| Valid_under_hyp map | Invalid_under_hyp map ->
-	  let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) map [] in
-	  Format.fprintf fmt "@[%a@ @[(%a according to %a, but properties \
-remain to be verified)@]@]"
-	    Emitted_status.pretty Emitted.Dont_know
-	    Emitted_status.pretty
-	    (match s with 
-	    | Valid_under_hyp _ -> Emitted.True
-            | Invalid_under_hyp _ -> Emitted.False_and_reachable
-	    | _ -> assert false)
-	    (pp_emitters Usable_emitter.pretty) l
-	| Unknown map ->
-	  let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) map [] in
-          Format.fprintf fmt "@[%a@ @[(tried by %a)@]@]"
-	    Emitted_status.pretty Emitted.Dont_know
-	    (pp_emitters Usable_emitter.pretty) l
-	| Valid_but_dead map
-	| Invalid_but_dead map
-	| Unknown_but_dead map ->
-	  let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) map [] in
-          Format.fprintf fmt "@[%a according to %a, but dead anyway@]"
-	    Emitted_status.pretty 
-	    (match s with
-	    | Valid_but_dead _ -> Emitted.True
-	    | Invalid_but_dead _ -> Emitted.False_and_reachable
-	    | Unknown_but_dead _ -> Emitted.Dont_know
-	    | _ -> assert false)
-	    (pp_emitters Usable_emitter.pretty) l
-	| Inconsistent msg -> 
-	  Format.fprintf fmt "inconsistency detected:\n%s.\n\
-Check your axiomatics and implicit hypotheses."
-	    msg
-     end)
+        let mem_project = Datatype.never_any_project
+        let pretty fmt s =
+          let pp_emitters f fmt l =
+            Pretty_utils.pp_list ~sep:",@ " ~last:" and " f fmt l
+          in
+          match s with
+          | Never_tried -> Format.fprintf fmt "no verification attempted"
+          | Considered_valid ->
+            Format.fprintf fmt
+              "unverifiable but considered %a; requires external review"
+              Emitted_status.pretty Emitted.True
+          | Valid set | Invalid set ->
+            Format.fprintf fmt "@[%a according to %a@]"
+              Emitted_status.pretty
+              (match s with
+               | Valid _ -> Emitted.True
+               | Invalid _ -> Emitted.False_and_reachable
+               | _ -> assert false)
+              (pp_emitters Usable_emitter.pretty)
+              (Usable_emitter.Set.elements set)
+          | Valid_under_hyp map | Invalid_under_hyp map ->
+            let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) map [] in
+            Format.fprintf fmt "@[%a@ @[(%a according to %a, but properties \
+                                remain to be verified)@]@]"
+              Emitted_status.pretty Emitted.Dont_know
+              Emitted_status.pretty
+              (match s with
+               | Valid_under_hyp _ -> Emitted.True
+               | Invalid_under_hyp _ -> Emitted.False_and_reachable
+               | _ -> assert false)
+              (pp_emitters Usable_emitter.pretty) l
+          | Unknown map ->
+            let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) map [] in
+            Format.fprintf fmt "@[%a@ @[(tried by %a)@]@]"
+              Emitted_status.pretty Emitted.Dont_know
+              (pp_emitters Usable_emitter.pretty) l
+          | Valid_but_dead map
+          | Invalid_but_dead map
+          | Unknown_but_dead map ->
+            let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) map [] in
+            Format.fprintf fmt "@[%a according to %a, but dead anyway@]"
+              Emitted_status.pretty
+              (match s with
+               | Valid_but_dead _ -> Emitted.True
+               | Invalid_but_dead _ -> Emitted.False_and_reachable
+               | Unknown_but_dead _ -> Emitted.Dont_know
+               | _ -> assert false)
+              (pp_emitters Usable_emitter.pretty) l
+          | Inconsistent msg ->
+            Format.fprintf fmt "inconsistency detected:\n%s.\n\
+                                Check your axiomatics and implicit hypotheses."
+              msg
+      end)
   include D
 
   module Consolidated_status =
@@ -850,10 +857,10 @@ Check your axiomatics and implicit hypotheses."
       (Property.Hashtbl)
       (D)
       (struct
-	let name = "Property_status.Consolidated_status"
-	let dependencies = [ Status.self ]
-	let size = 97
-       end)
+        let name = "Property_status.Consolidated_status"
+        let dependencies = [ Status.self ]
+        let size = 97
+      end)
 
   let merge_property e ppt map =
     try
@@ -872,17 +879,17 @@ Check your axiomatics and implicit hypotheses."
 
   let flatten_map init map =
     Usable_emitter.Map.fold
-      (fun _ -> Usable_emitter.Map.fold merge_properties) 
-      map 
+      (fun _ -> Usable_emitter.Map.fold merge_properties)
+      map
       init
 
-  let flatten_set init h set = 
+  let flatten_set init h set =
     Usable_emitter.Set.fold (fun e map -> merge_property e h map) set init
 
   let reduce_hypothesis_status ppt = function
     | Never_tried | Inconsistent _ ->
-      let singleton_map v = 
-	Usable_emitter.Map.singleton usable_kernel_emitter v
+      let singleton_map v =
+        Usable_emitter.Map.singleton usable_kernel_emitter v
       in
       Unknown (singleton_map (singleton_map (Property.Set.singleton ppt)))
     | Invalid_under_hyp m -> Unknown m
@@ -890,11 +897,11 @@ Check your axiomatics and implicit hypotheses."
     | Valid _ -> Valid Emitter.Usable_emitter.Set.empty
     | Invalid_but_dead m
     | Valid_but_dead m
-    | Unknown_but_dead m -> 
+    | Unknown_but_dead m ->
       (* Must keep where are invalidities, thus keep the map.
-	 But anyway, each of these three "dead" status are consolidated in the
-	 same way *)
-      Valid_but_dead m 
+         But anyway, each of these three "dead" status are consolidated in the
+         same way *)
+      Valid_but_dead m
     | Valid_under_hyp m
     | Unknown m -> Unknown m
     | Invalid _ as s -> s
@@ -904,15 +911,15 @@ Check your axiomatics and implicit hypotheses."
      e is the emitter of s2 for property h
      issues are the issues already computed
      compute:
-     - consolidated status of (h1 /\ h2) 
+     - consolidated status of (h1 /\ h2)
      - where are the issues and who finds them *)
   let hypotheses_conjunction issues h s1 s2 = match s1, s2 with
     (* order of patterns does matter *)
     | _, Never_tried
     | Considered_valid, _ | _, Considered_valid
     | Valid_under_hyp _, _ | _, Valid_under_hyp _
-    | Inconsistent _, _ | _, Inconsistent _  
-    | Invalid_under_hyp _, _ | _, Invalid_under_hyp _ 
+    | Inconsistent _, _ | _, Inconsistent _
+    | Invalid_under_hyp _, _ | _, Invalid_under_hyp _
     | Invalid_but_dead _, _ | _, Invalid_but_dead _
     | Unknown_but_dead _, _ | _, Unknown_but_dead _ ->
       (* handle at callsite *)
@@ -925,28 +932,28 @@ Check your axiomatics and implicit hypotheses."
       (* first status encountered: no issue with the first hypothesis *)
       assert (Usable_emitter.Map.is_empty issues);
       Valid Usable_emitter.Set.empty, issues
-    | Invalid set1, Invalid set2 -> 
+    | Invalid set1, Invalid set2 ->
       assert (Usable_emitter.Set.is_empty set1);
       Invalid Usable_emitter.Set.empty, flatten_set issues h set2
-    | _, Invalid set -> 
-      Invalid Usable_emitter.Set.empty, 
+    | _, Invalid set ->
+      Invalid Usable_emitter.Set.empty,
       flatten_set Usable_emitter.Map.empty h set
-    | Invalid set, _ -> 
+    | Invalid set, _ ->
       assert (Usable_emitter.Set.is_empty set);
       Invalid Usable_emitter.Set.empty, issues
     | Unknown m1, Unknown m2 ->
       assert (Usable_emitter.Map.is_empty m1);
       Unknown Usable_emitter.Map.empty, flatten_map issues m2
-    | Unknown m, (Valid _ | Valid_but_dead _) 
-    | (Valid _ | Valid_but_dead _), Unknown m -> 
-      Unknown Usable_emitter.Map.empty, 
+    | Unknown m, (Valid _ | Valid_but_dead _)
+    | (Valid _ | Valid_but_dead _), Unknown m ->
+      Unknown Usable_emitter.Map.empty,
       flatten_map issues m
-    | (Valid _ | Valid_but_dead _), (Valid _ | Valid_but_dead _) -> 
+    | (Valid _ | Valid_but_dead _), (Valid _ | Valid_but_dead _) ->
       assert (Usable_emitter.Map.is_empty issues);
       Valid Usable_emitter.Set.empty, issues
 
   (* compute the best status [s] and add the emitter [e] if it computes [s] *)
-  let choose_best_emitter old_status e (status, issues) = 
+  let choose_best_emitter old_status e (status, issues) =
     match old_status, status with
     | _, Never_tried
     | Considered_valid, _ | _, Considered_valid
@@ -954,35 +961,35 @@ Check your axiomatics and implicit hypotheses."
     | Invalid_under_hyp _, _ | _, Invalid_under_hyp _
     | Valid_but_dead _, _ | _, Valid_but_dead _
     | Unknown_but_dead _, _ | _, Unknown_but_dead _
-    | Inconsistent _, _ | _, Inconsistent _ 
+    | Inconsistent _, _ | _, Inconsistent _
     | Invalid _, _ (* the current best status cannot be invalid, but
-		      invalid_but_dead instead *)
+                      invalid_but_dead instead *)
     | _, Invalid_but_dead _ (* the last computed status cannot be
-			       invalid_but_dead, but invalid instead *)
-      -> 
+                               invalid_but_dead, but invalid instead *)
+      ->
       Kernel.fatal "@[[Property_status] invariant of consolidation broken:@ \
-either status %a or %a not allowed when choosing the best emitter@]"
-	pretty old_status
-	pretty status
+                    either status %a or %a not allowed when choosing the best emitter@]"
+        pretty old_status
+        pretty status
 
     (* first status encountered: keep it *)
     | Never_tried, Valid _ -> Valid (Usable_emitter.Set.singleton e)
-    | Never_tried, Invalid _ -> 
+    | Never_tried, Invalid _ ->
       Invalid_but_dead (Usable_emitter.Map.singleton e issues)
     | Never_tried, Unknown _ -> Unknown (Usable_emitter.Map.singleton e issues)
 
     (* the old computed status remains the best one *)
-    | (Valid _ | Invalid_but_dead _), Unknown _ -> 
+    | (Valid _ | Invalid_but_dead _), Unknown _ ->
       old_status
 
     (* [e] is the best *)
     | Unknown _, Valid _ -> Valid (Usable_emitter.Set.singleton e)
-    | Unknown _, Invalid _ -> 
+    | Unknown _, Invalid _ ->
       Invalid_but_dead (Usable_emitter.Map.singleton e issues)
 
     (* [e] is as good as the previous best emitter *)
     | Valid set, Valid _ -> Valid (Usable_emitter.Set.add e set)
-    | Invalid_but_dead m, Invalid _ -> 
+    | Invalid_but_dead m, Invalid _ ->
       Invalid_but_dead (Usable_emitter.Map.add e issues m)
     | Unknown m, Unknown _ -> Unknown (Usable_emitter.Map.add e issues m)
 
@@ -990,39 +997,39 @@ either status %a or %a not allowed when choosing the best emitter@]"
     | Invalid_but_dead m, Valid _ ->
       assert (Usable_emitter.Map.is_empty issues);
       Inconsistent
-	(let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) m [] in
-	 Format.asprintf
-	   "@[Valid for: %a (at least).@\n\
-Invalid for: %a.@]"
-	   Usable_emitter.pretty e
-	   (Pretty_utils.pp_list ~sep:", " ~last:" and " Usable_emitter.pretty) 
-	   l)
+        (let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) m [] in
+         Format.asprintf
+           "@[Valid for: %a (at least).@\n\
+            Invalid for: %a.@]"
+           Usable_emitter.pretty e
+           (Pretty_utils.pp_list ~sep:", " ~last:" and " Usable_emitter.pretty)
+           l)
     | Valid set, Invalid _ ->
       Inconsistent
-	(let l = Usable_emitter.Set.elements set in
-	 Format.asprintf
-	   "@[Valid for: %a.@\n\
-Invalid for: %a (at least).@]"
-	   (Pretty_utils.pp_list ~sep:", " ~last:" and " Usable_emitter.pretty) 
-	   l
-	   Usable_emitter.pretty 
-	   e)
+        (let l = Usable_emitter.Set.elements set in
+         Format.asprintf
+           "@[Valid for: %a.@\n\
+            Invalid for: %a (at least).@]"
+           (Pretty_utils.pp_list ~sep:", " ~last:" and " Usable_emitter.pretty)
+           l
+           Usable_emitter.pretty
+           e)
 
-  let mk_issue e ppt = 
-    Usable_emitter.Map.singleton e (Property.Set.singleton ppt) 
+  let mk_issue e ppt =
+    Usable_emitter.Map.singleton e (Property.Set.singleton ppt)
 
-  let issues_without_emitter issues = 
+  let issues_without_emitter issues =
     Usable_emitter.Map.fold
-      (fun _ -> Usable_emitter.Map.fold Usable_emitter.Map.add) 
+      (fun _ -> Usable_emitter.Map.fold Usable_emitter.Map.add)
       issues
       Usable_emitter.Map.empty
 
   let local_hyp_issues emitters ppt issues =
     let m = issues_without_emitter issues in
     List.fold_left
-      (fun acc ep -> 
-	let e = ep.emitter in
-	Usable_emitter.Map.add e (merge_property e ppt m) acc)
+      (fun acc ep ->
+         let e = ep.emitter in
+         Usable_emitter.Map.add e (merge_property e ppt m) acc)
       Usable_emitter.Map.empty
       emitters
 
@@ -1030,7 +1037,7 @@ Invalid for: %a (at least).@]"
     match hyps_status, local_status with
 
     (* impossible cases: handle at callsite *)
-    | Never_tried, _ 
+    | Never_tried, _
     | Considered_valid, _
     | Valid_under_hyp _, _
     | Invalid_under_hyp _, _
@@ -1039,58 +1046,58 @@ Invalid for: %a (at least).@]"
     | Invalid _, _
     | _, Local.Never_tried ->
       Kernel.fatal "@[[Property_status] invariant of consolidation broken:@ \
-either status %a or %a not allowed when merging status@]"
-	pretty hyps_status
-	L.pretty local_status
+                    either status %a or %a not allowed when merging status@]"
+        pretty hyps_status
+        L.pretty local_status
 
     (* status of hypotheses = valid;
        filter emitters by the one for which hypotheses are valid *)
-    | Valid set, Best(Emitted.Dont_know, _) -> 
+    | Valid set, Best(Emitted.Dont_know, _) ->
       let mk e = mk_issue e ppt in
-      let map = 
-	Usable_emitter.Set.fold
-	  (fun e -> Usable_emitter.Map.add e (mk e)) 
-	  set
-	  Usable_emitter.Map.empty
+      let map =
+        Usable_emitter.Set.fold
+          (fun e -> Usable_emitter.Map.add e (mk e))
+          set
+          Usable_emitter.Map.empty
       in
       Unknown map
     | Valid _, Best(Emitted.True, _) ->
       hyps_status
-    | Valid set, 
+    | Valid set,
       Best((Emitted.False_and_reachable | Emitted.False_if_reachable), _) ->
       Invalid set
     | Valid set, (Local.Inconsistent i as s) ->
-      let mk = 
-	let internal_map = 
-	  Usable_emitter.Map.singleton
-	    usable_kernel_emitter
-	    (Property.Set.singleton ppt)
-	in
-	List.fold_left
-	  (fun acc ep -> 
-	    let e = ep.emitter in
-	    if Usable_emitter.Set.mem e set then 
-	      Usable_emitter.Map.add e internal_map acc
-	    else 
-	      acc)
-	  Usable_emitter.Map.empty
+      let mk =
+        let internal_map =
+          Usable_emitter.Map.singleton
+            usable_kernel_emitter
+            (Property.Set.singleton ppt)
+        in
+        List.fold_left
+          (fun acc ep ->
+             let e = ep.emitter in
+             if Usable_emitter.Set.mem e set then
+               Usable_emitter.Map.add e internal_map acc
+             else
+               acc)
+          Usable_emitter.Map.empty
       in
       let valid_map = mk i.valid in
       let invalid_map = mk i.invalid in
       (* something strange locally appears: the only way that there is no
-	 global inconsistency if that this program point is actually dead *)
+         global inconsistency if that this program point is actually dead *)
       if Usable_emitter.Map.is_empty valid_map then begin
-	assert (not (Usable_emitter.Map.is_empty invalid_map));
-	Invalid_but_dead invalid_map
+        assert (not (Usable_emitter.Map.is_empty invalid_map));
+        Invalid_but_dead invalid_map
       end else
-	if Usable_emitter.Map.is_empty invalid_map then Valid_but_dead valid_map
-	else Inconsistent (Format.asprintf "%a" L.pretty s)
+      if Usable_emitter.Map.is_empty invalid_map then Valid_but_dead valid_map
+      else Inconsistent (Format.asprintf "%a" L.pretty s)
 
     (* status of hypotheses = invalid (encoded by invalid_but_dead) *)
-    | Invalid_but_dead m, 
-	  Best((Emitted.False_and_reachable | Emitted.False_if_reachable), _) ->
+    | Invalid_but_dead m,
+      Best((Emitted.False_and_reachable | Emitted.False_if_reachable), _) ->
       Invalid_but_dead m
-    | Invalid_but_dead m, Best(Emitted.True, _) -> 
+    | Invalid_but_dead m, Best(Emitted.True, _) ->
       Valid_but_dead m
     | Invalid_but_dead m, (Best(Emitted.Dont_know, _) | Local.Inconsistent _) ->
       Unknown_but_dead m
@@ -1098,8 +1105,8 @@ either status %a or %a not allowed when merging status@]"
     (* status of hypotheses = dont_know *)
     | Unknown m, Best(Emitted.True, _) ->
       Valid_under_hyp m
-    | Unknown m, Best((Emitted.False_if_reachable 
-			    | Emitted.False_and_reachable), _) ->
+    | Unknown m, Best((Emitted.False_if_reachable
+                      | Emitted.False_and_reachable), _) ->
       Invalid_under_hyp m
     | Unknown m, Best(Emitted.Dont_know, emitters) ->
       Unknown (local_hyp_issues emitters ppt m)
@@ -1113,176 +1120,176 @@ either status %a or %a not allowed when merging status@]"
 
   (* convert a local status into a consolidated one,
      but ignore hypotheses *)
-  let consolidate_of_local_when_cycle ppt = 
+  let consolidate_of_local_when_cycle ppt =
     match get_status ~must_register:false ppt with
     | Local.Never_tried -> Never_tried
     | Best(True, _) -> Considered_valid
-    | Best((False_if_reachable | False_and_reachable), _) -> 
+    | Best((False_if_reachable | False_and_reachable), _) ->
       (* no cycle is possible *)
       Kernel.fatal "invalid cycle for invalid property %a" Property.pretty ppt
-    | Best(Dont_know, _) | Local.Inconsistent _ -> 
-      Unknown 
-	(Emitter.Usable_emitter.Map.singleton
-	   usable_kernel_emitter
-	   (Emitter.Usable_emitter.Map.singleton
-	      usable_kernel_emitter
-	      (Property.Set.singleton ppt)))
+    | Best(Dont_know, _) | Local.Inconsistent _ ->
+      Unknown
+        (Emitter.Usable_emitter.Map.singleton
+           usable_kernel_emitter
+           (Emitter.Usable_emitter.Map.singleton
+              usable_kernel_emitter
+              (Property.Set.singleton ppt)))
 
-  let consolidate_reachable ppt = 
+  let consolidate_reachable ppt =
     match ppt with
     | Property.IPReachable _ -> ()
     | _ ->
       let reach_ppt = Property.ip_reachable_ppt ppt in
       match get_status ~must_register:false reach_ppt with
-      | Best(False_and_reachable, _) -> 
-      (* someone proves unreachability of [ppt] *)
-	(try
-	   let by_emitter = Status.find ppt in
-	 (* someone emits a status for [ppt]: add (reachable ppt) to
-	    hypotheses of [ppt] if that is not already the case *)
-	   Emitter_with_properties.Hashtbl.iter
-	     (fun e _ -> 
-	       if List.for_all
-		 (fun p -> not (Property.equal p reach_ppt)) 
-		 e.properties
-	       then
-		 e.properties <- reach_ppt :: e.properties)
-	     by_emitter
-	 with Not_found ->
-	(* no-one emits a status for [ppt]: add an unknown status *)
-	   ())
+      | Best(False_and_reachable, _) ->
+        (* someone proves unreachability of [ppt] *)
+        (try
+           let by_emitter = Status.find ppt in
+           (* someone emits a status for [ppt]: add (reachable ppt) to
+              hypotheses of [ppt] if that is not already the case *)
+           Emitter_with_properties.Hashtbl.iter
+             (fun e _ ->
+                if List.for_all
+                    (fun p -> not (Property.equal p reach_ppt))
+                    e.properties
+                then
+                  e.properties <- reach_ppt :: e.properties)
+             by_emitter
+         with Not_found ->
+           (* no-one emits a status for [ppt]: add an unknown status *)
+           ())
       | Local.Never_tried
       | Local.Best((True | Dont_know), _)
-      | Local.Inconsistent _ -> 
-	()
-      | Local.Best(False_if_reachable, _) -> 
-	assert false
+      | Local.Inconsistent _ ->
+        ()
+      | Local.Best(False_if_reachable, _) ->
+        assert false
 
   let consolidate ppt compute_deps_status =
     let dkey = Kernel.dkey_prop_status_merge in
     consolidate_reachable ppt;
     let local_status = get ppt in
-    if is_not_verifiable_but_valid ppt local_status then 
+    if is_not_verifiable_but_valid ppt local_status then
       Considered_valid
     else
       match local_status with
       | Local.Never_tried -> Never_tried
-      | Best(_, l) as local -> 
-	let status = compute_deps_status l in
-        Kernel.feedback ~dkey "status of hypotheses of %a: %a" 
-	  Property.pretty ppt
-	  pretty status;
-	let s = merge_hypotheses_and_local_status ppt status local in
-        Kernel.feedback ~dkey "consolidated status of %a: %a" 
-	  Property.pretty ppt
-	  pretty s;
-	s
-      | Local.Inconsistent { valid = valid; invalid = invalid } as local -> 
-	let hyps_status = compute_deps_status (valid @ invalid) in
-	merge_hypotheses_and_local_status ppt hyps_status local
+      | Best(_, l) as local ->
+        let status = compute_deps_status l in
+        Kernel.feedback ~dkey "status of hypotheses of %a: %a"
+          Property.pretty ppt
+          pretty status;
+        let s = merge_hypotheses_and_local_status ppt status local in
+        Kernel.feedback ~dkey "consolidated status of %a: %a"
+          Property.pretty ppt
+          pretty s;
+        s
+      | Local.Inconsistent { valid = valid; invalid = invalid } as local ->
+        let hyps_status = compute_deps_status (valid @ invalid) in
+        merge_hypotheses_and_local_status ppt hyps_status local
 
   type emitter =
     | Not_yet
     | Single of Usable_emitter.t
     | Several
-    
+
   let rec memo_consolidated e path ppt =
     Consolidated_status.memo
       (fun ppt ->
-	if Property.Hashtbl.mem visited_ppt ppt then begin
-	  consolidate_of_local_when_cycle ppt
-(* [JS 2011/11/04] use the following code (to be tested) as soon as WP uses the
-   new function [legal_dependency_cycle] *)
-(*	  match e with
-	  | Not_yet -> assert false
-	  | Single e -> 
-	    if Valid_cycles.mem e path then 
-	      consolidate_of_local_when_cycle ppt
-	    else 
-	      Kernel.fatal
-		"illegal dependency cycle for emitter %a"
-		Usable_emitter.pretty e
-	  | Several -> 
-	    (* cycle because the proof of [ppt] with emitter [E1] depends 
-	       on another [ppt'] which is proven with another emitter [E2]
-	       by using [ppt] itself: it is not inconsistent by itself, but we
-	       cannot use it as a proof. *)
-	    consolidate ppt 
-	      (fun _ -> 
-		Unknown 
-		  (Usable_emitter.Map.add 
-		     usable_kernel_emitter
-		     (Usable_emitter.Map.add 
-			usable_kernel_emitter 
-			(List.fold_left
-			   (fun acc p -> Property.Set.add p acc)
-			   Property.Set.empty
-			   path)
-			Usable_emitter.Map.empty)
-		     Usable_emitter.Map.empty))*)
-	end else begin
-	  Property.Hashtbl.add visited_ppt ppt ();
-	  consolidate ppt (consolidated_emitters ppt e (ppt :: path))
-(* [JS 2011/11/04] think about that when uncommenting the code above *)
-(*	  try 
-	    (* was previously added during its own calculus 
-	       in case of inconsistent mutual dependency *)
-	    Consolidated_status.find ppt
-	  with Not_found ->*)
-(*	    consolidated_status*)
-	end)
+         if Property.Hashtbl.mem visited_ppt ppt then begin
+           consolidate_of_local_when_cycle ppt
+           (* [JS 2011/11/04] use the following code (to be tested) as soon as WP uses the
+              new function [legal_dependency_cycle] *)
+           (*	  match e with
+             | Not_yet -> assert false
+             | Single e ->
+             if Valid_cycles.mem e path then
+             consolidate_of_local_when_cycle ppt
+             else
+             Kernel.fatal
+             "illegal dependency cycle for emitter %a"
+             Usable_emitter.pretty e
+             | Several ->
+             (* cycle because the proof of [ppt] with emitter [E1] depends
+             on another [ppt'] which is proven with another emitter [E2]
+             by using [ppt] itself: it is not inconsistent by itself, but we
+             cannot use it as a proof. *)
+             consolidate ppt
+             (fun _ ->
+             Unknown
+             (Usable_emitter.Map.add
+             usable_kernel_emitter
+             (Usable_emitter.Map.add
+             usable_kernel_emitter
+             (List.fold_left
+             (fun acc p -> Property.Set.add p acc)
+             Property.Set.empty
+             path)
+             Usable_emitter.Map.empty)
+             Usable_emitter.Map.empty))*)
+         end else begin
+           Property.Hashtbl.add visited_ppt ppt ();
+           consolidate ppt (consolidated_emitters ppt e (ppt :: path))
+           (* [JS 2011/11/04] think about that when uncommenting the code above *)
+           (*	  try
+             (* was previously added during its own calculus
+             in case of inconsistent mutual dependency *)
+             Consolidated_status.find ppt
+             with Not_found ->*)
+           (*	    consolidated_status*)
+         end)
       ppt
 
   and consolidated_emitters ppt current_e path l =
     let dkey = Kernel.dkey_prop_status_merge in
-    (* [l] is the list of the best emitters of the local status of [ppt]. 
+    (* [l] is the list of the best emitters of the local status of [ppt].
        As they emit the same local status, we only choose the best one according
        to the status of their hypotheses. *)
-    let status = 
+    let status =
       List.fold_left
-	(fun current_status e -> 
-	  let current_e = match current_e with
-	    | Not_yet -> Single e.emitter
-	    | Single e' as x when Usable_emitter.equal e.emitter e' -> x
-	    | Single _ | Several -> Several
-	  in
-	  let (s, issues) =
-	    (* compute the status of conjunction of hypotheses of [e],
-	       with related issues *)
-	    List.fold_left
-	      (fun (status, issues) h -> 
-		  let s = memo_consolidated current_e path h in
-		  let s = reduce_hypothesis_status h s in
-		  Kernel.feedback ~dkey "status of hypothesis %a (for %a): %a" 
+        (fun current_status e ->
+           let current_e = match current_e with
+             | Not_yet -> Single e.emitter
+             | Single e' as x when Usable_emitter.equal e.emitter e' -> x
+             | Single _ | Several -> Several
+           in
+           let (s, issues) =
+             (* compute the status of conjunction of hypotheses of [e],
+                with related issues *)
+             List.fold_left
+               (fun (status, issues) h ->
+                  let s = memo_consolidated current_e path h in
+                  let s = reduce_hypothesis_status h s in
+                  Kernel.feedback ~dkey "status of hypothesis %a (for %a): %a"
                     Property.pretty h
-		    Property.pretty ppt
-		    pretty s;
-		  hypotheses_conjunction issues h status s)
-	      (Never_tried, Usable_emitter.Map.empty)
-	      e.properties
-	  in
-	  let hyps_status = match s with
-	    | Never_tried -> 
-	      (* if no hypothesis, status of hypotheses must be valid *)
-	      Valid (Usable_emitter.Set.singleton usable_kernel_emitter)
-	    | Valid _ | Invalid _  | Unknown _ -> s
-	    | Considered_valid | Inconsistent _
-	    | Valid_under_hyp _ | Invalid_under_hyp _
-	    | Valid_but_dead _ | Invalid_but_dead _ | Unknown_but_dead _ -> 
-	      Kernel.fatal "@[[Property_status] invariant of consolidation \
-broken:@ status %a not allowed when simplifying hypothesis status@]"
-		pretty s
+                    Property.pretty ppt
+                    pretty s;
+                  hypotheses_conjunction issues h status s)
+               (Never_tried, Usable_emitter.Map.empty)
+               e.properties
+           in
+           let hyps_status = match s with
+             | Never_tried ->
+               (* if no hypothesis, status of hypotheses must be valid *)
+               Valid (Usable_emitter.Set.singleton usable_kernel_emitter)
+             | Valid _ | Invalid _  | Unknown _ -> s
+             | Considered_valid | Inconsistent _
+             | Valid_under_hyp _ | Invalid_under_hyp _
+             | Valid_but_dead _ | Invalid_but_dead _ | Unknown_but_dead _ ->
+               Kernel.fatal "@[[Property_status] invariant of consolidation \
+                             broken:@ status %a not allowed when simplifying hypothesis status@]"
+                 pretty s
 
-	  in
-	  let cur =
-	    choose_best_emitter current_status e.emitter (hyps_status, issues)
-	  in
-	  Kernel.feedback ~dkey "status of hypotheses for emitter `%a': %a" 
-            Usable_emitter.pretty e.emitter pretty s;
-	  Kernel.feedback ~dkey "current best status: %a" pretty cur;
-	  cur)
-	Never_tried
-	l
+           in
+           let cur =
+             choose_best_emitter current_status e.emitter (hyps_status, issues)
+           in
+           Kernel.feedback ~dkey "status of hypotheses for emitter `%a': %a"
+             Usable_emitter.pretty e.emitter pretty s;
+           Kernel.feedback ~dkey "current best status: %a" pretty cur;
+           cur)
+        Never_tried
+        l
     in
     match status with
     | Never_tried ->
@@ -1290,10 +1297,10 @@ broken:@ status %a not allowed when simplifying hypothesis status@]"
       Valid (Usable_emitter.Set.singleton usable_kernel_emitter)
     | _ -> status
 
-    let get ppt =
-      let s = memo_consolidated Not_yet [] ppt in
-      Property.Hashtbl.clear visited_ppt;
-      s
+  let get ppt =
+    let s = memo_consolidated Not_yet [] ppt in
+    Property.Hashtbl.clear visited_ppt;
+    s
 
   let get_conjunction ppts =
     let tmp =
@@ -1312,7 +1319,7 @@ module Feedback = struct
 
   type t =
     | Never_tried
-    | Considered_valid 
+    | Considered_valid
     | Valid
     | Valid_under_hyp
     | Unknown
@@ -1360,11 +1367,11 @@ end
 
 module Consolidation_graph = struct
 
-  type v = 
+  type v =
     | Property of Property.t
     | Emitter of string
     | Tuning_parameter of string
-(*    | Correctness_parameter of string*)
+    (*    | Correctness_parameter of string*)
 
   module Vertex = struct
 
@@ -1374,11 +1381,11 @@ module Consolidation_graph = struct
       | Property p1, Property p2 -> Property.compare p1 p2
       | Emitter s1, Emitter s2 -> String.compare s1 s2
       | Tuning_parameter s1, Tuning_parameter s2
-(*      | Correctness_parameter s1, Correctness_parameter s2*) ->
-	String.compare s1 s2
-      | Property _, _ 
+        (*      | Correctness_parameter s1, Correctness_parameter s2*) ->
+        String.compare s1 s2
+      | Property _, _
       | Emitter _, (Tuning_parameter _ (*| Correctness_parameter _*))
-(*      | Tuning_parameter _, Correctness_parameter _*) -> 1
+        (*      | Tuning_parameter _, Correctness_parameter _*) -> 1
       | _, _ -> -1
 
     let equal v1 v2 = compare v1 v2 = 0
@@ -1387,15 +1394,15 @@ module Consolidation_graph = struct
       | Property p -> Caml_hashtbl.hash (0, Property.hash p)
       | Emitter s -> Caml_hashtbl.hash (1, s)
       | Tuning_parameter s -> Caml_hashtbl.hash (2, s)
-(*      | Correctness_parameter s -> Caml_hashtbl.hash (3, s)*)
+      (*      | Correctness_parameter s -> Caml_hashtbl.hash (3, s)*)
 
   end
 
   module Edge = struct
 
     include Datatype.Option_with_collections
-      (Emitted_status)
-      (struct let module_name = "Property_status.Consolidation_graph.Edge" end)
+        (Emitted_status)
+        (struct let module_name = "Property_status.Consolidation_graph.Edge" end)
 
     let default = None
 
@@ -1407,19 +1414,19 @@ module Consolidation_graph = struct
     State_builder.Hashtbl
       (Property.Hashtbl)
       (Datatype.Pair
-	 (Datatype.Make
-	    (struct
-	      type t = G.t
-	      let name = "Property_status.Graph_by_property"
-	      let reprs = [ G.empty ]
-	      include Datatype.Serializable_undefined
-	     end))
-	 (Datatype.Bool) (* is the graph truncated? *))
+         (Datatype.Make
+            (struct
+              type t = G.t
+              let name = "Property_status.Graph_by_property"
+              let reprs = [ G.empty ]
+              include Datatype.Serializable_undefined
+            end))
+         (Datatype.Bool) (* is the graph truncated? *))
       (struct
-	let name = "Consolidation graph"
-	let size = 97
-	let dependencies = [ Consolidation.Consolidated_status.self ]
-       end)
+        let name = "Consolidation graph"
+        let size = 97
+        let dependencies = [ Consolidation.Consolidated_status.self ]
+      end)
 
   type t = G.t
 
@@ -1434,75 +1441,75 @@ module Consolidation_graph = struct
     let dkey = Kernel.dkey_prop_status_graph in
     let compute ppt =
       Kernel.debug ~dkey "BUILDING GRAPH of %a" Property.pretty ppt;
-	(* [JS 2011/07/21] Only the better proof is added on the graph. For
-	   instance, if the consolidated status is valid thanks to WP, it does
-	   not show the dont_know proof tried by Value. *)
+      (* [JS 2011/07/21] Only the better proof is added on the graph. For
+         instance, if the consolidated status is valid thanks to WP, it does
+         not show the dont_know proof tried by Value. *)
       if Property.Hashtbl.mem already_done ppt then
-	G.empty, true
+        G.empty, true
       else begin
-	Kernel.debug ~dkey "MARK %a" Property.pretty ppt;
-	Property.Hashtbl.add already_done ppt ();
-	let v_ppt = Property ppt in
-	  (* adding the property *)
-	let g = G.add_vertex G.empty v_ppt in
-	match get_status ppt with
-	| Never_tried -> g, false
-	| Best(s, emitters) -> 
-	  get_emitters g v_ppt s emitters
-	| Inconsistent i ->
-	  let g, truncated1 = get_emitters g v_ppt True i.valid in
-	  let g, truncated2 = 
-	    get_emitters g v_ppt False_and_reachable i.invalid
-	  in
-	  g, truncated1 || truncated2
+        Kernel.debug ~dkey "MARK %a" Property.pretty ppt;
+        Property.Hashtbl.add already_done ppt ();
+        let v_ppt = Property ppt in
+        (* adding the property *)
+        let g = G.add_vertex G.empty v_ppt in
+        match get_status ppt with
+        | Never_tried -> g, false
+        | Best(s, emitters) ->
+          get_emitters g v_ppt s emitters
+        | Inconsistent i ->
+          let g, truncated1 = get_emitters g v_ppt True i.valid in
+          let g, truncated2 =
+            get_emitters g v_ppt False_and_reachable i.invalid
+          in
+          g, truncated1 || truncated2
       end
     in
-    let change (_, truncated as data) = 
-      if truncated then compute ppt else data 
+    let change (_, truncated as data) =
+      if truncated then compute ppt else data
     in
     Graph_by_property.memo ~change compute ppt
 
   and get_emitters g v_ppt s l =
     assert (l <> []);
     List.fold_left
-      (fun (g, b) e -> 
-	let emitter = e.emitter in
-	let v_e = Emitter (Usable_emitter.get_unique_name emitter) in
-	(* adding the emitter with its computed status *)
-	let g = G.add_edge_e g (v_ppt, Some s, v_e) in
-	Kernel.debug ~dkey:Kernel.dkey_prop_status_graph "%a --> %a (%a)" 
-	  Property.pretty (match v_ppt with Property p -> p | _ -> assert false)
-	  Usable_emitter.pretty emitter
-	  Emitted_status.pretty s;
-	let g = 
-	  (* adding the tuning parameters *)
-	  Datatype.String.Set.fold
-	    (fun p g -> 
-	      let s = get_parameter_string ~tuning:true emitter p in
-	      G.add_edge g v_e (Tuning_parameter s))
-	    (distinct_tuning_parameters emitter)
-	    g
-	in
-(*	let g =
-	  (* adding the correctness parameters *)
-	  Datatype.String.Set.fold
-	    (fun p g -> 
-	      let s = get_parameter_string ~tuning:false emitter p in
-	      G.add_edge g v_e (Correctness_parameter s); g)
-	    (distinct_correctness_parameters emitter)
-	    g
-	in*)
-	(* adding the hypotheses *)
-	let g, truncated =
-	  List.fold_left
-	    (fun (g, b) h -> 
-	      let g', truncated = get h in
-	      let union = G.fold_edges_e (fun e g -> G.add_edge_e g e) g g' in
-	      G.add_edge union v_ppt (Property h), b || truncated)
-	    (g, false)
-	    e.properties
-	in
-	g, b || truncated)
+      (fun (g, b) e ->
+         let emitter = e.emitter in
+         let v_e = Emitter (Usable_emitter.get_unique_name emitter) in
+         (* adding the emitter with its computed status *)
+         let g = G.add_edge_e g (v_ppt, Some s, v_e) in
+         Kernel.debug ~dkey:Kernel.dkey_prop_status_graph "%a --> %a (%a)"
+           Property.pretty (match v_ppt with Property p -> p | _ -> assert false)
+           Usable_emitter.pretty emitter
+           Emitted_status.pretty s;
+         let g =
+           (* adding the tuning parameters *)
+           Datatype.String.Set.fold
+             (fun p g ->
+                let s = get_parameter_string ~tuning:true emitter p in
+                G.add_edge g v_e (Tuning_parameter s))
+             (distinct_tuning_parameters emitter)
+             g
+         in
+         (*	let g =
+           (* adding the correctness parameters *)
+           Datatype.String.Set.fold
+           (fun p g ->
+           let s = get_parameter_string ~tuning:false emitter p in
+           G.add_edge g v_e (Correctness_parameter s); g)
+           (distinct_correctness_parameters emitter)
+           g
+           in*)
+         (* adding the hypotheses *)
+         let g, truncated =
+           List.fold_left
+             (fun (g, b) h ->
+                let g', truncated = get h in
+                let union = G.fold_edges_e (fun e g -> G.add_edge_e g e) g g' in
+                G.add_edge union v_ppt (Property h), b || truncated)
+             (g, false)
+             e.properties
+         in
+         g, b || truncated)
       (g, false)
       l
 
@@ -1516,73 +1523,73 @@ module Consolidation_graph = struct
 
   let dump graph formatter =
     let module Dot = Graph.Graphviz.Dot
-	  (struct
+        (struct
 
-            include G
+          include G
 
-            let emitted_status_color = function
-              | True -> 0x00ff00 (* green *)
-	      | False_if_reachable | False_and_reachable -> 0xff0000 (* red *)
-              | Dont_know -> 0xffa500 (* orange *)
+          let emitted_status_color = function
+            | True -> 0x00ff00 (* green *)
+            | False_if_reachable | False_and_reachable -> 0xff0000 (* red *)
+            | Dont_know -> 0xffa500 (* orange *)
 
-            let status_color p s = 
-	      if is_not_verifiable_but_valid p s then
-		0x00ff00 (* green *)
-	      else match s with
-	      | Never_tried -> 0x0011ff (* dark blue, only for border *)
+          let status_color p s =
+            if is_not_verifiable_but_valid p s then
+              0x00ff00 (* green *)
+            else match s with
+              | Never_tried -> 0x0011ff (* dark blue, only for border *)
               | Best(s, _) -> emitted_status_color s
-	      | Inconsistent _ -> 0x808080 (* gray *)
+              | Inconsistent _ -> 0x808080 (* gray *)
 
-            let graph_attributes _ = []
+          let graph_attributes _ = []
 
-            let vertex_name v = 
-	      let s = match v with
-		| Property p -> Property.Names.get_prop_name_id p
-		| Emitter s | Tuning_parameter s (*| Correctness_parameter s*)
-		  -> s
-	      in 
-	      Format.asprintf "\"%s\"" s
+          let vertex_name v =
+            let s = match v with
+              | Property p -> Property.Names.get_prop_name_id p
+              | Emitter s | Tuning_parameter s (*| Correctness_parameter s*)
+                -> s
+            in
+            Format.asprintf "\"%s\"" s
 
-	    let label v =
-	      let s = match v with
-		| Property p -> Format.asprintf "%a" Property.pretty p
-		| Emitter s | Tuning_parameter s (*| Correctness_parameter s*)
-		  -> s
-	      in 
-	      `Label (String.escaped s)
+          let label v =
+            let s = match v with
+              | Property p -> Format.asprintf "%a" Property.pretty p
+              | Emitter s | Tuning_parameter s (*| Correctness_parameter s*)
+                -> s
+            in
+            `Label (String.escaped s)
 
-            let vertex_attributes = function
-              | Property p as v ->
-                let s = get_status p in
-		let color = status_color p s in
-                let style = match s with
-                  | Never_tried -> [`Style `Bold; `Width 0.8 ]
-                  | _ -> [`Style `Filled]
-                in
-		style @ [ label v; `Color color; `Shape `Box ]
-              | Emitter _ as v -> 
-		[ label v; `Shape `Diamond; `Color 0xb0c4de; `Style `Filled ]
-              | Tuning_parameter _ as v ->
-		[ label v; (*`Style `Dotted;*) `Color 0xb0c4de;  ]
-	      (*| Correctness_parameter _ (*as v*) -> assert false (*[ label v; `Color 0xb0c4de ]*)*)
+          let vertex_attributes = function
+            | Property p as v ->
+              let s = get_status p in
+              let color = status_color p s in
+              let style = match s with
+                | Never_tried -> [`Style `Bold; `Width 0.8 ]
+                | _ -> [`Style `Filled]
+              in
+              style @ [ label v; `Color color; `Shape `Box ]
+            | Emitter _ as v ->
+              [ label v; `Shape `Diamond; `Color 0xb0c4de; `Style `Filled ]
+            | Tuning_parameter _ as v ->
+              [ label v; (*`Style `Dotted;*) `Color 0xb0c4de;  ]
+          (*| Correctness_parameter _ (*as v*) -> assert false (*[ label v; `Color 0xb0c4de ]*)*)
 
-	    let edge_attributes e = match E.label e with
-	      | None -> []
-	      | Some s ->
-		let c = emitted_status_color s in
-		[ `Color c; `Fontcolor c; `Style `Bold ]
+          let edge_attributes e = match E.label e with
+            | None -> []
+            | Some s ->
+              let c = emitted_status_color s in
+              [ `Color c; `Fontcolor c; `Style `Bold ]
 
-        let default_vertex_attributes _ = []
-        let default_edge_attributes _ = []
-        let get_subgraph _ = None
-       end)
+          let default_vertex_attributes _ = []
+          let default_edge_attributes _ = []
+          let get_subgraph _ = None
+        end)
     in
     try
       Kernel.Unicode.without_unicode (Dot.fprint_graph formatter) graph;
     with Sys_error _ as exn ->
       Kernel.error
-	"issue when generating consolidation graph: %s" 
-	(Printexc.to_string exn)
+        "issue when generating consolidation graph: %s"
+        (Printexc.to_string exn)
 
 end
 

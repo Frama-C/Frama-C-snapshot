@@ -39,7 +39,7 @@
 [eva] computing for function f <- invalid_assigns_imprecise <- main.
   Called from tests/builtins/imprecise.c:11.
 [eva] using specification for function f
-[eva] tests/builtins/imprecise.c:11: Warning: 
+[eva:invalid-assigns] tests/builtins/imprecise.c:11: 
   Completely invalid destination for assigns clause *p. Ignoring.
 [eva] Done for function f
 [eva] Recording results for invalid_assigns_imprecise

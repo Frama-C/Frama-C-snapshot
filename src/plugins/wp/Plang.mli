@@ -37,12 +37,15 @@ val alloc_domain : pool -> Vars.t
 val sanitizer : string -> string
 
 type iformat = [ `Hex | `Dec | `Bin ]
+type rformat = [ `Ratio | `Float | `Double ]
 
 class engine :
   object
     inherit [Z.t,ADT.t,Field.t,Fun.t,tau,var,term,Env.t] Qed.Engine.engine
     method get_iformat : iformat
     method set_iformat : iformat -> unit
+    method get_rformat : rformat
+    method set_rformat : rformat -> unit
     method marks : Env.t * Lang.F.marks
     method pp_pred : Format.formatter -> pred -> unit
     method lookup : term -> scope

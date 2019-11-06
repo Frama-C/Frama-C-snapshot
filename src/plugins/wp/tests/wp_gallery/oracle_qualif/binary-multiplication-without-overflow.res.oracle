@@ -1,22 +1,22 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 -warn-unsigned-overflow [...]
+# frama-c -wp -warn-unsigned-overflow [...]
 [kernel] Parsing tests/wp_gallery/binary-multiplication-without-overflow.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 10 goals scheduled
 [wp] [Qed] Goal typed_lemma_sizeof_ok_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_ensures_product : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_ensures_product : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_preserved : Valid
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_established : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_deductible_preserved : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_deductible_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_deductible_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_deductible_established : Valid
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_assigns : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_variant_decrease : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_variant_positive : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_variant_decrease : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_variant_positive : Valid
 [wp] Proved goals:   10 / 10
-  Qed:                3 
-  Alt-Ergo (why3):    7
+  Qed:               3 
+  Alt-Ergo 2.0.0:    7
 [wp] Report in:  'tests/wp_gallery/oracle_qualif/binary-multiplication-without-overflow.0.report.json'
 [wp] Report out: 'tests/wp_gallery/result_qualif/binary-multiplication-without-overflow.0.report.json'
 -------------------------------------------------------------
@@ -24,28 +24,28 @@ Axiomatics          WP     Alt-Ergo        Total   Success
 Axiomatic mult       1     -                 1       100%
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-BinaryMultiplication   2   -                 9       100%
+BinaryMultiplication   2    7 (104..128)     9       100%
 -------------------------------------------------------------
 [wp] Running WP plugin...
 [rte] annotating function BinaryMultiplication
 [wp] 14 goals scheduled
 [wp] [Qed] Goal typed_lemma_sizeof_ok_ok : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_ensures_product : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_ensures_product : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_preserved : Valid
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_established : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_deductible_preserved : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_deductible_established : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow_2 : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow_3 : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow_4 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_deductible_preserved : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_deductible_established : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow_2 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow_3 : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow_4 : Valid
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_assigns : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_variant_decrease : Valid
-[wp] [alt-ergo] Goal typed_BinaryMultiplication_loop_variant_positive : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_variant_decrease : Valid
+[wp] [Alt-Ergo 2.0.0] Goal typed_BinaryMultiplication_loop_variant_positive : Valid
 [wp] Proved goals:   11 / 14
-  Qed:                0 
-  Alt-Ergo (why3):   11
+  Qed:               0 
+  Alt-Ergo 2.0.0:   11
 [wp] Report in:  'tests/wp_gallery/oracle_qualif/binary-multiplication-without-overflow.0.report.json'
 [wp] Report out: 'tests/wp_gallery/result_qualif/binary-multiplication-without-overflow.0.report.json'
 -------------------------------------------------------------
@@ -53,5 +53,5 @@ Axiomatics          WP     Alt-Ergo        Total   Success
 Axiomatic mult       1     -                 1       100%
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-BinaryMultiplication   2   -                13       100%
+BinaryMultiplication   2   11 (104..128)    13       100%
 -------------------------------------------------------------

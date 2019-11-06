@@ -21,6 +21,20 @@
 ###############################################################################
 
 ##########################
+Plugin WP 20.0 (Calcium)
+##########################
+
+- TIP         [2019/09/17] Using all selected Why-3 provers for proof search
+- Gui         [2019/09/17] Updated panel for provers, models, cache, etc.
+- WP          [2019/09/12] New cache mechanism for why3 provers, see -wp-cache option
+-! WP         [2019/09/17] Deprecated native alt-ergo & coq output, see -wp-prover option
+-! WP         [2019/07/05] -wp-prover <p> now defaults to <why3:p> (including default alt-ergo)
+-! WP         [2019/07/05] Use native Why3 API (now requires why3 at compile time)
+- WP          [2019/06/27] Improving Cint simplifier and quantifier introduction
+o Qed         [2019/06/27] More secure API for quantifier management
+- Qed         [2019/05/09] Transform (some) boolean quantifications into variable assignments
+
+##########################
 Plugin WP 19.0 (Potassium)
 ##########################
 

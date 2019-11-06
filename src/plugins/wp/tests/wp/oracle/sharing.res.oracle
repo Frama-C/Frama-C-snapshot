@@ -5,33 +5,46 @@
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp:print-generated] 
-  "WPOUT/typed/f_ensures.ergo"
-  (* ---------------------------------------------------------- *)
-  (* --- Post-condition (file tests/wp/sharing.c, line 8) in 'f' --- *)
-  (* ---------------------------------------------------------- *)
-  
-  goal f_ensures:
-    forall i_1,i : int.
-    forall t : int farray.
-    forall t_1 : (addr,int) farray.
-    forall a : addr.
-    let a_1 = shift_sint32(a, 0) : addr in
-    let a_2 = shift_sint32(a, i) : addr in
-    let m = t_1[a_1 <- t_1[a_2]] : (addr,int) farray in
-    let m_1 = m[shift_sint32(a, 1) <- m[a_2]] : (addr,int) farray in
-    let m_2 = m_1[shift_sint32(a, 2) <- m_1[a_2]] : (addr,int) farray in
-    let m_3 = m_2[shift_sint32(a, 3) <- m_2[a_2]] : (addr,int) farray in
-    (0 <= i) ->
-    (0 <= i_1) ->
-    (region(a.base) <= 0) ->
-    (i <= 9) ->
-    (i_1 <= 9) ->
-    linked(t) ->
-    is_sint32(i) ->
-    valid_rw(t, a_1, 10) ->
-    (forall i_2 : int. (0 <= i_2) -> (i_2 <= 9) ->
-     (0 <= t_1[shift_sint32(a, i_2)])) ->
-    (0 <= m_3[shift_sint32(a, 4) <- m_3[a_2]][shift_sint32(a, i_1)])
+  theory WP
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    (* use frama_c_wp.memory.Memory *)
+    
+    (* use frama_c_wp.cint.Cint *)
+    
+    (* use Compound *)
+    
+    goal wp_goal :
+      forall t:int -> int, t1:addr -> int, i:int, a:addr, i1:int.
+       let a1 = shift_sint32 a 0 in
+       let a2 = shift_sint32 a i1 in
+       let m = set t1 a1 (get t1 a2) in
+       let m1 = set m (shift_sint32 a 1) (get m a2) in
+       let m2 = set m1 (shift_sint32 a 2) (get m1 a2) in
+       let m3 = set m2 (shift_sint32 a 3) (get m2 a2) in
+       0 <= i1 ->
+       0 <= i ->
+       region (base a) <= 0 ->
+       i1 <= 9 ->
+       i <= 9 ->
+       linked t ->
+       is_sint32 i1 ->
+       valid_rw t a1 10 ->
+       (forall i2:int. 0 <= i2 -> i2 <= 9 -> 0 <= get t1 (shift_sint32 a i2)) ->
+       0 <= get (set m3 (shift_sint32 a 4) (get m3 a2)) (shift_sint32 a i)
+  end
 [wp] 1 goal generated
 ------------------------------------------------------------
   Function f

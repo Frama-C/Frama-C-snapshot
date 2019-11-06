@@ -699,10 +699,6 @@ and pp_term_node fmt = function
   | Tnull -> Format.fprintf fmt "Tnull"
   | TLogic_coerce(logic_type,term) ->
     Format.fprintf fmt "TLogic_coerce(%a,%a)"  pp_logic_type logic_type  pp_term term
-  | TCoerce(term,typ) ->
-    Format.fprintf fmt "TCoerce(%a,%a)"  pp_term term  pp_typ typ
-  | TCoerceE(term1,term2) ->
-    Format.fprintf fmt "TCoerceE(%a,%a)"  pp_term term1  pp_term term2
   | TUpdate(term1,term_offset,term2) ->
     Format.fprintf fmt "TUpdate(%a,%a,%a)"  pp_term term1  pp_term_offset term_offset  pp_term term2
   | Ttypeof(term) -> Format.fprintf fmt "Ttypeof(%a)"  pp_term term
@@ -879,8 +875,6 @@ and pp_predicate_node fmt = function
   | Pfresh(logic_label1,logic_label2,term1,term2) ->
     Format.fprintf fmt "Pfresh(%a,%a,%a,%a)"  pp_logic_label logic_label1  pp_logic_label logic_label2
       pp_term term1  pp_term term2
-  | Psubtype(term1,term2) ->
-    Format.fprintf fmt "Psubtype(%a,%a)"  pp_term term1  pp_term term2
 
 and pp_identified_predicate fmt identified_predicate =
   Format.fprintf fmt "{ip_id=%d;ip_content=%a}"
@@ -908,7 +902,11 @@ and pp_spec fmt spec =
       (pp_list (pp_list pp_string)) spec.spec_complete_behaviors
       (pp_list (pp_list pp_string)) spec.spec_disjoint_behaviors
 
-and pp_acsl_extension fmt = pp_tuple5 pp_int pp_string pp_location pp_bool pp_acsl_extension_kind fmt
+and pp_acsl_extension fmt ext =
+  Format.fprintf fmt
+    "{ext_id=%d;ext_name=%s;ext_loc=%a;ext_has_status=%B;ext_kind=%a}"
+    ext.ext_id ext.ext_name pp_location ext.ext_loc ext.ext_has_status
+    pp_acsl_extension_kind ext.ext_kind
 
 and pp_acsl_extension_kind fmt = function
   | Ext_id(int) -> Format.fprintf fmt "Ext_id(%a)"  pp_int int

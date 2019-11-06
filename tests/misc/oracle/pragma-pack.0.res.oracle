@@ -167,6 +167,16 @@
   adding aligned(2) attribute to comp '__anonstruct_test7_2_14' due to packing pragma
 [kernel:typing:pragma] tests/misc/pragma-pack.c:252: 
   packing pragma: popped alignment 16
+[kernel:typing:pragma] tests/misc/pragma-pack.c:336: 
+  packing pragma: pushing alignment 16, setting alignment to 1
+[kernel:typing:pragma] tests/misc/pragma-pack.c:337: 
+  adding aligned(1) attribute to field '__anonstruct_barcode_bmp_t_18.len' due to packing pragma
+[kernel:typing:pragma] tests/misc/pragma-pack.c:337: 
+  adding aligned(1) attribute to field '__anonstruct_barcode_bmp_t_18.data' due to packing pragma
+[kernel:typing:pragma] tests/misc/pragma-pack.c:337: 
+  adding aligned(1) attribute to comp '__anonstruct_barcode_bmp_t_18' due to packing pragma
+[kernel:typing:pragma] tests/misc/pragma-pack.c:341: 
+  packing pragma: popped alignment 16
 [eva] Analyzing a complete application starting at main
 [eva] Computing initial state
 [eva] Initial state computed

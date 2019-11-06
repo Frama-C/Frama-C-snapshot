@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-calldeps -then -impact-pragma g"
+   STDOPT: #"@EVA_OPTIONS@ -calldeps -then -impact-pragma g"
    */
 
 int a, b, c, d, e;

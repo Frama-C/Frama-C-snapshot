@@ -6,6 +6,14 @@ void basic(void)
   return;
 }
 
+void pretty(void)
+{
+  /*@ assigns \nothing; */
+  __asm__ volatile ("pxor %%mm7, %%mm7\n\t"
+                    "pcmpeqd %%mm6, %%mm6" : );
+  return;
+}
+
 int main(unsigned short bit)
 {
   int __retres;

@@ -57,6 +57,9 @@ val find : lfun -> op * c_float
 
 val code_lit : c_float -> float -> string option -> term
 val acsl_lit : Cil_types.logic_real -> term
+val float_lit : c_float -> Q.t -> string
+(** Returns a string literal in decimal notation (without suffix)
+    that reparses to the same value (when added suffix). *)
 
 val float_of_int : c_float -> unop
 val float_of_real : c_float -> unop

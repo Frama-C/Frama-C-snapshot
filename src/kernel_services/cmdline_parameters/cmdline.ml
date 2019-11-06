@@ -972,7 +972,7 @@ let plugin_help shortname =
                   if newline then Format.pp_print_newline fmt ();
                   if s <> "" then
                     Format.fprintf fmt "@[*** %s@]@\n@\n"
-                      (Transitioning.String.uppercase_ascii s);
+                      (String.uppercase_ascii s);
                   ignore (print_options !o)
                 in
                 print_group false g;
@@ -1012,7 +1012,7 @@ let list_plugins () =
         (fun p ->
            if p.Plugin.name <> "" then
              print_helpline fmt
-               (Transitioning.String.capitalize_ascii p.Plugin.name)
+               (String.capitalize_ascii p.Plugin.name)
                (Printf.sprintf "%s (-%s-h)" p.Plugin.help p.Plugin.short)
                "")
         (Plugin.all_plugins ()) ;

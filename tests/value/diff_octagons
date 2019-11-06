@@ -1,0 +1,399 @@
+diff tests/value/oracle/alias.1.res.oracle tests/value/oracle_octagons/alias.1.res.oracle
+85c85
+<   z ∈ {0; 1; 2}
+---
+>   z ∈ {0; 2}
+diff tests/value/oracle/alias.2.res.oracle tests/value/oracle_octagons/alias.2.res.oracle
+76c76
+<   z ∈ {-5; -4; -3; -2; -1; 0; 1; 1000}
+---
+>   z ∈ {-2; -1; 0; 1000}
+diff tests/value/oracle/alias.3.res.oracle tests/value/oracle_octagons/alias.3.res.oracle
+67c67
+<   z ∈ {0; 1; 2}
+---
+>   z ∈ {0; 2}
+diff tests/value/oracle/alias.5.res.oracle tests/value/oracle_octagons/alias.5.res.oracle
+59a60
+> [eva] tests/value/alias.i:260: starting to merge loop iterations
+diff tests/value/oracle/alias.6.res.oracle tests/value/oracle_octagons/alias.6.res.oracle
+82c82
+<   t ∈ {4; 5; 6}
+---
+>   t ∈ {5}
+87c87
+<   y ∈ {0; 1}
+---
+>   y ∈ {1}
+94,96c94,96
+<   tz1 ∈ {0; 1}
+<   tz2 ∈ {0; 1}
+<   tz3 ∈ {0; 1}
+---
+>   tz1 ∈ {1}
+>   tz2 ∈ {1}
+>   tz3 ∈ {1}
+diff tests/value/oracle/bitfield.res.oracle tests/value/oracle_octagons/bitfield.res.oracle
+132a133,135
+> [eva] tests/value/bitfield.i:71: 
+>   Frama_C_show_each:
+>   {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:70}) }}
+diff tests/value/oracle/builtins_split.res.oracle tests/value/oracle_octagons/builtins_split.res.oracle
+70a71,84
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+81a96,109
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+diff tests/value/oracle/call_simple.res.oracle tests/value/oracle_octagons/call_simple.res.oracle
+28c28
+<   c ∈ [--..--]
+---
+>   c ∈ [-2147483648..2147483646]
+diff tests/value/oracle/descending.res.oracle tests/value/oracle_octagons/descending.res.oracle
+42c42
+<   i ∈ {31; 32}
+---
+>   i ∈ {31}
+diff tests/value/oracle/downcast.res.oracle tests/value/oracle_octagons/downcast.res.oracle
+61c61
+<   [100000..2147483647], [100145..2147483647], [100145..2147483647]
+---
+>   [100000..2147483502], [100145..2147483647], [100145..2147483647]
+167c167
+<   x_0 ∈ [100000..2147483647]
+---
+>   x_0 ∈ [100000..2147483502]
+diff tests/value/oracle/equality.res.oracle tests/value/oracle_octagons/equality.res.oracle
+29,30c29,30
+<   y ∈ [0..42] or UNINITIALIZED
+<   w ∈ [0..42] or UNINITIALIZED
+---
+>   y ∈ [0..42]
+>   w ∈ [0..42]
+diff tests/value/oracle/find_ivaltop.res.oracle tests/value/oracle_octagons/find_ivaltop.res.oracle
+32,33c32,33
+<   j ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+<   X ∈ {1; 2; 3; 4; 5; 6; 7; 8}
+---
+>   j ∈ {7}
+>   X ∈ {8}
+39c39
+<   \result FROM t[0..7]
+---
+>   \result FROM t[7]
+44c44
+<     t[0..7]
+---
+>     t[7]
+diff tests/value/oracle/for_loops.3.res.oracle tests/value/oracle_octagons/for_loops.3.res.oracle
+20c20
+<   v ∈ [0..2147483647]
+---
+>   v ∈ [5..2147483647]
+diff tests/value/oracle/gauges.res.oracle tests/value/oracle_octagons/gauges.res.oracle
+209,210d208
+< [eva:alarm] tests/value/gauges.c:156: Warning: 
+<   signed overflow. assert -2147483648 ≤ toCopy - 1;
+272,273d269
+< [eva:alarm] tests/value/gauges.c:201: Warning: 
+<   signed overflow. assert -2147483648 ≤ numNonZero - 1;
+296,300d291
+< [eva] tests/value/gauges.c:218: Frama_C_show_each:
+< [eva] tests/value/gauges.c:218: Frama_C_show_each:
+< [eva] tests/value/gauges.c:218: Frama_C_show_each:
+< [eva:alarm] tests/value/gauges.c:220: Warning: 
+<   signed overflow. assert -2147483648 ≤ n - 1;
+787c778
+<   numNonZero ∈ [-2147483648..8]
+---
+>   numNonZero ∈ {-1}
+798c789
+<   n ∈ [-2147483648..99]
+---
+>   n ∈ {-1}
+859c850
+<   toCopy ∈ [-2147483648..99]
+---
+>   toCopy ∈ {-1}
+diff tests/value/oracle/loop.res.oracle tests/value/oracle_octagons/loop.res.oracle
+26c26
+<   r ∈ [0..2147483646],0%2
+---
+>   r ∈ [46..2147483646],0%2
+diff tests/value/oracle/loop_wvar.1.res.oracle tests/value/oracle_octagons/loop_wvar.1.res.oracle
+12,13d11
+< [eva:alarm] tests/value/loop_wvar.i:57: Warning: 
+<   signed overflow. assert next + 1 ≤ 2147483647;
+41c39
+<   next ∈ [0..2147483647]
+---
+>   next ∈ [0..25]
+diff tests/value/oracle/modulo.res.oracle tests/value/oracle_octagons/modulo.res.oracle
+40a41,56
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [-10..-1], [-9..-1], [-8..0]
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [-10..-1], [1..9], [-8..0]
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [-9..-1], [0..8]
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [1..9], [0..8]
+> [eva] tests/value/modulo.i:41: 
+>   Frama_C_show_each_1:
+>   [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
+> [eva] tests/value/modulo.i:41: 
+>   Frama_C_show_each_1:
+>   [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
+> [eva] tests/value/modulo.i:41: 
+>   Frama_C_show_each_1:
+>   [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
+> [eva] tests/value/modulo.i:41: 
+>   Frama_C_show_each_1:
+>   [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
+50a67,82
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [-10..-1], [1..9], [-8..0]
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [-10..-1], [-9..-1], [-8..0]
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [1..9], [0..8]
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [-9..-1], [0..8]
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2:
+>   [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2:
+>   [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2:
+>   [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2:
+>   [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
+60a93,94
+> [eva] tests/value/modulo.i:64: Frama_C_show_each_3: [-10..10], [-9..9], [-8..8]
+> [eva] tests/value/modulo.i:64: Frama_C_show_each_3: [-9..9], [-8..8], [-7..7]
+diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_octagons/non_natural.res.oracle
+58a59,60
+> [kernel] tests/value/non_natural.i:30: 
+>   more than 200(12500) elements to enumerate. Approximating.
+65a68,69
+> [kernel] tests/value/non_natural.i:23: 
+>   more than 200(12500) elements to enumerate. Approximating.
+70a75,76
+> [kernel] tests/value/non_natural.i:24: 
+>   more than 200(12500) elements to enumerate. Approximating.
+78a85,86
+> [kernel] tests/value/non_natural.i:25: 
+>   more than 200(12500) elements to enumerate. Approximating.
+86a95,96
+> [kernel] tests/value/non_natural.i:26: 
+>   more than 200(12500) elements to enumerate. Approximating.
+94a105,106
+> [kernel] tests/value/non_natural.i:27: 
+>   more than 200(12500) elements to enumerate. Approximating.
+102a115,116
+> [kernel] tests/value/non_natural.i:28: 
+>   more than 200(12500) elements to enumerate. Approximating.
+110a125,126
+> [kernel] tests/value/non_natural.i:29: 
+>   more than 200(12500) elements to enumerate. Approximating.
+129,130d144
+< [kernel] tests/value/non_natural.i:23: 
+<   more than 200(12500) elements to enumerate. Approximating.
+133,146d146
+< [kernel] tests/value/non_natural.i:24: 
+<   more than 200(12500) elements to enumerate. Approximating.
+< [kernel] tests/value/non_natural.i:25: 
+<   more than 200(12500) elements to enumerate. Approximating.
+< [kernel] tests/value/non_natural.i:26: 
+<   more than 200(12500) elements to enumerate. Approximating.
+< [kernel] tests/value/non_natural.i:27: 
+<   more than 200(12500) elements to enumerate. Approximating.
+< [kernel] tests/value/non_natural.i:28: 
+<   more than 200(12500) elements to enumerate. Approximating.
+< [kernel] tests/value/non_natural.i:29: 
+<   more than 200(12500) elements to enumerate. Approximating.
+< [kernel] tests/value/non_natural.i:30: 
+<   more than 200(12500) elements to enumerate. Approximating.
+199a200,201
+> [kernel] tests/value/non_natural.i:39: 
+>   more than 200(12500) elements to enumerate. Approximating.
+diff tests/value/oracle/nonlin.res.oracle tests/value/oracle_octagons/nonlin.res.oracle
+105a106,107
+> [eva:nonlin] tests/value/nonlin.c:67: non-linear 'x * x', lv 'x'
+> [eva:nonlin] tests/value/nonlin.c:67: subdividing on x
+108a111,113
+> [eva:nonlin] tests/value/nonlin.c:68: subdividing on x
+> [eva:nonlin] tests/value/nonlin.c:68: non-linear 'y * y', lv 'y'
+> [eva:nonlin] tests/value/nonlin.c:68: subdividing on y
+111a117,118
+> [eva:nonlin] tests/value/nonlin.c:70: non-linear 'z * x + x * y', lv 'x'
+> [eva:nonlin] tests/value/nonlin.c:70: subdividing on x
+176,178c183,185
+<   square ∈ [-48..400]
+<   square2 ∈ [-48..400]
+<   res ∈ [-144..400]
+---
+>   square ∈ [-200..400]
+>   square2 ∈ [-200..400]
+>   res ∈ [-200..400]
+diff tests/value/oracle/plevel.res.oracle tests/value/oracle_octagons/plevel.res.oracle
+12d11
+< [eva] Recording results for main
+14a14
+> [eva] Recording results for main
+diff tests/value/oracle/ptr_relation.1.res.oracle tests/value/oracle_octagons/ptr_relation.1.res.oracle
+24c24
+<   j ∈ {-1; 0; 1}
+---
+>   j ∈ {0}
+diff tests/value/oracle/relation_reduction.res.oracle tests/value/oracle_octagons/relation_reduction.res.oracle
+24,27d23
+< [eva:alarm] tests/value/relation_reduction.i:20: Warning: 
+<   accessing out of bounds index. assert 0 ≤ y;
+< [eva:alarm] tests/value/relation_reduction.i:20: Warning: 
+<   accessing out of bounds index. assert y < 9;
+34,37c30,33
+<   R1 ∈ [-2147483648..2147483637]
+<   R2 ∈ [-2147483638..2147483647]
+<   R3 ∈ [--..--]
+<   R4 ∈ {0; 1; 2; 3; 4; 5}
+---
+>   R1 ∈ {0; 2}
+>   R2 ∈ {0; 12}
+>   R3 ∈ {0; 7}
+>   R4 ∈ {0; 2}
+48c44
+<   R4 FROM tab[0..8]; x (and SELF)
+---
+>   R4 FROM tab[0..5]; x (and SELF)
+53c49
+<     y; t; tab[0..8]
+---
+>     y; t; tab[0..5]
+diff tests/value/oracle/relation_shift.res.oracle tests/value/oracle_octagons/relation_shift.res.oracle
+18,25d17
+< [eva:alarm] tests/value/relation_shift.i:15: Warning: 
+<   signed overflow. assert -2147483648 ≤ x - y;
+< [eva:alarm] tests/value/relation_shift.i:15: Warning: 
+<   signed overflow. assert x - y ≤ 2147483647;
+< [eva:alarm] tests/value/relation_shift.i:16: Warning: 
+<   signed overflow. assert -2147483648 ≤ z - y;
+< [eva:alarm] tests/value/relation_shift.i:16: Warning: 
+<   signed overflow. assert z - y ≤ 2147483647;
+31,32c23,24
+<   r1 ∈ [--..--]
+<   r2 ∈ [--..--]
+---
+>   r1 ∈ {2}
+>   r2 ∈ {7}
+35,37c27,29
+<   x ∈ [-2147483647..2147483647]
+<   y ∈ [-2147483648..2147483646]
+<   z ∈ [-2147483642..2147483647]
+---
+>   x ∈ [-2147483646..2147483642]
+>   y ∈ [-2147483648..2147483640]
+>   z ∈ [-2147483641..2147483647]
+49,50c41,42
+<   r1 ∈ [--..--]
+<   r2 ∈ [--..--]
+---
+>   r1 ∈ {2}
+>   r2 ∈ {7}
+53,55c45,47
+<   x ∈ [-2147483647..2147483647]
+<   y ∈ [-2147483648..2147483646]
+<   z ∈ [-2147483642..2147483647]
+---
+>   x ∈ [-2147483646..2147483642]
+>   y ∈ [-2147483648..2147483640]
+>   z ∈ [-2147483641..2147483647]
+diff tests/value/oracle/relations.res.oracle tests/value/oracle_octagons/relations.res.oracle
+80,81c80,82
+<   e ∈ [--..--]
+<   f ∈ [--..--]
+---
+>   e ∈ {1}
+>   f[bits 0 to 7] ∈ {1; 4}
+>    [bits 8 to 31] ∈ [--..--]
+diff tests/value/oracle/relations2.res.oracle tests/value/oracle_octagons/relations2.res.oracle
+25c25
+<   len ∈ [--..--]
+---
+>   len ∈ [0..1023]
+36,37c36
+< [eva] tests/value/relations2.i:17: 
+<   Frama_C_show_each_end: [0..4294967295], [0..64]
+---
+> [eva] tests/value/relations2.i:17: Frama_C_show_each_end: [0..1023], [0..64]
+59c58
+<   n ∈ [0..512]
+---
+>   n ∈ [1..512]
+69,71d67
+< [eva:alarm] tests/value/relations2.i:34: Warning: 
+<   accessing out of bounds index.
+<   assert (unsigned int)(i - (unsigned int)(t + 1)) < 514;
+80c76
+<   n ∈ [0..512]
+---
+>   n ∈ [1..512]
+97c93
+<   n ∈ [0..512]
+---
+>   n ∈ [1..512]
+140c136
+<   len ∈ [--..--]
+---
+>   len ∈ [0..1023]
+diff tests/value/oracle/semaphore.res.oracle tests/value/oracle_octagons/semaphore.res.oracle
+65c65
+<   c ∈ {-26; -1}
+---
+>   c ∈ {-1}
+diff tests/value/oracle/struct2.res.oracle tests/value/oracle_octagons/struct2.res.oracle
+81,84d80
+<   accessing out of bounds index. assert 0 ≤ (int)(i + j);
+< [eva:alarm] tests/value/struct2.i:185: Warning: 
+<   accessing out of bounds index. assert (int)(i + j) < 2;
+< [eva:alarm] tests/value/struct2.i:185: Warning: 
+106d101
+< [scope:rm_asserts] removing 2 assertion(s)
+diff tests/value/oracle/test.0.res.oracle tests/value/oracle_octagons/test.0.res.oracle
+17,18d16
+< [eva:alarm] tests/value/test.i:11: Warning: 
+<   signed overflow. assert j + ecart ≤ 2147483647;
+29c27
+<   j ∈ [-1073741822..1]
+---
+>   j ∈ {-1; 0; 1}
+diff tests/value/oracle/unroll.res.oracle tests/value/oracle_octagons/unroll.res.oracle
+22c22
+<   G ∈ [17739..2147483647]
+---
+>   G ∈ [17854..2147483647]
+diff tests/value/oracle/unroll_simple.res.oracle tests/value/oracle_octagons/unroll_simple.res.oracle
+17c17
+<   G ∈ [8772..2147483647]
+---
+>   G ∈ [8896..2147483647]

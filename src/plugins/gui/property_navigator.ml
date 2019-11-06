@@ -34,13 +34,13 @@ let all_properties () =
        match Property.get_kf ip with
        | None -> globals := Property.Set.add ip !globals
        | Some kf ->
-           if not (Ast_info.is_frama_c_builtin (Kernel_function.get_name kf))
-           then try
-               let fips = Kernel_function.Map.find kf !functions in
-               fips := Property.Set.add ip !fips
-             with Not_found ->
-               let ips = Property.Set.singleton ip in
-               functions := Kernel_function.Map.add kf (ref ips) !functions
+         if not (Ast_info.is_frama_c_builtin (Kernel_function.get_name kf))
+         then try
+             let fips = Kernel_function.Map.find kf !functions in
+             fips := Property.Set.add ip !fips
+           with Not_found ->
+             let ips = Property.Set.singleton ip in
+             functions := Kernel_function.Map.add kf (ref ips) !functions
     );
   !functions, !globals
 
@@ -72,8 +72,8 @@ let make_property ip =
   in
   let function_name, module_name = match Property.get_kf ip with
     | None -> "", Datatype.Filepath.dummy (* TODO: it would be great to find the location
-                        of global invariants or lemmas, but there isn't
-                        enough information in the ast *)
+                                             of global invariants or lemmas, but there isn't
+                                             enough information in the ast *)
     | Some kf -> kf_name_and_module kf
   in
   let kind =
@@ -409,31 +409,31 @@ let aux_rte kf acc (name, _, rte_status_get: Db.RteGen.status_accessor) =
   match st, rteGenerated.get (), rteNotGenerated.get () with
   | true, true, _
   | false, _, true ->
-      (* Considered that leaf functions are not verified internally *)
-      let status_name, status =
-        if st then
-          if Kernel_function.is_definition kf
-          then "Generated", Feedback.Valid
-          else "Considered generated", Feedback.Considered_valid
-        else "Not generated", Feedback.Invalid
-      in
-      let function_name, module_name = kf_name_and_module kf in
-      let status_icon = Gtk_helper.Icon.Feedback status in
-      let ip =
-        Property.ip_other name
-          (Property.OLGlob (Kernel_function.get_location kf))
-      in
-      {
-        module_name = module_name;
-        function_name = function_name;
-        visible = true;
-        ip=ip;
-        kind=Format.asprintf "@[<hov>%a@]" Property.pretty ip;
-        status_name = "" ;
-        consolidated_status = None ;
-        consolidated_status_name = status_name ;
-        status_icon = status_icon ;
-      } :: acc
+    (* Considered that leaf functions are not verified internally *)
+    let status_name, status =
+      if st then
+        if Kernel_function.is_definition kf
+        then "Generated", Feedback.Valid
+        else "Considered generated", Feedback.Considered_valid
+      else "Not generated", Feedback.Invalid
+    in
+    let function_name, module_name = kf_name_and_module kf in
+    let status_icon = Gtk_helper.Icon.Feedback status in
+    let ip =
+      Property.ip_other name
+        (Property.OLGlob (Kernel_function.get_location kf))
+    in
+    {
+      module_name = module_name;
+      function_name = function_name;
+      visible = true;
+      ip=ip;
+      kind=Format.asprintf "@[<hov>%a@]" Property.pretty ip;
+      status_name = "" ;
+      consolidated_status = None ;
+      consolidated_status_name = status_name ;
+      status_icon = status_icon ;
+    } :: acc
   | true, false, _
   | false, _, false -> acc
 
@@ -533,7 +533,7 @@ let make_panel (main_ui:main_window_extension_points) =
                                     match !properties_tab_label with
                                     | None -> ()
                                     | Some label ->
-                                        GtkMisc.Label.set_text label "Properties"
+                                      GtkMisc.Label.set_text label "Properties"
                                   );
   let sc =
     GBin.scrolled_window
@@ -552,10 +552,10 @@ let make_panel (main_ui:main_window_extension_points) =
        ~callback:(fun path _col ->
            match model#custom_get_iter path with
            | Some { MODEL.finfo = { ip = ip } } ->
-               let format_graph ppf =
-                 Consolidation_graph.dump (Consolidation_graph.get ip) ppf in
-               Dgraph_helper.graph_window_through_dot
-                 main_ui#main_window "Dependencies" format_graph
+             let format_graph ppf =
+               Consolidation_graph.dump (Consolidation_graph.get ip) ppf in
+             Dgraph_helper.graph_window_through_dot
+               main_ui#main_window "Dependencies" format_graph
            | None -> ()));
   view#selection#set_select_function
     (fun path currently_selected ->
@@ -598,7 +598,7 @@ let make_panel (main_ui:main_window_extension_points) =
   (* Status colored column viewer *)
   make_view_column (GTree.cell_renderer_pixbuf [top])
     (function {status_icon=status_icon} ->
-      [`PIXBUF (Gtk_helper.Icon.get status_icon)])
+       [`PIXBUF (Gtk_helper.Icon.get status_icon)])
     ~title:"Status";
 
   (* Consolidated status name column viewer *)
@@ -613,29 +613,30 @@ let make_panel (main_ui:main_window_extension_points) =
 
   view#set_model (Some model#coerce);
 
-  let visible ip = match ip with
-    | Property.IPOther _ -> other.get ()
-    | Property.IPReachable _ -> reachable.get ()
-    | Property.IPBehavior (_,Kglobal,_,_) -> behaviors.get ()
-    | Property.IPBehavior (_,Kstmt _,_,_) -> behaviors.get () && stmtSpec.get ()
-    | Property.IPPredicate(Property.PKRequires _,_,Kglobal,_) ->
-        preconditions.get ()
-    | Property.IPPredicate(Property.PKRequires _,_,Kstmt _,_) ->
-        preconditions.get () && stmtSpec.get ()
-    | Property.IPPredicate(Property.PKAssumes _,_,_,_) -> false
-    | Property.IPPredicate(Property.PKEnsures _,_,Kglobal,_) -> ensures.get ()
-    | Property.IPExtended(_,_) -> extended.get ()
-    | Property.IPPredicate(Property.PKEnsures _,_,Kstmt _,_) ->
-        ensures.get() && stmtSpec.get()
-    | Property.IPPredicate(Property.PKTerminates,_,_,_) -> terminates.get ()
-    | Property.IPAxiom _ -> false
-    | Property.IPTypeInvariant _ -> typeInvariants.get()
-    | Property.IPGlobalInvariant _ -> globalInvariants.get()
-    | Property.IPAxiomatic _ -> axiomatic.get () && not (onlyCurrent.get ())
-    | Property.IPLemma _ -> lemmas.get ()
-    | Property.IPComplete _ -> complete_disjoint.get ()
-    | Property.IPDisjoint _ -> complete_disjoint.get ()
-    | Property.IPCodeAnnot(_,_,({annot_content = AAssert (_, kind, _)} as ca)) ->
+  let visible ip =
+    let open Property in match ip with
+    | IPOther _ -> other.get ()
+    | IPReachable _ -> reachable.get ()
+    | IPBehavior {ib_kinstr=Kglobal} -> behaviors.get ()
+    | IPBehavior {ib_kinstr=Kstmt _} -> behaviors.get () && stmtSpec.get ()
+    | IPPredicate {ip_kind=PKRequires _;ip_kinstr=Kglobal} ->
+      preconditions.get ()
+    | IPPredicate {ip_kind=PKRequires _;ip_kinstr=Kstmt _} ->
+      preconditions.get () && stmtSpec.get ()
+    | IPPredicate {ip_kind = PKAssumes _} -> false
+    | IPPredicate {ip_kind=PKEnsures _;ip_kinstr=Kglobal} -> ensures.get ()
+    | IPExtended _ -> extended.get ()
+    | IPPredicate {ip_kind=PKEnsures _;ip_kinstr=Kstmt _} ->
+      ensures.get() && stmtSpec.get()
+    | IPPredicate {ip_kind = PKTerminates} -> terminates.get ()
+    | IPAxiom _ -> false
+    | IPTypeInvariant _ -> typeInvariants.get()
+    | IPGlobalInvariant _ -> globalInvariants.get()
+    | IPAxiomatic _ -> axiomatic.get () && not (onlyCurrent.get ())
+    | IPLemma _ -> lemmas.get ()
+    | IPComplete _ -> complete_disjoint.get ()
+    | IPDisjoint _ -> complete_disjoint.get ()
+    | IPCodeAnnot {ica_ca={annot_content = AAssert (_, kind, _)} as ca} ->
       begin
         match Alarms.find ca with
         | Some a -> rte.get () && active_alarm a
@@ -644,24 +645,24 @@ let make_panel (main_ui:main_window_extension_points) =
           | Assert -> user_assertions.get ()
           | Check -> user_checks.get ()
       end
-    | Property.IPCodeAnnot(_,_,{annot_content = AInvariant _}) ->
-        invariant.get ()
-    | Property.IPCodeAnnot(_,_,{annot_content = APragma p}) ->
-        Logic_utils.is_property_pragma p (* currently always false. *)
-    | Property.IPCodeAnnot(_, _, _) -> false (* status of inner nodes *)
-    | Property.IPAllocation (_,Kglobal,_,_) -> allocations.get ()
-    | Property.IPAllocation (_,Kstmt _,Property.Id_loop _,_) ->
-        allocations.get ()
-    | Property.IPAllocation (_,Kstmt _,Property.Id_contract _,_) ->
-        allocations.get() && stmtSpec.get()
-    | Property.IPAssigns (_,Kglobal,_,_) -> assigns.get ()
-    | Property.IPAssigns (_,Kstmt _,Property.Id_loop _,_) ->
-        assigns.get ()
-    | Property.IPAssigns (_,Kstmt _,Property.Id_contract _,_) ->
-        assigns.get() && stmtSpec.get()
-    | Property.IPFrom _ -> from.get ()
-    | Property.IPDecrease _ -> variant.get ()
-    | Property.IPPropertyInstance _ -> instances.get ()
+    | IPCodeAnnot {ica_ca={annot_content = AInvariant _}} ->
+      invariant.get ()
+    | IPCodeAnnot {ica_ca={annot_content = APragma p}} ->
+      Logic_utils.is_property_pragma p (* currently always false. *)
+    | IPCodeAnnot _ -> false (* status of inner nodes *)
+    | IPAllocation {ial_kinstr=Kglobal} -> allocations.get ()
+    | IPAllocation {ial_kinstr=Kstmt _;ial_bhv=Id_loop _} ->
+      allocations.get ()
+    | IPAllocation {ial_kinstr=Kstmt _;ial_bhv=Id_contract _} ->
+      allocations.get() && stmtSpec.get()
+    | IPAssigns {ias_kinstr=Kglobal} -> assigns.get ()
+    | IPAssigns {ias_kinstr=Kstmt _;ias_bhv=Id_loop _} ->
+      assigns.get ()
+    | IPAssigns {ias_kinstr=Kstmt _;ias_bhv=Id_contract _} ->
+      assigns.get() && stmtSpec.get()
+    | IPFrom _ -> from.get ()
+    | IPDecrease _ -> variant.get ()
+    | IPPropertyInstance _ -> instances.get ()
   in
   let visible_status_aux = function
     | Consolidation.Never_tried -> untried.get ()
@@ -695,7 +696,7 @@ let make_panel (main_ui:main_window_extension_points) =
        List.exists
          (function
            | GFun ({svar = fvi},_) | GFunDecl (_, fvi, _) ->
-               Cil_datatype.Varinfo.equal fvi kfvi
+             Cil_datatype.Varinfo.equal fvi kfvi
            | _ -> false
          ) main_ui#file_tree#selected_globals)
     in
@@ -735,8 +736,8 @@ let make_panel (main_ui:main_window_extension_points) =
     match !properties_tab_label with
     | None -> ()
     | Some label ->
-        let text = Format.sprintf "Properties (%d)" (model#custom_iter_n_children None) in
-        GtkMisc.Label.set_text label text
+      let text = Format.sprintf "Properties (%d)" (model#custom_iter_n_children None) in
+      GtkMisc.Label.set_text label text
   in
   ignore
     (let callback _ =
@@ -763,62 +764,62 @@ let make_panel (main_ui:main_window_extension_points) =
 let highlighter (buffer:reactive_buffer) localizable ~start ~stop =
   match localizable with
   | Pretty_source.PIP ppt ->
-      if Property.has_status ppt then
-        Design.Feedback.mark
-          buffer#buffer ~offset:start (Property_status.Feedback.get ppt)
+    if Property.has_status ppt then
+      Design.Feedback.mark
+        buffer#buffer ~offset:start (Property_status.Feedback.get ppt)
   | Pretty_source.PStmt(_,({ skind=Instr(Call _| Local_init (_, ConsInit _, _)) } as stmt)) ->
-      let kfs = Statuses_by_call.all_functions_with_preconditions stmt in
-      (* We separate the consolidated statuses of the preconditions inside
-         guarded behaviors from those outside. For guarded behaviors, since we
-         do not keep track of the status of 'assumes' clauses, we cannot know
-         if they are active. Hence, we must weaken any 'Invalid' status into
-         'Unknown'. *)
-      let filter (ip_src, _ip_copy) =
-        match ip_src with
-        | Property.IPPredicate (Property.PKRequires bhv, _, _, _) ->
-            bhv.b_assumes = []
-        | _ -> false
+    let kfs = Statuses_by_call.all_functions_with_preconditions stmt in
+    (* We separate the consolidated statuses of the preconditions inside
+       guarded behaviors from those outside. For guarded behaviors, since we
+       do not keep track of the status of 'assumes' clauses, we cannot know
+       if they are active. Hence, we must weaken any 'Invalid' status into
+       'Unknown'. *)
+    let filter (ip_src, _ip_copy) =
+      match ip_src with
+      | Property.IPPredicate {Property.ip_kind=Property.PKRequires bhv} ->
+        bhv.b_assumes = []
+      | _ -> false
+    in
+    let ips_sure, ips_unsure = Kernel_function.Hptset.fold
+        (fun kf (ips_sure, ips_unsure) ->
+           Statuses_by_call.setup_all_preconditions_proxies kf;
+           let ips_kf =
+             Statuses_by_call.all_call_preconditions_at ~warn_missing:false kf stmt
+           in
+           let ips_kf_sure, ips_kf_unsure = List.partition filter ips_kf in
+           (List.map snd ips_kf_sure @ ips_sure),
+           (List.map snd ips_kf_unsure @ ips_unsure))
+        kfs ([], [])
+    in
+    let ips = ips_sure @ ips_unsure in
+    if ips <> [] then
+      let validity = Property_status.Feedback.get_conjunction ips in
+      let validity =
+        match validity with
+        | Feedback.Invalid_under_hyp ->
+          (* Weaken if the invalidity comes from [ips_unsure]. We do nothing
+             for statuses [Invalid] (a path should exist, hence the behavior
+             must be active), or [Invalid_but_dead] (equivalent to [True]) *)
+          let invalid ip = Feedback.get ip = Feedback.Invalid_under_hyp in
+          if List.exists invalid ips_unsure &&
+             not (List.exists invalid ips_sure)
+          then Feedback.Unknown
+          else validity
+        | _ -> validity
       in
-      let ips_sure, ips_unsure = Kernel_function.Hptset.fold
-          (fun kf (ips_sure, ips_unsure) ->
-             Statuses_by_call.setup_all_preconditions_proxies kf;
-             let ips_kf =
-               Statuses_by_call.all_call_preconditions_at ~warn_missing:false kf stmt
-             in
-             let ips_kf_sure, ips_kf_unsure = List.partition filter ips_kf in
-             (List.map snd ips_kf_sure @ ips_sure),
-             (List.map snd ips_kf_unsure @ ips_unsure))
-          kfs ([], [])
+      (* Positioning the bullet is tricky. We cannot use [start] as offset,
+         because the bullet ends up at the beginning of the spec (assertions,
+         contracts, etc) instead of in front of the function name. We use
+         the beginning of the C part of the statement (which has been computed
+         when the source was rendered). *)
+      let offset =
+        try Pretty_source.stmt_start buffer#locs stmt
+        with Not_found ->
+          Gui_parameters.error
+            "Invalid internal state for statement %d" stmt.sid;
+          stop (* fallback *)
       in
-      let ips = ips_sure @ ips_unsure in
-      if ips <> [] then
-        let validity = Property_status.Feedback.get_conjunction ips in
-        let validity =
-          match validity with
-          | Feedback.Invalid_under_hyp ->
-              (* Weaken if the invalidity comes from [ips_unsure]. We do nothing
-                 for statuses [Invalid] (a path should exist, hence the behavior
-                 must be active), or [Invalid_but_dead] (equivalent to [True]) *)
-              let invalid ip = Feedback.get ip = Feedback.Invalid_under_hyp in
-              if List.exists invalid ips_unsure &&
-                 not (List.exists invalid ips_sure)
-              then Feedback.Unknown
-              else validity
-          | _ -> validity
-        in
-        (* Positioning the bullet is tricky. We cannot use [start] as offset,
-           because the bullet ends up at the beginning of the spec (assertions,
-           contracts, etc) instead of in front of the function name. We use
-           the beginning of the C part of the statement (which has been computed
-           when the source was rendered). *)
-        let offset =
-          try Pretty_source.stmt_start buffer#locs stmt
-          with Not_found ->
-            Gui_parameters.error
-              "Invalid internal state for statement %d" stmt.sid;
-            stop (* fallback *)
-        in
-        Design.Feedback.mark buffer#buffer ~call_site:stmt ~offset validity
+      Design.Feedback.mark buffer#buffer ~call_site:stmt ~offset validity
 
   | Pretty_source.PStmt _ | Pretty_source.PStmtStart _
   | Pretty_source.PGlobal _| Pretty_source.PVDecl _

@@ -79,19 +79,19 @@ sig
   val waiting : 'a t -> bool
 end =
 struct
-  
+
   type 'a t =
     | UNIT of 'a
     | WAIT of int * (coin -> 'a t)
     | YIELD of (coin -> 'a t)
 
   let unit a = UNIT a
-  
+
   let rec bind m f = match m with
     | UNIT a -> f a
     | WAIT(d,m) -> WAIT (d, fun c -> bind (m c) f)
     | YIELD m -> YIELD (fun c -> bind (m c) f)
-  
+
   let put c m = match m with
     | UNIT _ -> m
     | WAIT(_,f) | YIELD f -> f c
@@ -103,7 +103,7 @@ struct
     | Wait d -> WAIT(d,ping f)
     | Yield -> YIELD(ping f)
     | Return a -> UNIT a
-    
+
   let async f = YIELD (ping f)
 
   let rec wait = function
@@ -114,7 +114,7 @@ struct
   let finished = function UNIT a -> Some a | YIELD _ | WAIT _ -> None
 
   let waiting = function UNIT _ -> false | YIELD _ | WAIT _ -> true
-  
+
 end
 
 (* ------------------------------------------------------------------------ *)
@@ -139,21 +139,22 @@ let failed text =
     (Format.formatter_of_buffer buffer) text
 
 let bind = Monad.bind
+let async = Monad.async
 
-let sequence a k = 
+let sequence a k =
   Monad.bind a (function
       | Result r -> k r
       | Failed e -> Monad.unit (Failed e)
       | Timeout n -> Monad.unit (Timeout n)
       | Canceled -> Monad.unit Canceled)
-    
+
 let nop = return ()
 let nof _ = ()
 
 let later ?(canceled=nof) f x = Monad.yield
     begin fun coin ->
       try match coin with
-        | Coin -> f x 
+        | Coin -> f x
         | Kill -> canceled x ; Monad.unit Canceled
       with e -> raised e
     end
@@ -244,35 +245,35 @@ let start_command ~timeout ?time ?stdout ?stderr cmd args =
 let ping_command cmd coin =
   try
     match cmd.async () with
-    
+
     | Command.Not_ready kill ->
-        if coin = Kill then (kill () ; Wait 100)
-        else
-          let time_now = if cmd.timed then Unix.gettimeofday () else 0.0 in
-          if cmd.timeout > 0 && time_now > cmd.time_stop then
-            begin
-              set_time cmd (time_now -. cmd.time_start) ;
-              Kernel.debug ~dkey:Kernel.dkey_task "timeout '%s'" cmd.name ;
-              cmd.time_killed <- true ;
-              kill () ;
-            end ;
-          Wait 100
+      if coin = Kill then (kill () ; Wait 100)
+      else
+        let time_now = if cmd.timed then Unix.gettimeofday () else 0.0 in
+        if cmd.timeout > 0 && time_now > cmd.time_stop then
+          begin
+            set_time cmd (time_now -. cmd.time_start) ;
+            Kernel.debug ~dkey:Kernel.dkey_task "timeout '%s'" cmd.name ;
+            cmd.time_killed <- true ;
+            kill () ;
+          end ;
+        Wait 100
 
     | Command.Result (Unix.WEXITED s|Unix.WSIGNALED s|Unix.WSTOPPED s)
       when cmd.time_killed ->
-        set_chrono cmd ;
-        Kernel.debug ~dkey:Kernel.dkey_task "timeout '%s' [%d]" cmd.name s ;
-        Return (Timeout cmd.timeout)
+      set_chrono cmd ;
+      Kernel.debug ~dkey:Kernel.dkey_task "timeout '%s' [%d]" cmd.name s ;
+      Return (Timeout cmd.timeout)
 
     | Command.Result (Unix.WEXITED s) ->
-        set_chrono cmd ;
-        Kernel.debug ~dkey:Kernel.dkey_task "exit '%s' [%d]" cmd.name s ;
-        Return (Result s)
+      set_chrono cmd ;
+      Kernel.debug ~dkey:Kernel.dkey_task "exit '%s' [%d]" cmd.name s ;
+      Return (Result s)
 
     | Command.Result (Unix.WSIGNALED s|Unix.WSTOPPED s) ->
-        set_chrono cmd ;
-        Kernel.debug ~dkey:Kernel.dkey_task "signal '%s' [%d]" cmd.name s ;
-        Return Canceled
+      set_chrono cmd ;
+      Kernel.debug ~dkey:Kernel.dkey_task "signal '%s' [%d]" cmd.name s ;
+      Return Canceled
 
   with e ->
     set_chrono cmd ;
@@ -308,25 +309,25 @@ let retry_shared sh = function
 
 let ping_shared sh = function
   | Coin ->
-      begin match Monad.finished sh.shared with
-        | Some r ->
-            if retry_shared sh r then sh.shared <- todo sh.builder ;
-            Return r
-        | None -> sh.shared <- Monad.progress sh.shared ; Yield
+    begin match Monad.finished sh.shared with
+      | Some r ->
+        if retry_shared sh r then sh.shared <- todo sh.builder ;
+        Return r
+      | None -> sh.shared <- Monad.progress sh.shared ; Yield
+    end
+  | Kill ->
+    if sh.clients > 1 then
+      begin
+        sh.clients <- pred sh.clients ;
+        Return Canceled
       end
-  | Kill ->      
-      if sh.clients > 1 then
-        begin
-          sh.clients <- pred sh.clients ;
-          Return Canceled
-        end
-      else
-        ( if sh.clients = 1 then
-            begin
-              sh.clients <- 0 ;
-              sh.shared <- Monad.cancel sh.shared ;
-            end ;
-          Yield )
+    else
+      ( if sh.clients = 1 then
+          begin
+            sh.clients <- 0 ;
+            sh.shared <- Monad.cancel sh.shared ;
+          end ;
+        Yield )
 
 let share sh = todo
     begin fun () ->
@@ -337,7 +338,7 @@ let share sh = todo
 (* -------------------------------------------------------------------------- *)
 (* --- IDLE                                                               --- *)
 (* -------------------------------------------------------------------------- *)
-    
+
 let on_idle = ref
     (fun f -> try
         while f () do Extlib.usleep 50000 (* wait for 50ms *) done
@@ -504,4 +505,3 @@ let rec run_server server () =
 let launch server =
   if server.scheduled > server.terminated
   then ( fire server.start ; !on_idle (run_server server) )
-    

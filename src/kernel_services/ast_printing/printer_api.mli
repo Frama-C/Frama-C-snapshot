@@ -78,6 +78,22 @@ class type extensible_printer_type = object
   method private has_annot: bool
   (** [true] if [current_stmt] has some annotations attached to it. *)
 
+  method private in_ghost_if_needed:
+    Format.formatter ->
+    bool ->
+    post_fmt:(((Format.formatter -> unit) -> unit, Format.formatter, unit) format) ->
+    ?block:bool ->
+    (unit -> unit)
+    -> unit
+  (** Open a ghost context if the the first [bool] is true and we are not
+      already in a ghost context. [post_fmt] is a format like ["%t"] and is used
+      to define the format at the end of the ghost context. [block] indicates
+      whether we should open a C block or not (defaults to [true]). The last
+      parameter is the function to be applied in the ghost context (generally
+      some AST element).
+
+      @since 20.0-Calcium *)
+
   method private current_stmt: stmt option
   (** @return the [stmt] being printed *)
 

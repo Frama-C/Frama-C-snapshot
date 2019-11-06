@@ -20,49 +20,53 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open VCS
-
 (* ------------------------------------------------------------------------ *)
 (* ---  Prover List in Configuration                                    --- *)
 (* ------------------------------------------------------------------------ *)
 
-class available () =
+class provers key =
   object(self)
-    val mutable dps = []
-    method get = dps
-    method detect =
-      try dps <- ProverDetect.detect ()
-      with exn ->
-        Wp_parameters.error "Why3 detection error:@\n%s"
-          (Printexc.to_string exn)
-    initializer self#detect
-  end
-
-class enabled key =
-  object(self)
-    inherit [string list] Wutil.selector []
+    inherit [Why3.Whyconf.Sprover.t] Wutil.selector Why3.Whyconf.Sprover.empty
 
     method private load () =
       let open Gtk_helper.Configuration in
-      let rec collect w = function
-        | ConfString s -> s :: w
-        | ConfList fs -> List.fold_left collect w fs
-        | _ -> w in
+      let prover_of_conf acc = function
+        | ConfList [ConfString prover_name;
+                    ConfString prover_version;
+                    ConfString prover_altern] ->
+            Why3.Whyconf.Sprover.add
+              Why3.Whyconf.{ prover_name; prover_version; prover_altern }
+              acc
+        | _ -> acc in
       try
         let data = Gtk_helper.Configuration.find key in
-        List.rev (collect [] data)
-      with Not_found -> []
+        match data with
+        | ConfList data ->
+            (List.fold_left prover_of_conf Why3.Whyconf.Sprover.empty data)
+        | _ -> Why3.Whyconf.Sprover.empty
+      with Not_found -> Why3.Whyconf.Sprover.empty
 
     method private save () =
       let open Gtk_helper.Configuration in
+      let conf_of_prover dp = ConfList Why3.Whyconf.[ConfString dp.prover_name;
+                                                     ConfString dp.prover_version;
+                                                     ConfString dp.prover_altern] in
       Gtk_helper.Configuration.set key
-        (ConfList (List.map (fun s -> ConfString s) self#get))
+        (ConfList (List.map conf_of_prover
+                     (Why3.Whyconf.Sprover.elements self#get)))
 
     initializer
       begin
         let settings = self#load () in
+        (** select automatically the provers set on the command line *)
         let cmdline = Wp_parameters.Provers.get () in
-        let selection = List.sort_uniq String.compare (settings @ cmdline) in
+        let selection = List.fold_left
+            (fun acc e ->
+               match Why3Provers.find_opt e with
+               | None -> acc
+               | Some p -> Why3.Whyconf.Sprover.add p acc)
+            settings cmdline
+        in
         self#set selection ;
         self#on_event self#save ;
       end
@@ -75,8 +79,7 @@ class enabled key =
 
 class dp_chooser
     ~(main:Design.main_window_extension_points)
-    ~(available:available)
-    ~(enabled:enabled)
+    ~(provers:provers)
   =
   let dialog = new Wpane.dialog
     ~title:"Why3 Provers"
@@ -85,22 +88,16 @@ class dp_chooser
   let array = new Wpane.warray () in
   object(self)
 
-    val mutable selected = []
+    val mutable selected = Why3.Whyconf.Mprover.empty
 
     method private enable dp e =
-      let rec hook dp e = function
-        | [] -> [dp,e]
-        | head :: tail ->
-            if fst head = dp then (dp,e) :: tail
-            else head :: hook dp e tail
-      in selected <- hook dp e selected
+      selected <- Why3.Whyconf.Mprover.add dp e selected
 
     method private lookup dp =
-      try List.assoc dp selected
-      with Not_found -> false
+      Why3.Whyconf.Mprover.find dp selected
 
     method private entry dp =
-      let text = Pretty_utils.to_string VCS.pretty dp in
+      let text = Why3Provers.title dp in
       let sw = new Widget.switch () in
       let lb = new Widget.label ~align:`Left ~text () in
       sw#set (self#lookup dp) ;
@@ -116,29 +113,33 @@ class dp_chooser
 
     method private configure dps =
       begin
-        array#set dps ;
+        array#set (Why3.Whyconf.Sprover.elements dps) ;
         array#update () ;
       end
 
     method private detect () =
       begin
-        available#detect ;
-        self#configure available#get ;
+        self#configure (Why3Provers.provers_set ());
       end
 
     method private apply () =
-      let rec choose = function
-        | ({dp_shortcuts=key::_},true)::dps -> key :: choose dps
-        | _::dps -> choose dps
-        | [] -> []
-      in enabled#set (choose selected)
+      provers#set
+        (Why3.Whyconf.Mprover.map_filter
+           (function
+             | true -> Some ()
+             | false -> None)
+           selected)
 
     method run () =
-      let dps = available#get in
-      let sel = enabled#get in
-      selected <- List.map
-          (fun dp -> dp,List.exists (fun k -> List.mem k sel) dp.dp_shortcuts)
-          dps ;
+      let dps = Why3Provers.provers_set () in
+      let sel = provers#get in
+      selected <- Why3.Whyconf.Mprover.merge
+          (fun _ avail enab ->
+             match avail, enab with
+             | None, _ -> None
+             | Some (), Some () -> Some true
+             | Some (), None -> Some false)
+          dps sel;
       self#configure dps ;
       dialog#run ()
 
@@ -152,70 +153,6 @@ class dp_chooser
         dialog#on_value `APPLY self#apply ;
       end
 
-  end
-
-(* ------------------------------------------------------------------------ *)
-(* ---  WP Prover Switch Panel                                          --- *)
-(* ------------------------------------------------------------------------ *)
-
-type mprover =
-  | NONE
-  | ERGO
-  | COQ
-  | WHY of VCS.dp
-
-class dp_button ~(available:available) =
-  let render = function
-    | NONE -> "(none)"
-    | ERGO -> "Alt-Ergo (native)"
-    | COQ -> "Coq (native)"
-    | WHY { dp_shortcuts = keys } when List.mem "alt-ergo" keys ->
-        "Alt-Ergo (why3)"
-    | WHY dp -> Pretty_utils.to_string VCS.pretty dp in
-  let select = function
-    | ERGO -> "alt-ergo"
-    | COQ -> "coq"
-    | WHY { dp_shortcuts=[] } | NONE -> "none"
-    | WHY { dp_shortcuts=key::_ } -> "why3:"^key in
-  let rec import = function
-    | [] -> ERGO
-    | spec::others ->
-        match VCS.prover_of_name spec with
-        | None | Some Qed -> NONE
-        | Some (AltErgo|Tactical) -> ERGO
-        | Some Coq -> COQ
-        | Some (Why3 s) ->
-            try
-              let dps = available#get in
-              WHY (List.find (fun dp -> List.mem s dp.dp_shortcuts) dps)
-            with Not_found -> import others
-  in
-  let items = [ NONE ; ERGO ; COQ ] in
-  let button = new Widget.menu ~default:ERGO ~render ~items () in
-  object(self)
-    method coerce = button#coerce
-    method widget = (self :> Widget.t)
-    method set_enabled = button#set_enabled
-    method set_visible = button#set_visible
-
-    val mutable dps = []
-
-    method update () =
-      (* called in polling mode *)
-      begin
-        let avl = available#get in
-        if avl != dps then
-          begin
-            dps <- avl ;
-            let items = [NONE;ERGO] @ List.map (fun p -> WHY p) dps @ [COQ] in
-            button#set_items items
-          end ;
-        let cur = Wp_parameters.Provers.get () |> import in
-        if cur <> button#get then button#set cur ;
-      end
-
-    initializer button#connect
-        (fun s -> Wp_parameters.Provers.set [select s])
   end
 
 (* ------------------------------------------------------------------------ *)

@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_hoare/byref.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -15,10 +15,10 @@
 [wp] [Qed] Goal typed_pointer_ensures : Valid
 [wp] [Qed] Goal typed_pointer_call_f_requires : Valid
 [wp] [Qed] Goal typed_wrong_without_ref_ensures : Valid
-[wp] [Alt-Ergo] Goal typed_wrong_without_ref_call_f_requires : Unsuccess
+[wp] [Alt-Ergo 2.0.0] Goal typed_wrong_without_ref_call_f_requires : Unsuccess
 [wp] Proved goals:   11 / 12
-  Qed:            11 
-  Alt-Ergo:        0  (unsuccess: 1)
+  Qed:              11 
+  Alt-Ergo 2.0.0:    0  (unsuccess: 1)
 [wp] Report in:  'tests/wp_hoare/oracle_qualif/byref.0.report.json'
 [wp] Report out: 'tests/wp_hoare/result_qualif/byref.0.report.json'
 -------------------------------------------------------------
