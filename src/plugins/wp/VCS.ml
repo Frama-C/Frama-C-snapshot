@@ -31,7 +31,7 @@ let dkey_success_only = Wp_parameters.register_category "success-only"
 
 type prover =
   | Why3 of string (* Prover via WHY *)
-  (*  | Why3ide  *)
+  | Why3ide
   | AltErgo       (* Alt-Ergo *)
   | Coq           (* Coq and Coqide *)
   | Qed           (* Qed Solver *)
@@ -54,16 +54,16 @@ let prover_of_name = function
   | "coq" | "coqide" -> Some Coq
   | "script" -> Some Tactical
   | "tip" -> Some Tactical
-  (* | "why3ide" -> Some Why3ide *)
+  | "why3ide" -> Some Why3ide
   | s ->
       match Extlib.string_del_prefix "why3:" s with
       | Some "" -> None
-      (* | Some "ide" -> Some Why3ide*)
+      | Some "ide" -> Some Why3ide
       | Some s' -> Some (Why3 s')
       | None -> Some (Why3 s)
 
 let name_of_prover = function
-  (*  | Why3ide -> "why3ide" *)
+  | Why3ide -> "why3ide"
   | Why3 s -> "why3:" ^ s
   | AltErgo -> "alt-ergo"
   | Coq -> "coq"
@@ -75,7 +75,7 @@ let title_of_prover = function
   | Why3 "z3" -> "Z3"
   | Why3 ("alt-ergo" | "altergo") -> "Alt-Ergo (why3)"
   | Why3 s -> Printf.sprintf "Why3 (%s)" s
-  (*  | Why3ide -> "Why3 (ide)" *)
+  | Why3ide -> "Why3 (ide)"
   | AltErgo -> "Alt-Ergo"
   | Coq -> "Coq"
   | Qed -> "Qed"
@@ -102,7 +102,7 @@ let sanitize_why3 s =
 
 let filename_for_prover = function
   | Why3 s -> sanitize_why3 s
-  (*  | Why3ide -> "Why3_ide" *)
+  | Why3ide -> "Why3_ide"
   | AltErgo -> "Alt-Ergo"
   | Coq -> "Coq"
   | Qed -> "Qed"
@@ -110,7 +110,7 @@ let filename_for_prover = function
 
 let language_of_prover = function
   | Why3 _ -> L_why3
-  (*  | Why3ide -> L_why3 *)
+  | Why3ide -> L_why3
   | Coq -> L_coq
   | AltErgo -> L_altergo
   | Qed | Tactical -> L_why3

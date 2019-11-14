@@ -149,6 +149,21 @@ let parse_file env file e =
   with Not_found ->
     Wp_parameters.warning "[why3] Skipped %a" Xml.pretty e
 
+let rec parse_path_components l =
+  let open Xml in
+  match l with
+    | [] -> []
+    | e :: l ->
+      let l = parse_path_components l in
+      match e.name with
+      | "path" -> List.assoc "name" e.attributes :: l
+      | _ -> l
+
+let parse_file_name e =
+  let open Xml in
+  match List.assoc_opt "name" e.attributes with
+    | Some file -> file
+    | None -> String.concat "/" (parse_path_components e.elements)
 
 let parse_session env e =
   let open Xml in
@@ -157,7 +172,7 @@ let parse_session env e =
     | "prover" -> parse_prover env e
     | "file" ->
         begin
-          let file = List.assoc "name" e.attributes in
+          let file = parse_file_name e in
           let path = Filepath.normalize ~base_name:env.session file in
           let file = Filepath.relativize path in
           List.iter (parse_file env file) e.elements
@@ -186,7 +201,7 @@ let register callback wpo vcs result =
 
 let prove ?callback ~iter =
   let output = Wp_parameters.get_output () in
-  let session = output ^ "/project.session" in
+  let session = output ^ "/project.session/" in
   let env = {
     files = Files.empty ;
     includes = Files.empty ;
@@ -202,7 +217,7 @@ let prove ?callback ~iter =
     begin fun ok ->
       if ok then
         begin
-          let file = session ^ "/why3session.xml" in
+          let file = session ^ "why3session.xml" in
           if Sys.file_exists file then
             let xml = Why3_xml.from_file file in
             parse env xml

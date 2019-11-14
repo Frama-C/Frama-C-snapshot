@@ -239,11 +239,9 @@ class behavior
           Task.spawn server thread ;
           Task.launch server in
         match prover with
-        (*
         | VCS.Why3ide ->
             let iter f = Wpo.iter ~on_goal:f () in
             schedule (ProverWhy3ide.prove ~callback:result ~iter)
-        *)
         | VCS.Tactical ->
             begin
               match mode , ProverScript.get w with
@@ -303,12 +301,10 @@ class behavior
       match popup_target with
       | Some(w,Some p) -> (popup_target <- None ; self#prove ~mode w p)
       | _ -> popup_target <- None
-(*
     method private popup_why3ide () =
       match popup_target with
       | Some(w,_) -> (popup_target <- None ; self#prove w VCS.Why3ide)
       | _ -> popup_target <- None
-*)
     method private add_popup_delete popup =
       begin
         popup#add_separator ;
@@ -333,13 +329,11 @@ class behavior
           [ "Run",BatchMode ; "Open Altgr-Ergo on Fail",EditMode ; "Open Altgr-Ergo",EditMode ] ;
         self#add_popup_proofmodes popup_coq
           [ "Check Proof",BatchMode ; "Edit on Fail",EditMode ; "Edit Proof",EditMode ] ;
-        (*
         List.iter
           (fun menu ->
              menu#add_item ~label:"Open Why3ide" ~callback:self#popup_why3ide ;
              self#add_popup_delete menu ;
           ) [ popup_qed ; popup_why3 ; popup_ergo ; popup_coq ] ;
-        *)
       end
 
     method private popup w p =
