@@ -169,6 +169,17 @@ let gcc_x86_64 = { x86_64 with
                    sizeof_fun = 1; alignof_fun = 1;
                  }
 
+let aarch64 = { x86_64 with
+                   version = "gcc 8.2.0 aarch64-linux-gnu";
+                   cpp_arch_flags = [];
+                   char_is_unsigned = true;
+                 }
+
+let gcc_aarch64 = { aarch64 with
+                   version = "gcc";
+                   sizeof_fun = 1; alignof_fun = 1;
+                 }
+
 let ppc_32 = {
   version          = "4.0.1 (Apple Computer, Inc. build 5367)";
   compiler         = "standard";

@@ -114,16 +114,18 @@
 
 // End of X86_32 || GCC_X86_32
 #else
-#if defined(__FC_MACHDEP_X86_64) || defined(__FC_MACHDEP_GCC_X86_64)
+#if defined(__FC_MACHDEP_X86_64) || defined(__FC_MACHDEP_GCC_X86_64) || defined(__FC_MACHDEP_AARCH64) || defined(__FC_MACHDEP_GCC_AARCH64)
 #define __FC_FORCE_INCLUDE_MACHDEP__
 #include "__fc_machdep_linux_shared.h"
-#ifdef __FC_MACHDEP_GCC_X86_64
+#if defined(__FC_MACHDEP_GCC_X86_64) || defined(__FC_MACHDEP_GCC_AARCH64)
 #include "__fc_gcc_builtins.h"
 #endif
 #undef __FC_FORCE_INCLUDE_MACHDEP__
 #define  __FC_BYTE_ORDER __LITTLE_ENDIAN
 /* Required */
+#if defined(__FC_MACHDEP_X86_64) || defined(__FC_MACHDEP_GCC_X86_64)
 #undef  __CHAR_UNSIGNED__
+#endif
 #define __WORDSIZE 64
 #define __SIZEOF_SHORT 2
 #define __SIZEOF_INT 4
@@ -638,7 +640,7 @@
 #else
 #error Must define __FC_MACHDEP_<M>, where <M> is one of the            \
   following: X86_32, X86_64, X86_16, GCC_X86_32, GCC_X86_64,            \
-  GCC_X86_16, PPC_32, MSVC_X86_64.                                      \
+  GCC_X86_16, PPC_32, MSVC_X86_64, AARCH64, GCC_AARCH64.	         \
   If you are using a custom machdep, you must include your machdep      \
   header file defining __FC_MACHDEP to avoid inclusion of this file.
 #endif
