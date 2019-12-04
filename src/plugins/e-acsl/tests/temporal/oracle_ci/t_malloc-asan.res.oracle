@@ -1,0 +1,7 @@
+[e-acsl] beginning translation.
+[kernel:annot:missing-spec] FRAMAC_SHARE/libc/stdio.h:211: Warning: 
+  Neither code nor specification for function printf, generating default assigns from the prototype
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/temporal/t_malloc-asan.c:28: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&q);

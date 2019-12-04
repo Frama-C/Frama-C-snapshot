@@ -1,0 +1,193 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_acsl/inductive.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] 3 goals scheduled
+[wp:print-generated] 
+  theory WP
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    predicate P_is_gcd int int int
+    
+    axiom Q_gcd_zero : forall n:int. P_is_gcd n 0 n
+    
+    axiom Q_gcd_succ :
+      forall a:int, b:int, d:int. P_is_gcd b (mod a b) d -> P_is_gcd a b d
+    
+    lemma Q_test_no_label :
+      forall a:int, b:int, d:int. P_is_gcd a b d -> not P_is_gcd b d a
+    
+    (* use frama_c_wp.memory.Memory *)
+    
+    (* use Compound *)
+    
+    predicate P_reachable (int -> int) (addr -> addr) addr addr
+    
+    axiom Q_root_reachable :
+      forall malloc:int -> int, mptr:addr -> addr, root:addr.
+       P_reachable malloc mptr root root
+    
+    axiom Q_next_reachable :
+      forall malloc:int -> int, mptr:addr -> addr, root:addr, node:addr.
+       valid_rw malloc root 2 ->
+       P_reachable malloc mptr (get mptr (shiftfield_F1__list_next root)) node ->
+       P_reachable malloc mptr root node
+    
+    goal wp_goal :
+      forall t:int -> int, t1:addr -> addr, t2:int -> int, t3:addr -> addr, a:
+       addr, a1:addr. P_reachable t2 t3 a a1 -> not P_reachable t t1 a a1
+  end
+[wp:print-generated] 
+  theory WP1
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    predicate P_is_gcd1 int int int
+    
+    axiom Q_gcd_zero1 : forall n:int. P_is_gcd1 n 0 n
+    
+    axiom Q_gcd_succ1 :
+      forall a:int, b:int, d:int. P_is_gcd1 b (mod a b) d -> P_is_gcd1 a b d
+    
+    goal wp_goal :
+      forall i:int, i1:int, i2:int. P_is_gcd1 i i1 i2 -> not P_is_gcd1 i1 i2 i
+  end
+[wp:print-generated] 
+  theory WP2
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    (* use frama_c_wp.memory.Memory *)
+    
+    (* use Compound *)
+    
+    predicate P_reachable1 (int -> int) (addr -> addr) addr addr
+    
+    axiom Q_root_reachable1 :
+      forall malloc:int -> int, mptr:addr -> addr, root:addr.
+       P_reachable1 malloc mptr root root
+    
+    axiom Q_next_reachable1 :
+      forall malloc:int -> int, mptr:addr -> addr, root:addr, node:addr.
+       valid_rw malloc root 2 ->
+       P_reachable1 malloc mptr (get mptr (shiftfield_F1__list_next root)) node ->
+       P_reachable1 malloc mptr root node
+    
+    lemma Q_test_one_label :
+      forall malloc:int -> int, mptr:addr -> addr, malloc1:int -> int, mptr1:
+       addr -> addr, l1:addr, l2:addr.
+       P_reachable1 malloc1 mptr1 l1 l2 -> not P_reachable1 malloc mptr l1 l2
+    
+    predicate P_is_gcd2 int int int
+    
+    axiom Q_gcd_zero2 : forall n:int. P_is_gcd2 n 0 n
+    
+    axiom Q_gcd_succ2 :
+      forall a:int, b:int, d:int. P_is_gcd2 b (mod a b) d -> P_is_gcd2 a b d
+    
+    lemma Q_test_no_label1 :
+      forall a:int, b:int, d:int. P_is_gcd2 a b d -> not P_is_gcd2 b d a
+    
+    predicate P_same_array (mint:addr -> int) (mint1:addr -> int) (a:addr) (b:
+      addr) (begin:int) (end1:int) =
+      forall i:int.
+       begin <= i ->
+       i < end1 -> get mint1 (shift_sint32 a i) = get mint (shift_sint32 b i)
+    
+    predicate P_swap (mint:addr -> int) (mint1:addr -> int) (a:addr) (b:addr)
+      (begin:int) (i:int) (j:int) (end1:int) =
+      ((((get mint1 (shift_sint32 a i) = get mint (shift_sint32 b j) /\
+          get mint1 (shift_sint32 a j) = get mint (shift_sint32 b i)) /\
+         begin <= i) /\
+        i < j) /\
+       j < end1) /\
+      (forall i1:int.
+        not i1 = i ->
+        not j = i1 ->
+        begin <= i1 ->
+        i1 < end1 ->
+        get mint1 (shift_sint32 a i1) = get mint (shift_sint32 b i1))
+    
+    predicate P_same_elements (addr -> int) (addr -> int) addr addr int int
+    
+    axiom Q_refl :
+      forall mint:addr -> int, mint1:addr -> int, a:addr, b:addr, begin:int,
+       end1:int.
+       P_same_array mint mint1 a b begin end1 ->
+       P_same_elements mint mint1 a b begin end1
+    
+    axiom Q_swap :
+      forall mint:addr -> int, mint1:addr -> int, a:addr, b:addr, begin:int, i:
+       int, j:int, end1:int.
+       P_swap mint mint1 a b begin i j end1 ->
+       P_same_elements mint mint1 a b begin end1
+    
+    axiom Q_trans :
+      forall mint:addr -> int, mint1:addr -> int, mint2:addr -> int, a:addr, b:
+       addr, c:addr, begin:int, end1:int.
+       P_same_elements mint mint1 b c begin end1 ->
+       P_same_elements mint1 mint2 a b begin end1 ->
+       P_same_elements mint mint2 a c begin end1
+    
+    goal wp_goal :
+      forall t:addr -> int, t1:addr -> int, t2:addr -> int, a:addr, a1:addr, i:
+       int, i1:int, i2:int, i3:int.
+       P_same_elements t1 t2 a a1 i i2 -> not P_same_elements t t1 a1 a i1 i3
+  end
+[wp] 3 goals generated
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma test_multilabel:
+Assume: 'test_one_label' 'test_no_label'
+Prove: (P_same_elements Mint_1 Mint_2 a_0 b_0 b1_0 e1_0)
+       -> (not (P_same_elements Mint_0 Mint_1 b_0 a_0 b2_0 e2_0))
+
+------------------------------------------------------------
+
+Lemma test_no_label:
+Prove: (P_is_gcd a_0 b_0 d_0) -> (not (P_is_gcd b_0 d_0 a_0))
+
+------------------------------------------------------------
+
+Lemma test_one_label:
+Assume: 'test_no_label'
+Prove: (P_reachable Malloc_1 Mptr_1 l1_0 l2_0)
+       -> (not (P_reachable Malloc_0 Mptr_0 l1_0 l2_0))
+
+------------------------------------------------------------

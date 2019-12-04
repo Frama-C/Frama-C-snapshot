@@ -12,7 +12,7 @@
   
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  1 function analyzed (out of 4): 25% coverage.
+  1 function analyzed (out of 6): 16% coverage.
   In this function, 1 statements reached (out of 1): 100% coverage.
   ----------------------------------------------------------------------------
   No errors or warnings raised during the analysis.

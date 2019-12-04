@@ -401,7 +401,7 @@ class runcoq includes source =
                else
                  Format.fprintf fmt "-R %s %s@\n" dir name
             ) includes ;
-          Format.fprintf fmt "-arg -noglob@\n" ;
+          Format.fprintf fmt "-arg@\n" ;
         end
 
     method private options =
@@ -413,7 +413,6 @@ class runcoq includes source =
              else
                self#add ["-R";dir;name]
           ) includes ;
-        self#add [ "-noglob" ] ;
       end
 
     method failed : 'a. 'a task =
@@ -458,24 +457,18 @@ class runcoq includes source =
       | 1 -> Task.return false
       | _ -> self#failed
 
-    method script =
-      let script = Wp_parameters.Script.get () in
-      if Sys.file_exists script then self#add [ script ]
-
     method coqide =
       let coqide = Wp_parameters.CoqIde.get () in
       self#set_command coqide ;
       if is_emacs coqide then
         begin
           self#project ;
-          self#script ;
           self#add [ source ] ;
         end
       else
         begin
           self#options ;
           self#add [ source ] ;
-          self#script ;
         end ;
       Task.sync coqide_lock (self#run ~logout ~logerr)
   end

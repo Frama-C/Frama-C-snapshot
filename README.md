@@ -43,7 +43,7 @@ should install frama-c and its gui:
 
 Frama-C is developed mainly in Linux, often tested in macOS
 (via Homebrew), and occasionally tested on Windows
-(with Cygwin + MinGW).
+(via the Windows Subsystem for Linux).
 
 ## Usage
 

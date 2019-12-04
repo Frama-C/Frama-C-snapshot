@@ -29,7 +29,7 @@ open Strategy
 val tactical : Tactical.t
 val fields : selection field list
 val params : parameter list
-val filter : var -> term -> bool
+val filter : tau -> term -> bool
 
 type bindings = (var * selection) list
 

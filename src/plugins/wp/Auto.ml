@@ -85,7 +85,11 @@ let t_range e a b ~upper ~lower ~range s =
   ]
 
 let t_replace ?(equal="equal") ~src ~tgt (pi : Tactical.process) s =
-  let s' = Conditions.subst (fun e -> if e == src then tgt else e) s in
+  let s' =
+    Conditions.subst
+      (fun e -> if e == src then tgt else raise Not_found)
+      s
+  in
   (equal , (fst s, p_equal src tgt)) :: (pi s')
 
 (* -------------------------------------------------------------------------- *)

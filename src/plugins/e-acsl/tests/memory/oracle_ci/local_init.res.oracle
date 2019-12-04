@@ -1,0 +1,4 @@
+[eva:alarm] tests/memory/local_init.c:11: Warning: 
+  out of bounds read. assert \valid_read(p);
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".

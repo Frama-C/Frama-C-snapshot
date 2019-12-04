@@ -1,0 +1,12 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/arith/arith.i:18: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/arith/arith.i:34: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/arith/arith.i:34: Warning: 
+  signed overflow. assert -2147483648 ≤ 1 + __gen_e_acsl__7;
+[eva:alarm] tests/arith/arith.i:34: Warning: 
+  signed overflow. assert 1 + __gen_e_acsl__7 ≤ 2147483647;
+[eva:alarm] tests/arith/arith.i:34: Warning: 
+  function __e_acsl_assert: precondition got status unknown.

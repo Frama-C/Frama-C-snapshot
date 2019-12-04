@@ -1,0 +1,6 @@
+[e-acsl] beginning translation.
+[e-acsl] tests/temporal/t_fptr.c:19: Warning: 
+  function pointers may introduce too limited instrumentation.
+[e-acsl] tests/temporal/t_fptr.c:17: Warning: 
+  E-ACSL construct `\valid_function' is not yet supported. Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".

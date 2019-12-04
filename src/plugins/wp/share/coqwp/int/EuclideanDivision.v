@@ -20,8 +20,8 @@ Require int.Abs.
 Definition div : Z -> Z -> Z.
 intros x y.
 case (Z_le_dec 0 (Zmod x y)) ; intros H.
-exact (Zdiv x y).
-exact (Zdiv x y + 1)%Z.
+exact (Z.div x y).
+exact (Z.div x y + 1)%Z.
 Defined.
 
 (* Why3 goal *)
@@ -87,16 +87,16 @@ unfold div.
 case Z_le_dec ; intros H.
 split.
 apply Z_div_pos with (2 := Hx).
-now apply Zlt_gt.
-destruct (Z_eq_dec y 1) as [H'|H'].
+now apply Z.lt_gt.
+destruct (Z.eq_dec y 1) as [H'|H'].
 rewrite H', Zdiv_1_r.
-apply Zle_refl.
+apply Z.le_refl.
 rewrite <- (Zdiv_1_r x) at 2.
 apply Zdiv_le_compat_l with (1 := Hx).
 omega.
 elim H.
 apply Z_mod_lt.
-now apply Zlt_gt.
+now apply Z.lt_gt.
 Qed.
 
 (* Why3 goal *)

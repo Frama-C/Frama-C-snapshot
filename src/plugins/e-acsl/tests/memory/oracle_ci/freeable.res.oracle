@@ -1,0 +1,5 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/memory/freeable.c:14: Warning: assertion got status unknown.
+[eva:alarm] tests/memory/freeable.c:14: Warning: 
+  accessing uninitialized left-value. assert \initialized(&p);

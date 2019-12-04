@@ -1,0 +1,46 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_acsl/predicates_functions.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] 1 goal scheduled
+[wp:print-generated] 
+  theory WP
+    (* use why3.BuiltIn.BuiltIn *)
+    
+    (* use bool.Bool *)
+    
+    (* use int.Int *)
+    
+    (* use int.ComputerDivision *)
+    
+    (* use real.RealInfix *)
+    
+    (* use frama_c_wp.qed.Qed *)
+    
+    (* use map.Map *)
+    
+    predicate P_P (i:int) = i = 42
+    
+    predicate P_RP int
+    
+    axiom P_RP_def :
+      forall i:int. i <= 0 \/ P_P i /\ P_RP ((- 1) + i) <-> P_RP i
+    
+    function L_F (i:int) : int = 2 * i
+    
+    function L_RF int : int
+    
+    axiom L_RF_def :
+      forall i:int. L_RF i = (if i <= 0 then 0 else L_F i + L_RF ((- 1) + i))
+    
+    goal wp_goal : forall i:int. 0 < i -> P_RP (L_RF i)
+  end
+[wp] 1 goal generated
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma foo:
+Prove: (0<i_0) -> (P_RP (L_RF i_0))
+
+------------------------------------------------------------

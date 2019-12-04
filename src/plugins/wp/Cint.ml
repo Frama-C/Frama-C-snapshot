@@ -721,7 +721,7 @@ let smp_cmp_with_lsr cmp a0 b0 =
        e/A2 cmp b2 <==> (e/A2)*A2 cmp b2*A2) with A2==2**a2
        So, A2>0 and (e/A2)*A2 == e&~((2**a2)-1)
     *)
-    mk_cmp_with_lsr_cst e_eq e a2 b1
+    mk_cmp_with_lsr_cst cmp e a2 b1
   with Not_found ->
     (* This rule takes into acount several cases.
        One of them is

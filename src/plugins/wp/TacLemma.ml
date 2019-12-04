@@ -90,6 +90,12 @@ let search,psearch =
   Tactical.search ~id:"lemma" ~title:"Lemma" ~descr:"Lemma to Instantiate"
     ~browse ~find:Definitions.find_name ()
 
+
+let fresh pool { l_forall ; l_lemma } =
+  let vars = List.map (F.alpha pool) l_forall in
+  let sigma = Lang.subst l_forall (List.map F.e_var vars) in
+  vars , F.p_subst sigma l_lemma
+
 class instance =
   object(self)
     inherit Tactical.make ~id:"Wp.lemma"
@@ -111,7 +117,7 @@ class instance =
           env.feedback#update_field ~enabled:true
             ~title ~tooltip:env.descr
             ~range:(match tau with L.Int -> true | _ -> false)
-            ~filter:(TacInstance.filter x) fd ;
+            ~filter:(TacInstance.filter tau) fd ;
           let bindings,lemma = self#wrap env xs fields in
           (x,value)::bindings , lemma
       | _ ->
@@ -125,17 +131,16 @@ class instance =
             | None ->
                 self#hide feedback TacInstance.fields ;
                 Not_configured
-            | Some l ->
-                let descr = l.Tactical.descr in
-                let lemma = l.value.l_lemma in
+            | Some Tactical.{ title ; value = dlem } ->
+                let fields = TacInstance.fields in
+                let vars,lemma = fresh feedback#pool dlem in
+                let descr = Pretty_utils.to_string F.pp_pred lemma in
                 let bindings,lemma =
-                  self#wrap { feedback ; descr ; lemma }
-                    l.value.l_forall TacInstance.fields in
+                  self#wrap { feedback ; descr ; lemma } vars fields in
                 match TacInstance.cardinal 1000 bindings with
                 | Some n ->
                     if n > 1 then
                       feedback#set_descr "Generates %d instances" n ;
-                    let title = l.title in
                     let at = Tactical.at selection in
                     Applicable
                       (TacInstance.instance_have ~title ?at bindings lemma)

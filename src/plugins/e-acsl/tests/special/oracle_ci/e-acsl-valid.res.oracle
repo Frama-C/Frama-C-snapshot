@@ -1,0 +1,40 @@
+[eva:alarm] tests/special/e-acsl-valid.c:36: Warning: 
+  function f: precondition \valid(y) got status unknown.
+[e-acsl] beginning translation.
+[kernel:annot:missing-spec] FRAMAC_SHARE/e-acsl/e_acsl.h:165: Warning: 
+  Neither code nor specification for function aligned_alloc, generating default assigns from the prototype
+[kernel:annot:missing-spec] FRAMAC_SHARE/e-acsl/e_acsl.h:181: Warning: 
+  Neither code nor specification for function __e_acsl_mspaces_init, generating default assigns from the prototype
+[kernel:annot:missing-spec] FRAMAC_SHARE/e-acsl/e_acsl.h:446: Warning: 
+  Neither code nor specification for function __e_acsl_builtin_printf, generating default assigns from the prototype
+[kernel:annot:missing-spec] FRAMAC_SHARE/e-acsl/e_acsl.h:450: Warning: 
+  Neither code nor specification for function __e_acsl_builtin_fprintf, generating default assigns from the prototype
+[kernel:annot:missing-spec] FRAMAC_SHARE/e-acsl/e_acsl.h:454: Warning: 
+  Neither code nor specification for function __e_acsl_builtin_dprintf, generating default assigns from the prototype
+[kernel:annot:missing-spec] FRAMAC_SHARE/e-acsl/e_acsl.h:458: Warning: 
+  Neither code nor specification for function __e_acsl_builtin_sprintf, generating default assigns from the prototype
+[kernel:annot:missing-spec] FRAMAC_SHARE/e-acsl/e_acsl.h:462: Warning: 
+  Neither code nor specification for function __e_acsl_builtin_snprintf, generating default assigns from the prototype
+[kernel:annot:missing-spec] FRAMAC_SHARE/e-acsl/e_acsl.h:467: Warning: 
+  Neither code nor specification for function __e_acsl_builtin_syslog, generating default assigns from the prototype
+[kernel:annot:missing-spec] FRAMAC_SHARE/e-acsl/e_acsl.h:488: Warning: 
+  Neither code nor specification for function __e_acsl_floating_point_exception, generating default assigns from the prototype
+[kernel] Current source was: tests/special/e-acsl-valid.c:33
+  The full backtrace is:
+  Raised at file "src/libraries/project/project.ml", line 405, characters 59-66
+  Called from file "src/main.ml", line 155, characters 14-1023
+  Called from file "src/main.ml", line 121, characters 12-34
+  Called from file "src/libraries/project/state_builder.ml", line 565, characters 17-22
+  Called from file "src/main.ml", line 258, characters 11-56
+  Called from file "queue.ml", line 121, characters 6-15
+  Called from file "src/kernel_internals/runtime/boot.ml", line 36, characters 4-20
+  Called from file "src/kernel_services/cmdline_parameters/cmdline.ml", line 792, characters 2-9
+  Called from file "src/kernel_services/cmdline_parameters/cmdline.ml", line 807, characters 30-76
+  Called from file "src/kernel_services/cmdline_parameters/cmdline.ml", line 229, characters 4-8
+  
+  Unexpected error (E_ACSL.Misc.Unregistered_library_function("__e_acsl_store_block")).
+  Please report as 'crash' at http://bts.frama-c.com/.
+  Your Frama-C version is 19.0+dev (Potassium).
+  Note that a version and a backtrace alone often do not contain enough
+  information to understand the bug. Guidelines for reporting bugs are at:
+  http://bts.frama-c.com/dokuwiki/doku.php?id=mantis:frama-c:bug_reporting_guidelines

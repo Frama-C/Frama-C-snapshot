@@ -14,17 +14,18 @@
 ###############################################################################
 
 ##################################
-Open Source Release <next-release>
+Open Source Release 20.0 (Calcium)
 ##################################
 
-####################################
-Open Source Release 20.0 (Calcium)
-####################################
-
+-   Eva       [2019/11/25] In the summary, fixes the number of alarms by
+              category when the RTE plugin is used, and do not count logical
+              properties in dead code as proven.
 -!  Kernel    [2019/10/31] More stringent verifications on the use of ghost
               variable in non ghost-code. Fixes #2421
 -   MdR       [2019/10/31] New plug-in Markdown-Report (MdR) for markdown and
               SARIF outputs
+-   Eva       [2019/10/23] In the summary, fixes the total number of functions
+              (and thus the computed analysis coverage).
 -   Eva       [2019/10/23] New option -eva-auto-loop-unroll N to unroll all
               loops whose number of iterations can be easily bounded by <N>.
 -   Eva       [2019/10/21] New octagon domain inferring relations of the form

@@ -123,14 +123,14 @@ Qed.
 Lemma Refl : forall (x:Z), (x <= x)%Z.
 Proof.
 intros x.
-apply Zle_refl.
+apply Z.le_refl.
 Qed.
 
 (* Why3 goal *)
 Lemma Trans :
   forall (x:Z) (y:Z) (z:Z), (x <= y)%Z -> (y <= z)%Z -> (x <= z)%Z.
 Proof.
-exact Zle_trans.
+exact Z.le_trans.
 Qed.
 
 (* Why3 goal *)

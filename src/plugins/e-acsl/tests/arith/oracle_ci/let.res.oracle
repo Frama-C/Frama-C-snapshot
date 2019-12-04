@@ -1,0 +1,19 @@
+[e-acsl] beginning translation.
+[e-acsl] tests/arith/let.c:30: Warning: 
+  E-ACSL construct `let-binding on array or pointer' is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/arith/let.c:7: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:9: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:12: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:14: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:17: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:21: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:21: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/arith/let.c:24: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:27: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:30: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:32: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:35: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/let.c:39: Warning: assertion got status unknown.

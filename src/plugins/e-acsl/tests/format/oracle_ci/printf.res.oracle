@@ -1,0 +1,459 @@
+[kernel:parser:decimal-float] tests/format/printf.c:88: Warning: 
+  Floating-point constant 0.2 is not represented exactly. Will use 0x1.999999999999ap-3.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
+[e-acsl] beginning translation.
+[e-acsl] Warning: annotating undefined function `abort':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `exit':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `strlen':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `strchr':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `strcpy':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] FRAMAC_SHARE/libc/string.h:327: Warning: 
+  E-ACSL construct `logic functions with labels' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:328: Warning: 
+  E-ACSL construct `logic function returning an integer' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:330: Warning: 
+  E-ACSL construct `\separated' is not yet supported. Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:330: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:333: Warning: 
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:143: Warning: 
+  E-ACSL construct `logic functions with labels' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:157: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:146: Warning: 
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:146: Warning: 
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:153: Warning: 
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:111: Warning: 
+  E-ACSL construct `logic functions with labels' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:111: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:113: Warning: 
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:113: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:406: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __e_acsl_init ∈ [--..--]
+  __e_acsl_heap_allocation_size ∈ [--..--]
+  __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  testno ∈ {0}
+  valid_specifiers ∈ {{ "diouxfFeEgGaAcspn" }}
+  __gen_e_acsl_literal_string ∈ {0}
+  __gen_e_acsl_literal_string_2 ∈ {0}
+  __gen_e_acsl_literal_string_3 ∈ {0}
+  __gen_e_acsl_literal_string_4 ∈ {0}
+  __gen_e_acsl_literal_string_5 ∈ {0}
+  __gen_e_acsl_literal_string_6 ∈ {0}
+  __gen_e_acsl_literal_string_7 ∈ {0}
+  __gen_e_acsl_literal_string_8 ∈ {0}
+  __gen_e_acsl_literal_string_9 ∈ {0}
+  __gen_e_acsl_literal_string_10 ∈ {0}
+  __gen_e_acsl_literal_string_11 ∈ {0}
+  __gen_e_acsl_literal_string_12 ∈ {0}
+  __gen_e_acsl_literal_string_13 ∈ {0}
+  __gen_e_acsl_literal_string_14 ∈ {0}
+  __gen_e_acsl_literal_string_15 ∈ {0}
+  __gen_e_acsl_literal_string_16 ∈ {0}
+  __gen_e_acsl_literal_string_17 ∈ {0}
+  __gen_e_acsl_literal_string_18 ∈ {0}
+  __gen_e_acsl_literal_string_19 ∈ {0}
+  __gen_e_acsl_literal_string_20 ∈ {0}
+  __gen_e_acsl_literal_string_21 ∈ {0}
+  __gen_e_acsl_literal_string_22 ∈ {0}
+  __gen_e_acsl_literal_string_23 ∈ {0}
+  __gen_e_acsl_literal_string_24 ∈ {0}
+  __gen_e_acsl_literal_string_25 ∈ {0}
+  __gen_e_acsl_literal_string_26 ∈ {0}
+  __gen_e_acsl_literal_string_27 ∈ {0}
+  __gen_e_acsl_literal_string_28 ∈ {0}
+  __gen_e_acsl_literal_string_29 ∈ {0}
+  __gen_e_acsl_literal_string_30 ∈ {0}
+  __gen_e_acsl_literal_string_31 ∈ {0}
+  __gen_e_acsl_literal_string_32 ∈ {0}
+  __gen_e_acsl_literal_string_33 ∈ {0}
+  __gen_e_acsl_literal_string_34 ∈ {0}
+  __gen_e_acsl_literal_string_35 ∈ {0}
+  __gen_e_acsl_literal_string_36 ∈ {0}
+  __gen_e_acsl_literal_string_37 ∈ {0}
+  __gen_e_acsl_literal_string_38 ∈ {0}
+  __gen_e_acsl_literal_string_39 ∈ {0}
+  __gen_e_acsl_literal_string_40 ∈ {0}
+  __gen_e_acsl_literal_string_41 ∈ {0}
+  __gen_e_acsl_literal_string_42 ∈ {0}
+  __gen_e_acsl_literal_string_43 ∈ {0}
+  __gen_e_acsl_literal_string_44 ∈ {0}
+  __gen_e_acsl_literal_string_45 ∈ {0}
+  __gen_e_acsl_literal_string_46 ∈ {0}
+  __gen_e_acsl_literal_string_47 ∈ {0}
+  __gen_e_acsl_literal_string_48 ∈ {0}
+  __gen_e_acsl_literal_string_49 ∈ {0}
+  __gen_e_acsl_literal_string_50 ∈ {0}
+  __gen_e_acsl_literal_string_51 ∈ {0}
+  __gen_e_acsl_literal_string_52 ∈ {0}
+  __gen_e_acsl_literal_string_53 ∈ {0}
+  __gen_e_acsl_literal_string_54 ∈ {0}
+  __gen_e_acsl_literal_string_55 ∈ {0}
+  __gen_e_acsl_literal_string_56 ∈ {0}
+  __gen_e_acsl_literal_string_57 ∈ {0}
+  __gen_e_acsl_literal_string_58 ∈ {0}
+  __gen_e_acsl_literal_string_59 ∈ {0}
+  __gen_e_acsl_literal_string_60 ∈ {0}
+  __gen_e_acsl_literal_string_61 ∈ {0}
+  __gen_e_acsl_literal_string_62 ∈ {0}
+  __gen_e_acsl_literal_string_63 ∈ {0}
+  __gen_e_acsl_literal_string_64 ∈ {0}
+  __gen_e_acsl_literal_string_65 ∈ {0}
+  __gen_e_acsl_literal_string_66 ∈ {0}
+  __gen_e_acsl_literal_string_67 ∈ {0}
+  __gen_e_acsl_literal_string_68 ∈ {0}
+  __gen_e_acsl_literal_string_69 ∈ {0}
+  __gen_e_acsl_literal_string_70 ∈ {0}
+  __gen_e_acsl_literal_string_71 ∈ {0}
+  __gen_e_acsl_literal_string_72 ∈ {0}
+  __gen_e_acsl_literal_string_73 ∈ {0}
+  __gen_e_acsl_literal_string_74 ∈ {0}
+  __gen_e_acsl_literal_string_75 ∈ {0}
+  __gen_e_acsl_literal_string_76 ∈ {0}
+  __gen_e_acsl_literal_string_77 ∈ {0}
+  __gen_e_acsl_literal_string_78 ∈ {0}
+  __gen_e_acsl_literal_string_79 ∈ {0}
+  __gen_e_acsl_literal_string_80 ∈ {0}
+  __gen_e_acsl_literal_string_81 ∈ {0}
+  __gen_e_acsl_literal_string_82 ∈ {0}
+  __gen_e_acsl_literal_string_83 ∈ {0}
+  __gen_e_acsl_literal_string_84 ∈ {0}
+  __gen_e_acsl_literal_string_85 ∈ {0}
+  __gen_e_acsl_literal_string_86 ∈ {0}
+  __gen_e_acsl_literal_string_87 ∈ {0}
+  __gen_e_acsl_literal_string_88 ∈ {0}
+  __gen_e_acsl_literal_string_89 ∈ {0}
+  __gen_e_acsl_literal_string_90 ∈ {0}
+  __gen_e_acsl_literal_string_91 ∈ {0}
+  __gen_e_acsl_literal_string_92 ∈ {0}
+  __gen_e_acsl_literal_string_93 ∈ {0}
+  __gen_e_acsl_literal_string_94 ∈ {0}
+  __gen_e_acsl_literal_string_95 ∈ {0}
+  __gen_e_acsl_literal_string_96 ∈ {0}
+  __gen_e_acsl_literal_string_97 ∈ {0}
+  __gen_e_acsl_literal_string_98 ∈ {0}
+  __gen_e_acsl_literal_string_99 ∈ {0}
+  __gen_e_acsl_literal_string_100 ∈ {0}
+  __gen_e_acsl_literal_string_101 ∈ {0}
+  __gen_e_acsl_literal_string_102 ∈ {0}
+  __gen_e_acsl_literal_string_103 ∈ {0}
+  __gen_e_acsl_literal_string_104 ∈ {0}
+  __gen_e_acsl_literal_string_105 ∈ {0}
+  __gen_e_acsl_literal_string_106 ∈ {0}
+  __gen_e_acsl_literal_string_107 ∈ {0}
+  __gen_e_acsl_literal_string_108 ∈ {0}
+  __gen_e_acsl_literal_string_109 ∈ {0}
+  __gen_e_acsl_literal_string_110 ∈ {0}
+  __gen_e_acsl_literal_string_111 ∈ {0}
+  __gen_e_acsl_literal_string_112 ∈ {0}
+  __gen_e_acsl_literal_string_113 ∈ {0}
+  __gen_e_acsl_literal_string_114 ∈ {0}
+  __gen_e_acsl_literal_string_115 ∈ {0}
+  __gen_e_acsl_literal_string_116 ∈ {0}
+  __gen_e_acsl_literal_string_117 ∈ {0}
+  __gen_e_acsl_literal_string_118 ∈ {0}
+  __gen_e_acsl_literal_string_119 ∈ {0}
+  __gen_e_acsl_literal_string_120 ∈ {0}
+  __gen_e_acsl_literal_string_121 ∈ {0}
+  __gen_e_acsl_literal_string_122 ∈ {0}
+  __gen_e_acsl_literal_string_123 ∈ {0}
+  __gen_e_acsl_literal_string_124 ∈ {0}
+  __gen_e_acsl_literal_string_125 ∈ {0}
+  __gen_e_acsl_literal_string_126 ∈ {0}
+  __gen_e_acsl_literal_string_127 ∈ {0}
+  __gen_e_acsl_literal_string_128 ∈ {0}
+  __gen_e_acsl_literal_string_129 ∈ {0}
+  __gen_e_acsl_literal_string_130 ∈ {0}
+  __gen_e_acsl_literal_string_131 ∈ {0}
+  __gen_e_acsl_literal_string_132 ∈ {0}
+  __gen_e_acsl_literal_string_133 ∈ {0}
+  __gen_e_acsl_literal_string_134 ∈ {0}
+  __gen_e_acsl_literal_string_135 ∈ {0}
+  __gen_e_acsl_literal_string_136 ∈ {0}
+  __gen_e_acsl_literal_string_137 ∈ {0}
+  __gen_e_acsl_literal_string_138 ∈ {0}
+  __gen_e_acsl_literal_string_139 ∈ {0}
+  __gen_e_acsl_literal_string_140 ∈ {0}
+  __gen_e_acsl_literal_string_141 ∈ {0}
+  __gen_e_acsl_literal_string_142 ∈ {0}
+  __gen_e_acsl_literal_string_143 ∈ {0}
+  __gen_e_acsl_literal_string_144 ∈ {0}
+  __gen_e_acsl_literal_string_145 ∈ {0}
+  __gen_e_acsl_literal_string_146 ∈ {0}
+  __gen_e_acsl_literal_string_147 ∈ {0}
+  __gen_e_acsl_literal_string_148 ∈ {0}
+  __gen_e_acsl_literal_string_149 ∈ {0}
+  __gen_e_acsl_literal_string_150 ∈ {0}
+  __gen_e_acsl_literal_string_151 ∈ {0}
+  __gen_e_acsl_literal_string_152 ∈ {0}
+  __gen_e_acsl_literal_string_153 ∈ {0}
+  __gen_e_acsl_literal_string_154 ∈ {0}
+  __gen_e_acsl_literal_string_155 ∈ {0}
+  __gen_e_acsl_literal_string_156 ∈ {0}
+  __gen_e_acsl_literal_string_157 ∈ {0}
+  __gen_e_acsl_literal_string_158 ∈ {0}
+  __gen_e_acsl_literal_string_159 ∈ {0}
+  __gen_e_acsl_literal_string_160 ∈ {0}
+  __gen_e_acsl_literal_string_161 ∈ {0}
+  __gen_e_acsl_literal_string_162 ∈ {0}
+  __gen_e_acsl_literal_string_163 ∈ {0}
+  __gen_e_acsl_literal_string_164 ∈ {0}
+  __gen_e_acsl_literal_string_165 ∈ {0}
+  __gen_e_acsl_literal_string_166 ∈ {0}
+  __gen_e_acsl_literal_string_167 ∈ {0}
+  __gen_e_acsl_literal_string_168 ∈ {0}
+  __gen_e_acsl_literal_string_169 ∈ {0}
+  __gen_e_acsl_literal_string_170 ∈ {0}
+  __gen_e_acsl_literal_string_171 ∈ {0}
+  __gen_e_acsl_literal_string_172 ∈ {0}
+  __gen_e_acsl_literal_string_173 ∈ {0}
+  __gen_e_acsl_literal_string_174 ∈ {0}
+  __gen_e_acsl_literal_string_175 ∈ {0}
+  __gen_e_acsl_literal_string_176 ∈ {0}
+  __gen_e_acsl_literal_string_177 ∈ {0}
+  __gen_e_acsl_literal_string_178 ∈ {0}
+  __gen_e_acsl_literal_string_179 ∈ {0}
+  __gen_e_acsl_literal_string_180 ∈ {0}
+  __gen_e_acsl_literal_string_181 ∈ {0}
+  __gen_e_acsl_literal_string_182 ∈ {0}
+  __gen_e_acsl_literal_string_183 ∈ {0}
+  __gen_e_acsl_literal_string_184 ∈ {0}
+  __gen_e_acsl_literal_string_185 ∈ {0}
+  __gen_e_acsl_literal_string_186 ∈ {0}
+  __gen_e_acsl_literal_string_187 ∈ {0}
+  __gen_e_acsl_literal_string_188 ∈ {0}
+  __gen_e_acsl_literal_string_189 ∈ {0}
+  __gen_e_acsl_literal_string_190 ∈ {0}
+  __gen_e_acsl_literal_string_191 ∈ {0}
+  __gen_e_acsl_literal_string_192 ∈ {0}
+  __gen_e_acsl_literal_string_193 ∈ {0}
+  __gen_e_acsl_literal_string_194 ∈ {0}
+  __gen_e_acsl_literal_string_195 ∈ {0}
+  __gen_e_acsl_literal_string_196 ∈ {0}
+  __gen_e_acsl_literal_string_197 ∈ {0}
+  __gen_e_acsl_literal_string_198 ∈ {0}
+  __gen_e_acsl_literal_string_199 ∈ {0}
+  __gen_e_acsl_literal_string_200 ∈ {0}
+  __gen_e_acsl_literal_string_201 ∈ {0}
+  __gen_e_acsl_literal_string_202 ∈ {0}
+  __gen_e_acsl_literal_string_203 ∈ {0}
+  __gen_e_acsl_literal_string_204 ∈ {0}
+  __gen_e_acsl_literal_string_205 ∈ {0}
+  __gen_e_acsl_literal_string_206 ∈ {0}
+  __gen_e_acsl_literal_string_207 ∈ {0}
+  __gen_e_acsl_literal_string_208 ∈ {0}
+  __gen_e_acsl_literal_string_209 ∈ {0}
+  __gen_e_acsl_literal_string_210 ∈ {0}
+  __gen_e_acsl_literal_string_211 ∈ {0}
+  __gen_e_acsl_literal_string_212 ∈ {0}
+  __gen_e_acsl_literal_string_213 ∈ {0}
+  __gen_e_acsl_literal_string_214 ∈ {0}
+  __gen_e_acsl_literal_string_215 ∈ {0}
+  __gen_e_acsl_literal_string_216 ∈ {0}
+  __gen_e_acsl_literal_string_217 ∈ {0}
+  __gen_e_acsl_literal_string_218 ∈ {0}
+  __gen_e_acsl_literal_string_219 ∈ {0}
+  __gen_e_acsl_literal_string_220 ∈ {0}
+  __gen_e_acsl_literal_string_221 ∈ {0}
+  __gen_e_acsl_literal_string_222 ∈ {0}
+  __gen_e_acsl_literal_string_223 ∈ {0}
+  __gen_e_acsl_literal_string_224 ∈ {0}
+  __gen_e_acsl_literal_string_225 ∈ {0}
+  __gen_e_acsl_literal_string_226 ∈ {0}
+  __gen_e_acsl_literal_string_227 ∈ {0}
+  __gen_e_acsl_literal_string_228 ∈ {0}
+  __gen_e_acsl_literal_string_229 ∈ {0}
+  __gen_e_acsl_literal_string_230 ∈ {0}
+  __gen_e_acsl_literal_string_231 ∈ {0}
+  __gen_e_acsl_literal_string_232 ∈ {0}
+  __gen_e_acsl_literal_string_233 ∈ {0}
+  __gen_e_acsl_literal_string_234 ∈ {0}
+  __gen_e_acsl_literal_string_235 ∈ {0}
+  __gen_e_acsl_literal_string_236 ∈ {0}
+  __gen_e_acsl_literal_string_237 ∈ {0}
+  __gen_e_acsl_literal_string_238 ∈ {0}
+  __gen_e_acsl_literal_string_239 ∈ {0}
+  __gen_e_acsl_literal_string_240 ∈ {0}
+  __gen_e_acsl_literal_string_241 ∈ {0}
+  __gen_e_acsl_literal_string_242 ∈ {0}
+  __gen_e_acsl_literal_string_243 ∈ {0}
+  __gen_e_acsl_literal_string_244 ∈ {0}
+  __gen_e_acsl_literal_string_245 ∈ {0}
+  __gen_e_acsl_literal_string_246 ∈ {0}
+  __gen_e_acsl_literal_string_247 ∈ {0}
+  __gen_e_acsl_literal_string_248 ∈ {0}
+  __gen_e_acsl_literal_string_249 ∈ {0}
+  __gen_e_acsl_literal_string_250 ∈ {0}
+  __gen_e_acsl_literal_string_251 ∈ {0}
+  __gen_e_acsl_literal_string_252 ∈ {0}
+  __gen_e_acsl_literal_string_253 ∈ {0}
+  __gen_e_acsl_literal_string_254 ∈ {0}
+  __gen_e_acsl_literal_string_255 ∈ {0}
+  __gen_e_acsl_literal_string_256 ∈ {0}
+  __gen_e_acsl_literal_string_257 ∈ {0}
+  __gen_e_acsl_literal_string_258 ∈ {0}
+  __gen_e_acsl_literal_string_259 ∈ {0}
+  __gen_e_acsl_literal_string_260 ∈ {0}
+  __gen_e_acsl_literal_string_261 ∈ {0}
+  __gen_e_acsl_literal_string_262 ∈ {0}
+  __gen_e_acsl_literal_string_263 ∈ {0}
+  __gen_e_acsl_literal_string_264 ∈ {0}
+  __gen_e_acsl_literal_string_265 ∈ {0}
+  __gen_e_acsl_literal_string_266 ∈ {0}
+  __gen_e_acsl_literal_string_267 ∈ {0}
+  __gen_e_acsl_literal_string_268 ∈ {0}
+  __gen_e_acsl_literal_string_269 ∈ {0}
+  __gen_e_acsl_literal_string_270 ∈ {0}
+  __gen_e_acsl_literal_string_271 ∈ {0}
+  __gen_e_acsl_literal_string_272 ∈ {0}
+  __gen_e_acsl_literal_string_273 ∈ {0}
+  __gen_e_acsl_literal_string_274 ∈ {0}
+  __gen_e_acsl_literal_string_275 ∈ {0}
+  __gen_e_acsl_literal_string_276 ∈ {0}
+  __gen_e_acsl_literal_string_277 ∈ {0}
+  __gen_e_acsl_literal_string_278 ∈ {0}
+  __gen_e_acsl_literal_string_279 ∈ {0}
+  __gen_e_acsl_literal_string_280 ∈ {0}
+  __gen_e_acsl_literal_string_281 ∈ {0}
+  __gen_e_acsl_literal_string_282 ∈ {0}
+  __gen_e_acsl_literal_string_283 ∈ {0}
+  __gen_e_acsl_literal_string_284 ∈ {0}
+  __gen_e_acsl_literal_string_285 ∈ {0}
+  __gen_e_acsl_literal_string_286 ∈ {0}
+  __gen_e_acsl_literal_string_287 ∈ {0}
+  __gen_e_acsl_literal_string_288 ∈ {0}
+  __gen_e_acsl_literal_string_289 ∈ {0}
+  __gen_e_acsl_literal_string_290 ∈ {0}
+  __gen_e_acsl_literal_string_291 ∈ {0}
+  __gen_e_acsl_literal_string_292 ∈ {0}
+  __gen_e_acsl_literal_string_293 ∈ {0}
+  __gen_e_acsl_literal_string_294 ∈ {0}
+  __gen_e_acsl_literal_string_295 ∈ {0}
+  __gen_e_acsl_literal_string_296 ∈ {0}
+  __gen_e_acsl_literal_string_297 ∈ {0}
+  __gen_e_acsl_literal_string_298 ∈ {0}
+  __gen_e_acsl_literal_string_299 ∈ {0}
+  __gen_e_acsl_literal_string_300 ∈ {0}
+  __gen_e_acsl_literal_string_301 ∈ {0}
+  __gen_e_acsl_literal_string_302 ∈ {0}
+  __gen_e_acsl_literal_string_303 ∈ {0}
+  __gen_e_acsl_literal_string_304 ∈ {0}
+  __gen_e_acsl_literal_string_305 ∈ {0}
+  __gen_e_acsl_literal_string_306 ∈ {0}
+  __gen_e_acsl_literal_string_307 ∈ {0}
+  __gen_e_acsl_literal_string_308 ∈ {0}
+  __gen_e_acsl_literal_string_309 ∈ {0}
+  __gen_e_acsl_literal_string_310 ∈ {0}
+  __gen_e_acsl_literal_string_311 ∈ {0}
+  __gen_e_acsl_literal_string_312 ∈ {0}
+  __gen_e_acsl_literal_string_313 ∈ {0}
+  __gen_e_acsl_literal_string_314 ∈ {0}
+  __gen_e_acsl_literal_string_315 ∈ {0}
+  __gen_e_acsl_literal_string_316 ∈ {0}
+  __gen_e_acsl_literal_string_317 ∈ {0}
+  __gen_e_acsl_literal_string_318 ∈ {0}
+  __gen_e_acsl_literal_string_319 ∈ {0}
+  __gen_e_acsl_literal_string_320 ∈ {0}
+  __gen_e_acsl_literal_string_321 ∈ {0}
+  __gen_e_acsl_literal_string_322 ∈ {0}
+  __gen_e_acsl_literal_string_323 ∈ {0}
+  __gen_e_acsl_literal_string_324 ∈ {0}
+  __gen_e_acsl_literal_string_325 ∈ {0}
+  __gen_e_acsl_literal_string_326 ∈ {0}
+  __gen_e_acsl_literal_string_327 ∈ {0}
+  __gen_e_acsl_literal_string_328 ∈ {0}
+  __gen_e_acsl_literal_string_329 ∈ {0}
+  __gen_e_acsl_literal_string_330 ∈ {0}
+  __gen_e_acsl_literal_string_331 ∈ {0}
+  __gen_e_acsl_literal_string_332 ∈ {0}
+  __gen_e_acsl_literal_string_333 ∈ {0}
+  __gen_e_acsl_literal_string_334 ∈ {0}
+  __gen_e_acsl_literal_string_335 ∈ {0}
+  __gen_e_acsl_literal_string_336 ∈ {0}
+  __gen_e_acsl_literal_string_337 ∈ {0}
+  __gen_e_acsl_literal_string_338 ∈ {0}
+[value] using specification for function __e_acsl_memory_init
+[value] using specification for function __e_acsl_store_block
+[value] using specification for function __e_acsl_full_init
+[value] using specification for function __e_acsl_mark_readonly
+[value] using specification for function fork
+[value] using specification for function __e_acsl_builtin_printf
+[value] using specification for function exit
+[value] using specification for function waitpid
+[value:alarm] tests/format/printf.c:179: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status);
+[value] using specification for function __e_acsl_delete_block
+[value:alarm] tests/format/printf.c:182: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_0);
+[value:alarm] tests/format/printf.c:185: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_1);
+[value:alarm] tests/format/printf.c:188: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_2);
+[value] using specification for function __e_acsl_initialize
+[value:alarm] tests/format/printf.c:193: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_3);
+[value:alarm] tests/format/printf.c:196: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_4);
+[value:alarm] tests/format/printf.c:198: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_5);
+[value:alarm] tests/format/printf.c:200: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_6);
+[value:alarm] tests/format/printf.c:203: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_7);
+[value:alarm] tests/format/printf.c:205: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_8);
+[value] using specification for function __gmpz_init_set_si
+[value] using specification for function __gmpz_init_set_ui
+[value] using specification for function __gmpz_cmp
+[value] using specification for function __gmpz_clear
+[value] using specification for function __e_acsl_assert
+[value:alarm] tests/format/printf.c:50: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[value] using specification for function __builtin_alloca
+[value:alarm] tests/format/printf.c:51: Warning: 
+  function __gen_e_acsl_strcpy: precondition 'room_string' got status invalid.
+[value] done for function main

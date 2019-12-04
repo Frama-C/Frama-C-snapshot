@@ -26,7 +26,7 @@ Global Instance int_WhyType : WhyType int.
 Proof.
 split.
 exact Z0.
-exact Z_eq_dec.
+exact Z.eq_dec.
 Qed.
 
 Notation real := R.

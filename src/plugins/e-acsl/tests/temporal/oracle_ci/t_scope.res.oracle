@@ -1,0 +1,9 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:locals-escaping] tests/temporal/t_scope.c:10: Warning: 
+  locals {i} escaping the scope of a block of main through p
+[eva:locals-escaping] tests/temporal/t_scope.c:10: Warning: 
+  locals {i} escaping the scope of a block of main through q
+[eva:alarm] tests/temporal/t_scope.c:15: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&p);

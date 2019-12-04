@@ -2322,7 +2322,7 @@ fi
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.7*|8.8*|8.9*|trunk)
+        8.7*|8.8*|8.9*|8.10*|trunk)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: coqc version $COQVERSION found" >&5
 $as_echo "coqc version $COQVERSION found" >&6; }
           ;;

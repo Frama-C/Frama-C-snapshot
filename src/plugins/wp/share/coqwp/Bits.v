@@ -460,7 +460,7 @@ Proof.
 Qed.					      
 					      
 Remark NxHpos_div2_p: forall n:N,
-  (0 < n)%N -> NxHpos (Ndiv2 n) = pred (NxHpos n).
+  (0 < n)%N -> NxHpos (N.div2 n) = pred (NxHpos n).
 Proof.
   destruct n.
   (** zero *)

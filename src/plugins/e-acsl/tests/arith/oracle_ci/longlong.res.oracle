@@ -1,0 +1,14 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva] tests/arith/longlong.i:9: Warning: 
+  recursive call during value analysis
+  of my_pow (my_pow <- my_pow :: tests/arith/longlong.i:16 <- main). Assuming
+  the call has no effect. The analysis will be unsound.
+[eva:alarm] tests/arith/longlong.i:10: Warning: 
+  signed overflow. assert -2147483648 ≤ tmp * tmp;
+[eva:alarm] tests/arith/longlong.i:10: Warning: 
+  signed overflow. assert tmp * tmp ≤ 2147483647;
+[eva:alarm] tests/arith/longlong.i:17: Warning: 
+  function __gmpz_import: precondition got status unknown.
+[eva:alarm] tests/arith/longlong.i:17: Warning: 
+  function __e_acsl_assert: precondition got status unknown.

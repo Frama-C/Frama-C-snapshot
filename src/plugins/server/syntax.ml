@@ -30,7 +30,7 @@ let check_plugin plugin name =
   let k = String.length plugin in
   if not (String.length name > k &&
           String.sub n 0 k = p &&
-          String.get n k = '.')
+          String.get n k = '-')
   then
     Senv.warning ~wkey:Senv.wpage
       "Data %S shall be named « %s-* »"

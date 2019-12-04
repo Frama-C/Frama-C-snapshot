@@ -1,0 +1,7 @@
+[e-acsl] beginning translation.
+[e-acsl] tests/examples/functions_contiki.c:27: Warning: 
+  E-ACSL construct `logic functions with labels' is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/examples/functions_contiki.c:27: Warning: 
+  assertion got status unknown.

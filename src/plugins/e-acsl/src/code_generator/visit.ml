@@ -487,11 +487,22 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
   | g when Misc.is_library_loc (Global.loc g) ->
     if generate then Cil.JustCopy else Cil.SkipChildren
   | g ->
+    let unghost_vi vi =
+      vi.vghost <- false ;
+      vi.vtype <- match vi.vtype with
+        | TFun(res, Some l, va, attr) ->
+          let retype (n, t, a) =
+	    (n, t, Cil.dropAttribute Cil.frama_c_ghost_formal a)
+          in
+          TFun(res, Some (List.map retype l), va, attr)
+        | _ ->
+          vi.vtype
+    in
     let do_it = function
       | GVar(vi, _, _) ->
-        vi.vghost <- false
+        unghost_vi vi
       | GFun({ svar = vi } as fundec, _) ->
-        vi.vghost <- false;
+        unghost_vi vi ;
         Builtins.update vi.vname vi;
         (* remember that we have to remove the main later (see method
            [vfile]); do not use the [vorig_name] since both [main] and
@@ -502,7 +513,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
         (* do not convert extern ghost variables, because they can't be linked,
            see bts #1392 *)
         if vi.vstorage <> Extern then
-          vi.vghost <- false
+          unghost_vi vi
       | _ ->
         ()
     in
@@ -594,7 +605,12 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
       if Functions.instrument kf then Exit_points.generate f;
       Options.feedback ~dkey ~level:2 "entering in function %a."
         Kernel_function.pretty kf;
+      let unghost_formal vi =
+        vi.vghost <- false ;
+        vi.vattr <- Cil.dropAttribute Cil.frama_c_ghost_formal vi.vattr
+      in
       List.iter (fun vi -> vi.vghost <- false) f.slocals;
+      List.iter unghost_formal f.sformals;
       Cil.DoChildrenPost
         (fun f ->
           Exit_points.clear ();

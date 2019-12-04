@@ -51,10 +51,7 @@ type 'a output = (module Output with type t = 'a)
 (* --- Sanity Checks                                                      --- *)
 (* -------------------------------------------------------------------------- *)
 
-let re_set = Str.regexp_string_case_fold "SET"
-let re_get = Str.regexp_case_fold "\\(GET\\|PRINT\\)"
-let re_exec = Str.regexp_case_fold "\\(EXEC\\|COMPUTE\\)"
-let re_name = Str.regexp_case_fold "[a-zA-Z0-9.]+$"
+let re_name = Str.regexp_case_fold "[a-zA-Z0-9._]+$"
 
 let wpage = Senv.register_warn_category "inconsistent-page"
 let wkind = Senv.register_warn_category "inconsistent-kind"
@@ -83,15 +80,6 @@ let check_page page name =
   | `Protocol ->
     Senv.warning ~wkey:wkind
       "Request '%s' shall not be published in protocol pages" name
-
-let check_kind kind name =
-  let re,key = match kind with
-    | `GET -> re_get , "get|print"
-    | `SET -> re_set , "set"
-    | `EXEC -> re_exec , "exec|compute"
-  in try ignore (Str.search_forward re name 0) with Not_found ->
-    Senv.warning "Request '%s' shall be named with « %s »"
-      name key
 
 (* -------------------------------------------------------------------------- *)
 (* --- Multiple Fields Requests                                           --- *)
@@ -256,7 +244,6 @@ let signature
     ~page ~kind ~name ~descr ?(details=[]) ?input ?output () =
   check_name name ;
   check_page page name ;
-  check_kind kind name ;
   let input = match input with None -> Pnone | Some d -> Pdata d in
   let output = match output with None -> Rnone | Some d -> Rdata d in
   {

@@ -93,37 +93,37 @@ Qed.
 (** Some remarks about absolute value *)
   
 Remark zabs_gt: forall n m: Z, 
-  Zabs m < Zabs n -> (Zabs_nat m < Zabs_nat n)%nat.
+  Z.abs m < Z.abs n -> (Z.abs_nat m < Z.abs_nat n)%nat.
 Proof. 
-  intros. apply (inj_lt_rev (Zabs_nat m) (Zabs_nat n)).
+  intros. apply (inj_lt_rev (Z.abs_nat m) (Z.abs_nat n)).
   rewrite (inj_Zabs_nat n). rewrite (inj_Zabs_nat m). omega.
 Qed.
 					 
 Remark zabs_le: forall n m: Z,
-  Zabs n <= Zabs m -> (Zabs_nat n <= Zabs_nat m)%nat.
+  Z.abs n <= Z.abs m -> (Z.abs_nat n <= Z.abs_nat m)%nat.
 Proof.
-  intros. apply (inj_le_rev (Zabs_nat n) (Zabs_nat m)).
+  intros. apply (inj_le_rev (Z.abs_nat n) (Z.abs_nat m)).
   rewrite (inj_Zabs_nat n). rewrite (inj_Zabs_nat m). omega.
 Qed.
 					 
 Remark zabs_le_plus: forall (n m:Z) (k: nat),
-  Zabs n <= Zabs m -> (Zabs_nat n <= k + Zabs_nat m)%nat.
+  Z.abs n <= Z.abs m -> (Z.abs_nat n <= k + Z.abs_nat m)%nat.
 Proof.
   intros. 
-  apply (inj_le_rev (Zabs_nat n) (k + Zabs_nat m)%nat).
+  apply (inj_le_rev (Z.abs_nat n) (k + Z.abs_nat m)%nat).
   rewrite (inj_Zabs_nat n). rewrite inj_plus. rewrite (inj_Zabs_nat m).
   omega.
 Qed.
 					 
 Remark zabs_nat_zabs: forall n: Z,
-  Zabs_nat (Zabs n) = Zabs_nat n.
+  Z.abs_nat (Z.abs n) = Z.abs_nat n.
 Proof.
   intro.
   rewrite <- (inj_Zabs_nat n). rewrite Zabs_nat_Z_of_nat. auto.
 Qed.
 
 Remark zabs_minus: forall n m: Z,
-  Zabs n <= Zabs m -> (Zabs_nat m - Zabs_nat n)%nat = Zabs_nat (Zabs m - Zabs n).
+  Z.abs n <= Z.abs m -> (Z.abs_nat m - Z.abs_nat n)%nat = Z.abs_nat (Z.abs m - Z.abs n).
 Proof.
   intros. 
   rewrite Zabs_nat_Zminus by (generalize (Zabs_pos n); omega).
@@ -132,7 +132,7 @@ Proof.
 Qed.
 					 
 Remark zabs_plus: forall n m: Z,
-  (Zabs_nat m + Zabs_nat n)%nat = Zabs_nat (Zabs m + Zabs n).
+  (Z.abs_nat m + Z.abs_nat n)%nat = Z.abs_nat (Z.abs m + Z.abs n).
 Proof.
   intros. 
   rewrite Zabs_nat_Zplus.
@@ -1014,7 +1014,7 @@ Proof.
 Qed.
   
 Lemma Z_bitwise_ZxHbound: forall (f: bool -> bool -> bool) (x y: Z),
-   ZxHbound (Z_bitwise f x y) <= Zmax (ZxHbound x) (ZxHbound y).
+   ZxHbound (Z_bitwise f x y) <= Z.max (ZxHbound x) (ZxHbound y).
 Proof.
   intros f x y.
   generalize (Z_bitwise_ZxHpos f x y).
@@ -1043,7 +1043,7 @@ Proof.
   generalize (Z_bitwise_ZxHbound f x y).
   pose (zxy := Z_bitwise f x y); fold zxy.
   generalize (ZxHrange zxy).
-  apply Zmax_case_strong.
+  apply Z.max_case_strong.
   (** ZxHbound y <= ZxHbound x *)
   + intros Ryx Rzxy.
     destruct Rzxy as [ bound_neg bound_pos ].
@@ -1128,7 +1128,7 @@ Proof.
   generalize (Z_bitwise_ZxHbound f x y).
   pose (zxy := Z_bitwise f x y); fold zxy; fold zxy in Bz.
   generalize (ZxHrange zxy).
-  apply Zmax_case_strong.
+  apply Z.max_case_strong.
   (** ZxHbound y <= ZxHbound x *)
   + intros Ryx Rzxy.
     destruct Rzxy as [ Bneg Bpos ].
@@ -1227,7 +1227,7 @@ Qed.
 Parameter lsl_undef: Z -> Z -> Z.
 
 Definition lsl_def (x:Z) (n:Z): Z :=
-  lsl_shift_def x (Zabs_nat n).
+  lsl_shift_def x (Z.abs_nat n).
 
 Definition lsl (x : Z) (y : Z) : Z :=
   if Zle_bool 0 y then lsl_def x y
@@ -1249,7 +1249,7 @@ Qed.
 Parameter lsr_undef: Z -> Z -> Z.
 
 Definition lsr_def (x:Z) (n:Z): Z :=
-  lsr_shift_def x (Zabs_nat n).
+  lsr_shift_def x (Z.abs_nat n).
 
 Definition lsr (x : Z) (y : Z) : Z :=
   if Zle_bool 0 y then lsr_def x y
@@ -1266,15 +1266,15 @@ Qed.
 (** ** Properties of shifting operators *)
 
 Theorem Zbit_lsl: forall (x n: Z) (k: nat), 
-  Zbit (lsl_def x n) k = if (Zle_bool (Zabs n) (Z_of_nat k)) then Zbit x (Zabs_nat ((Z_of_nat k) - (Zabs n))) else false.
+  Zbit (lsl_def x n) k = if (Zle_bool (Z.abs n) (Z_of_nat k)) then Zbit x (Z.abs_nat ((Z_of_nat k) - (Z.abs n))) else false.
 Proof.
   intros. unfold lsl_def. 
   rewrite lsl_arithmetic_shift. unfold lsl_arithmetic_def.
   rewrite Zbit_shift_l.
-  case_leq (Zabs n) (Z_of_nat k).
+  case_leq (Z.abs n) (Z_of_nat k).
   (** case |n| <= k *) 
   + intro LEQ.
-    cut (leb (Zabs_nat n) k= true).
+    cut (leb (Z.abs_nat n) k= true).
     { intro LEB. rewrite LEB. f_equal.
       rewrite Zabs_nat_Zminus; try split; try apply Zabs_pos; auto.
       rewrite Zabs_nat_Z_of_nat.
@@ -1285,7 +1285,7 @@ Proof.
     auto.
   (** case |n| > k *) 
   + intro GT.
-    cut (leb (Zabs_nat n) k = false).
+    cut (leb (Z.abs_nat n) k = false).
     intro GTB. rewrite GTB. auto. 
     apply leb_correct_conv.
     rewrite <- (Zabs_nat_Z_of_nat k).
@@ -1295,7 +1295,7 @@ Proof.
 Qed.
 					 
 Theorem Zbit_lsr: forall (x n: Z) (k: nat),
-  Zbit (lsr_def x n) k = Zbit x (k + (Zabs_nat n))%nat.
+  Zbit (lsr_def x n) k = Zbit x (k + (Z.abs_nat n))%nat.
 Proof.
   intros. 
   (** left  term *) 
@@ -1306,14 +1306,14 @@ Proof.
 Qed.
 
 Lemma lsl_of_lsl: forall (n m: Z) (x:Z),
-  lsl_def (lsl_def x n) m = lsl_def x (Zabs n + Zabs m).
+  lsl_def (lsl_def x n) m = lsl_def x (Z.abs n + Z.abs m).
 Proof.
   intros. unfold lsl_def. 
   rewrite <- zabs_plus.
   rewrite lsl_arithmetic_shift.
   unfold lsl_arithmetic_def. 
-  (replace (x * two_power_nat (Zabs_nat n) * two_power_nat (Zabs_nat m))
-        with (x *(two_power_nat (Zabs_nat n) * two_power_nat (Zabs_nat m))) by ring).
+  (replace (x * two_power_nat (Z.abs_nat n) * two_power_nat (Z.abs_nat m))
+        with (x *(two_power_nat (Z.abs_nat n) * two_power_nat (Z.abs_nat m))) by ring).
   f_equal.
   repeat rewrite two_power_nat_correct.
   rewrite Zpower_nat_is_exp.
@@ -1321,7 +1321,7 @@ Proof.
 Qed.
 
 Lemma lsr_of_lsr: forall (n m: Z) (x:Z),
-  lsr_def (lsr_def x n) m = lsr_def x (Zabs n + Zabs m).
+  lsr_def (lsr_def x n) m = lsr_def x (Z.abs n + Z.abs m).
 Proof.
   intros. unfold lsr_def. 
   rewrite <- zabs_plus.
@@ -1339,7 +1339,7 @@ Qed.
 
 
 Lemma lsr_of_lsl: forall (n m: Z) (x:Z),
-  Zabs n <= Zabs m -> lsr_def (lsl_def x n) m = lsr_def x (Zabs m - Zabs n).
+  Z.abs n <= Z.abs m -> lsr_def (lsl_def x n) m = lsr_def x (Z.abs m - Z.abs n).
 Proof.
   intros. unfold lsr_def. 
   rewrite <- zabs_minus by auto.
@@ -1350,10 +1350,10 @@ Proof.
   unfold lsl_def. unfold lsl_shift_def.
   rewrite Z_decomp_recomp.
   unfold bitwise_lsl. unfold btest at 1.
-  rewrite (leb_correct (Zabs_nat n) (k + Zabs_nat m)).
+  rewrite (leb_correct (Z.abs_nat n) (k + Z.abs_nat m)).
   f_equal.
   (** arg 1 *) 
-  + rewrite (inj_eq_rev (k + Zabs_nat m - Zabs_nat n) (k + (Zabs_nat m - Zabs_nat n))). 
+  + rewrite (inj_eq_rev (k + Z.abs_nat m - Z.abs_nat n) (k + (Z.abs_nat m - Z.abs_nat n))).
     auto.
     rewrite inj_minus1 by (apply zabs_le_plus; omega). 
     repeat rewrite inj_plus. 
@@ -1801,7 +1801,7 @@ Local Ltac lsl_distrib_r lop z :=
   let k := fresh in
   intros; unfold lop; Zbit_bitwise k;
   repeat rewrite Zbit_lsl; rewrite Zbit_bitwise;
-  case_leq (Zabs z) (Z_of_nat k);
+  case_leq (Z.abs z) (Z_of_nat k);
     [ (intro; trivial) | trivial ].
 
 (** Distributive lsl lor *)						       
@@ -2066,7 +2066,7 @@ Proof.
   intros b x y Ry Rx Rb.
   apply Zle_is_le_bool in Ry; unfold lsr; rewrite Ry.
   unfold lsr_def. rewrite lsr_arithmetic_shift. unfold lsr_arithmetic_def.
-  pose (d := two_power_nat (Zabs_nat y)); fold d.
+  pose (d := two_power_nat (Z.abs_nat y)); fold d.
   assert (PWR2: 0 < d) by apply two_power_nat_is_positive.
   apply Zdiv_lt_upper_bound; auto.
   assert (b <= b * d) by apply (upper_positive_mult_positive d b Rb PWR2).
@@ -2079,7 +2079,7 @@ Proof.
   intros b x y Ry Rx Rb.
   apply Zle_is_le_bool in Ry; unfold lsr; rewrite Ry.
   unfold lsr_def. rewrite lsr_arithmetic_shift. unfold lsr_arithmetic_def.
-  pose (d := two_power_nat (Zabs_nat y)); fold d.
+  pose (d := two_power_nat (Z.abs_nat y)); fold d.
   assert (PWR2: 0 < d) by apply two_power_nat_is_positive.
   apply Zdiv_le_lower_bound; auto.
   assert (b * d <= b) by apply (lower_negative_mult_positive d b Rb PWR2).
@@ -2155,7 +2155,7 @@ Parameter zbit_test_undef: Z -> Z -> bool.
 
 (* Extended version for negative value. *)
 Definition zbit_test_def (x:Z) (n:Z): bool :=
-  Zbit x (Zabs_nat n).	
+  Zbit x (Z.abs_nat n).
 					
 Theorem zbit_test_ext: forall x y: Z,
   (forall n, zbit_test_def x n = zbit_test_def y n) -> x=y.
@@ -2203,7 +2203,7 @@ Local Ltac bit_extraction bin_op :=
 (** ** Link between Bit extraction and modulo operator *)
 
 Theorem uint_mod_two_power_extraction: forall (n:nat) (m x:Z),
-  zbit_test_def (x mod (two_power_nat n)) m = if leb n (Zabs_nat m) then false else zbit_test_def x m.
+  zbit_test_def (x mod (two_power_nat n)) m = if leb n (Z.abs_nat m) then false else zbit_test_def x m.
 Proof.
   intros.
   unfold zbit_test_def.
@@ -2214,8 +2214,8 @@ Qed.
 (** ** Link between Bit extraction and bitwise shifting operators *)
 Theorem lsl_extraction: forall x n m: Z, 
   zbit_test_def (lsl_def x n) m =
-    if Zle_bool (Zabs n) (Zabs m) 
-    then zbit_test_def x ((Zabs m) - (Zabs n)) 
+    if Zle_bool (Z.abs n) (Z.abs m)
+    then zbit_test_def x ((Z.abs m) - (Z.abs n))
     else false.
 Proof.
   intros. unfold zbit_test_def.	
@@ -2224,7 +2224,7 @@ Proof.
 Qed.
 					 
 Theorem lsr_extraction: forall x n m: Z, 
-  zbit_test_def (lsr_def x n) m = zbit_test_def x ((Zabs m) + (Zabs n)).
+  zbit_test_def (lsr_def x n) m = zbit_test_def x ((Z.abs m) + (Z.abs n)).
 Proof.
   intros. unfold zbit_test_def. 
   (** right term *) 

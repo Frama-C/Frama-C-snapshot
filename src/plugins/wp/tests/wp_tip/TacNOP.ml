@@ -47,6 +47,5 @@ class nop =
   end
 
 let tactical = Wp.Tactical.export (new nop)
-let _ = Wp.Strategy.make tactical ~arguments:[]
 
 (* -------------------------------------------------------------------------- *)

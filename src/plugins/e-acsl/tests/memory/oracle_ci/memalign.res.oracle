@@ -1,0 +1,4 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/memory/memalign.c:14: Warning: 
+  accessing uninitialized left-value. assert \initialized(memptr);

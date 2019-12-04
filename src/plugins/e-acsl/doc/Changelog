@@ -19,6 +19,10 @@
 #   configure	configure
 ###############################################################################
 
+############################
+Plugin E-ACSL 20.0 (Calcium)
+############################
+
 -  E-ACSL       [2019/08/28] Support of rational numbers and operations.
 -! E-ACSL       [2019/08/28] Deactivate the unsound support of real
 	        numbers (that are not rationals). They were previously

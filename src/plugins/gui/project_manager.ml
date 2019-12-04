@@ -251,7 +251,7 @@ and mk_project_entry window menu ?group p =
 
 and make_project_entries ?filter window menu =
   match projects_list ?filter () with
-  | [] -> assert false
+  | [] -> assert (filter <> None)
   | (pa, _name) :: tl ->
       let mk = mk_project_entry window menu in
       let pa_item = mk pa in

@@ -1,0 +1,7 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:locals-escaping] tests/memory/early_exit.c:14: Warning: 
+  locals {a} escaping the scope of a block of goto_bts through p
+[eva:alarm] tests/memory/early_exit.c:18: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&p);

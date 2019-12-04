@@ -27,6 +27,10 @@ type state =
   | Composer of ProofEngine.tree * GuiTactic.composer * GuiSequent.target
   | Browser of ProofEngine.tree * GuiTactic.browser * GuiSequent.target
 
+let on_proof_context proof job data =
+  let ctxt = ProofEngine.tree_context proof in
+  WpContext.on_context ctxt job data
+
 (* -------------------------------------------------------------------------- *)
 (* --- Autofocus Management                                               --- *)
 (* -------------------------------------------------------------------------- *)
@@ -383,19 +387,21 @@ class pane (gprovers : GuiConfig.provers) =
           strategies#connect None ;
           List.iter (fun tactic -> tactic#clear) tactics
       | Some(tree,sequent,sel) ->
-          strategies#connect (Some (self#strategies sequent)) ;
-          let select (tactic : GuiTactic.tactic) =
-            let process = self#apply in
-            let composer = self#compose in
-            let browser = self#browse in
-            tactic#select ~process ~composer ~browser ~tree sel
-          in
-          let ctxt = ProofEngine.tree_context tree in
-          WpContext.on_context ctxt (List.iter select) tactics ;
-          let tgt =
-            if List.exists (fun tactics -> tactics#targeted) tactics
-            then sel else Tactical.Empty in
-          printer#set_target tgt
+          on_proof_context tree
+            begin fun () ->
+              strategies#connect (Some (self#strategies sequent)) ;
+              let select (tactic : GuiTactic.tactic) =
+                let process = self#apply in
+                let composer = self#compose in
+                let browser = self#browse in
+                tactic#select ~process ~composer ~browser ~tree sel
+              in
+              List.iter select tactics ;
+              let tgt =
+                if List.exists (fun tactics -> tactics#targeted) tactics
+                then sel else Tactical.Empty in
+              printer#set_target tgt
+            end ()
 
     method private update_scriptbar =
       match state with
@@ -519,42 +525,39 @@ class pane (gprovers : GuiConfig.provers) =
             text#hrule ;
           end
       | Proof proof ->
-          begin
-            text#clear ;
-            scripter#tree proof ;
-            text#hrule ;
-            text#printf "%t@." (printer#goal (ProofEngine.head proof)) ;
-            text#hrule ;
-            scripter#status proof ;
-          end
+          on_proof_context proof
+            begin fun () ->
+              text#clear ;
+              scripter#tree proof ;
+              text#hrule ;
+              text#printf "%t@." (printer#goal (ProofEngine.head proof)) ;
+              text#hrule ;
+              scripter#status proof ;
+            end ()
       | Composer(proof,cc,tgt) ->
-          begin
-            text#clear ;
-            let quit () =
-              state <- Proof proof ;
-              printer#restore tgt ;
-              self#update in
-            let ctxt = ProofEngine.tree_context proof in
-            let print = composer#print cc ~quit in
-            text#printf "%t@." (WpContext.on_context ctxt print) ;
-            text#hrule ;
-            text#printf "%t@."
-              (printer#goal (ProofEngine.head proof)) ;
-          end
+          on_proof_context proof
+            begin fun () ->
+              text#clear ;
+              let quit () =
+                state <- Proof proof ;
+                printer#restore tgt ;
+                self#update in
+              text#printf "%t@." (composer#print cc ~quit) ;
+              text#hrule ;
+              text#printf "%t@." (printer#goal (ProofEngine.head proof)) ;
+            end ()
       | Browser(proof,cc,tgt) ->
-          begin
-            text#clear ;
-            let quit () =
-              state <- Proof proof ;
-              printer#restore tgt ;
-              self#update in
-            let ctxt = ProofEngine.tree_context proof in
-            let print = browser#print cc ~quit in
-            text#printf "%t@." (WpContext.on_context ctxt print) ;
-            text#hrule ;
-            text#printf "%t@."
-              (printer#goal (ProofEngine.head proof)) ;
-          end
+          on_proof_context proof
+            begin fun () ->
+              text#clear ;
+              let quit () =
+                state <- Proof proof ;
+                printer#restore tgt ;
+                self#update in
+              text#printf "%t@." (browser#print cc ~quit) ;
+              text#hrule ;
+              text#printf "%t@." (printer#goal (ProofEngine.head proof)) ;
+            end ()
       | Forking _ -> ()
 
     method update =

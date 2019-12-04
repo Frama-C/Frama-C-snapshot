@@ -1,0 +1,8 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/arith/array.i:13: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/array.i:13: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/arith/array.i:14: Warning: assertion got status unknown.
+[eva:alarm] tests/arith/array.i:14: Warning: 
+  function __e_acsl_assert: precondition got status unknown.

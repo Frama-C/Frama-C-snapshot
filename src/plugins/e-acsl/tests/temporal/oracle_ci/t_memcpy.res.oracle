@@ -1,0 +1,38 @@
+[e-acsl] beginning translation.
+[e-acsl] Warning: annotating undefined function `memcpy':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `memset':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] FRAMAC_SHARE/libc/string.h:92: Warning: 
+  E-ACSL construct `\separated' is not yet supported. Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:115: Warning: 
+  E-ACSL construct `logic functions with labels' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:115: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:118: Warning: 
+  E-ACSL construct `user-defined logic type' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:92: Warning: 
+  E-ACSL construct `logic functions with labels' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:93: Warning: 
+  E-ACSL construct `logic functions with labels' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:95: Warning: 
+  E-ACSL construct `\separated' is not yet supported. Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:95: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/string.h:98: Warning: 
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] FRAMAC_SHARE/libc/string.h:98: Warning: 
+  function __gen_e_acsl_memcpy: postcondition 'copied_contents' got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/string.h:118: Warning: 
+  function __gen_e_acsl_memset: postcondition 'acsl_c_equiv' got status unknown.

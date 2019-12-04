@@ -1,0 +1,9 @@
+[kernel:parser:decimal-float] tests/bts/bts1307.i:17: Warning: 
+  Floating-point constant 0.4 is not represented exactly. Will use 0x1.999999999999ap-2.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/bts/bts1307.i:11: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/bts/bts1307.i:11: Warning: 
+  function __gen_e_acsl_foo, behavior OverEstimate_Motoring: postcondition got status invalid.

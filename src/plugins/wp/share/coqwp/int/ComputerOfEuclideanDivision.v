@@ -19,7 +19,7 @@ Require int.EuclideanDivision.
 Require int.ComputerDivision.
 
 Lemma on_pos_euclidean_is_div:
-  forall n d, (int.EuclideanDivision.div n (Zpos d)) = Zdiv n (Zpos d).
+  forall n d, (int.EuclideanDivision.div n (Zpos d)) = Z.div n (Zpos d).
 intros n d.
 unfold EuclideanDivision.div.
 assert (0 < Z.pos d)%Z by reflexivity.

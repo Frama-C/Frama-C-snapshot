@@ -65,11 +65,11 @@ val datadir: string
 val datadirs: string list
   (** Directories where architecture independent files are in order of
       priority.
-      @since Frama-C-trunk*)
+      @since 19.0-Potassium *)
 
 val framac_libc: string
   (** Directory where Frama-C libc headers are.
-      @since Frama-C-trunk*)
+      @since 19.0-Potassium *)
 
 val libdir: string
   (** Directory where the Frama-C kernel library is.

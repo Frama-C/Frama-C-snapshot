@@ -46,7 +46,7 @@ intros x n h1.
 rewrite Zpower_exp.
 change (power x 1) with (x * 1)%Z.
 ring.
-now apply Zle_ge.
+now apply Z.le_ge.
 easy.
 Qed.
 
@@ -72,7 +72,7 @@ Lemma Power_sum :
   ((power x (n + m)%Z) = ((power x n) * (power x m))%Z).
 Proof.
 intros x n m Hn Hm.
-now apply Zpower_exp; apply Zle_ge.
+now apply Zpower_exp; apply Z.le_ge.
 Qed.
 
 (* Why3 goal *)

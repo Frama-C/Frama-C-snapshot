@@ -46,17 +46,17 @@ compile the generated and the original (supplied) sources.
 By default no compilation is performed.
 .TP
 .B -D, --rt-debug
-Enable runtime debug features, i.e., compile unoptimized executable
+enable runtime debug features, i.e., compile unoptimized executable
 with assertions and extra checks.
 .TP
 .B --no-trace
-Disable stack trace reporting in debug mode
+disable stack trace reporting in debug mode
 .TP
 .B -V, --rt-verbose
-Output extra messages when executing generated code
+output extra messages when executing generated code
 .TP
 .B -X, --instrumented-only
-Do not compile original code. Has effect only in the presence of the \fI-c\fP
+do not compile original code. Has effect only in the presence of the \fI-c\fP
 flag.
 .TP
 .B -C, --compile-only
@@ -70,7 +70,7 @@ By default the -\fIdebug\fP flag is unused.
 pass a value to the \fBFrama-C\fP -\fIverbose\fP option.
 By default the -\fIverbose\fP flag is unused.
 .TP
-.B -V, --check
+.B --check
 check integrity of the generated AST (mostly useful for developers).
 .TP
 .B -o, --ocode=\fI<FILE>
@@ -157,24 +157,27 @@ Valid arguments are:
   \fIall\fP               \- all of the above.
 .TP
 .B -A, --rte-select=\fI<OPTSTRING>
-Restrict annotations to a given list of functions.
+restrict annotations to a given list of functions.
 \fIOPTSTRING\fP is a comma-separated string comprising function names.
 .TP
 .B --stack-size=\fI<NUMBER>
-Set the size (in MB) of the stack shadow space
+set the size (in MB) of the stack shadow space
 .TP
 .B --heap-size=\fI<NUMBER>
-Set the size (in MB) of the heap shadow space
+set the size (in MB) of the heap shadow space
 .TP
 .B -k, --keep-going
-Continue execution after an assertion failure
+continue execution after an assertion failure
 .TP
 .B --free-valid-address
-Trigger failure if a NULL-pointer is used as an input to free function
+trigger failure if a NULL-pointer is used as an input to free function
 .TP
 .B --fail-with-code=\fI<NUMBER>
-On assertion failure exit with the given integer code intead of raising an abort
+on assertion failure exit with the given integer code intead of raising an abort
 signal
+.TP
+.B --external-assert=\fI<FILE>
+the filename that contains your own implementation of __e_acsl_assert
 .TP
 .B -m, --memory-model=\fI<model>
 memory model (i.e., a runtime library for checking memory related annotations)
@@ -186,54 +189,58 @@ Valid arguments are:
 
 By default the Patricia trie  memory model is used.
 .TP
-.B --print-models
-Print the names of the supported memory models
+.B --print-mmodels
+print the names of the supported memory models
 .TP
 .B -I, --frama-c=\fI<FILE>
 the name of the \fBFrama-C\fP executable. By default the
 first \fIframa-c\fP executable found in the system path is used.
+.TP
+.B --e-acsl-share=\fI<DIR>
+the name of the \fBE-ACSL\fP share directory. If not provided, it is computed
+from your setting.
 .TP
 .B -G, --gcc=\fI<FILE>
 the name of the \fBGCC\fP executable. By default the first \fIgcc\fP
 executable found in the system path is used.
 .TP
 .B --then
-Separate with a \fB-then\fP the first \fBFrama-C\fP options from the actual
+separate with a \fB-then\fP the first \fBFrama-C\fP options from the actual
 launch of the \fBE-ACSL\fP plugin. Prepends \fB-e-acsl-prepare\fP to the list
 of options passed to \fBFrama-C\fP.
 .TP
 .B --e-acsl-extra=\fI<OPTS>
-Adds \fI<OPTS>\fP to the list of options that will be given to the \fBE-ACSL\fP
+add \fI<OPTS>\fP to the list of options that will be given to the \fBE-ACSL\fP
 analysis. Only useful when \fB--then\fP is in use, in which case \fI<OPTS>\fP
 will be placed after the \fB-then\fP on \fBFrama-C\fP's command-line. Otherwise,
 equivalent to \fB--frama-c-extra\fP
 .SH EXIT STATUS
 .TP
 .B 0
-Successful execution
+successful execution
 .TP
 .B 1
-Invalid user input
+invalid user input
 .TP
 .B \fBFrama-C\fP or \fBGCC\fP error code
-Instrumentation- or compile-time error
+instrumentation- or compile-time error
 
 .SH EXAMPLES
 
 .B e-acsl-gcc.sh foo.c
 
-Instrument foo.c and output the instrumented code to \fIa.out.frama.c\fP.
+instrument foo.c and output the instrumented code to \fIa.out.frama.c\fP.
 
 .B e-acsl-gcc.sh -P -c -ogen_foo.c -Ofoo foo.c
 
-Instrument \fIfoo.c\fP, output the instrumented code to \fIgen_foo.c\fP and
+instrument \fIfoo.c\fP, output the instrumented code to \fIgen_foo.c\fP and
 compile \fIfoo.c\fP into \fIfoo\fP and \fIgen_foo.c\fP into \fIfoo.e-acsl\fP.
 The \fB-P\fP option specifies that the instrumentation should omit debug
 functionality.
 
 .B e-acsl-gcc.sh --memory-model=bittree -C gen_foo.c
 
-Assume \fIgen_foo.c\fP has been instrumented by \fBE-ACSL\fP and compile it into
+assume \fIgen_foo.c\fP has been instrumented by \fBE-ACSL\fP and compile it into
 \fIa.out.e-acsl\fP using \fBbittree\fP memory model.
 
 .SH SEE ALSO

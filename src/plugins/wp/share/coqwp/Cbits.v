@@ -1182,7 +1182,7 @@ Lemma is_uint_lxor :
   forall (n:Z) (x:Z) (y:Z), (Cint.is_uint n x) -> (Cint.is_uint n y) ->
   ((Cint.to_uint n (lxor x y)) = (lxor x y)).
 Proof.
-  intro n; is_uint_bitwise xorb (Zabs_nat n). 
+  intro n; is_uint_bitwise xorb (Z.abs_nat n).
 Qed.
 
 (** * Some C-Integer Bits Conversions are identity *)
@@ -1192,7 +1192,7 @@ Lemma is_uint_lor :
   forall (n:Z) (x:Z) (y:Z), (Cint.is_uint n x) -> (Cint.is_uint n y) ->
   ((Cint.to_uint n (lor x y)) = (lor x y)).
 Proof.
-  intro n; is_uint_bitwise orb (Zabs_nat n). 
+  intro n; is_uint_bitwise orb (Z.abs_nat n).
 Qed.
 
 (* Why3 goal *)
@@ -1200,7 +1200,7 @@ Lemma is_uint_land :
   forall (n:Z) (x:Z) (y:Z), (Cint.is_uint n x) -> (Cint.is_uint n y) ->
   ((Cint.to_uint n (land x y)) = (land x y)).
 Proof.
-  intro n; is_uint_bitwise andb (Zabs_nat n). 
+  intro n; is_uint_bitwise andb (Z.abs_nat n).
 Qed.
 
 (* Why3 goal *)
@@ -1486,7 +1486,7 @@ Lemma is_sint_lxor :
   forall (n:Z) (x:Z) (y:Z), (Cint.is_sint n x) -> (Cint.is_sint n y) ->
   ((Cint.to_sint n (lxor x y)) = (lxor x y)).
 Proof.
-  intro n; is_sint_bitwise xorb (Zabs_nat n). 
+  intro n; is_sint_bitwise xorb (Z.abs_nat n).
 Qed.
 
 (* Why3 goal *)
@@ -1494,7 +1494,7 @@ Lemma is_sint_lor :
   forall (n:Z) (x:Z) (y:Z), (Cint.is_sint n x) -> (Cint.is_sint n y) ->
   ((Cint.to_sint n (lor x y)) = (lor x y)).
 Proof.
-  intro n; is_sint_bitwise orb (Zabs_nat n). 
+  intro n; is_sint_bitwise orb (Z.abs_nat n).
 Qed.
 
 (* Why3 goal *)
@@ -1502,7 +1502,7 @@ Lemma is_sint_land :
   forall (n:Z) (x:Z) (y:Z), (Cint.is_sint n x) -> (Cint.is_sint n y) ->
   ((Cint.to_sint n (land x y)) = (land x y)).
 Proof.
-  intro n; is_sint_bitwise andb (Zabs_nat n). 
+  intro n; is_sint_bitwise andb (Z.abs_nat n).
 Qed.
 
 (* Why3 goal *)

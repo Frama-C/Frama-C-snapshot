@@ -29,6 +29,7 @@ CPPFLAGS    +=
 
 # (Optional) Frama-C general flags (parsing and kernel)
 FCFLAGS     += \
+  -main eva_main \
   -machdep x86_64 \
   -json-compilation-database . \
   -kernel-warn-key annot:missing-spec=abort \

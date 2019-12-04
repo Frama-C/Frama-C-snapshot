@@ -1,0 +1,9 @@
+[kernel:typing:implicit-function-declaration] tests/memory/hidden_malloc.c:11: Warning: 
+  Calling undeclared function realpath. Old style K&R code?
+[e-acsl] beginning translation.
+[kernel:annot:missing-spec] tests/memory/hidden_malloc.c:11: Warning: 
+  Neither code nor specification for function realpath, generating default assigns from the prototype
+[e-acsl] translation done in project "e-acsl".
+[eva:invalid-assigns] tests/memory/hidden_malloc.c:11: 
+  Completely invalid destination for assigns clause *((char *)x_1 + (0 ..)).
+  Ignoring.

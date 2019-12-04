@@ -324,9 +324,11 @@ Usage: e-acsl-gcc.sh [options] files
 Options:
   -h         show this help page
   -c         compile instrumented code
+  -C         assume that the input files have already been instrumented
   -l         pass additional options to the linker
   -e         pass additional options to the prepreprocessor
   -E         pass additional arguments to the Frama-C preprocessor
+  -F         pass additional options to the Frama-C command line
   -p         output the generated code to STDOUT
   -o <file>  output the generated code to <file> [a.out.frama.c]
   -O <file>  output the generated executables to <file> [a.out, a.out.e-acsl]

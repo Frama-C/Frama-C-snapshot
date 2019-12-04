@@ -76,7 +76,7 @@ Definition repeat {a:Type} {a_WT:WhyType a} : (list a) -> Z -> list a.
   exact(fun w n  => match n with
                    | Z0 => nil
                    | Zneg _ => nil
-                   | other => repeat_nat a w (Zabs_nat (n-1))
+                   | other => repeat_nat a w (Z.abs_nat (n-1))
                    end).
 Defined.
 
@@ -89,7 +89,7 @@ Defined.
 Definition nth {a:Type} {a_WT:WhyType a} : (list a) -> Z -> a.
   exact(fun w n => match n with
                    | Zneg _ => (@why_inhabitant a a_WT)
-                   | other => List.nth (Zabs_nat n) w (@why_inhabitant a a_WT)
+                   | other => List.nth (Z.abs_nat n) w (@why_inhabitant a a_WT)
                    end).
 Defined.
 

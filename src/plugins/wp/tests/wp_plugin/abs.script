@@ -4,9 +4,9 @@ Goal typed_abs_abs_ensures.
 Hint abs,default,property.
 Proof.
   intro n. intros. subst.
-  unfold my_abs. 
-  induction H1; 
-  [ intros ; rewrite Zabs_non_eq | intros ; rewrite Zabs_eq ] ;
+  unfold my_abs.
+  induction H1;
+  [ intros ; rewrite Zabs_non_eq | intros ; rewrite Z.abs_eq ] ;
   auto with zarith.
 Qed.
 

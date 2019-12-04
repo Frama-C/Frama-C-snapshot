@@ -1,4 +1,4 @@
 Require Import ZArith.
 
-Definition my_abs := Zabs.
+Definition my_abs := Z.abs.
 

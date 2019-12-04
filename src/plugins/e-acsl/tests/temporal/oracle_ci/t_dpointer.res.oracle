@@ -1,0 +1,23 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/temporal/t_dpointer.c:12: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/temporal/t_dpointer.c:13: Warning: 
+  accessing uninitialized left-value. assert \initialized(p + i);
+[eva:alarm] tests/temporal/t_dpointer.c:14: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/temporal/t_dpointer.c:14: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/temporal/t_dpointer.c:14: Warning: 
+  accessing uninitialized left-value. assert \initialized(p + i);
+[eva:alarm] tests/temporal/t_dpointer.c:14: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/temporal/t_dpointer.c:18: Warning: 
+  accessing uninitialized left-value. assert \initialized(p + 2);
+[eva:alarm] tests/temporal/t_dpointer.c:20: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/temporal/t_dpointer.c:20: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(p + 2);
+[eva:alarm] tests/temporal/t_dpointer.c:20: Warning: 
+  function __e_acsl_assert: precondition got status unknown.

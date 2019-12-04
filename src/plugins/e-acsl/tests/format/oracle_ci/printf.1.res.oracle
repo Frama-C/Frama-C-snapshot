@@ -1,0 +1,84 @@
+[e-acsl] beginning translation.
+[e-acsl] warning: annotating undefined function `abort':
+                  the generated program may miss memory instrumentation
+                  if there are memory-related annotations.
+[e-acsl] warning: annotating undefined function `exit':
+                  the generated program may miss memory instrumentation
+                  if there are memory-related annotations.
+[e-acsl] warning: annotating undefined function `strlen':
+                  the generated program may miss memory instrumentation
+                  if there are memory-related annotations.
+[e-acsl] warning: annotating undefined function `strchr':
+                  the generated program may miss memory instrumentation
+                  if there are memory-related annotations.
+[e-acsl] warning: annotating undefined function `strcpy':
+                  the generated program may miss memory instrumentation
+                  if there are memory-related annotations.
+FRAMAC_SHARE/libc/stdio.h:150:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
+FRAMAC_SHARE/libc/unistd.h:785:[kernel] warning: Neither code nor specification for function fork, generating default assigns from the prototype
+FRAMAC_SHARE/libc/sys/wait.h:57:[kernel] warning: Neither code nor specification for function waitpid, generating default assigns from the prototype
+:0:[kernel] warning: Neither code nor specification for function __fc_vla_free, generating default assigns from the prototype
+:0:[kernel] warning: Neither code nor specification for function __fc_vla_alloc, generating default assigns from the prototype
+FRAMAC_SHARE/libc/string.h:221:[e-acsl] warning: E-ACSL construct `logic function application' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:222:[e-acsl] warning: E-ACSL construct `trange' is not yet supported. Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:224:[e-acsl] warning: E-ACSL construct `\separated' is not yet supported. Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:224:[e-acsl] warning: E-ACSL construct `assigns clause in behavior' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:227:[e-acsl] warning: E-ACSL construct `logic function returning an integer' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:227:[e-acsl] warning: E-ACSL construct `assigns clause in behavior' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:124:[e-acsl] warning: E-ACSL construct `logic function application' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:127:[e-acsl] warning: E-ACSL construct `user-defined logic type' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:134:[e-acsl] warning: E-ACSL construct `user-defined logic type' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:92:[e-acsl] warning: E-ACSL construct `logic function application' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:92:[e-acsl] warning: E-ACSL construct `assigns clause in behavior' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:94:[e-acsl] warning: E-ACSL construct `logic function returning an integer' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/string.h:94:[e-acsl] warning: E-ACSL construct `assigns clause in behavior' is not yet supported.
+                  Ignoring annotation.
+FRAMAC_SHARE/libc/stdlib.h:396:[e-acsl] warning: E-ACSL construct `assigns clause in behavior' is not yet supported.
+                  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_rand_max ∈ {32767}
+  __fc_heap_status ∈ [--..--]
+  __e_acsl_init ∈ [--..--]
+  __fc_fopen[0..511] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __e_acsl_internal_heap ∈ [--..--]
+  __e_acsl_heap_allocation_size ∈ [--..--]
+  __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __fc_time ∈ [--..--]
+  __fc_fds_state ∈ [--..--]
+  __fc_fds[0..1023] ∈ {0}
+  __fc_time_tm ∈ {0}
+  __fc_p_time_tm ∈ {{ &__fc_time_tm }}
+  valid_specifiers ∈ {{ "diouxfFeEgGaAcspn" }}
+  __gen_e_acsl_literal_string ∈ {0}
+  __gen_e_acsl_literal_string_2 ∈ {0}
+  __gen_e_acsl_literal_string_3 ∈ {0}
+  __gen_e_acsl_literal_string_4 ∈ {0}
+  __gen_e_acsl_literal_string_5 ∈ {0}
+  __gen_e_acsl_literal_string_6 ∈ {0}
+  __gen_e_acsl_literal_string_7 ∈ {0}
+  __gen_e_acsl_literal_string_8 ∈ {0}
+  __gen_e_acsl_literal_string_9 ∈ {0}
+[value] using specification for function __e_acsl_memory_init
+[value] using specification for function __e_acsl_store_block
+[value] using specification for function __e_acsl_full_init
+[value] using specification for function __e_acsl_mark_readonly
+[value] using specification for function __e_acsl_delete_block
+[value] using specification for function __e_acsl_memory_clean
+[value] done for function main

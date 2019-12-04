@@ -1,0 +1,5 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/memory/valid.c:43: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&a);

@@ -25,12 +25,12 @@ Lemma abs_def :
   (~ (0%Z <= x)%Z -> ((ZArith.BinInt.Z.abs x) = (-x)%Z)).
 intros x.
 split ; intros H.
-now apply Zabs_eq.
+now apply Z.abs_eq.
 apply Zabs_non_eq.
 apply Znot_gt_le.
 contradict H.
 apply Zlt_le_weak.
-now apply Zgt_lt.
+now apply Z.gt_lt.
 Qed.
 
 (* Why3 goal *)

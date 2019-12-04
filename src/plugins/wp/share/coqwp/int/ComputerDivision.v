@@ -40,9 +40,9 @@ Lemma Div_bound :
 intros x y (Hx,Hy).
 split.
 now apply Z.quot_pos.
-destruct (Z_eq_dec y 1) as [H|H].
+destruct (Z.eq_dec y 1) as [H|H].
 rewrite H, Z.quot_1_r.
-apply Zle_refl.
+apply Z.le_refl.
 destruct (Zle_lt_or_eq 0 x Hx) as [H'|H'].
 apply Zlt_le_weak.
 apply Z.quot_lt with (1 := H').
@@ -57,10 +57,10 @@ Lemma Mod_bound :
   ((ZArith.BinInt.Z.rem x y) < (ZArith.BinInt.Z.abs y))%Z.
 intros x y Zy.
 destruct (Zle_or_lt 0 x) as [Hx|Hx].
-refine ((fun H => conj (Zlt_le_trans _ 0 _ _ (proj1 H)) (proj2 H)) _).
+refine ((fun H => conj (Z.lt_le_trans _ 0 _ _ (proj1 H)) (proj2 H)) _).
 clear -Zy ; zify ; omega.
 now apply Zrem_lt_pos.
-refine ((fun H => conj (proj1 H) (Zle_lt_trans _ 0 _ (proj2 H) _)) _).
+refine ((fun H => conj (proj1 H) (Z.le_lt_trans _ 0 _ (proj2 H) _)) _).
 clear -Zy ; zify ; omega.
 apply Zrem_lt_neg with (2 := Zy).
 now apply Zlt_le_weak.

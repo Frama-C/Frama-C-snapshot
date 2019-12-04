@@ -5,17 +5,17 @@
 [eva:initial-state] Values of globals at initialization
   undet ∈ [--..--]
   volatile_d ∈ [--..--]
-[eva:alarm] tests/value/summary.i:14: Warning: division by zero. assert 0 ≢ 0;
+[eva:alarm] tests/value/summary.i:15: Warning: division by zero. assert 0 ≢ 0;
 [eva] Recording results for bottom
 [eva] done for function bottom
-[eva] tests/value/summary.i:14: 
+[eva] tests/value/summary.i:15: 
   assertion 'Eva,division_by_zero' got final status invalid.
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function bottom:
   NON TERMINATING FUNCTION
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  1 function analyzed (out of 4): 25% coverage.
+  1 function analyzed (out of 6): 16% coverage.
   In this function, 1 statements reached (out of 2): 50% coverage.
   ----------------------------------------------------------------------------
   No errors or warnings raised during the analysis.

@@ -149,13 +149,13 @@ Definition separated (p:addr) (a:Z) (q:addr) (b:Z) : Prop :=
      (((offset p) + a)%Z <= (offset q))%Z))).
 
 (* Why3 assumption *)
-Definition eqmem {a:Type} {a_WT:WhyType a} (m1:addr -> a) (m2:addr -> a)
+Definition eqmem {a:Type} {a_WT:WhyType a} (m1: farray addr a) (m2:farray addr a)
     (p:addr) (a1:Z) : Prop :=
-  forall (q:addr), (included q 1%Z p a1) -> ((m1 q) = (m2 q)).
+  forall (q:addr), (included q 1%Z p a1) -> ((m1 .[ q ]) = (m2 .[ q ])).
 
 (* Why3 goal *)
-Variable havoc: forall {a:Type} {a_WT:WhyType a}, (addr -> a) ->
-  (addr -> a) -> addr -> Z -> addr -> a.
+Variable havoc: forall {a:Type} {a_WT:WhyType a}, (map.Map.map addr a) ->
+  (map.Map.map addr a) -> addr -> Z -> map.Map.map addr a.
 
 Definition fhavoc {A : Type}
   (m : farray addr A)
@@ -165,25 +165,25 @@ Definition fhavoc {A : Type}
      access := @havoc _ (whytype2 m) (access m) (access w) p n |}.
 
 (* Why3 assumption *)
-Definition valid_rw (m:Z -> Z) (p:addr) (n:Z) : Prop :=
+Definition valid_rw (m:array Z) (p:addr) (n:Z) : Prop :=
   (0%Z < n)%Z ->
   (0%Z < (base p))%Z /\
-  ((0%Z <= (offset p))%Z /\ (((offset p) + n)%Z <= (m (base p)))%Z).
+  ((0%Z <= (offset p))%Z /\ (((offset p) + n)%Z <= (m .[ base p ]))%Z).
 
 (* Why3 assumption *)
-Definition valid_rd (m:Z -> Z) (p:addr) (n:Z) : Prop :=
+Definition valid_rd (m:array Z) (p:addr) (n:Z) : Prop :=
   (0%Z < n)%Z ->
   ~ (0%Z = (base p)) /\
-  ((0%Z <= (offset p))%Z /\ (((offset p) + n)%Z <= (m (base p)))%Z).
+  ((0%Z <= (offset p))%Z /\ (((offset p) + n)%Z <= (m .[ base p ]))%Z).
 
 (* Why3 assumption *)
-Definition invalid (m:Z -> Z) (p:addr) (n:Z) : Prop :=
+Definition invalid (m:array Z) (p:addr) (n:Z) : Prop :=
   (0%Z < n)%Z ->
-  ((m (base p)) <= (offset p))%Z \/ (((offset p) + n)%Z <= 0%Z)%Z.
+  ((m .[ base p ]) <= (offset p))%Z \/ (((offset p) + n)%Z <= 0%Z)%Z.
 
 (* Why3 goal *)
 Lemma valid_rw_rd :
-  forall (m:Z -> Z), forall (p:addr), forall (n:Z), (valid_rw m p n) ->
+  forall (m:array Z), forall (p:addr), forall (n:Z), (valid_rw m p n) ->
   valid_rd m p n.
 Proof.
   intros m p n.
@@ -193,8 +193,8 @@ Qed.
 
 (* Why3 goal *)
 Lemma valid_string :
-  forall (m:Z -> Z), forall (p:addr), ((base p) < 0%Z)%Z ->
-  ((0%Z <= (offset p))%Z /\ ((offset p) < (m (base p)))%Z) ->
+  forall (m:array Z), forall (p:addr), ((base p) < 0%Z)%Z ->
+  ((0%Z <= (offset p))%Z /\ ((offset p) < (m .[ base p ]))%Z) ->
   (valid_rd m p 1%Z) /\ ~ (valid_rw m p 1%Z).
 Proof.
   intros m p.
@@ -249,20 +249,20 @@ Lemma separated_1 :
 Admitted.
 
 (* Why3 goal *)
-Definition region : Z -> Z.
+Definition region : array Z.
 Admitted.
 
 (* Why3 goal *)
-Definition linked : (Z -> Z) -> Prop.
+Definition linked : array Z -> Prop.
 Admitted.
 
 (* Why3 goal *)
-Definition sconst : (addr -> Z) -> Prop.
+Definition sconst : (farray addr Z) -> Prop.
 Admitted.
 
 (* Why3 assumption *)
-Definition framed (m:addr -> addr) : Prop :=
-  forall (p:addr), ((region (base (m p))) <= 0%Z)%Z.
+Definition framed (m: farray addr addr) : Prop :=
+  forall (p:addr), ((region .[ (base (m .[ p ]))] ) <= 0%Z)%Z.
 
 (* Why3 goal *)
 Lemma separated_included :
@@ -314,7 +314,7 @@ Qed.
 
 (* Why3 goal *)
 Lemma eqmem_included {a:Type} {a_WT:WhyType a} :
-  forall (m1:addr -> a) (m2:addr -> a), forall (p:addr) (q:addr),
+  forall (m1:farray addr a) (m2:farray addr a), forall (p:addr) (q:addr),
   forall (a1:Z) (b:Z), (included p a1 q b) -> (eqmem m1 m2 q b) ->
   eqmem m1 m2 p a1.
 Proof.
@@ -323,7 +323,7 @@ Admitted.
 
 (* Why3 goal *)
 Lemma eqmem_sym {a:Type} {a_WT:WhyType a} :
-  forall (m1:addr -> a) (m2:addr -> a), forall (p:addr), forall (a1:Z),
+  forall (m1:farray addr a) (m2: farray addr a), forall (p:addr), forall (a1:Z),
   (eqmem m1 m2 p a1) -> eqmem m2 m1 p a1.
 Proof.
   intros m1 m2 p a1. unfold eqmem.
@@ -331,10 +331,10 @@ Admitted.
 
 (* Why3 goal *)
 Lemma havoc_access {a:Type} {a_WT:WhyType a} :
-  forall (m0:addr -> a) (m1:addr -> a), forall (q:addr) (p:addr),
+  forall (m0: farray addr a) (m1:farray addr a), forall (q:addr) (p:addr),
   forall (a1:Z),
-  ((separated q 1%Z p a1) -> (((havoc m0 m1 p a1) q) = (m1 q))) /\
-  (~ (separated q 1%Z p a1) -> (((havoc m0 m1 p a1) q) = (m0 q))).
+  ((separated q 1%Z p a1) -> (((havoc m0 m1 p a1) q) = (m1 .[ q ]))) /\
+  (~ (separated q 1%Z p a1) -> (((havoc m0 m1 p a1) q) = (m0 .[ q ]))).
 Proof.
   intros m0 m1 q p a1.
 Admitted.

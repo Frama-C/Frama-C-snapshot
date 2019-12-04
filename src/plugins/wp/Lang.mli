@@ -223,6 +223,7 @@ sig
 
   val pool : ?copy:pool -> unit -> pool
   val fresh : pool -> ?basename:string -> tau -> var
+  val alpha : pool -> var -> var
   val add_var : pool -> var -> unit
   val add_vars : pool -> Vars.t -> unit
 

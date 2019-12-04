@@ -1,0 +1,33 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/gmp-only/functions.c:42: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:43: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:44: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:46: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:47: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized((__e_acsl_mpz_struct *)__gen_e_acsl_f1_4);
+[eva:alarm] tests/gmp-only/functions.c:47: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:48: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:49: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:53: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:56: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:58: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:63: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:25: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp-only/functions.c:68: Warning: 
+  non-finite double value. assert \is_finite(__gen_e_acsl__15);
+[eva:alarm] tests/gmp-only/functions.c:68: Warning: 
+  function __e_acsl_assert: precondition got status unknown.

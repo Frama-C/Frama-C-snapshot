@@ -5,14 +5,14 @@
 [eva:initial-state] Values of globals at initialization
   undet ∈ [--..--]
   volatile_d ∈ [--..--]
-[kernel:annot:missing-spec] tests/value/summary.i:18: Warning: 
+[kernel:annot:missing-spec] tests/value/summary.i:19: Warning: 
   Neither code nor specification for function minimalist, generating default assigns from the prototype
 [eva] using specification for function minimalist
 [eva] done for function minimalist
 [eva] ====== VALUES COMPUTED ======
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
-  0 functions analyzed (out of 4): 0% coverage.
+  0 functions analyzed (out of 6): 0% coverage.
   ----------------------------------------------------------------------------
   Some errors and warnings have been raised during the analysis:
     by the Eva analyzer:      0 errors    0 warnings

@@ -366,7 +366,7 @@ let rewrite ?at patterns sequent =
     (fun (descr,guard,src,tgt) ->
        let sequent =
          Conditions.subst
-           (fun e -> if e == src then tgt else e)
+           (fun e -> if e == src then tgt else raise Not_found)
            sequent in
        let step = Conditions.(step ~descr (When guard)) in
        descr , Conditions.insert ?at step sequent

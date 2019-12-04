@@ -1,0 +1,27 @@
+[e-acsl] beginning translation.
+[e-acsl] Warning: annotating undefined function `getenv':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:486: Warning: 
+  E-ACSL construct `logic functions with labels' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:486: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] FRAMAC_SHARE/libc/stdlib.h:488: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)__retres, (void *)0);
+[eva:alarm] FRAMAC_SHARE/libc/stdlib.h:488: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/stdlib.h:488: Warning: 
+  function __gen_e_acsl_getenv: postcondition 'null_or_valid_result' got status unknown.
+[eva:alarm] tests/temporal/t_getenv.c:13: Warning: assertion got status unknown.
+[eva:alarm] tests/temporal/t_getenv.c:13: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)g1, (void *)0);
+[eva:alarm] tests/temporal/t_getenv.c:13: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/temporal/t_getenv.c:14: Warning: assertion got status unknown.
+[eva:alarm] tests/temporal/t_getenv.c:14: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)g2, (void *)0);
+[eva:alarm] tests/temporal/t_getenv.c:14: Warning: 
+  function __e_acsl_assert: precondition got status unknown.

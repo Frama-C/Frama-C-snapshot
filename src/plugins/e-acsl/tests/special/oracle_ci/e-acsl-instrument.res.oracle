@@ -1,0 +1,14 @@
+[e-acsl] beginning translation.
+[kernel:annot:missing-spec] :0: Warning: 
+  Neither code nor specification for function __builtin_va_arg, generating default assigns from the prototype
+[kernel:annot:missing-spec] :0: Warning: 
+  Neither code nor specification for function __builtin_va_end, generating default assigns from the prototype
+[kernel:annot:missing-spec] :0: Warning: 
+  Neither code nor specification for function __builtin_va_start, generating default assigns from the prototype
+[e-acsl] tests/special/e-acsl-instrument.c:58: Warning: 
+  ignoring effect of variadic function vol
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/special/e-acsl-instrument.c:44: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(&tmp);
+  (tmp from vararg)

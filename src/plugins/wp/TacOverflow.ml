@@ -48,7 +48,7 @@ class overflow =
                 "In-Range", (hs , cond) ;
                 "No-Overflow" ,
                 Conditions.subst
-                  (fun u -> if u == e then v else u)
+                  (fun u -> if u == e then v else raise Not_found)
                   (hs , F.p_imply cond g)
               ])
       | _ -> Not_applicable

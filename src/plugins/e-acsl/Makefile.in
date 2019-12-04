@@ -267,7 +267,6 @@ EACSL_CONTRIB_FILES = \
 EACSL_MANUAL_FILES = doc/manuals/*.pdf
 
 EACSL_DOC_FILES = \
-	$(EACSL_MANUAL_FILES) \
 	doc/doxygen/doxygen.cfg.in \
 	doc/Changelog \
 	man/e-acsl-gcc.sh.1
@@ -292,8 +291,8 @@ EACSL_DISTRIB_TESTS = \
   $(foreach dir, $(addprefix tests/,$(PLUGIN_TESTS_DIRS)), \
       $(dir)/*.[ich] \
       $(dir)/test_config \
-      $(dir)/oracle/*.c \
-      $(dir)/oracle/*.oracle \
+      $(dir)/oracle_ci/*.c \
+      $(dir)/oracle_ci/*.oracle \
   )
 
 EACSL_RTL_FILES = $(EACSL_RTL_SRC)

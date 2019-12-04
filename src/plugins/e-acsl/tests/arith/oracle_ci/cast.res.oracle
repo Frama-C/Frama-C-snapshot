@@ -1,0 +1,4 @@
+[e-acsl] beginning translation.
+[e-acsl] tests/arith/cast.i:22: Warning: 
+  E-ACSL construct `R to Int' is not yet supported. Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".

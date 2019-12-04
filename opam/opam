@@ -94,9 +94,9 @@ depends: [
   "ocamlfind" # needed beyond build stage, used by -load-module
   "zarith"
   "conf-autoconf" { build }
-  ( ( "lablgtk" { >= "2.18.2" } & "conf-gnomecanvas" )
-  | ( "lablgtk3" { >= "3.0.beta4" & os!="macos" } & "lablgtk3-sourceview3" ))
-  "conf-gtksourceview"
+  ( ( "lablgtk" { >= "2.18.2" } & "conf-gnomecanvas" & "conf-gtksourceview" )
+    | ( "lablgtk3" { >= "3.0.beta4" & os!="macos" }
+        & "lablgtk3-sourceview3" & "conf-gtksourceview3" ) )
   ( "alt-ergo-free" | "alt-ergo" )
   "conf-graphviz" { post }
   "yojson"
@@ -128,4 +128,5 @@ messages: [
   {alt-ergo:installed}
   "The Frama-C/Wp native support for Coq is now deprecated (use TIP or Why-3 instead)."
   {coq:installed}
+  "WARNING: There is a known issue with OCaml 4.05.0 and ocamlfind 1.8.1 (https://github.com/ocaml/opam-repository/issues/10925) when upgrading from a previous ocamlfind. If the compilation of Frama-C fails, try downgrading ocamlfind to 1.8.0 or upgrading OCaml to > 4.05.0." { ocaml:version = "4.05.0" & ocamlfind:version = "1.8.1" }
 ]

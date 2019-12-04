@@ -42,7 +42,7 @@ Hypothesis Unit_def_r : forall (x:t), ((infix_as x one) = x).
 (* Why3 goal *)
 Definition power : t -> Z -> t.
 intros x n.
-exact (iter_nat (Zabs_nat n) t (fun acc => infix_as x acc) one).
+exact (iter_nat (Z.abs_nat n) t (fun acc => infix_as x acc) one).
 Defined.
 
 (* Why3 goal *)
@@ -58,7 +58,7 @@ Lemma Power_s :
 Proof.
 intros x n h1.
 unfold power.
-fold (Zsucc n).
+fold (Z.succ n).
 now rewrite Zabs_nat_Zsucc.
 Qed.
 
@@ -88,7 +88,7 @@ revert n Hn.
 apply natlike_ind.
 apply sym_eq, Unit_def_l.
 intros n Hn IHn.
-replace (Zsucc n + m)%Z with ((n + m) + 1)%Z by ring.
+replace (Z.succ n + m)%Z with ((n + m) + 1)%Z by ring.
 rewrite Power_s by auto with zarith.
 rewrite IHn.
 now rewrite <- Assoc, <- Power_s.
@@ -104,7 +104,7 @@ revert m Hm.
 apply natlike_ind.
 now rewrite Zmult_0_r, 2!Power_0.
 intros m Hm IHm.
-replace (n * Zsucc m)%Z with (n + n * m)%Z by ring.
+replace (n * Z.succ m)%Z with (n + n * m)%Z by ring.
 rewrite Power_sum by auto with zarith.
 rewrite IHm.
 now rewrite <- Power_s.
@@ -119,7 +119,7 @@ intros x y comm.
 apply natlike_ind.
 now rewrite Power_0, Unit_def_r, Unit_def_l.
 intros n Hn IHn.
-unfold Zsucc.
+unfold Z.succ.
 rewrite (Power_s _ _ Hn).
 rewrite Assoc.
 rewrite IHn.
@@ -139,7 +139,7 @@ apply natlike_ind.
 rewrite 3!Power_0.
 now rewrite Unit_def_r.
 intros n Hn IHn.
-unfold Zsucc.
+unfold Z.succ.
 rewrite 3!(Power_s _ _ Hn).
 rewrite IHn.
 rewrite <- Assoc.

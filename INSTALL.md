@@ -362,7 +362,6 @@ Type `make`.
 
 Some Makefile targets of interest are:
 - `doc`      generates the API documentation.
-- `top`      generates an OCaml toplevel embedding Frama-C as a library.
 - `oracles`  sets up the Frama-C test suite oracles for your own configuration.
 - `tests`    performs Frama-C's own tests.
 
@@ -421,7 +420,6 @@ available:
 - `frama-c.byte`      bytecode version of frama-c
 - `frama-c-gui.byte`  bytecode version of frama-c-gui, if available
 - `ptests.opt`        testing tool for Frama-c
-- `frama-c.toplevel`  if 'make top' previously done
 - `frama-c-script`    utilities related to analysis parametrization
 
 ## Shared files: (in `/INSTALL_DIR/share/frama-c` and subdirectories)

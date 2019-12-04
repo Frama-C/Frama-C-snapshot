@@ -134,6 +134,7 @@ val subst : (term -> term) -> sequent -> sequent
     Function [f] should only transform the head of the predicate, and can assume
     its sub-terms have been already substituted. The atomic substitution is also applied
     to predicates.
+    [f] should raise [Not_found] on terms that must not be replaced
 *)
 
 val introduction : sequent -> sequent option

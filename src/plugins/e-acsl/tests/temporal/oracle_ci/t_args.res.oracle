@@ -1,0 +1,5 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/temporal/t_args.c:9: Warning: assertion got status unknown.
+[eva:alarm] tests/temporal/t_args.c:10: Warning: 
+  assertion got status invalid (stopping propagation).

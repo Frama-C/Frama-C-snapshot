@@ -1,0 +1,14 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/arith/functions.c:44: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/arith/functions.c:47: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/arith/functions.c:48: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/arith/functions.c:49: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/arith/functions.c:68: Warning: 
+  non-finite double value. assert \is_finite(__gen_e_acsl__10);
+[eva:alarm] tests/arith/functions.c:68: Warning: 
+  function __e_acsl_assert: precondition got status unknown.

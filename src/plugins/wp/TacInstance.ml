@@ -130,8 +130,8 @@ let bind ~side bindings property : Tactical.process =
       let open Conditions in
       instance_have ?title:s.descr ~at:s.id bindings property
 
-let filter x e =
-  try F.Tau.equal (F.tau_of_var x) (F.typeof e)
+let filter tau e =
+  try F.Tau.equal tau (F.typeof e)
   with Not_found -> true (* allowed to not restrict usage *)
 
 let fieldname ~range k x =
@@ -159,7 +159,7 @@ class instance =
           let range = match tau with L.Int -> true | _ -> false in
           let tooltip = fieldname ~range env.index x in
           env.feedback#update_field
-            ~tooltip ~range ~enabled:true ~filter:(filter x) fd ;
+            ~tooltip ~range ~enabled:true ~filter:(filter tau) fd ;
           let lemma = F.QED.e_unbind x phi in
           let bindings,property = self#wrap env lemma fields in
           (x,v) :: bindings , property
