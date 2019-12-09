@@ -297,6 +297,8 @@ let default_machdeps =
     "gcc_x86_16", Machdeps.x86_16;
     "gcc_x86_32", Machdeps.gcc_x86_32;
     "gcc_x86_64", Machdeps.gcc_x86_64;
+    "aarch64", Machdeps.aarch64;
+    "gcc_aarch64", Machdeps.gcc_aarch64;
     "ppc_32", Machdeps.ppc_32;
     "msvc_x86_64", Machdeps.msvc_x86_64;
   ]
@@ -317,6 +319,8 @@ let machdep_macro = function
   | "gcc_x86_32"            -> "__FC_MACHDEP_GCC_X86_32"
   | "x86_64"                -> "__FC_MACHDEP_X86_64"
   | "gcc_x86_64"            -> "__FC_MACHDEP_GCC_X86_64"
+  | "aarch64"               -> "__FC_MACHDEP_AARCH64"
+  | "gcc_aarch64"           -> "__FC_MACHDEP_GCC_AARCH64"
   | "ppc_32"                -> "__FC_MACHDEP_PPC_32"
   | "msvc_x86_64"           -> "__FC_MACHDEP_MSVC_X86_64"
   | s ->
