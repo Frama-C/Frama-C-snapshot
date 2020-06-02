@@ -3,6 +3,23 @@
 [Frama-C](http://frama-c.com) is a platform dedicated to the analysis of
 source code written in C.
 
+## Note: The Official Frama-C Repository is now at our [Gitlab!](https://git.frama-c.com/pub/frama-c)
+
+**Frama-C has moved its official repository to our self-hosted Gitlab instance.**
+
+**Official releases (starting from Frama-C 21) will no longer be updated here.**
+
+**Nightly snapshots are also available in our Gitlab! You can now get access to
+the latest development version at: https://git.frama-c.com/pub/frama-c/-/tree/master**
+
+**The official Frama-C issue tracker is now at our Gitlab:
+https://git.frama-c.com/pub/frama-c/-/issues**
+
+**You can submit issues and pull requests using your Github login
+(choose "Sign in with Github" when prompted).**
+
+**See you there!**
+
 ## A Collaborative Platform
 
 Frama-C gathers several analysis techniques in a single collaborative
